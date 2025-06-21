@@ -8,8 +8,8 @@ def create_app():
     app.config['SECRET_KEY'] = 'dev-secret-key'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mobile_nurse.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['GOOGLE_OAUTH_CLIENT_ID'] = 'YOUR_GOOGLE_CLIENT_ID'
-    app.config['GOOGLE_OAUTH_CLIENT_SECRET'] = 'YOUR_GOOGLE_CLIENT_SECRET'
+    app.config['GOOGLE_OAUTH_CLIENT_ID'] = '739082915470-dm5ppev70pv4169eoo890rm61ahhae6s.apps.googleusercontent.com'
+    app.config['GOOGLE_OAUTH_CLIENT_SECRET'] = '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'
 
     # Ініціалізація розширень
     db.init_app(app)
@@ -29,7 +29,7 @@ def create_app():
     app.register_blueprint(main_bp)
     app.register_blueprint(client_bp)
     app.register_blueprint(nurse_bp)
-    app.register_blueprint(google_blueprint, url_prefix="/google")
+    app.register_blueprint(google_blueprint)
 
     @login_manager.user_loader
     def load_user(user_id):

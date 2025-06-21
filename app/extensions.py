@@ -4,6 +4,7 @@ from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
 from flask_socketio import SocketIO
 from flask_dance.contrib.google import make_google_blueprint
+import os
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
@@ -15,12 +16,12 @@ socket_io = SocketIO()
 
 
 google_blueprint = make_google_blueprint(
-    client_id="563510051014-l1hhcimduh37tsgtq860po82hk2c2r7m.apps.googleusercontent.com",
-    client_secret="YOUGOCSPX--KMnpVDzFxHBWiX31k2_lD1WH7g-",
-    scope=["profile", "email"],
+    client_id="739082915470-dm5ppev70pv4169eoo890rm61ahhae6s.apps.googleusercontent.com",
+    client_secret="YGOCSPX-TpamlrYN42BnaffhyMQTStKZi81J",
+    scope=["profile", "email", "openid"],
     redirect_to="auth.google_login",
     offline=True,
-    reprompt_consent=True
+    reprompt_consent=True  
 )
 
 
