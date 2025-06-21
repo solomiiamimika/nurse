@@ -1,18 +1,32 @@
-{% extends "auth/base.html" %}
+{% extends "base.html" %}
 {% block content %}
 <h2>Login</h2>
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="alert alert-{{ category }}">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
 <form method="POST">
-    <label for="email">Email:</label><br>
-    <input type="email" name="email" required><br><br>
+    <label for="username">Email or Username:</label><br>
+    <input type="text" id="username" name="username" required><br><br>
 
     <label for="password">Password:</label><br>
-    <input type="password" name="password" required><br><br>
+    <input type="password" id="password" name="password" required><br><br>
 
     <button type="submit">Login</button>
 </form>
 
-<p>Or</p>
-<a href="{{ url_for('google.login') }}">Login with Google</a>
+<p>Or login with:</p>
+<a href="{{ url_for('google.login') }}" class="btn btn-google">
+    <i class="fab fa-google"></i> Login with Google
+</a>
 
 <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
+
+
 {% endblock %}

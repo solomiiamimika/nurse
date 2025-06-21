@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="nurse-dashboard">
+    <h2>Панель медсестри</h2>
+    <div class="dashboard-options">
+        <a href="{{ url_for('nurse.schedule') }}" class="btn btn-primary">
+            Мій графік
+        </a>
+        <a href="#" class="btn btn-secondary">
+            Мої пацієнти
+        </a>
+    </div>
+</div>
+{% endblock %}

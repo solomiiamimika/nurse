@@ -8,9 +8,17 @@ from datetime import datetime
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
-    user_name = Column(Text, unique=True, nullable=False)
-    email = Column(Text(), unique=True, nullable=False)
-    password = Column(Text, nullable=False)
+    user_name = Column(Text, unique=True, nullable=False, name='uq_user_user_name')
+    email = Column(Text(), unique=True, nullable=False, name='uq_user_email')
+
+    password_hash = Column(Text, nullable=False)
+    
+    google_id = Column(String(100), unique=True, nullable=True)
+    latitude = Column(Float) #широта
+    longtitude = Column(Float) #довгота
+
+    location_approved = Column(Boolean,default = False)
+
 
     role = Column(Text)
 
@@ -18,8 +26,16 @@ class User(db.Model, UserMixin):
     online= Column(Boolean)
     
 
-    messages_sent = db.relationship('Message', foreign_keys='Message.sender_id', backref='sender', lazy=True)
-    messages_received = db.relationship('Message', foreign_keys='Message.recipient_id', backref='recipient', lazy=True)
+    sent_messages = db.relationship('Message', 
+                                  foreign_keys='Message.sender_id', 
+                                  backref='sender', 
+                                  lazy=True)
+    
+    received_messages = db.relationship('Message', 
+                                      foreign_keys='Message.recipient_id', 
+                                      backref='recipient', 
+                                      lazy=True)
+    
     client_appointments = db.relationship('Appointment', foreign_keys='Appointment.client_id', backref='client', lazy=True)
     nurse_appointments = db.relationship('Appointment', foreign_keys='Appointment.nurse_id', backref='nurse', lazy=True)
     payments = db.relationship('Payment', backref='user', lazy=True)
@@ -37,8 +53,8 @@ class User(db.Model, UserMixin):
 class Message (db.Model):
     __tablename__ = 'message'
     id = Column (Integer, primary_key=True)
-    sender_id = Column(Integer,ForeignKey('user.id'))
-    receiver_id=Column(Integer,ForeignKey('user.id'))
+    sender_id = Column(Integer,ForeignKey('user.id',name='fk_message_sender'))
+    recipient_id=Column(Integer,ForeignKey('user.id',name='fk_message_recipient'))
     text = Column(Text)
     timestamp=Column(DateTime,default=datetime.now)
     is_read = Column(Boolean,default=False)

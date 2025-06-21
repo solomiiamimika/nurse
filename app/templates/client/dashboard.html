@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="client-dashboard">
+    <h2>Панель клієнта</h2>
+    <div class="dashboard-options">
+        <a href="{{ url_for('client.appointments') }}" class="btn btn-primary">
+            Мої записи
+        </a>
+        <a href="#" class="btn btn-secondary">
+            Записатись на прийом
+        </a>
+    </div>
+</div>
+{% endblock %}

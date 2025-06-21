@@ -1,28 +1,42 @@
-{% extends "auth/base.html" %}
+{% extends "base.html" %}
 {% block content %}
 <h2>Register</h2>
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="alert alert-{{ category }}">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
 <form method="POST">
     <label for="username">Username:</label><br>
-    <input type="text" name="username" required><br><br>
+    <input type="text" id="username" name="username" required><br><br>
 
     <label for="email">Email:</label><br>
-    <input type="email" name="email" required><br><br>
+    <input type="email" id="email" name="email" required><br><br>
 
     <label for="password">Password:</label><br>
-    <input type="password" name="password" required><br><br>
+    <input type="password" id="password" name="password"><br><br>
 
     <label for="confirm_password">Confirm Password:</label><br>
-    <input type="password" name="confirm_password" required><br><br>
+    <input type="password" id="confirm_password" name="confirm_password"><br><br>
 
     <label for="role">Role:</label><br>
-    <select name="role" required>
-        <option value="">Select role</option>
+    <select id="role" name="role" required>
         <option value="client">Client</option>
         <option value="nurse">Nurse</option>
     </select><br><br>
 
     <button type="submit">Register</button>
 </form>
+
+<p>Or register with:</p>
+<a href="{{ url_for('google.login') }}" class="btn btn-google">
+    <i class="fab fa-google"></i> Register with Google
+</a>
 
 <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
 {% endblock %}

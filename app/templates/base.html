@@ -2,7 +2,9 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
     <title>My Cool App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
 <body>
@@ -10,7 +12,7 @@
     {% if messages %}
     <ul>
         {% for category, message in messages %}
-        <li style="color: {% if category == 'danger' %}red{% else %}green{%endif %};">
+        <li class="alert alert-{{ category }}">
             {{ message }}
         </li>
         {% endfor %}
