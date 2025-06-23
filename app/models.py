@@ -15,7 +15,7 @@ class User(db.Model, UserMixin):
     
     google_id = Column(String(100), unique=True, nullable=True)
     latitude = Column(Float) #широта
-    longtitude = Column(Float) #довгота
+    longitude = Column(Float) #довгота
 
     location_approved = Column(Boolean,default = False)
 
