@@ -3,6 +3,7 @@
 <div class="client-dashboard">
     <h2>Панель клієнта</h2>
     <div class="dashboard-options">
+        <button ><a href="{{ url_for('auth.logout') }}"></a></button>"
         <button id="location-btn" class="btn btn-info">
             {% if current_user.location_approved %}
                 Оновити моє місцезнаходження

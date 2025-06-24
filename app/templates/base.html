@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <title>My Cool App</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""/>
@@ -27,6 +26,7 @@
     {% endwith %}
 
     {% block content %}{% endblock %}
+    {% block scripts %}{% endblock %}
 </body>
 
 </html>

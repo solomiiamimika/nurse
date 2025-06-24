@@ -1,180 +1,213 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="client-dashboard">
-    <h2>Панель клієнта</h2>
+<div class="nurse-dashboard">
+    <h2>Панель медсестри</h2>
     <div class="dashboard-options">
+        app/templates/client/dashboard.html
         <button id="location-btn" class="btn btn-info">
-            {% if current_user.location_approved %}
-                Оновити моє місцезнаходження
-            {% else %}
-                Надати доступ до місцезнаходження
-            {% endif %}
+            Оновити моє місцезнаходження
         </button>
+        <button id="toggle-online-btn" class="btn {{ 'btn-success' if current_user.online else 'btn-secondary' }}">
+            {{ 'Я онлайн' if current_user.online else 'Я офлайн' }}
+        </button>
+        <div id="status-message" class="mt-2 small"></div>
     </div>
     
-    <div id="map-container" style="height: 500px; width: 100%; margin-top: 20px;"></div>
+    <div id="map-container" style="height: 500px; width: 100%; margin-top: 20px; border: 2px solid #ddd;"></div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script>
     let map;
     let userMarker;
-    let nurseLayerGroup = L.layerGroup();
+    let clientsLayer = L.layerGroup();
     
+    function showStatus(message, isError = false) {
+        const statusEl = document.getElementById('status-message');
+        statusEl.textContent = message;
+        statusEl.style.color = isError ? 'red' : 'green';
+        console.log(message);
+    }
+
     function initMap() {
-        console.log('Ініціалізація карти...');
-        map = L.map('map-container').setView([50.4501, 30.5234], 12);
-        
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-        
-        nurseLayerGroup.addTo(map);
-        
-        if ({{ 'true' if current_user.location_approved else 'false' }}) {
-            console.log('Користувач вже надав доступ до геолокації');
-            loadNursesLocations();
+        try {
+            showStatus("Ініціалізація карти...");
+            map = L.map('map-container').setView([50.4501, 30.5234], 12);
             
-            if ({{ current_user.latitude|default(0, true) }} && {{ current_user.longitude|default(0, true) }}) {
-                updateUserMarker(
-                    parseFloat({{ current_user.latitude|default(0) }}), 
-                    parseFloat({{ current_user.longitude|default(0) }})
-                );
-            }
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            clientsLayer.addTo(map);
+            
+            // Додаємо маркер медсестри, якщо координати є
+            {% if current_user.latitude and current_user.longitude %}
+                updateUserMarker({{ current_user.latitude }}, {{ current_user.longitude }});
+            {% endif %}
+            
+            loadClientsLocations();
+            
+        } catch (error) {
+            showStatus("Помилка ініціалізації карти: " + error.message, true);
+            console.error(error);
         }
     }
     
     function updateUserMarker(lat, lng) {
-        console.log('Оновлення маркера користувача:', lat, lng);
-        if (userMarker) {
-            map.removeLayer(userMarker);
+        try {
+            if (userMarker) map.removeLayer(userMarker);
+            
+            userMarker = L.marker([lat, lng], {
+                icon: L.divIcon({
+                    className: 'nurse-marker',
+                    html: '<div style="background-color: purple; border-radius: 50%; width: 20px; height: 20px;"></div>',
+                    iconSize: [20, 20]
+                }),
+                title: 'Ваше місцезнаходження'
+            }).addTo(map);
+            
+            map.setView([lat, lng], 12);
+            showStatus("Місцезнаходження оновлено");
+            
+        } catch (error) {
+            showStatus("Помилка оновлення маркера", true);
+            console.error(error);
         }
-        
-        userMarker = L.marker([lat, lng], {
-            icon: L.divIcon({
-                className: 'user-marker',
-                html: '<div style="background-color: blue; border-radius: 50%; width: 20px; height: 20px;"></div>',
-                iconSize: [20, 20]
-            }),
-            title: 'Ваше місцезнаходження'
-        }).addTo(map);
-        
-        map.setView([lat, lng], 12);
     }
     
-    document.getElementById('location-btn').addEventListener('click', function() {
-        console.log('Кнопка геолокації натиснута');
-        if (navigator.geolocation) {
-            console.log('Браузер підтримує геолокацію');
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    console.log('Отримано позицію:', position);
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    
-                    updateUserMarker(lat, lng);
-                    
-                    fetch('{{ url_for("client.update_location") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            latitude: lat,
-                            longitude: lng
-                        })
-                    })
-                    .then(response => {
-                        console.log('Відповідь від сервера:', response);
-                        if (!response.ok) throw new Error('Помилка мережі');
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log('Дані від сервера:', data);
-                        if (data.success) {
-                            loadNursesLocations();
-                            window.location.reload();
-                        } else {
-                            alert('Помилка: ' + (data.message || 'Невідома помилка'));
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Помилка:', error);
-                        alert('Помилка: ' + error.message);
-                    });
-                },
-                function(error) {
-                    console.error('Помилка геолокації:', error);
-                    let errorMessage = "Невідома помилка геолокації";
-                    switch(error.code) {
-                        case error.PERMISSION_DENIED:
-                            errorMessage = "Доступ до геолокації відхилено";
-                            break;
-                        case error.POSITION_UNAVAILABLE:
-                            errorMessage = "Інформація про місцезнаходження недоступна";
-                            break;
-                        case error.TIMEOUT:
-                            errorMessage = "Час очікування геолокації вийшов";
-                            break;
-                    }
-                    alert(errorMessage);
-                },
-                {
+    async function updateLocation() {
+        try {
+            showStatus("Визначення вашого місцезнаходження...");
+            
+            if (!navigator.geolocation) {
+                throw new Error("Ваш браузер не підтримує геолокацію");
+            }
+            
+            const position = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
                     enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                }
-            );
-        } else {
-            console.log('Браузер не підтримує геолокацію');
-            alert("Ваш браузер не підтримує геолокацію");
-        }
-    });
-
-    function loadNursesLocations() {
-        console.log('Завантаження локацій медсестер...');
-        nurseLayerGroup.clearLayers();
-        
-        fetch('{{ url_for("client.get_nurses_locations") }}')
-            .then(response => {
-                if (!response.ok) throw new Error('Помилка мережі');
-                return response.json();
-            })
-            .then(data => {
-                console.log('Отримано дані медсестер:', data);
-                data.forEach(nurse => {
-                    const marker = L.marker([nurse.lat, nurse.lng], {
-                        icon: L.divIcon({
-                            className: 'nurse-marker',
-                            html: `<div style="background-color: ${nurse.online ? 'green' : 'red'}; 
-                                  border-radius: 50%; width: 20px; height: 20px;"></div>`,
-                            iconSize: [20, 20]
-                        })
-                    }).addTo(nurseLayerGroup);
-                    
-                    marker.bindPopup(`<h5>${nurse.name}</h5><p>${nurse.online ? 'Доступна' : 'Недоступна'}</p>`);
+                    timeout: 10000
                 });
-            })
-            .catch(error => {
-                console.error('Помилка завантаження медсестер:', error);
             });
+            
+            const {latitude, longitude} = position.coords;
+            updateUserMarker(latitude, longitude);
+            
+            // Відправка на сервер
+            const response = await fetch('{{ url_for("nurse.update_location") }}', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    latitude: latitude,
+                    longitude: longitude
+                })
+            });
+            
+            if (!response.ok) throw new Error("Помилка сервера");
+            
+            const result = await response.json();
+            if (!result.success) throw new Error(result.message || "Помилка оновлення");
+            
+            showStatus("Локація успішно оновлена");
+            
+        } catch (error) {
+            showStatus("Помилка: " + error.message, true);
+            console.error(error);
+            
+            // Тестовий режим для локального розвитку
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                showStatus("Використовуємо тестові координати");
+                updateUserMarker(50.4501 + (Math.random()*0.02-0.01), 
+                               30.5234 + (Math.random()*0.02-0.01));
+            }
+        }
+    }
+    
+    async function toggleOnlineStatus() {
+        try {
+            const response = await fetch('{{ url_for("nurse.toggle_online") }}', {
+                method: 'POST'
+            });
+            
+            if (!response.ok) throw new Error("Помилка сервера");
+            
+            const result = await response.json();
+            if (!result.success) throw new Error("Помилка зміни статусу");
+            
+            const btn = document.getElementById('toggle-online-btn');
+            if (result.online) {
+                btn.classList.remove('btn-secondary');
+                btn.classList.add('btn-success');
+                btn.textContent = 'Я онлайн';
+            } else {
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-secondary');
+                btn.textContent = 'Я офлайн';
+            }
+            
+            showStatus("Статус оновлено: " + (result.online ? "онлайн" : "офлайн"));
+            
+        } catch (error) {
+            showStatus("Помилка: " + error.message, true);
+            console.error(error);
+        }
+    }
+    
+    async function loadClientsLocations() {
+        try {
+            showStatus("Завантаження клієнтів...");
+            clientsLayer.clearLayers();
+            
+            // Тут має бути ваш запит до API для отримання клієнтів
+            // Приклад:
+            const response = await fetch('/api/clients_locations');
+            if (!response.ok) throw new Error("Помилка завантаження");
+            
+            const clients = await response.json();
+            
+            clients.forEach(client => {
+                const marker = L.marker([client.lat, client.lng], {
+                    icon: L.divIcon({
+                        className: 'client-marker',
+                        html: '<div style="background-color: blue; border-radius: 50%; width: 20px; height: 20px;"></div>',
+                        iconSize: [20, 20]
+                    })
+                }).addTo(clientsLayer);
+                
+                marker.bindPopup(`<b>${client.name}</b>`);
+            });
+            
+            showStatus(`Завантажено ${clients.length} клієнтів`);
+            
+        } catch (error) {
+            showStatus("Помилка завантаження клієнтів: " + error.message, true);
+            console.error(error);
+        }
     }
 
-    // Ініціалізація карти після повного завантаження DOM
-    document.addEventListener('DOMContentLoaded', initMap);
+    // Ініціалізація після завантаження сторінки
+    document.addEventListener('DOMContentLoaded', () => {
+        initMap();
+        
+        document.getElementById('location-btn').addEventListener('click', updateLocation);
+        document.getElementById('toggle-online-btn').addEventListener('click', toggleOnlineStatus);
+        
+        // Періодичне оновлення локацій клієнтів (кожні 30 сек)
+        setInterval(loadClientsLocations, 30000);
+    });
 </script>
 
 <style>
     #map-container {
         border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    .leaflet-container {
-        background: #f8f9fa;
+    .nurse-marker {
+        z-index: 1000;
+    }
+    #status-message {
+        min-height: 20px;
+        font-size: 14px;
     }
 </style>
 {% endblock %}
