@@ -4,6 +4,11 @@
     <h2>Панель медсестри</h2>
     <div class="dashboard-options">
         app/templates/client/dashboard.html
+        <form action="{{url_for('auth.logout')}} " method="post">
+            <button type="submit" class="btn btn-info">
+                <i>Вийти</i>
+            </button>
+        </form>
         <button id="location-btn" class="btn btn-info">
             Оновити моє місцезнаходження
         </button>
@@ -41,7 +46,6 @@
             
             clientsLayer.addTo(map);
             
-            // Додаємо маркер медсестри, якщо координати є
             {% if current_user.latitude and current_user.longitude %}
                 updateUserMarker({{ current_user.latitude }}, {{ current_user.longitude }});
             {% endif %}
@@ -94,7 +98,6 @@
             const {latitude, longitude} = position.coords;
             updateUserMarker(latitude, longitude);
             
-            // Відправка на сервер
             const response = await fetch('{{ url_for("nurse.update_location") }}', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -115,7 +118,6 @@
             showStatus("Помилка: " + error.message, true);
             console.error(error);
             
-            // Тестовий режим для локального розвитку
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
                 showStatus("Використовуємо тестові координати");
                 updateUserMarker(50.4501 + (Math.random()*0.02-0.01), 
@@ -159,10 +161,11 @@
             showStatus("Завантаження клієнтів...");
             clientsLayer.clearLayers();
             
-            // Тут має бути ваш запит до API для отримання клієнтів
-            // Приклад:
-            const response = await fetch('/api/clients_locations');
-            if (!response.ok) throw new Error("Помилка завантаження");
+            const response = await fetch('{{ url_for("nurse.get_clients_locations") }}');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP помилка! Статус: ${response.status}`);
+            }
             
             const clients = await response.json();
             
@@ -175,25 +178,47 @@
                     })
                 }).addTo(clientsLayer);
                 
-                marker.bindPopup(`<b>${client.name}</b>`);
+                marker.bindPopup(`
+                    <b>${client.name}</b>
+                    <div>ID: ${client.id}</div>
+                    <div>Широта: ${client.lat.toFixed(6)}</div>
+                    <div>Довгота: ${client.lng.toFixed(6)}</div>
+                `);
             });
             
             showStatus(`Завантажено ${clients.length} клієнтів`);
             
         } catch (error) {
             showStatus("Помилка завантаження клієнтів: " + error.message, true);
-            console.error(error);
+            console.error("Помилка завантаження клієнтів:", error);
+            
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                showStatus("Використовуємо тестові дані клієнтів");
+                const testClients = [
+                    {id: 1, name: "Тестовий клієнт 1", lat: 50.451, lng: 30.524},
+                    {id: 2, name: "Тестовий клієнт 2", lat: 50.449, lng: 30.522},
+                    {id: 3, name: "Тестовий клієнт 3", lat: 50.452, lng: 30.525}
+                ];
+                
+                testClients.forEach(client => {
+                    L.marker([client.lat, client.lng], {
+                        icon: L.divIcon({
+                            className: 'client-marker',
+                            html: '<div style="background-color: blue; border-radius: 50%; width: 20px; height: 20px;"></div>',
+                            iconSize: [20, 20]
+                        })
+                    }).addTo(clientsLayer)
+                    .bindPopup(`<b>${client.name}</b> (тестовий)`);
+                });
+            }
         }
     }
-
-    // Ініціалізація після завантаження сторінки
-    document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', () => {
         initMap();
         
         document.getElementById('location-btn').addEventListener('click', updateLocation);
         document.getElementById('toggle-online-btn').addEventListener('click', toggleOnlineStatus);
         
-        // Періодичне оновлення локацій клієнтів (кожні 30 сек)
         setInterval(loadClientsLocations, 30000);
     });
 </script>

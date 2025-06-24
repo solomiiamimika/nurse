@@ -20,10 +20,10 @@
 
 {% block scripts %}
 <script>
-    // Глобальні змінні
+
     let map, userMarker, nurseMarkers = [];
     
-    // Функція для оновлення статусу
+
     function updateStatus(message, isError = false) {
         const statusEl = document.getElementById('status');
         statusEl.textContent = message;
@@ -31,22 +31,18 @@
         console.log(message);
     }
 
-    // Ініціалізація карти
     function initMap() {
         try {
             updateStatus("Спробуємо ініціалізувати карту...");
-            
-            // Створення карти
+
             map = L.map('map-container').setView([50.4501, 30.5234], 12);
-            
-            // Додаємо базовий шар
+
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
             
             updateStatus("Карта успішно завантажена");
             
-            // Автоматичне завантаження даних
             loadInitialData();
             
         } catch (error) {
@@ -55,18 +51,14 @@
         }
     }
     
-    // Завантаження початкових даних
     function loadInitialData() {
-        // Координати користувача
         {% if current_user.latitude and current_user.longitude %}
             updateUserMarker({{ current_user.latitude }}, {{ current_user.longitude }});
         {% endif %}
         
-        // Список медсестер
         loadNurses();
     }
     
-    // Оновлення маркера користувача
     function updateUserMarker(lat, lng) {
         try {
             if (userMarker) map.removeLayer(userMarker);
@@ -88,7 +80,6 @@
         }
     }
     
-    // Завантаження медсестер
     async function loadNurses() {
         try {
             updateStatus("Завантаження медсестер...");
@@ -98,11 +89,9 @@
             
             const nurses = await response.json();
             
-            // Очищаємо старі маркери
             nurseMarkers.forEach(m => map.removeLayer(m));
             nurseMarkers = [];
             
-            // Додаємо нові маркери
             nurses.forEach(nurse => {
                 const marker = L.marker([nurse.lat, nurse.lng], {
                     icon: L.divIcon({
@@ -125,12 +114,10 @@
         }
     }
     
-    // Обробник кнопки геолокації
     async function handleLocation() {
         try {
             updateStatus("Визначення вашого місцезнаходження...");
             
-            // Тестовий режим для localhost
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
                 updateStatus("Тестовий режим: використовуємо координати Києва");
                 updateUserMarker(50.4501, 30.5234);
@@ -151,7 +138,6 @@
             const {latitude, longitude} = position.coords;
             updateUserMarker(latitude, longitude);
             
-            // Відправка на сервер
             const response = await fetch('{{ url_for("client.update_location") }}', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -172,7 +158,6 @@
         }
     }
     
-    // Ініціалізація після завантаження сторінки
     document.addEventListener('DOMContentLoaded', () => {
         console.log("DOM повністю завантажений");
         initMap();
@@ -188,7 +173,6 @@
         }
     });
     
-    // Додатковий спосіб ініціалізації для надійності
     if (document.readyState === 'complete') {
         initMap();
     }
