@@ -120,7 +120,7 @@ def google_login():
     flash('You have been logged in with Google!', 'success')
     return redirect(url_for(f'{user.role}.dashboard'))
 
-@auth_bp.route('/logout')
+@auth_bp.route('/logout', methods=['GET', 'POST'])
 def logout():
     # Додатково виходимо з Google
     if google_blueprint.session.authorized:
