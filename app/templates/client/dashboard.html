@@ -1,27 +1,26 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %} 
+{% block content %}
 <div class="client-dashboard">
-  <h2>Панель клієнта</h2>
-  <div class="dashboard-options">
-    <form action="{{url_for('auth.logout')}} " method="post">
-      <button type="submit" class="btn btn-info">
-        <i>Вийти</i>
-      </button>
-    </form>
-    <button id="location-btn" class="btn btn-info">
-      {% if current_user.location_approved %} Оновити моє місцезнаходження {%
-      else %} Надати доступ до місцезнаходження {% endif %}
-    </button>
-    <div
-      id="status"
-      style="margin-top: 10px; min-height: 20px; color: green"
-    ></div>
-  </div>
+    <h2>Панель клієнта</h2>
+    <div class="dashboard-options">
+        <form action="{{url_for('auth.logout')}} " method="post">
+            <button type="submit" class="btn btn-info">
+                <i>Вийти</i>
+            </button>
+        </form>
+        <button id="location-btn" class="btn btn-info">
+            {% if current_user.location_approved %}
+            Оновити моє місцезнаходження
+            {% else %}
+            Надати доступ до місцезнаходження
+            {% endif %}
+        </button>
+        <div id="status" style="margin-top: 10px; min-height: 20px; color: green;"></div>
+    </div>
 
-  <div
-    id="map-container"
-    style="height: 500px; width: 100%; margin-top: 20px; border: 2px solid #ddd"
-  ></div>
+    <div id="map-container" style="height: 500px; width: 100%; margin-top: 20px; border: 2px solid #ddd;"></div>
 </div>
+
 {% endblock %} {% block scripts %}
 <script>
 
