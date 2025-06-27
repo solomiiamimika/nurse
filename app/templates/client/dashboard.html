@@ -57,7 +57,7 @@
 
     function loadInitialData() {
         {% if current_user.latitude and current_user.longitude %}
-        updateUserMarker({{ current_user.latitude }}, { { current_user.longitude } });
+        updateUserMarker({{ current_user.latitude }}, {{ current_user.longitude }});
     {% endif %}
 
     loadNurses();
