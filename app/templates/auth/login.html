@@ -1,32 +1,47 @@
-{% extends "base.html" %}
-{% block content %}
-<h2>Login</h2>
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% if messages %}
-{% for category, message in messages %}
-<div class="alert alert-{{ category }}">
-    {{ message }}
-</div>
-{% endfor %}
-{% endif %}
-{% endwith %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Login</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+  </head>
+  <body>
+    <div class="overlay-content">
+      <h1>Login</h1>
 
-<form method="POST">
-    <label for="username">Email or Username:</label><br>
-    <input type="text" id="username" name="username" required><br><br>
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div class="alert-area">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %}
 
-    <label for="password">Password:</label><br>
-    <input type="password" id="password" name="password" required><br><br>
+      <form method="POST">
+        <label for="username">Email or Username:</label>
+        <input type="text" id="username" name="username" required />
 
-    <button type="submit">Login</button>
-</form>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required />
 
-<p>Or login with:</p>
-<a href="{{ url_for('google.login') }}" class="btn btn-google">
-    <i class="fab fa-google"></i> Login with Google
-</a>
+        <button type="submit">Login</button>
+      </form>
 
-<p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
+      <p>Or login with:</p>
+      <a href="{{ url_for('google.login') }}" class="start-button"
+        >Login with Google</a
+      >
 
-
-{% endblock %}
+      <p>
+        Don't have an account?
+        <a href="{{ url_for('auth.register') }}" class="start-button"
+          >Register here</a
+        >
+      </p>
+    </div>
+  </body>
+</html>
