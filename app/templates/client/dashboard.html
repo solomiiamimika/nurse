@@ -1,194 +1,194 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="client-dashboard">
-    <h2>Панель клієнта</h2>
-    <div class="dashboard-options">
-        <form action="{{url_for('auth.logout')}} " method="post">
-            <button type="submit" class="btn btn-info">
-                <i>Вийти</i>
-            </button>
-        </form>
-        <button id="location-btn" class="btn btn-info">
-            {% if current_user.location_approved %}
-            Оновити моє місцезнаходження
-            {% else %}
-            Надати доступ до місцезнаходження
-            {% endif %}
-        </button>
-        <div id="status" style="margin-top: 10px; min-height: 20px; color: green;"></div>
-    </div>
+  <h2>Панель клієнта</h2>
+  <div class="dashboard-options">
+    <form action="{{url_for('auth.logout')}} " method="post">
+      <button type="submit" class="btn btn-info">
+        <i>Вийти</i>
+      </button>
+    </form>
+    <button id="location-btn" class="btn btn-info">
+      {% if current_user.location_approved %} Оновити моє місцезнаходження {%
+      else %} Надати доступ до місцезнаходження {% endif %}
+    </button>
+    <div
+      id="status"
+      style="margin-top: 10px; min-height: 20px; color: green"
+    ></div>
+  </div>
 
-    <div id="map-container" style="height: 500px; width: 100%; margin-top: 20px; border: 2px solid #ddd;"></div>
+  <div
+    id="map-container"
+    style="height: 500px; width: 100%; margin-top: 20px; border: 2px solid #ddd"
+  ></div>
 </div>
-{% endblock %}
-
-{% block scripts %}
+{% endblock %} {% block scripts %}
 <script>
 
-    let map, userMarker, nurseMarkers = [];
+  let map, userMarker, nurseMarkers = [];
 
 
-    function updateStatus(message, isError = false) {
-        const statusEl = document.getElementById('status');
-        statusEl.textContent = message;
-        statusEl.style.color = isError ? 'red' : 'green';
-        console.log(message);
-    }
+  function updateStatus(message, isError = false) {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = message;
+      statusEl.style.color = isError ? 'red' : 'green';
+      console.log(message);
+  }
 
-    function initMap() {
-        try {
-            updateStatus("Спробуємо ініціалізувати карту...");
+  function initMap() {
+      try {
+          updateStatus("Спробуємо ініціалізувати карту...");
 
-            map = L.map('map-container').setView([50.4501, 30.5234], 12);
+          map = L.map('map-container').setView([50.4501, 30.5234], 12);
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          }).addTo(map);
 
-            updateStatus("Карта успішно завантажена");
+          updateStatus("Карта успішно завантажена");
 
-            loadInitialData();
+          loadInitialData();
 
-        } catch (error) {
-            updateStatus("Помилка ініціалізації: " + error.message, true);
-            console.error(error);
-        }
-    }
+      } catch (error) {
+          updateStatus("Помилка ініціалізації: " + error.message, true);
+          console.error(error);
+      }
+  }
 
-    function loadInitialData() {
-        {% if current_user.latitude and current_user.longitude %}
-        updateUserMarker({{ current_user.latitude }}, { { current_user.longitude } });
-    {% endif %}
+  function loadInitialData() {
+      {% if current_user.latitude and current_user.longitude %}
+      updateUserMarker({{ current_user.latitude }}, {{ current_user.longitude }});
+  {% endif %}
 
-    loadNurses();
-    }
+  loadNurses();
+  }
 
-    function updateUserMarker(lat, lng) {
-        try {
-            if (userMarker) map.removeLayer(userMarker);
+  function updateUserMarker(lat, lng) {
+      try {
+          if (userMarker) map.removeLayer(userMarker);
 
-            userMarker = L.marker([lat, lng], {
-                icon: L.divIcon({
-                    className: 'user-marker',
-                    html: '<div style="background: blue; border-radius: 50%; width: 20px; height: 20px;"></div>',
-                    iconSize: [20, 20]
-                })
-            }).addTo(map);
+          userMarker = L.marker([lat, lng], {
+              icon: L.divIcon({
+                  className: 'user-marker',
+                  html: '<div style="background: blue; border-radius: 50%; width: 20px; height: 20px;"></div>',
+                  iconSize: [20, 20]
+              })
+          }).addTo(map);
 
-            map.setView([lat, lng], 12);
-            updateStatus("Місцезнаходження оновлено");
+          map.setView([lat, lng], 12);
+          updateStatus("Місцезнаходження оновлено");
 
-        } catch (error) {
-            updateStatus("Помилка оновлення маркера", true);
-            console.error(error);
-        }
-    }
+      } catch (error) {
+          updateStatus("Помилка оновлення маркера", true);
+          console.error(error);
+      }
+  }
 
-    async function loadNurses() {
-        try {
-            updateStatus("Завантаження медсестер...");
+  async function loadNurses() {
+      try {
+          updateStatus("Завантаження медсестер...");
 
-            const response = await fetch('{{ url_for("client.get_nurses_locations") }}');
-            if (!response.ok) throw new Error("Помилка сервера");
+          const response = await fetch('{{ url_for("client.get_nurses_locations") }}');
+          if (!response.ok) throw new Error("Помилка сервера");
 
-            const nurses = await response.json();
+          const nurses = await response.json();
 
-            nurseMarkers.forEach(m => map.removeLayer(m));
-            nurseMarkers = [];
+          nurseMarkers.forEach(m => map.removeLayer(m));
+          nurseMarkers = [];
 
-            nurses.forEach(nurse => {
-                const marker = L.marker([nurse.lat, nurse.lng], {
-                    icon: L.divIcon({
-                        className: 'nurse-marker',
-                        html: `<div style="background: ${nurse.online ? 'green' : 'red'}; 
-                              border-radius: 50%; width: 20px; height: 20px;"></div>`,
-                        iconSize: [20, 20]
-                    })
-                }).addTo(map);
+          nurses.forEach(nurse => {
+              const marker = L.marker([nurse.lat, nurse.lng], {
+                  icon: L.divIcon({
+                      className: 'nurse-marker',
+                      html: `<div style="background: ${nurse.online ? 'green' : 'red'};
+                            border-radius: 50%; width: 20px; height: 20px;"></div>`,
+                      iconSize: [20, 20]
+                  })
+              }).addTo(map);
 
-                marker.bindPopup(`<b>${nurse.name}</b><br>Статус: ${nurse.online ? 'Доступна' : 'Недоступна'}`);
-                nurseMarkers.push(marker);
-            });
+              marker.bindPopup(`<b>${nurse.name}</b><br>Статус: ${nurse.online ? 'Доступна' : 'Недоступна'}`);
+              nurseMarkers.push(marker);
+          });
 
-            updateStatus(`Знайдено ${nurses.length} медсестер`);
+          updateStatus(`Знайдено ${nurses.length} медсестер`);
 
-        } catch (error) {
-            updateStatus("Помилка завантаження: " + error.message, true);
-            console.error(error);
-        }
-    }
+      } catch (error) {
+          updateStatus("Помилка завантаження: " + error.message, true);
+          console.error(error);
+      }
+  }
 
-    async function handleLocation() {
-        try {
-            updateStatus("Визначення вашого місцезнаходження...");
+  async function handleLocation() {
+      try {
+          updateStatus("Визначення вашого місцезнаходження...");
 
-            if (!navigator.geolocation) {
-                throw new Error("Ваш браузер не підтримує геолокацію");
-            }
+          if (!navigator.geolocation) {
+              throw new Error("Ваш браузер не підтримує геолокацію");
+          }
 
-            const position = await new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(
-                    resolve,
-                    reject,
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                        maximumAge: 0
-                    }
-                );
-            });
+          const position = await new Promise((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(
+                  resolve,
+                  reject,
+                  {
+                      enableHighAccuracy: true,
+                      timeout: 10000,
+                      maximumAge: 0
+                  }
+              );
+          });
 
-            const { latitude, longitude } = position.coords;
-            updateUserMarker(latitude, longitude);
+          const { latitude, longitude } = position.coords;
+          updateUserMarker(latitude, longitude);
 
-            const response = await fetch('{{ url_for("client.update_location") }}', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    latitude: latitude,
-                    longitude: longitude
-                })
-            });
+          const response = await fetch('{{ url_for("client.update_location") }}', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  latitude: latitude,
+                  longitude: longitude
+              })
+          });
 
-            if (!response.ok) throw new Error("Помилка сервера");
+          if (!response.ok) throw new Error("Помилка сервера");
 
-            const result = await response.json();
-            if (!result.success) throw new Error(result.message || "Помилка оновлення");
+          const result = await response.json();
+          if (!result.success) throw new Error(result.message || "Помилка оновлення");
 
-            updateStatus("Локація успішно оновлена");
-            loadNurses();
+          updateStatus("Локація успішно оновлена");
+          loadNurses();
 
-        } catch (error) {
-            updateStatus("Помилка: " + error.message, true);
-            console.error(error);
+      } catch (error) {
+          updateStatus("Помилка: " + error.message, true);
+          console.error(error);
 
-            // Для локального тестування - випадкові координати біля Києва
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                updateStatus("Тестовий режим: використовуємо тестові координати");
-                const lat = 50.4501 + (Math.random() * 0.02 - 0.01);
-                const lng = 30.5234 + (Math.random() * 0.02 - 0.01);
-                updateUserMarker(lat, lng);
-            }
-        }
-    }
+          // Для локального тестування - випадкові координати біля Києва
+          if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+              updateStatus("Тестовий режим: використовуємо тестові координати");
+              const lat = 50.4501 + (Math.random() * 0.02 - 0.01);
+              const lng = 30.5234 + (Math.random() * 0.02 - 0.01);
+              updateUserMarker(lat, lng);
+          }
+      }
+  }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log("DOM повністю завантажений");
-        initMap();
+  document.addEventListener('DOMContentLoaded', () => {
+      console.log("DOM повністю завантажений");
+      initMap();
 
-        const btn = document.getElementById('location-btn');
-        console.log("Знайдено кнопку:", btn);
+      const btn = document.getElementById('location-btn');
+      console.log("Знайдено кнопку:", btn);
 
-        if (btn) {
-            btn.addEventListener('click', handleLocation);
-            console.log("Обробник кліку додано до кнопки");
-        } else {
-            console.error("Кнопка не знайдена!");
-        }
-    });
+      if (btn) {
+          btn.addEventListener('click', handleLocation);
+          console.log("Обробник кліку додано до кнопки");
+      } else {
+          console.error("Кнопка не знайдена!");
+      }
+  });
 
-    if (document.readyState === 'complete') {
-        initMap();
-    }
+  if (document.readyState === 'complete') {
+      initMap();
+  }
 </script>
 {% endblock %}
