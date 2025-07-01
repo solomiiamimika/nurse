@@ -1,27 +1,122 @@
-from flask import render_template, redirect, url_for, flash, request,abort,jsonify,current_app
-from flask_login import login_user, logout_user, current_user, login_required
-from app. extensions import db, bcrypt
-from app.models import User
-from . import nurse_bp
+from flask import Blueprint, jsonify, request, current_app, render_template, redirect, url_for, flash
+from flask_login import login_required, current_user
+from app.models import User, Message, db
+from datetime import datetime
+import json
+import os
+from werkzeug.utils import secure_filename
 
+nurse_bp = Blueprint('nurse', __name__)
+
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'uploads')
+DOCUMENTS_FOLDER = os.path.join(UPLOAD_FOLDER, 'documents')
+PROFILE_PICTURES_FOLDER = os.path.join(UPLOAD_FOLDER, 'profile_pictures')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx'}
+
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(DOCUMENTS_FOLDER, exist_ok=True)
+os.makedirs(PROFILE_PICTURES_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @nurse_bp.route('/dashboard')
 @login_required
 def dashboard():
-    if current_user.role!='nurse':
+    if current_user.role != 'nurse':
         return redirect(url_for('auth.login'))
     return render_template('nurse/dashboard.html')
+
+@nurse_bp.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    if current_user.role != 'nurse':
+        return redirect(url_for('auth.login'))
     
+    if request.method == 'POST':
+        try:
+            # Оновлюємо основну інформацію
+            current_user.full_name = request.form.get('full_name')
+            current_user.phone_number = request.form.get('phone_number')
+            current_user.about_me = request.form.get('about_me')
+            current_user.address = request.form.get('address')
+            
+            date_birth_str = request.form.get('date_birth')
+            if date_birth_str:
+                current_user.date_birth = datetime.strptime(date_birth_str, '%Y-%m-%d').date()
+            
+            if 'profile_picture' in request.files:
+                file = request.files['profile_picture']
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(f"nurse_{current_user.id}_{datetime.now().timestamp()}.{file.filename.rsplit('.', 1)[1].lower()}")
+                    file_path = os.path.join(PROFILE_PICTURES_FOLDER, filename)
+                    file.save(file_path)
+                    current_user.profile_picture = filename
+            
+            if 'documents' in request.files:
+                documents = request.files.getlist('documents')
+                saved_docs = []
+                for doc in documents:
+                    if doc and allowed_file(doc.filename):
+                        filename = secure_filename(f"doc_{current_user.id}_{datetime.now().timestamp()}_{doc.filename}")
+                        file_path = os.path.join(DOCUMENTS_FOLDER, filename)
+                        doc.save(file_path)
+                        saved_docs.append(filename)
+                
+                if saved_docs:
+                    current_user.documents = json.dumps(saved_docs)
+            
+            db.session.commit()
+            flash('Профіль успішно оновлено!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Error updating profile: {str(e)}")
+            flash('Помилка при оновленні профілю', 'danger')
+        
+        return redirect(url_for('nurse.profile'))
+    
+    formatted_date = current_user.date_birth.strftime('%Y-%m-%d') if current_user.date_birth else ''
+    user_documents = json.loads(current_user.documents) if current_user.documents else []
+    
+    return render_template('nurse/profile.html', 
+                         formatted_date=formatted_date,
+                         user_documents=user_documents)
 
-##################################3
+@nurse_bp.route('/delete_document', methods=['POST'])
+@login_required
+def delete_document():
+    if current_user.role != 'nurse':
+        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+    
+    try:
+        doc_name = request.json.get('doc_name')
+        if not doc_name:
+            return jsonify({'success': False, 'message': 'Не вказано назву документа'})
 
+        doc_path = os.path.join(DOCUMENTS_FOLDER, doc_name)
+        if os.path.exists(doc_path):
+            os.remove(doc_path)
+        
 
+        if current_user.documents:
+            documents = json.loads(current_user.documents)
+            if doc_name in documents:
+                documents.remove(doc_name)
+                current_user.documents = json.dumps(documents) if documents else None
+                db.session.commit()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @nurse_bp.route('/update_location', methods=['POST'])
 @login_required
 def update_location():
     if current_user.role != 'nurse':
-        abort(403)
+        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
     
     try:
         data = request.get_json()
@@ -47,7 +142,7 @@ def update_location():
 @login_required
 def toggle_online():
     if current_user.role != 'nurse':
-        abort(403)
+        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
     
     try:
         current_user.online = not current_user.online
@@ -64,7 +159,7 @@ def toggle_online():
 @login_required
 def get_clients_locations():
     if current_user.role != 'nurse':
-        abort(403)
+        return jsonify({'error': 'Доступ заборонено'}), 403
     
     try:
         clients = User.query.filter(
@@ -85,51 +180,3 @@ def get_clients_locations():
     except Exception as e:
         current_app.logger.error(f"Error getting clients locations: {str(e)}")
         return jsonify({'error': 'Помилка сервера'}), 500
-    
-    
-import os
-
-@nurse_bp.route('/delete_document', methods=['POST'])
-@login_required
-def delete_document():
-    if current_user.role != 'nurse':
-        abort(403)
-
-    filename = request.form.get('filename')
-    if not filename:
-        flash('Файл не вказано', 'danger')
-        return redirect(url_for('nurse.dashboard'))
-
-    # Шлях до документа
-    folder_path = os.path.join(current_app.root_path, 'static', 'documents')
-    file_path = os.path.join(folder_path, filename)
-
-    try:
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            flash(f'Файл "{filename}" успішно видалено.', 'success')
-        else:
-            flash(f'Файл "{filename}" не знайдено.', 'warning')
-    except Exception as e:
-        flash(f'Помилка при видаленні: {str(e)}', 'danger')
-
-    return redirect(url_for('nurse.dashboard'))
-    
-    
-@nurse_bp.route('/profile')
-@login_required
-def profile():
-    if current_user.role != 'nurse':
-        abort(403)
-
-    # шлях до папки з документами
-    documents_folder = os.path.join(current_app.root_path, 'static', 'documents')
-    documents = os.listdir(documents_folder) if os.path.exists(documents_folder) else []
-
-    # шлях до фото профілю (опціонально)
-    photo = f"photo/{current_user.photo}" if current_user.photo else None
-
-    return render_template('nurse/profile.html',
-                           user=current_user,
-                           documents=documents,
-                           photo=photo)    
