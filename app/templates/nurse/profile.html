@@ -135,7 +135,7 @@
           formData.append("filename", filename);
 
           const response = await fetch(
-            '{{ url_for("client.delete_document") }}',
+            '{{ url_for("nurse.delete_document") }}',
             {
               method: "POST",
               body: formData,

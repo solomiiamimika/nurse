@@ -83,7 +83,8 @@ def profile():
     
     return render_template('nurse/profile.html', 
                          formatted_date=formatted_date,
-                         user_documents=user_documents)
+                         user_documents=user_documents,
+                         user=current_user)
 
 @nurse_bp.route('/delete_document', methods=['POST'])
 @login_required

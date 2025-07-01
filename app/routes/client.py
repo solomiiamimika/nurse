@@ -90,7 +90,7 @@ def get_nurses_locations():
 def profile():
     if current_user.role != 'client':
         return redirect(url_for('auth.login'))
-    return render_template('client/profile.html')
+    return render_template('client/profile.html',user=current_user)
 
 
 @client_bp.route('/get_chat_messages')
