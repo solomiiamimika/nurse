@@ -47,7 +47,7 @@ def profile():
             date_birth_str = request.form.get('date_birth')
             if date_birth_str:
                 current_user.date_birth = datetime.strptime(date_birth_str, '%Y-%m-%d').date()
-            
+                
             if 'profile_picture' in request.files:
                 file = request.files['profile_picture']
                 if file and allowed_file(file.filename):
@@ -56,6 +56,7 @@ def profile():
                     file.save(file_path)
                     current_user.profile_picture = filename
             
+
             if 'documents' in request.files:
                 documents = request.files.getlist('documents')
                 saved_docs = []
@@ -67,7 +68,9 @@ def profile():
                         saved_docs.append(filename)
                 
                 if saved_docs:
-                    current_user.documents = json.dumps(saved_docs)
+                    current_docs = json.loads(current_user.documents) if current_user.documents else []
+                    current_docs.extend(saved_docs)
+                    current_user.documents = json.dumps(current_docs)
             
             db.session.commit()
             flash('Профіль успішно оновлено!', 'success')
