@@ -1,42 +1,79 @@
-{% extends "base.html" %} {% block content %}
-<div class="container">
+{% extends "base.html" %} 
+{% block content %}
+<div class="container mt-4">
   <h2>Профіль клієнта</h2>
 
-  {% if user.photo %}
+  <!-- Фото профілю -->
+  {% if user.profile_picture %}
   <img
-    src="{{ url_for('static', filename='uploads/profile_pictures/' ~ user.photo) }}"
+    src="{{ url_for('static', filename='uploads/profile_pictures/' ~ user.profile_picture) }}"
     alt="Фото профілю"
-    style="width: 150px; border-radius: 50%; margin-bottom: 1rem"
+    class="rounded-circle mb-3"
+    style="width: 150px; height: 150px; object-fit: cover"
   />
   {% else %}
   <p>Фото профілю не завантажено.</p>
   {% endif %}
 
-  <p><strong>Ім’я:</strong> {{ user.user_name }}</p>
-  <p><strong>Email:</strong> {{ user.email }}</p>
-  <p>
-    <strong>Локація схвалена:</strong> {{ 'Так' if user.location_approved else
-    'Ні' }}
-  </p>
-
-  <hr />
-
-  <form method="POST" enctype="multipart/form-data">
-    <!-- інші поля профілю -->
-    <div class="form-group">
-      <label for="documents">Завантажити документи:</label>
-      <input type="file" name="documents" multiple class="form-control" />
+  <!-- Форма оновлення профілю -->
+  <form method="POST" enctype="multipart/form-data" class="mb-4">
+    <div class="mb-3">
+      <label for="full_name" class="form-label">Повне ім'я:</label>
+      <input
+        type="text"
+        name="full_name"
+        id="full_name"
+        class="form-control"
+        value="{{ user.full_name or '' }}"
+      />
     </div>
+
+    <div class="mb-3">
+      <label for="phone_number" class="form-label">Телефон:</label>
+      <input
+        type="text"
+        name="phone_number"
+        id="phone_number"
+        class="form-control"
+        value="{{ user.phone_number or '' }}"
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="profile_picture" class="form-label">Фото профілю:</label>
+      <input
+        type="file"
+        name="profile_picture"
+        id="profile_picture"
+        class="form-control"
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="documents" class="form-label">Завантажити документи:</label>
+      <input
+        type="file"
+        name="documents"
+        id="documents"
+        multiple
+        class="form-control"
+      />
+    </div>
+
     <button type="submit" class="btn btn-primary">Оновити профіль</button>
   </form>
 
   <hr />
 
-  {% if user_documents %}
+  <!-- Перелік документів -->
   <h4>Ваші документи:</h4>
-  <ul id="documents-list">
+  {% if user_documents %}
+  <ul class="list-group" id="documents-list">
     {% for doc in user_documents %}
-    <li data-filename="{{ doc }}">
+    <li
+      class="list-group-item d-flex justify-content-between align-items-center"
+      data-filename="{{ doc }}"
+    >
       <a
         href="{{ url_for('static', filename='uploads/documents/' ~ doc) }}"
         target="_blank"
@@ -56,22 +93,24 @@
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const docsList = document.getElementById("documents-list");
-    docsList?.addEventListener("click", async (e) => {
-      if (e.target.classList.contains("delete-doc-btn")) {
-        const li = e.target.closest("li");
+    if (!docsList) return;
+
+    docsList.addEventListener("click", async (event) => {
+      if (event.target.classList.contains("delete-doc-btn")) {
+        const li = event.target.closest("li");
         const filename = li.getAttribute("data-filename");
 
         if (!confirm(`Видалити документ "${filename}"?`)) return;
 
         try {
-          const formData = new FormData();
-          formData.append("filename", filename);
-
           const response = await fetch(
             '{{ url_for("client.delete_document") }}',
             {
               method: "POST",
-              body: formData,
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({doc_name: filename})
             }
           );
 
@@ -79,7 +118,6 @@
 
           if (result.success) {
             li.remove();
-            alert(result.message);
           } else {
             alert("Помилка: " + result.message);
           }

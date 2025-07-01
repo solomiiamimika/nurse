@@ -33,7 +33,32 @@ def dashboard():
 
 
 
+@client_bp.route('/delete_document', methods=['POST'])
+@login_required
+def delete_document():
+    if current_user.role != 'client':
+        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+    
+    try:
+        data = request.get_json()
+        doc_name = data.get('doc_name')
+        if not doc_name:
+            return jsonify({'success': False, 'message': 'Не вказано назву документа'})
 
+        doc_path = os.path.join(DOCUMENTS_FOLDER, doc_name)
+        if os.path.exists(doc_path):
+            os.remove(doc_path)
+        
+        if current_user.documents:
+            documents = json.loads(current_user.documents)
+            if doc_name in documents:
+                documents.remove(doc_name)
+                current_user.documents = json.dumps(documents) if documents else None
+                db.session.commit()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 #################################################33
 
@@ -85,12 +110,56 @@ def get_nurses_locations():
     
     return jsonify(nurses_data)
 
-@client_bp.route('/profile')
+@client_bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
     if current_user.role != 'client':
         return redirect(url_for('auth.login'))
-    return render_template('client/profile.html',user=current_user)
+    
+    if request.method == 'POST':
+        try:
+            # Update basic info
+            current_user.full_name = request.form.get('full_name')
+            current_user.phone_number = request.form.get('phone_number')
+            
+            # Handle profile picture
+            if 'profile_picture' in request.files:
+                file = request.files['profile_picture']
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(f"client_{current_user.id}_{datetime.now().timestamp()}.{file.filename.rsplit('.', 1)[1].lower()}")
+                    file_path = os.path.join(PROFILE_PICTURES_FOLDER, filename)
+                    file.save(file_path)
+                    current_user.profile_picture = filename
+            
+            # Handle documents
+            if 'documents' in request.files:
+                documents = request.files.getlist('documents')
+                saved_docs = []
+                for doc in documents:
+                    if doc and allowed_file(doc.filename):
+                        filename = secure_filename(f"doc_{current_user.id}_{datetime.now().timestamp()}_{doc.filename}")
+                        file_path = os.path.join(DOCUMENTS_FOLDER, filename)
+                        doc.save(file_path)
+                        saved_docs.append(filename)
+                
+                if saved_docs:
+                    current_docs = json.loads(current_user.documents) if current_user.documents else []
+                    current_docs.extend(saved_docs)
+                    current_user.documents = json.dumps(current_docs)
+            
+            db.session.commit()
+            flash('Профіль успішно оновлено!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Error updating profile: {str(e)}")
+            flash('Помилка при оновленні профілю', 'danger')
+        
+        return redirect(url_for('client.profile'))
+    
+    user_documents = json.loads(current_user.documents) if current_user.documents else []
+    return render_template('client/profile.html', 
+                         user=current_user,
+                         user_documents=user_documents)
 
 
 @client_bp.route('/get_chat_messages')
