@@ -10,14 +10,14 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['GOOGLE_OAUTH_CLIENT_ID'] = '739082915470-dm5ppev70pv4169eoo890rm61ahhae6s.apps.googleusercontent.com'
     app.config['GOOGLE_OAUTH_CLIENT_SECRET'] = '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'
-
+    
     # Ініціалізація розширень
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
     migrate.init_app(app, db)
-    socket_io.init_app(app)
+    socket_io.init_app(app,manage_session=False)
 
     # Реєстрація блюпрінтів
     from app.routes.auth import auth_bp

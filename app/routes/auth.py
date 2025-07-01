@@ -56,8 +56,7 @@ def register():
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('main.home'))
+
     
     if request.method == "POST":
         username = request.form.get('username')

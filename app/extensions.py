@@ -11,6 +11,7 @@ bcrypt = Bcrypt()
 login_manager = LoginManager()
 migrate = Migrate()
 socket_io = SocketIO()
+socketio = SocketIO(cors_allowed_origins="*", async_mode='eventlet')
 
 
 
@@ -27,3 +28,5 @@ google_blueprint = make_google_blueprint(
 
 
 login_manager.login_view = 'auth.login'
+login_manager.login_message = 'Будь ласка, увійдіть для доступу до цієї сторінки.'
+login_manager.login_message_category = 'danger'
