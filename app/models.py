@@ -1,6 +1,6 @@
 from .extensions import db, bcrypt, login_manager
 from flask_login import UserMixin
-from sqlalchemy import Column, Integer, Text, Boolean, DateTime, ForeignKey, Float, String
+from sqlalchemy import Column, Integer, Text, Boolean, DateTime, ForeignKey, Float, String, Date
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
@@ -21,6 +21,15 @@ class User(db.Model, UserMixin):
 
 
     role = Column(Text)
+    
+    photo = Column(String)
+    full_name = Column(String)
+    documents = Column(Text)
+    phone_number = Column(String)
+    date_birth = Column(Date)
+    about_me = Column(String)
+    address = Column(String)
+    
 
     created_at = Column(DateTime, default=datetime.now)
     online= Column(Boolean)

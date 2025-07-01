@@ -6,15 +6,18 @@
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='styles.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""
     />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""></script>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
     <script
       src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
@@ -23,12 +26,23 @@
   </head>
 
   <body>
+    <div style="position: absolute; top: 10px; right: 10px; z-index: 9999">
+      {% if current_user.is_authenticated %} {% if current_user.role == 'nurse'
+      %}
+      <a href="{{ url_for('nurse.profile') }}" style="font-size: 24px">☰</a>
+      {% elif current_user.role == 'client' %}
+      <a href="{{ url_for('client.profile') }}" style="font-size: 24px">☰</a>
+      {% endif %} {% endif %}
+    </div>
+
     {% with messages = get_flashed_messages(with_categories=true) %} {% if
     messages %}
     <ul>
-      {% for category, message in messages %}
-      <li class="alert alert-{{ category }}">{{ message }}</li>
-      {% endfor %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
     </ul>
     {% endif %} {% endwith %} {% block content %}{% endblock %} {% block scripts
     %}{% endblock %}

@@ -85,3 +85,51 @@ def get_clients_locations():
     except Exception as e:
         current_app.logger.error(f"Error getting clients locations: {str(e)}")
         return jsonify({'error': 'Помилка сервера'}), 500
+    
+    
+import os
+
+@nurse_bp.route('/delete_document', methods=['POST'])
+@login_required
+def delete_document():
+    if current_user.role != 'nurse':
+        abort(403)
+
+    filename = request.form.get('filename')
+    if not filename:
+        flash('Файл не вказано', 'danger')
+        return redirect(url_for('nurse.dashboard'))
+
+    # Шлях до документа
+    folder_path = os.path.join(current_app.root_path, 'static', 'documents')
+    file_path = os.path.join(folder_path, filename)
+
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            flash(f'Файл "{filename}" успішно видалено.', 'success')
+        else:
+            flash(f'Файл "{filename}" не знайдено.', 'warning')
+    except Exception as e:
+        flash(f'Помилка при видаленні: {str(e)}', 'danger')
+
+    return redirect(url_for('nurse.dashboard'))
+    
+    
+@nurse_bp.route('/profile')
+@login_required
+def profile():
+    if current_user.role != 'nurse':
+        abort(403)
+
+    # шлях до папки з документами
+    documents_folder = os.path.join(current_app.root_path, 'static', 'documents')
+    documents = os.listdir(documents_folder) if os.path.exists(documents_folder) else []
+
+    # шлях до фото профілю (опціонально)
+    photo = f"photo/{current_user.photo}" if current_user.photo else None
+
+    return render_template('nurse/profile.html',
+                           user=current_user,
+                           documents=documents,
+                           photo=photo)    

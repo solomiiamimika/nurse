@@ -1,0 +1,93 @@
+{% extends "base.html" %} {% block content %}
+<div class="container">
+  <h2>Профіль клієнта</h2>
+
+  {% if user.photo %}
+  <img
+    src="{{ url_for('static', filename='uploads/profile_pictures/' ~ user.photo) }}"
+    alt="Фото профілю"
+    style="width: 150px; border-radius: 50%; margin-bottom: 1rem"
+  />
+  {% else %}
+  <p>Фото профілю не завантажено.</p>
+  {% endif %}
+
+  <p><strong>Ім’я:</strong> {{ user.user_name }}</p>
+  <p><strong>Email:</strong> {{ user.email }}</p>
+  <p>
+    <strong>Локація схвалена:</strong> {{ 'Так' if user.location_approved else
+    'Ні' }}
+  </p>
+
+  <hr />
+
+  <form method="POST" enctype="multipart/form-data">
+    <!-- інші поля профілю -->
+    <div class="form-group">
+      <label for="documents">Завантажити документи:</label>
+      <input type="file" name="documents" multiple class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Оновити профіль</button>
+  </form>
+
+  <hr />
+
+  {% if user_documents %}
+  <h4>Ваші документи:</h4>
+  <ul id="documents-list">
+    {% for doc in user_documents %}
+    <li data-filename="{{ doc }}">
+      <a
+        href="{{ url_for('static', filename='uploads/documents/' ~ doc) }}"
+        target="_blank"
+        >{{ doc }}</a
+      >
+      <button type="button" class="btn btn-sm btn-danger delete-doc-btn">
+        Видалити
+      </button>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>Документи не завантажено.</p>
+  {% endif %}
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const docsList = document.getElementById("documents-list");
+    docsList?.addEventListener("click", async (e) => {
+      if (e.target.classList.contains("delete-doc-btn")) {
+        const li = e.target.closest("li");
+        const filename = li.getAttribute("data-filename");
+
+        if (!confirm(`Видалити документ "${filename}"?`)) return;
+
+        try {
+          const formData = new FormData();
+          formData.append("filename", filename);
+
+          const response = await fetch(
+            '{{ url_for("client.delete_document") }}',
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
+
+          const result = await response.json();
+
+          if (result.success) {
+            li.remove();
+            alert(result.message);
+          } else {
+            alert("Помилка: " + result.message);
+          }
+        } catch (error) {
+          alert("Помилка сервера: " + error.message);
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

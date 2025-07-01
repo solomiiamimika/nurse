@@ -9,7 +9,7 @@ from app.extensions import google_blueprint
 @auth_bp.route('/register', methods=['GET','POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('main.home'))
+        return redirect(url_for(f'{current_user.role}.dashboard'))
     
     if request.method == "POST":
         username = request.form.get('username')
@@ -57,7 +57,7 @@ def register():
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('main.home'))
+        return redirect(url_for(f'{current_user.role}.dashboard'))
     
     if request.method == "POST":
         username = request.form.get('username')

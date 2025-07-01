@@ -1,0 +1,160 @@
+{% extends "base.html" %} {% block content %}
+<div class="container mt-4">
+  <h2>Профіль медсестри</h2>
+
+  <!-- Фото профілю -->
+  {% if user.photo %}
+  <img
+    src="{{ url_for('static', filename='uploads/profile_pictures/' ~ user.photo) }}"
+    alt="Фото профілю"
+    class="rounded-circle mb-3"
+    style="width: 150px; height: 150px; object-fit: cover"
+  />
+  {% else %}
+  <p>Фото профілю не завантажено.</p>
+  {% endif %}
+
+  <!-- Форма оновлення профілю -->
+  <form method="POST" enctype="multipart/form-data" class="mb-4">
+    <div class="mb-3">
+      <label for="full_name" class="form-label">Повне ім’я:</label>
+      <input
+        type="text"
+        name="full_name"
+        id="full_name"
+        class="form-control"
+        value="{{ user.full_name or '' }}"
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="phone_number" class="form-label">Телефон:</label>
+      <input
+        type="text"
+        name="phone_number"
+        id="phone_number"
+        class="form-control"
+        value="{{ user.phone_number or '' }}"
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="date_birth" class="form-label">Дата народження:</label>
+      <input
+        type="date"
+        name="date_birth"
+        id="date_birth"
+        class="form-control"
+        value="{{ formatted_date }}"
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="about_me" class="form-label">Про себе:</label>
+      <textarea name="about_me" id="about_me" class="form-control" rows="3">
+{{ user.about_me or '' }}</textarea
+      >
+    </div>
+
+    <div class="mb-3">
+      <label for="address" class="form-label">Адреса:</label>
+      <input
+        type="text"
+        name="address"
+        id="address"
+        class="form-control"
+        value="{{ user.address or '' }}"
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="profile_picture" class="form-label">Фото профілю:</label>
+      <input
+        type="file"
+        name="profile_picture"
+        id="profile_picture"
+        class="form-control"
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="documents" class="form-label">Завантажити документи:</label>
+      <input
+        type="file"
+        name="documents"
+        id="documents"
+        multiple
+        class="form-control"
+      />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Оновити профіль</button>
+  </form>
+
+  <hr />
+
+  <!-- Перелік документів -->
+  <h4>Ваші документи:</h4>
+  {% if user_documents %}
+  <ul class="list-group" id="documents-list">
+    {% for doc in user_documents %}
+    <li
+      class="list-group-item d-flex justify-content-between align-items-center"
+      data-filename="{{ doc }}"
+    >
+      <a
+        href="{{ url_for('static', filename='uploads/documents/' ~ doc) }}"
+        target="_blank"
+        >{{ doc }}</a
+      >
+      <button type="button" class="btn btn-sm btn-danger delete-doc-btn">
+        Видалити
+      </button>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>Документи не завантажено.</p>
+  {% endif %}
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const docsList = document.getElementById("documents-list");
+    if (!docsList) return;
+
+    docsList.addEventListener("click", async (event) => {
+      if (event.target.classList.contains("delete-doc-btn")) {
+        const li = event.target.closest("li");
+        const filename = li.getAttribute("data-filename");
+
+        if (!confirm(`Видалити документ "${filename}"?`)) return;
+
+        try {
+          const formData = new FormData();
+          formData.append("filename", filename);
+
+          const response = await fetch(
+            '{{ url_for("client.delete_document") }}',
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
+
+          const result = await response.json();
+
+          if (result.success) {
+            li.remove();
+            alert(result.message);
+          } else {
+            alert("Помилка: " + result.message);
+          }
+        } catch (error) {
+          alert("Помилка сервера: " + error.message);
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}
