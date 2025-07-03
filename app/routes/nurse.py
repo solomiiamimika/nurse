@@ -184,3 +184,33 @@ def get_clients_locations():
     except Exception as e:
         current_app.logger.error(f"Error getting clients locations: {str(e)}")
         return jsonify({'error': 'Помилка сервера'}), 500
+    
+    
+@nurse_bp.route('/get_chat_messages')
+@login_required
+def get_chat_messages():
+    if current_user.role != 'nurse':
+        return jsonify({'error': 'Доступ заборонено'}), 403
+    
+    recipient_id = request.args.get('recipient_id')
+    if not recipient_id:
+        return jsonify({'error': 'Не вказано отримувача'}), 400
+    
+    try:
+        messages = Message.query.filter(
+            ((Message.sender_id == current_user.id) & (Message.recipient_id == recipient_id)) |
+            ((Message.sender_id == recipient_id) & (Message.recipient_id == current_user.id))
+        ).order_by(Message.timestamp.asc()).all()
+        
+        messages_data = [{
+            'id': msg.id,
+            'sender_id': msg.sender_id,
+            'sender_name': msg.sender.user_name if msg.sender_id != current_user.id else 'Ви',
+            'text': msg.text,
+            'timestamp': msg.timestamp.isoformat()
+        } for msg in messages]
+        
+        return jsonify(messages_data)
+    except Exception as e:
+        current_app.logger.error(f"Error getting chat messages: {str(e)}")
+        return jsonify({'error': 'Помилка сервера'}), 500

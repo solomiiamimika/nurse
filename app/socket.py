@@ -6,19 +6,11 @@ from datetime import datetime
 
 @socketio.on('connect')
 def handle_connect():
-    try:
-        db.session.begin()
-        current_app.logger.info('Клієнт підключився')
-    except Exception as e:
-        current_app.logger.error(f"Помилка при підключенні: {str(e)}")
+    current_app.logger.info('Клієнт підключився')
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    try:
-        db.session.remove()
-        current_app.logger.info('Клієнт відключився')
-    except Exception as e:
-        current_app.logger.error(f"Помилка при відключенні: {str(e)}")
+    current_app.logger.info('Клієнт відключився')
 
 @socketio.on('join')
 def handle_join(data):
@@ -38,24 +30,15 @@ def handle_send_message(data):
             socketio.emit('error', {'message': 'Недостатньо даних'}, room=sender_id)
             return
         
-        current_app.logger.info(f"Спроба зберегти повідомлення від {sender_id} до {recipient_id}: {text}")
-        
         message = Message(
             sender_id=sender_id,
             recipient_id=recipient_id,
             text=text,
-            timestamp=datetime.now(),
-            is_read=False
+            timestamp=datetime.utcnow()
         )
         
         db.session.add(message)
-        db.session.commit()  
-        
-
-        saved_message = Message.query.get(message.id)
-        if not saved_message:
-            current_app.logger.error("Повідомлення не збереглося в базі!")
-            raise Exception("Повідомлення не збереглося")
+        db.session.commit()
         
         socketio.emit('new_message', {
             'id': message.id,
@@ -71,8 +54,7 @@ def handle_send_message(data):
         }, room=sender_id)
         
     except Exception as e:
-        db.session.rollback()  
-        current_app.logger.error(f"Помилка відправки повідомлення: {str(e)}", exc_info=True)
+        current_app.logger.error(f"Помилка відправки повідомлення: {str(e)}")
         socketio.emit('error', {
             'message': 'Помилка відправки повідомлення'
         }, room=data.get('sender_id'))

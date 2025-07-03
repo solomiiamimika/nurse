@@ -1,242 +1,556 @@
-{% extends "base.html" %} {% block styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-{% endblock %} {% block content %}
+{% extends "base.html" %}
+{% block content %}
 <div class="nurse-dashboard">
-  <h2>Панель медсестри</h2>
-  <div class="dashboard-options">
-    <form action="{{url_for('auth.logout')}} " method="post">
-      <button type="submit" class="btn btn-info">
-        <i>Вийти</i>
-      </button>
-    </form>
-    <button id="location-btn" class="btn btn-info">
-      Оновити моє місцезнаходження
-    </button>
-    <button
-      id="toggle-online-btn"
-      class="btn {{ 'btn-success' if current_user.online else 'btn-secondary' }}"
-    >
-      {{ 'Я онлайн' if current_user.online else 'Я офлайн' }}
-    </button>
-    <div id="status-message" class="mt-2 small"></div>
-  </div>
-
-  <div
-    id="map-container"
-    style="height: 500px; width: 100%; margin-top: 20px; border: 2px solid #ddd"
-  ></div>
+    <h2>Панель медсестри</h2>
+    <div class="dashboard-options">
+        <form action="{{url_for('auth.logout')}}" method="post">
+            <button type="submit" class="btn btn-info">
+                <i class="fas fa-sign-out-alt"></i> Вийти
+            </button>
+        </form>
+        <a href="{{ url_for('nurse.profile') }}" class="btn btn-info">
+            <i class="fas fa-user"></i> Профіль
+        </a>
+        <button id="location-btn" class="btn btn-info">
+            <i class="fas fa-map-marker-alt"></i> Оновити моє місцезнаходження
+        </button>
+        <button id="toggle-online-btn" class="btn {{ 'btn-success' if current_user.online else 'btn-secondary' }}">
+            {{ 'Я онлайн' if current_user.online else 'Я офлайн' }}
+        </button>
+        <div id="status-message" class="mt-2 small"></div>
+    </div>
+    
+    <div id="map-container" style="height: 500px; width: 100%; margin-top: 20px; border: 2px solid #ddd;"></div>
 </div>
-{% endblock %} {% block scripts %}
+{% endblock %}
+
+{% block scripts %}
 <script>
-  let map;
-  let userMarker;
-  let clientsLayer = L.layerGroup();
+    let map;
+    let userMarker;
+    let clientsLayer = L.layerGroup();
+    let socket;
+    let currentChatRecipient = null;
+    
+    function showStatus(message, isError = false) {
+        const statusEl = document.getElementById('status-message');
+        statusEl.textContent = message;
+        statusEl.style.color = isError ? 'red' : 'green';
+        console.log(message);
+    }
 
-  function showStatus(message, isError = false) {
-      const statusEl = document.getElementById('status-message');
-      statusEl.textContent = message;
-      statusEl.style.color = isError ? 'red' : 'green';
-      console.log(message);
-  }
+    function initSocket() {
+        socket = io();
+        
+        socket.on('connect', () => {
+            console.log('Connected to Socket.IO server');
+            socket.emit('join', { user_id: '{{ current_user.id }}' });
+        });
+        
+        socket.on('new_message', (data) => {
+            if (currentChatRecipient && currentChatRecipient.id === data.sender_id) {
+                addMessageToChat(data, false);
+            } else {
+                showNewMessageNotification(data);
+            }
+        });
+        
+        socket.on('message_sent', (data) => {
+            console.log('Message delivered:', data);
+        });
+        
+        socket.on('error', (data) => {
+            showStatus(data.message, true);
+        });
+    }
 
-  function initMap() {
-      try {
-          showStatus("Ініціалізація карти...");
-          map = L.map('map-container').setView([50.4501, 30.5234], 12);
+    function showNewMessageNotification(messageData) {
+        const notification = document.createElement('div');
+        notification.className = 'alert alert-info alert-dismissible fade show';
+        notification.style.position = 'fixed';
+        notification.style.bottom = '20px';
+        notification.style.right = '20px';
+        notification.style.zIndex = '1000';
+        notification.innerHTML = `
+            <strong>Нове повідомлення від ${messageData.sender_name}</strong>
+            <p>${messageData.text}</p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        notification.querySelector('.btn-close').addEventListener('click', () => {
+            notification.remove();
+        });
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    }
 
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          }).addTo(map);
+    function openChatWithClient(client) {
+        currentChatRecipient = client;
+        document.getElementById('chatRecipientName').textContent = client.name;
+        
+        fetch(`{{ url_for('nurse.get_chat_messages') }}?recipient_id=${client.id}`)
+            .then(response => response.json())
+            .then(messages => {
+                const chatContainer = document.getElementById('chatMessages');
+                chatContainer.innerHTML = '';
+                
+                messages.forEach(msg => {
+                    addMessageToChat(msg, msg.sender_id === '{{ current_user.id }}');
+                });
+                
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            });
+        
+        const chatModal = new bootstrap.Modal(document.getElementById('chatModal'));
+        chatModal.show();
+    }
 
-          clientsLayer.addTo(map);
+    function addMessageToChat(messageData, isMyMessage) {
+        const chatContainer = document.getElementById('chatMessages');
+        const messageElement = document.createElement('div');
+        messageElement.className = `message ${isMyMessage ? 'my-message' : 'their-message'}`;
+        
+        const time = new Date(messageData.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        messageElement.innerHTML = `
+            <div class="message-content">
+                ${!isMyMessage ? `<div class="sender-name">${messageData.sender_name}</div>` : ''}
+                <div class="message-text">${messageData.text}</div>
+                <div class="message-time">${time}</div>
+            </div>
+        `;
+        
+        chatContainer.appendChild(messageElement);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
 
-          {% if current_user.latitude and current_user.longitude %}
-              updateUserMarker({{ current_user.latitude }}, {{ current_user.longitude }});
-          {% endif %}
+    function initMap() {
+        try {
+            showStatus("Ініціалізація карти...");
+            map = L.map('map-container').setView([50.4501, 30.5234], 12);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            clientsLayer.addTo(map);
+            
+            {% if current_user.latitude and current_user.longitude %}
+                updateUserMarker({{ current_user.latitude }}, {{ current_user.longitude }});
+            {% endif %}
+            
+            loadClientsLocations();
+            
+        } catch (error) {
+            showStatus("Помилка ініціалізації карти: " + error.message, true);
+            console.error(error);
+        }
+    }
+    
+    function updateUserMarker(lat, lng) {
+        try {
+            if (userMarker) map.removeLayer(userMarker);
+            
+            userMarker = L.marker([lat, lng], {
+                icon: L.divIcon({
+                    className: 'nurse-marker',
+                    html: '<div style="background-color: purple; border-radius: 50%; width: 20px; height: 20px;"></div>',
+                    iconSize: [20, 20]
+                }),
+                title: 'Ваше місцезнаходження'
+            }).addTo(map);
+            
+            map.setView([lat, lng], 12);
+            showStatus("Місцезнаходження оновлено");
+            
+        } catch (error) {
+            showStatus("Помилка оновлення маркера", true);
+            console.error(error);
+        }
+    }
+    
+    async function updateLocation() {
+        try {
+            showStatus("Визначення вашого місцезнаходження...");
+            
+            if (!navigator.geolocation) {
+                throw new Error("Ваш браузер не підтримує геолокацію");
+            }
+            
+            const position = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    enableHighAccuracy: true,
+                    timeout: 10000
+                });
+            });
+            
+            const {latitude, longitude} = position.coords;
+            updateUserMarker(latitude, longitude);
+            
+            const response = await fetch('{{ url_for("nurse.update_location") }}', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    latitude: latitude,
+                    longitude: longitude
+                })
+            });
+            
+            if (!response.ok) throw new Error("Помилка сервера");
+            
+            const result = await response.json();
+            if (!result.success) throw new Error(result.message || "Помилка оновлення");
+            
+            showStatus("Локація успішно оновлена");
+            
+        } catch (error) {
+            showStatus("Помилка: " + error.message, true);
+            console.error(error);
+        }
+    }
+    
+    async function toggleOnlineStatus() {
+        try {
+            const response = await fetch('{{ url_for("nurse.toggle_online") }}', {
+                method: 'POST'
+            });
+            
+            if (!response.ok) throw new Error("Помилка сервера");
+            
+            const result = await response.json();
+            if (!result.success) throw new Error("Помилка зміни статусу");
+            
+            const btn = document.getElementById('toggle-online-btn');
+            if (result.online) {
+                btn.classList.remove('btn-secondary');
+                btn.classList.add('btn-success');
+                btn.textContent = 'Я онлайн';
+            } else {
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-secondary');
+                btn.textContent = 'Я офлайн';
+            }
+            
+            showStatus("Статус оновлено: " + (result.online ? "онлайн" : "офлайн"));
+            
+        } catch (error) {
+            showStatus("Помилка: " + error.message, true);
+            console.error(error);
+        }
+    }
+    
+   async function loadClientsLocations() {
+    try {
+        showStatus("Завантаження клієнтів...");
+        clientsLayer.clearLayers();
+        
+        const response = await fetch('{{ url_for("nurse.get_clients_locations") }}');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP помилка! Статус: ${response.status}`);
+        }
+        
+        const clients = await response.json();
+        
+        clients.forEach(client => {
+            const marker = L.marker([client.lat, client.lng], {
+                icon: L.divIcon({
+                    className: 'client-marker',
+                    html: '<div style="background-color: blue; border-radius: 50%; width: 20px; height: 20px;"></div>',
+                    iconSize: [20, 20]
+                })
+            }).addTo(clientsLayer);
+            
+            // Створюємо popup з кнопкою
+            const popupContent = `
+                <b>${client.name}</b>
+                <button class="btn btn-sm btn-primary start-chat-btn" 
+                        data-client-id="${client.id}" 
+                        data-client-name="${client.name}">
+                    <i class="fas fa-comment"></i> Написати
+                </button>
+            `;
+            
+            marker.bindPopup(popupContent);
+            
+            // Додаємо обробник події після відкриття popup
+            marker.on('popupopen', function() {
+                const popup = marker.getPopup();
+                const btn = popup.getElement().querySelector('.start-chat-btn');
+                if (btn) {
+                    btn.addEventListener('click', (e) => {
+                        openChatWithClient({
+                            id: client.id,
+                            name: client.name
+                        });
+                    });
+                }
+            });
+        });
+        
+        showStatus(`Завантажено ${clients.length} клієнтів`);
+        
+    } catch (error) {
+        showStatus("Помилка завантаження клієнтів: " + error.message, true);
+        console.error("Помилка завантаження клієнтів:", error);
+    }
+}
 
-          loadClientsLocations();
+    document.addEventListener('DOMContentLoaded', () => {
+        initSocket();
+        initMap();
+        
+        document.getElementById('location-btn').addEventListener('click', updateLocation);
+        document.getElementById('toggle-online-btn').addEventListener('click', toggleOnlineStatus);
+        
+        setInterval(loadClientsLocations, 30000);
+        
+        document.getElementById('sendMessageBtn').addEventListener('click', () => {
+            const messageText = document.getElementById('messageInput').value.trim();
+            if (messageText && currentChatRecipient) {
+                socket.emit('send_message', {
+                    text: messageText,
+                    sender_id: '{{ current_user.id }}',
+                    recipient: currentChatRecipient.id
+                });
+                
+                addMessageToChat({
+                    sender_id: '{{ current_user.id }}',
+                    sender_name: 'Ви',
+                    text: messageText,
+                    timestamp: new Date().toISOString()
+                }, true);
+                
+                document.getElementById('messageInput').value = '';
+            }
+        });
 
-      } catch (error) {
-          showStatus("Помилка ініціалізації карти: " + error.message, true);
-          console.error(error);
-      }
-  }
-
-  function updateUserMarker(lat, lng) {
-      try {
-          if (userMarker) map.removeLayer(userMarker);
-
-          userMarker = L.marker([lat, lng], {
-              icon: L.divIcon({
-                  className: 'nurse-marker',
-                  html: '<div style="background-color: purple; border-radius: 50%; width: 20px; height: 20px;"></div>',
-                  iconSize: [20, 20]
-              }),
-              title: 'Ваше місцезнаходження'
-          }).addTo(map);
-
-          map.setView([lat, lng], 12);
-          showStatus("Місцезнаходження оновлено");
-
-      } catch (error) {
-          showStatus("Помилка оновлення маркера", true);
-          console.error(error);
-      }
-  }
-
-  async function updateLocation() {
-      try {
-          showStatus("Визначення вашого місцезнаходження...");
-
-          if (!navigator.geolocation) {
-              throw new Error("Ваш браузер не підтримує геолокацію");
-          }
-
-          const position = await new Promise((resolve, reject) => {
-              navigator.geolocation.getCurrentPosition(resolve, reject, {
-                  enableHighAccuracy: true,
-                  timeout: 10000
-              });
-          });
-
-          const {latitude, longitude} = position.coords;
-          updateUserMarker(latitude, longitude);
-
-          const response = await fetch('{{ url_for("nurse.update_location") }}', {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({
-                  latitude: latitude,
-                  longitude: longitude
-              })
-          });
-
-          if (!response.ok) throw new Error("Помилка сервера");
-
-          const result = await response.json();
-          if (!result.success) throw new Error(result.message || "Помилка оновлення");
-
-          showStatus("Локація успішно оновлена");
-
-      } catch (error) {
-          showStatus("Помилка: " + error.message, true);
-          console.error(error);
-
-          if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-              showStatus("Використовуємо тестові координати");
-              updateUserMarker(50.4501 + (Math.random()*0.02-0.01),
-                             30.5234 + (Math.random()*0.02-0.01));
-          }
-      }
-  }
-
-  async function toggleOnlineStatus() {
-      try {
-          const response = await fetch('{{ url_for("nurse.toggle_online") }}', {
-              method: 'POST'
-          });
-
-          if (!response.ok) throw new Error("Помилка сервера");
-
-          const result = await response.json();
-          if (!result.success) throw new Error("Помилка зміни статусу");
-
-          const btn = document.getElementById('toggle-online-btn');
-          if (result.online) {
-              btn.classList.remove('btn-secondary');
-              btn.classList.add('btn-success');
-              btn.textContent = 'Я онлайн';
-          } else {
-              btn.classList.remove('btn-success');
-              btn.classList.add('btn-secondary');
-              btn.textContent = 'Я офлайн';
-          }
-
-          showStatus("Статус оновлено: " + (result.online ? "онлайн" : "офлайн"));
-
-      } catch (error) {
-          showStatus("Помилка: " + error.message, true);
-          console.error(error);
-      }
-  }
-
-  async function loadClientsLocations() {
-      try {
-          showStatus("Завантаження клієнтів...");
-          clientsLayer.clearLayers();
-
-          const response = await fetch('{{ url_for("nurse.get_clients_locations") }}');
-
-          if (!response.ok) {
-              throw new Error(`HTTP помилка! Статус: ${response.status}`);
-          }
-
-          const clients = await response.json();
-
-          clients.forEach(client => {
-              const marker = L.marker([client.lat, client.lng], {
-                  icon: L.divIcon({
-                      className: 'client-marker',
-                      html: '<div style="background-color: blue; border-radius: 50%; width: 20px; height: 20px;"></div>',
-                      iconSize: [20, 20]
-                  })
-              }).addTo(clientsLayer);
-
-              marker.bindPopup(`
-                  <b>${client.name}</b>
-                  <div>ID: ${client.id}</div>
-                  <div>Широта: ${client.lat.toFixed(6)}</div>
-                  <div>Довгота: ${client.lng.toFixed(6)}</div>
-              `);
-          });
-
-          showStatus(`Завантажено ${clients.length} клієнтів`);
-
-      } catch (error) {
-          showStatus("Помилка завантаження клієнтів: " + error.message, true);
-          console.error("Помилка завантаження клієнтів:", error);
-
-          if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-              showStatus("Використовуємо тестові дані клієнтів");
-              const testClients = [
-                  {id: 1, name: "Тестовий клієнт 1", lat: 50.451, lng: 30.524},
-                  {id: 2, name: "Тестовий клієнт 2", lat: 50.449, lng: 30.522},
-                  {id: 3, name: "Тестовий клієнт 3", lat: 50.452, lng: 30.525}
-              ];
-
-              testClients.forEach(client => {
-                  L.marker([client.lat, client.lng], {
-                      icon: L.divIcon({
-                          className: 'client-marker',
-                          html: '<div style="background-color: blue; border-radius: 50%; width: 20px; height: 20px;"></div>',
-                          iconSize: [20, 20]
-                      })
-                  }).addTo(clientsLayer)
-                  .bindPopup(`<b>${client.name}</b> (тестовий)`);
-              });
-          }
-      }
-  }
-      document.addEventListener('DOMContentLoaded', () => {
-      initMap();
-
-      document.getElementById('location-btn').addEventListener('click', updateLocation);
-      document.getElementById('toggle-online-btn').addEventListener('click', toggleOnlineStatus);
-
-      setInterval(loadClientsLocations, 30000);
-  });
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('sendMessageBtn').click();
+            }
+        });
+    });
 </script>
 
 <style>
-  #map-container {
-    border-radius: 8px;
-  }
-  .nurse-marker {
-    z-index: 1000;
-  }
-  #status-message {
-    min-height: 20px;
-    font-size: 14px;
-  }
+    #map-container {
+        border-radius: 8px;
+    }
+    .nurse-marker {
+        z-index: 1000;
+    }
+    #status-message {
+        min-height: 20px;
+        font-size: 14px;
+    }
+    .chat-messages-container {
+        height: 300px;
+        overflow-y: auto;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+    
+    .message {
+        margin-bottom: 10px;
+        max-width: 80%;
+        padding: 8px 12px;
+        border-radius: 15px;
+        position: relative;
+    }
+    
+    .my-message {
+        background-color: #007bff;
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 0;
+    }
+    
+    .their-message {
+        background-color: #e9ecef;
+        margin-right: auto;
+        border-bottom-left-radius: 0;
+    }
+    
+    .message-content {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .sender-name {
+        font-weight: bold;
+        font-size: 0.8em;
+        margin-bottom: 3px;
+    }
+    
+    .message-text {
+        word-wrap: break-word;
+    }
+    
+    .message-time {
+        font-size: 0.7em;
+        text-align: right;
+        opacity: 0.7;
+        margin-top: 3px;
+    }
+    
+    .start-chat-btn {
+        margin-top: 5px;
+    }
 </style>
-{% endblock %}
+{% endblock %}body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-image: url('2025-06-24 19.49.17.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: -1;
+}
+
+.overlay-content {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: white;
+    z-index: 1;
+    animation: fadeIn 2s ease-in-out;
+    width: 90%;
+    max-width: 450px;
+}
+
+form {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    text-align: left;
+}
+
+form label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+    color: #333;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+button.btn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    background-color: #0099ff;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button.btn:hover {
+    background-color: #007acc;
+}
+
+.btn-google {
+    background-color: #dd4b39;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 10px;
+    width: 100%;
+    max-width: 250px;
+}
+
+.btn-google:hover {
+    background-color: #c23321;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    color: white;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.btn-outline:hover {
+    background: white;
+    color: #333;
+}
+
+h1 {
+    font-size: 32px;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.alert-area {
+    margin-bottom: 15px;
+}
+
+.alert {
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
