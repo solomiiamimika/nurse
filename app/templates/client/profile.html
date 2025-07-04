@@ -38,7 +38,34 @@
         value="{{ user.phone_number or '' }}"
       />
     </div>
+<div class="mb-3">
+      <label for="date_birth" class="form-label">Дата народження:</label>
+      <input
+        type="date"
+        name="date_birth"
+        id="date_birth"
+        class="form-control"
+        value="{{ formatted_date }}"
+      />
+    </div>
 
+    <div class="mb-3">
+      <label for="about_me" class="form-label">Про себе:</label>
+      <textarea name="about_me" id="about_me" class="form-control" rows="3">
+{{ user.about_me or '' }}</textarea
+      >
+    </div>
+
+    <div class="mb-3">
+      <label for="address" class="form-label">Адреса:</label>
+      <input
+        type="text"
+        name="address"
+        id="address"
+        class="form-control"
+        value="{{ user.address or '' }}"
+      />
+    </div>
     <div class="mb-3">
       <label for="profile_picture" class="form-label">Фото профілю:</label>
       <input
