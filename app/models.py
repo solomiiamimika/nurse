@@ -73,16 +73,32 @@ class Service(db.Model):
     id= Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     description = Column(Text)
+    base_price = Column(Float, nullable=False)
+    base_duration = Column(Integer, nullable=False)
+    is_standart = Column(Boolean,default = True)
+    
+    nurse_services = relationship('NurseService',backref='base_service',lazy=True)
+
+    
+class NurseService(db.Model):
+    __tablename__ = 'nurse_service'
+    id= Column(Integer, primary_key=True)
+    nurse_id = Column(Integer,ForeignKey('user.id'),nullable = False)
+    service_id = Column(Integer,ForeignKey('service.id'),nullable = False)
     price = Column(Float, nullable=False)
     duration = Column(Integer, nullable=False)
-    appointments = relationship('Appointment', backref='service', lazy=True)
+    is_avaliable = Column(Boolean,default = True)
+    description = Column(Text)
+    
+    appointments = relationship('Appointment', backref='nurse_service', lazy=True)
+
 
 class Appointment(db.Model):
     __tablename__ = 'appointment'
     id = Column (Integer, primary_key=True)
     client_id = Column(Integer, ForeignKey('user.id'), nullable=False)
     nurse_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    service_id = Column(Integer, ForeignKey('service.id'), nullable=False)
+    nurse_service_id = Column(Integer, ForeignKey('nurse_service.id'), nullable=False)
     appointment_time = Column (DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
     status = Column(String(20), default='scheduled') # scheduled, completed, canceled

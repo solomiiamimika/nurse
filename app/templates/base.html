@@ -31,15 +31,6 @@
   </head>
 
   <body>
-    <div style="position: absolute; top: 10px; right: 10px; z-index: 9999">
-      {% if current_user.is_authenticated %} {% if current_user.role == 'nurse'
-      %}
-      <a href="{{ url_for('nurse.profile') }}" style="font-size: 24px">☰</a>
-      {% elif current_user.role == 'client' %}
-      <a href="{{ url_for('client.profile') }}" style="font-size: 24px">☰</a>
-      {% endif %} {% endif %}
-    </div>
-
     {% with messages = get_flashed_messages(with_categories=true) %} {% if
     messages %}
     <ul class="flashes">

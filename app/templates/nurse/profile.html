@@ -1,6 +1,9 @@
 {% extends "base.html" %} {% block content %}
 <div class="container mt-4">
   <h2>Профіль медсестри</h2>
+  <div style="position: absolute; top: 10px; right: 10px; z-index: 9999">
+        <a href="{{ url_for('nurse.dashboard') }}" style="font-size: 24px">☰</a>
+  </div> 
 
   <!-- Фото профілю -->
   {% if user.photo %}

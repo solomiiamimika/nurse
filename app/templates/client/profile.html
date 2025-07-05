@@ -1,7 +1,9 @@
-{% extends "base.html" %} 
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="container mt-4">
   <h2>Профіль клієнта</h2>
+  <div style="position: absolute; top: 10px; right: 10px; z-index: 9999">
+    <a href="{{ url_for('client.dashboard') }}" style="font-size: 24px">☰</a>
+  </div>
 
   <!-- Фото профілю -->
   {% if user.profile_picture %}
@@ -38,7 +40,7 @@
         value="{{ user.phone_number or '' }}"
       />
     </div>
-<div class="mb-3">
+    <div class="mb-3">
       <label for="date_birth" class="form-label">Дата народження:</label>
       <input
         type="date"
@@ -135,9 +137,9 @@
             {
               method: "POST",
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
               },
-              body: JSON.stringify({doc_name: filename})
+              body: JSON.stringify({ doc_name: filename }),
             }
           );
 

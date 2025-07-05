@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, current_app, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
-from app.models import User, Message, db
+from app.models import User, Message, db, Service, NurseService
 from datetime import datetime
 import json
 import os
@@ -214,3 +214,60 @@ def get_chat_messages():
     except Exception as e:
         current_app.logger.error(f"Error getting chat messages: {str(e)}")
         return jsonify({'error': 'Помилка сервера'}), 500
+    
+@nurse_bp.route('/services', methods=['GET', 'POST']) 
+@login_required
+def manage_services():
+    standart_services=Service.query.filter_by(is_standart=True).all()
+    self_written_services=NurseService.query.filter_by(nurse_id=current_user.id).all()
+    if request.method=='POST':
+        service_id=request.form.get('service_id')
+        action=request.form.get('action')
+        if action=='add':
+            price=float(request.form.get('price'))
+            duration=int(request.form.get('duration'))
+            description=request.form.get('description')
+            
+            new_service=NurseService(
+                nurse_id=current_user.id, 
+                service_id=service_id,
+                price=price,
+                duration=duration,
+                description=description,
+                is_avaliable=True
+            )
+            db.session.add(new_service)
+            db.session.commit()
+            flash('added', 'success')
+            
+        elif action=='update':
+            service=NurseService.query.filter_by(nurse_id=current_user.id, servie_id=service_id).first() 
+            if service:
+                service.price=float(request.form.get('price'))
+                service.duration=int(request.form.get('duration'))
+                service.description=request.form.get('description')
+                service.is_avaliable='is_avaliable'in request.form
+                db.session.commit()
+                flash('updated', 'success')
+                
+        elif action=='remove':
+            service=NurseService.query.filter_by(nurse_id=current_user.id, servie_id=service_id).first()  
+            if service:
+                db.session.delete(service)
+                db.session.commit()
+                flash('deleted', 'success')
+                
+        return redirect(url_for('nurse.manage_services')) 
+      
+    return render_template('nurse/services.html', 
+                         standart_services=standart_services,
+                         nurse_services=self_written_services
+                        )   
+                     
+            
+            
+            
+            
+            
+    
+
