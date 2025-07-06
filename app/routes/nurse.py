@@ -215,59 +215,110 @@ def get_chat_messages():
         current_app.logger.error(f"Error getting chat messages: {str(e)}")
         return jsonify({'error': 'Помилка сервера'}), 500
     
-@nurse_bp.route('/services', methods=['GET', 'POST']) 
+@nurse_bp.route('/services', methods=['GET', 'POST'])
 @login_required
 def manage_services():
-    standart_services=Service.query.filter_by(is_standart=True).all()
-    self_written_services=NurseService.query.filter_by(nurse_id=current_user.id).all()
-    if request.method=='POST':
-        service_id=request.form.get('service_id')
-        action=request.form.get('action')
-        if action=='add':
-            price=float(request.form.get('price'))
-            duration=int(request.form.get('duration'))
-            description=request.form.get('description')
-            
-            new_service=NurseService(
-                nurse_id=current_user.id, 
-                service_id=service_id,
-                price=price,
-                duration=duration,
-                description=description,
-                is_avaliable=True
-            )
-            db.session.add(new_service)
-            db.session.commit()
-            flash('added', 'success')
-            
-        elif action=='update':
-            service=NurseService.query.filter_by(nurse_id=current_user.id, servie_id=service_id).first() 
-            if service:
-                service.price=float(request.form.get('price'))
-                service.duration=int(request.form.get('duration'))
-                service.description=request.form.get('description')
-                service.is_avaliable='is_avaliable'in request.form
-                db.session.commit()
-                flash('updated', 'success')
-                
-        elif action=='remove':
-            service=NurseService.query.filter_by(nurse_id=current_user.id, servie_id=service_id).first()  
-            if service:
-                db.session.delete(service)
-                db.session.commit()
-                flash('deleted', 'success')
-                
-        return redirect(url_for('nurse.manage_services')) 
-      
-    return render_template('nurse/services.html', 
-                         standart_services=standart_services,
-                         nurse_services=self_written_services
-                        )   
-                     
-            
-            
-            
-            
-            
-    
+    if current_user.role != 'nurse':
+        return redirect(url_for('auth.login'))
 
+    standard_services = Service.query.filter_by(is_standart=True).all()
+    nurse_services = NurseService.query.filter_by(nurse_id=current_user.id).all()
+
+    if request.method == 'POST':
+        try:
+            action = request.form.get('action')
+            
+            if action == 'add_custom':
+                new_service = NurseService(
+                    nurse_id=current_user.id,
+                    service_id=None,
+                    name=request.form.get('name'),
+                    price=float(request.form.get('price')),
+                    duration=int(request.form.get('duration')),
+                    description=request.form.get('description', ''),
+                    is_available='is_available' in request.form
+                )
+                db.session.add(new_service)
+                flash('Власну послугу додано успішно', 'success')
+            
+            elif action == 'add':
+                service_id = request.form.get('service_id')
+                if not service_id:
+                    flash('Не обрано послугу', 'danger')
+                    return redirect(url_for('nurse.manage_services'))
+                
+                new_service = NurseService(
+                    nurse_id=current_user.id,
+                    service_id=service_id,
+                    name=None,
+                    price=float(request.form.get('price')),
+                    duration=int(request.form.get('duration')),
+                    description=request.form.get('description', ''),
+                    is_available='is_available' in request.form
+                )
+                db.session.add(new_service)
+                flash('Стандартну послугу додано успішно', 'success')
+            
+            elif action == 'update':
+                service_id = request.form.get('service_id')
+                is_custom = request.form.get('is_custom') == 'true'
+                
+                if is_custom:
+                    service = NurseService.query.filter_by(
+                        id=service_id,
+                        nurse_id=current_user.id
+                    ).first()
+                    if service:
+                        service.name = request.form.get('name')
+                else:
+                    service = NurseService.query.filter_by(
+                        service_id=service_id,
+                        nurse_id=current_user.id
+                    ).first()
+                
+                if service:
+                    service.price = float(request.form.get('price'))
+                    service.duration = int(request.form.get('duration'))
+                    service.description = request.form.get('description', '')
+                    service.is_available = 'is_available' in request.form
+                    flash('Послугу оновлено успішно', 'success')
+                else:
+                    flash('Послугу не знайдено', 'danger')
+            
+            elif action == 'remove':
+                service_id = request.form.get('service_id')
+                service = NurseService.query.filter_by(
+                    service_id=service_id,
+                    nurse_id=current_user.id
+                ).first()
+                
+                if service:
+                    db.session.delete(service)
+                    flash('Стандартну послугу видалено успішно', 'success')
+                else:
+                    flash('Послугу не знайдено', 'danger')
+            
+            elif action == 'remove_custom':
+                service_id = request.form.get('service_id')
+                service = NurseService.query.filter_by(
+                    id=service_id,
+                    nurse_id=current_user.id
+                ).first()
+                
+                if service:
+                    db.session.delete(service)
+                    flash('Власну послугу видалено успішно', 'success')
+                else:
+                    flash('Послугу не знайдено', 'danger')
+            
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Error managing services: {str(e)}")
+            flash(f'Помилка при обробці запиту: {str(e)}', 'danger')
+        
+        return redirect(url_for('nurse.manage_services'))
+
+    return render_template('nurse/services.html',
+                         standard_services=standard_services,
+                         nurse_services=nurse_services)

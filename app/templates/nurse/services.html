@@ -1,7 +1,9 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %} 
+{% block content %}
 <div class="nurse-services">
   <h2>Управління послугами</h2>
 
+  <!-- Standard Services Section -->
   <div class="standard-services mb-5">
     <h4>Стандартні послуги</h4>
     <div class="table-responsive">
@@ -23,8 +25,8 @@
             <td>{{ service.base_price }} грн</td>
             <td>{{ service.base_duration }} хв</td>
             <td>
-              {% set nurse_service = nurse_services|selectattr("service_id",
-              "equalto", service.id)|first %} {% if nurse_service %}
+              {% set nurse_service = nurse_services|selectattr("service_id", "equalto", service.id)|first %} 
+              {% if nurse_service %}
               <button
                 class="btn btn-sm btn-info edit-service-btn"
                 data-service-id="{{ service.id }}"
@@ -35,10 +37,17 @@
               >
                 <i class="fas fa-edit"></i> Змінити
               </button>
+              <button
+                class="btn btn-sm btn-danger remove-service-btn"
+                data-service-id="{{ service.id }}"
+              >
+                <i class="fas fa-trash"></i> Видалити
+              </button>
               {% else %}
               <button
                 class="btn btn-sm btn-success add-service-btn"
                 data-service-id="{{ service.id }}"
+                data-name="{{ service.name }}"
               >
                 <i class="fas fa-plus"></i> Додати
               </button>
@@ -50,9 +59,71 @@
       </table>
     </div>
   </div>
+
+  <!-- Custom Services Section -->
+  <div class="custom-services">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4>Мої послуги</h4>
+      <button class="btn btn-primary" id="addCustomServiceBtn">
+        <i class="fas fa-plus"></i> Додати власну послугу
+      </button>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Назва</th>
+            <th>Опис</th>
+            <th>Ціна</th>
+            <th>Тривалість</th>
+            <th>Статус</th>
+            <th>Дії</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for service in nurse_services if not service.service_id %}
+          <tr>
+            <td>{{ service.name }}</td>
+            <td>{{ service.description }}</td>
+            <td>{{ service.price }} грн</td>
+            <td>{{ service.duration }} хв</td>
+            <td>
+              {% if service.is_available %}
+                <span class="badge bg-success">Доступна</span>
+              {% else %}
+                <span class="badge bg-secondary">Недоступна</span>
+              {% endif %}
+            </td>
+            <td>
+              <button
+                class="btn btn-sm btn-info edit-service-btn"
+                data-service-id="{{ service.id }}"
+                data-price="{{ service.price }}"
+                data-duration="{{ service.duration }}"
+                data-description="{{ service.description }}"
+                data-available="{{ service.is_available }}"
+                data-name="{{ service.name }}"
+                data-custom="true"
+              >
+                <i class="fas fa-edit"></i> Змінити
+              </button>
+              <button
+                class="btn btn-sm btn-danger remove-service-btn"
+                data-service-id="{{ service.id }}"
+                data-custom="true"
+              >
+                <i class="fas fa-trash"></i> Видалити
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
-<!-- Модальне вікно для додавання/редагування послуги -->
+<!-- Service Modal -->
 <div class="modal fade" id="serviceModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -68,8 +139,19 @@
       <form id="serviceForm" method="POST">
         <input type="hidden" name="service_id" id="formServiceId" />
         <input type="hidden" name="action" id="formAction" />
+        <input type="hidden" name="is_custom" id="formIsCustom" value="false" />
 
         <div class="modal-body">
+          <div class="mb-3" id="customNameField">
+            <label for="name" class="form-label">Назва послуги</label>
+            <input
+              type="text"
+              class="form-control"
+              id="name"
+              name="name"
+              required
+            />
+          </div>
           <div class="mb-3">
             <label for="price" class="form-label">Ціна (грн)</label>
             <input
@@ -82,9 +164,7 @@
             />
           </div>
           <div class="mb-3">
-            <label for="duration" class="form-label"
-              >Тривалість (хвилини)</label
-            >
+            <label for="duration" class="form-label">Тривалість (хвилини)</label>
             <input
               type="number"
               class="form-control"
@@ -94,9 +174,7 @@
             />
           </div>
           <div class="mb-3">
-            <label for="description" class="form-label"
-              >Опис (необов'язково)</label
-            >
+            <label for="description" class="form-label">Опис (необов'язково)</label>
             <textarea
               class="form-control"
               id="description"
@@ -131,57 +209,140 @@
     </div>
   </div>
 </div>
-{% endblock %} {% block scripts %}
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Підтвердження видалення</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Ви впевнені, що хочете видалити цю послугу?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Видалити</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // Обробка кнопки додавання послуги
-    document.querySelectorAll(".add-service-btn").forEach((btn) => {
-      btn.addEventListener("click", function () {
-        const serviceId = this.getAttribute("data-service-id");
-        document.getElementById("formServiceId").value = serviceId;
-        document.getElementById("formAction").value = "add";
-        document.getElementById("serviceModalTitle").textContent =
-          "Додати послугу";
+    // Handle Add Custom Service Button
+    document.getElementById('addCustomServiceBtn').addEventListener('click', function() {
+      document.getElementById('formAction').value = 'add_custom';
+      document.getElementById('formIsCustom').value = 'true';
+      document.getElementById('serviceModalTitle').textContent = 'Додати власну послугу';
+      document.getElementById('customNameField').style.display = 'block';
+      
+      // Reset form
+      document.getElementById('formServiceId').value = '';
+      document.getElementById('name').value = '';
+      document.getElementById('price').value = '';
+      document.getElementById('duration').value = '';
+      document.getElementById('description').value = '';
+      document.getElementById('is_available').checked = true;
+      
+      const modal = new bootstrap.Modal(document.getElementById('serviceModal'));
+      modal.show();
+    });
 
-        // Очистити форму
-        document.getElementById("price").value = "";
-        document.getElementById("duration").value = "";
-        document.getElementById("description").value = "";
-        document.getElementById("is_available").checked = true;
-
-        // Показати модальне вікно
-        const modal = new bootstrap.Modal(
-          document.getElementById("serviceModal")
-        );
+    // Handle Add Standard Service Button
+    document.querySelectorAll('.add-service-btn').forEach((btn) => {
+      btn.addEventListener('click', function() {
+        const serviceId = this.getAttribute('data-service-id');
+        const serviceName = this.getAttribute('data-name');
+        
+        document.getElementById('formAction').value = 'add';
+        document.getElementById('formIsCustom').value = 'false';
+        document.getElementById('formServiceId').value = serviceId;
+        document.getElementById('serviceModalTitle').textContent = `Додати послугу: ${serviceName}`;
+        document.getElementById('customNameField').style.display = 'none';
+        
+        // Reset form
+        document.getElementById('price').value = '';
+        document.getElementById('duration').value = '';
+        document.getElementById('description').value = '';
+        document.getElementById('is_available').checked = true;
+        
+        const modal = new bootstrap.Modal(document.getElementById('serviceModal'));
         modal.show();
       });
     });
 
-    // Обробка кнопки редагування послуги
-    document.querySelectorAll(".edit-service-btn").forEach((btn) => {
-      btn.addEventListener("click", function () {
-        const serviceId = this.getAttribute("data-service-id");
-        document.getElementById("formServiceId").value = serviceId;
-        document.getElementById("formAction").value = "update";
-        document.getElementById("serviceModalTitle").textContent =
-          "Редагувати послугу";
-
-        // Заповнити форму даними
-        document.getElementById("price").value =
-          this.getAttribute("data-price");
-        document.getElementById("duration").value =
-          this.getAttribute("data-duration");
-        document.getElementById("description").value =
-          this.getAttribute("data-description");
-        document.getElementById("is_available").checked =
-          this.getAttribute("data-available") === "True";
-
-        // Показати модальне вікно
-        const modal = new bootstrap.Modal(
-          document.getElementById("serviceModal")
-        );
+    // Handle Edit Service Button
+    document.querySelectorAll('.edit-service-btn').forEach((btn) => {
+      btn.addEventListener('click', function() {
+        const isCustom = this.hasAttribute('data-custom');
+        const serviceId = this.getAttribute('data-service-id');
+        const price = this.getAttribute('data-price');
+        const duration = this.getAttribute('data-duration');
+        const description = this.getAttribute('data-description');
+        const available = this.getAttribute('data-available') === 'True';
+        
+        document.getElementById('formAction').value = 'update';
+        document.getElementById('formIsCustom').value = isCustom ? 'true' : 'false';
+        document.getElementById('formServiceId').value = serviceId;
+        document.getElementById('serviceModalTitle').textContent = 'Редагувати послугу';
+        
+        if (isCustom) {
+          const name = this.getAttribute('data-name');
+          document.getElementById('customNameField').style.display = 'block';
+          document.getElementById('name').value = name;
+        } else {
+          document.getElementById('customNameField').style.display = 'none';
+        }
+        
+        document.getElementById('price').value = price;
+        document.getElementById('duration').value = duration;
+        document.getElementById('description').value = description;
+        document.getElementById('is_available').checked = available;
+        
+        const modal = new bootstrap.Modal(document.getElementById('serviceModal'));
         modal.show();
       });
+    });
+
+    // Handle Delete Service Button
+    let serviceToDelete = null;
+    let isCustomToDelete = false;
+    
+    document.querySelectorAll('.remove-service-btn').forEach((btn) => {
+      btn.addEventListener('click', function() {
+        serviceToDelete = this.getAttribute('data-service-id');
+        isCustomToDelete = this.hasAttribute('data-custom');
+        
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+      });
+    });
+    
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+      if (serviceToDelete) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '';
+        
+        const serviceIdInput = document.createElement('input');
+        serviceIdInput.type = 'hidden';
+        serviceIdInput.name = 'service_id';
+        serviceIdInput.value = serviceToDelete;
+        form.appendChild(serviceIdInput);
+        
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = isCustomToDelete ? 'remove_custom' : 'remove';
+        form.appendChild(actionInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+      }
     });
   });
 </script>

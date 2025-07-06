@@ -83,11 +83,12 @@ class Service(db.Model):
 class NurseService(db.Model):
     __tablename__ = 'nurse_service'
     id= Column(Integer, primary_key=True)
+    name = db.Column(db.String(100)) 
     nurse_id = Column(Integer,ForeignKey('user.id'),nullable = False)
-    service_id = Column(Integer,ForeignKey('service.id'),nullable = False)
+    service_id = Column(Integer,ForeignKey('service.id'),nullable = True)
     price = Column(Float, nullable=False)
     duration = Column(Integer, nullable=False)
-    is_avaliable = Column(Boolean,default = True)
+    is_available = Column(Boolean,default = True)
     description = Column(Text)
     
     appointments = relationship('Appointment', backref='nurse_service', lazy=True)
