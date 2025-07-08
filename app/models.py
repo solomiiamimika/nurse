@@ -115,7 +115,6 @@ class Payment (db.Model):
     payment_date = Column(DateTime, default=datetime.now)
     status = Column (String(20), default='pending') # pending, completed, failed    
             
-
 class MedicalRecord(db.Model):
     __tablename__ = 'medical_record'
     id = Column(Integer, primary_key=True)

@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, request,abort,jsonify,current_app
 from flask_login import login_user, logout_user, current_user, login_required
 from app. extensions import db, bcrypt
-from app.models import User,Message
+from app.models import User,Message, NurseService
 from . import client_bp
 from datetime import datetime
 import os 
@@ -222,3 +222,25 @@ def get_chat_messages():
     } for msg in messages]
     
     return jsonify(messages_data)
+
+@client_bp.route('/get_nurse_services')
+@login_required
+def get_nurse_services():
+    if current_user.role != 'client':
+        return jsonify({'error': 'Доступ заборонено'}), 403
+    
+    nurse_id=request.args.get('nurse_id')
+    services=NurseService.query.filter_by(nurse_id=nurse_id, is_available=True).all()
+    
+    services_data = [{
+        'id': service.id,
+        'name': service.name,
+        'price': service.price,
+        'duration': service.duration,
+        'description': service.description
+    }for service in services]
+    
+    return jsonify(services_data)
+
+    
+    
