@@ -1,5 +1,5 @@
 from flask import Flask
-from .extensions import db, bcrypt, login_manager, migrate, socket_io, google_blueprint
+from .extensions import db, bcrypt, login_manager, migrate, socketio, google_blueprint
 from app.models import User, Message, Service, Appointment, Payment, MedicalRecord, Prescription, Review
 from app.routes import auth_bp, main_bp, client_bp, nurse_bp
 
@@ -17,7 +17,7 @@ def create_app():
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
     migrate.init_app(app, db)
-    socket_io.init_app(app,manage_session=False)
+    socketio.init_app(app,manage_session=False,cors_allowed_origins="*")
 
     # Реєстрація блюпрінтів
     from app.routes.auth import auth_bp

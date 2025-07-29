@@ -26,7 +26,41 @@
 
     <div id="map-container" style="height: 500px; width: 100%; margin-top: 20px; border: 2px solid #ddd;"></div>
 </div>
-
+<!-- Модальне вікно запису на прийом -->
+<div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="appointmentModalLabel">Запис до <span id="appointmentNurseName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="appointmentNurseId">
+                
+                <div class="mb-3">
+                    <label for="appointmentServiceSelect" class="form-label">Послуга</label>
+                    <select class="form-select" id="appointmentServiceSelect">
+                        <option value="">Завантаження...</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="appointmentDateTime" class="form-label">Дата та час</label>
+                    <input type="datetime-local" class="form-control" id="appointmentDateTime">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="appointmentNotes" class="form-label">Примітки (необов'язково)</label>
+                    <textarea class="form-control" id="appointmentNotes" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                <button type="button" class="btn btn-primary" id="confirmAppointmentBtn">Підтвердити запис</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %} 
 
 {% block scripts %}
@@ -179,38 +213,44 @@
   }
 
   async function loadNurses() {
-      try {
-          updateStatus("Завантаження медсестер...");
+    try {
+        updateStatus("Завантаження медсестер...");
 
-          const response = await fetch('{{ url_for("client.get_nurses_locations") }}');
-          if (!response.ok) throw new Error("Помилка сервера");
+        const response = await fetch('{{ url_for("client.get_nurses_locations") }}');
+        if (!response.ok) throw new Error("Помилка сервера");
 
-          const nurses = await response.json();
+        const nurses = await response.json();
 
-          nurseMarkers.forEach(m => map.removeLayer(m));
-          nurseMarkers = [];
+        nurseMarkers.forEach(m => map.removeLayer(m));
+        nurseMarkers = [];
 
-          nurses.forEach(nurse => {
-              const marker = L.marker([nurse.lat, nurse.lng], {
-                  icon: L.divIcon({
-                      className: 'nurse-marker',
-                      html: `<div style="background: ${nurse.online ? 'green' : 'red'};
-                            border-radius: 50%; width: 20px; height: 20px;"></div>`,
-                      iconSize: [20, 20]
-                  })
-              }).addTo(map);
+        nurses.forEach(nurse => {
+            const marker = L.marker([nurse.lat, nurse.lng], {
+                icon: L.divIcon({
+                    className: 'nurse-marker',
+                    html: `<div style="background: ${nurse.online ? 'green' : 'red'};
+                          border-radius: 50%; width: 20px; height: 20px;"></div>`,
+                    iconSize: [20, 20]
+                })
+            }).addTo(map);
 
-              marker.bindPopup(`
-                  <b>${nurse.name}</b><br>
-                  Статус: ${nurse.online ? 'Доступна' : 'Недоступна'}<br>
-                  <button class="btn btn-sm btn-primary start-chat-btn" data-nurse-id="${nurse.id}" data-nurse-name="${nurse.name}">
-                      <i class="fas fa-comment"></i> Написати
-                  </button>
-              `);
-              
-              nurseMarkers.push(marker);
-          });
+            marker.bindPopup(`
+                <b>${nurse.name}</b><br>
+                Статус: ${nurse.online ? 'Доступна' : 'Недоступна'}<br>
+                <button class="btn btn-sm btn-primary start-chat-btn" data-nurse-id="${nurse.id}" data-nurse-name="${nurse.name}">
+                    <i class="fas fa-comment"></i> Написати
+                </button>
+                <button class="btn btn-sm btn-success mt-1 create-appointment-btn" 
+                        data-nurse-id="${nurse.id}" 
+                        data-nurse-name="${nurse.name}">
+                    <i class="fas fa-calendar-plus"></i> Записатись
+                </button>
+            `);
+            
+            nurseMarkers.push(marker);
+        });
 
+        
         document.body.addEventListener('click', (e) => {
             if (e.target.closest('.start-chat-btn')) {
                 const btn = e.target.closest('.start-chat-btn');
@@ -218,15 +258,22 @@
                 const nurseName = btn.getAttribute('data-nurse-name');
                 openChatWithNurse({id: nurseId, name: nurseName});
             }
+            
+            if (e.target.closest('.create-appointment-btn')) {
+                const btn = e.target.closest('.create-appointment-btn');
+                const nurseId = btn.getAttribute('data-nurse-id');
+                const nurseName = btn.getAttribute('data-nurse-name');
+                openAppointmentModal(nurseId, nurseName);
+            }
         });
 
-          updateStatus(`Знайдено ${nurses.length} медсестер`);
+        updateStatus(`Знайдено ${nurses.length} медсестер`);
 
-      } catch (error) {
-          updateStatus("Помилка завантаження: " + error.message, true);
-          console.error(error);
-      }
-  }
+    } catch (error) {
+        updateStatus("Помилка завантаження: " + error.message, true);
+        console.error(error);
+    }
+}
 
   async function handleLocation() {
       try {
@@ -303,6 +350,82 @@
               document.getElementById('messageInput').value = '';
           }
       });
+
+document.getElementById('confirmAppointmentBtn').addEventListener('click', () => {
+    const nurseId = document.getElementById('appointmentNurseId').value;
+    const serviceId = document.getElementById('appointmentServiceSelect').value;
+    const dateTime = document.getElementById('appointmentDateTime').value;
+    const notes = document.getElementById('appointmentNotes').value;
+    
+    if (!serviceId || !dateTime) {
+        alert('Будь ласка, оберіть послугу та дату');
+        return;
+    }
+    
+    fetch('{{ url_for("client.create_appointment") }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            nurse_id: nurseId,
+            service_id: serviceId,
+            date_time: dateTime,
+            notes: notes
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Запис успішно створено!');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('appointmentModal'));
+            modal.hide();
+        } else {
+            alert('Помилка: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Сталася помилка при створенні запису');
+    });
+});
+
+document.body.addEventListener('click', (e) => {
+    if (e.target.closest('.start-chat-btn')) {
+        const btn = e.target.closest('.start-chat-btn');
+        const nurseId = btn.getAttribute('data-nurse-id');
+        const nurseName = btn.getAttribute('data-nurse-name');
+        openChatWithNurse({id: nurseId, name: nurseName});
+    }
+    
+    if (e.target.closest('.create-appointment-btn')) {
+        const btn = e.target.closest('.create-appointment-btn');
+        const nurseId = btn.getAttribute('data-nurse-id');
+        const nurseName = btn.getAttribute('data-nurse-name');
+        openAppointmentModal(nurseId, nurseName);
+    }
+});
+
+
+function openAppointmentModal(nurseId, nurseName) {
+    fetch(`/client/get_nurse_services?nurse_id=${nurseId}`)
+        .then(response => response.json())
+        .then(services => {
+            const select = document.getElementById('appointmentServiceSelect');
+            select.innerHTML = '';
+            
+            services.forEach(service => {
+                const option = document.createElement('option');
+                option.value = service.id;
+                option.textContent = `${service.name} - ${service.price} грн (${service.duration} хв)`;
+                select.appendChild(option);
+            });
+            
+            document.getElementById('appointmentNurseName').textContent = nurseName;
+            document.getElementById('appointmentNurseId').value = nurseId;
+            
+            const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
+            modal.show();
+        });
+}
 
       document.getElementById('messageInput').addEventListener('keypress', (e) => {
           if (e.key === 'Enter') {
