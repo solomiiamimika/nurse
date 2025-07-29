@@ -1,6 +1,6 @@
 from app import socketio
 from flask import current_app
-from flask_socketio import join_room, leave_room
+from flask_socketio import join_room, leave_room,emit
 from app.models import Message, db
 from datetime import datetime
 
@@ -22,39 +22,29 @@ def handle_join(data):
 @socketio.on('send_message')
 def handle_send_message(data):
     try:
-        text = data.get('text')
-        sender_id = data.get('sender_id')
-        recipient_id = data.get('recipient')
-        
-        if not all([text, sender_id, recipient_id]):
-            socketio.emit('error', {'message': 'Недостатньо даних'}, room=sender_id)
-            return
-        
         message = Message(
-            sender_id=sender_id,
-            recipient_id=recipient_id,
-            text=text,
+            sender_id=data['sender_id'],
+            recipient_id=data['recipient'],
+            text=data['text'],
             timestamp=datetime.utcnow()
         )
-        
         db.session.add(message)
         db.session.commit()
         
-        socketio.emit('new_message', {
+        # Відправляємо повідомлення отримувачу
+        emit('new_message', {
             'id': message.id,
-            'sender_id': sender_id,
+            'sender_id': message.sender_id,
             'sender_name': message.sender.user_name,
-            'text': text,
+            'text': message.text,
             'timestamp': message.timestamp.isoformat()
-        }, room=recipient_id)
+        }, room=f"user_{message.recipient_id}")
         
-        socketio.emit('message_sent', {
-            'message_id': message.id,
-            'timestamp': message.timestamp.isoformat()
-        }, room=sender_id)
+        # Підтвердження відправнику
+        emit('message_sent', {
+            'id': message.id,
+            'status': 'delivered'
+        }, room=f"user_{message.sender_id}")
         
     except Exception as e:
-        current_app.logger.error(f"Помилка відправки повідомлення: {str(e)}")
-        socketio.emit('error', {
-            'message': 'Помилка відправки повідомлення'
-        }, room=data.get('sender_id'))
+        emit('error', {'message': str(e)})
