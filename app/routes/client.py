@@ -1,9 +1,10 @@
 from flask import render_template, redirect, url_for, flash, request,abort,jsonify,current_app
 from flask_login import login_user, logout_user, current_user, login_required
+from sqlalchemy.sql.sqltypes import DateTime
 from app. extensions import db, bcrypt
-from app.models import User,Message,NurseService,Appointment
+from app.models import Appointment, NurseService, User,Message
 from . import client_bp
-from datetime import datetime,timedelta
+from datetime import datetime
 import os 
 from werkzeug.utils import secure_filename
 import json
@@ -224,100 +225,78 @@ def get_chat_messages():
     return jsonify(messages_data)
 
 
-
-
-
-
-@client_bp.route('/get_nurse_services')
+@client_bp.route('/appointments')
 @login_required
-def get_nurse_services():
+def appointments():
     if current_user.role != 'client':
         return jsonify({'error': 'Доступ заборонено'}), 403
-    
-    nurse_id = request.args.get('nurse_id')
-    if not nurse_id:
-        return jsonify({'error': 'Не вказано медсестру'}), 400
-    
-    try:
-        services = NurseService.query.filter_by(
-            nurse_id=nurse_id,
-            is_available=True
-        ).all()
-        
-        services_data = [{
-            'id': service.id,
-            'name': service.name if service.name else service.base_service.name,
-            'price': service.price,
-            'duration': service.duration,
-            'description': service.description
-        } for service in services]
-        
-        return jsonify(services_data)
-    except Exception as e:
-        current_app.logger.error(f"Error getting nurse services: {str(e)}")
-        return jsonify({'error': 'Помилка сервера'}), 500
+    return render_template('client/appointments.html')
 
 
-
-@client_bp.route('/create_appointment', methods=['POST'])
+@client_bp.route('/get_appointments')
 @login_required
-def create_appointment():
+def get_appointments():
     if current_user.role != 'client':
-        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
-    
-    try:
-        data = request.get_json()
-        nurse_id = data.get('nurse_id')
-        service_id = data.get('service_id')
-        date_time = data.get('date_time')
-        
-        if not all([nurse_id, service_id, date_time]):
-            return jsonify({'success': False, 'message': 'Необхідно заповнити всі поля'}), 400
-        
-    
-        nurse = User.query.get(nurse_id)
-        if not nurse or nurse.role != 'nurse':
-            return jsonify({'success': False, 'message': 'Медсестру не знайдено'}), 404
-        
-        service = NurseService.query.get(service_id)
-        if not service or service.nurse_id != int(nurse_id):
-            return jsonify({'success': False, 'message': 'Послугу не знайдено'}), 404
-        
+        return jsonify({'error': 'Доступ заборонено'}), 403
+    appoint_information = Appointment.query.filter_by(client_id=current_user.id).all()
+    appoint_list=[]
+    for app in appoint_information:
+        appoint_list.append({
+            'id':app.id,
+            'name':app.nurse_service.name,
+            'start':app.appointment_time,
+            'end':app.end_time,
+            'color':calendar_appointment_color(app.status),
+            'photo':app.nurse.photo,
+            'extended':{
+                'client_name':app.client.user_name,
+                'nurse_name':app.nurse.user_name,
+                'status':app.stauts,
+                'notes':app.notes
+            
 
-        appointment_time = datetime.strptime(date_time, '%Y-%m-%dT%H:%M')
-        end_time = appointment_time + timedelta(minutes=service.duration)
-        
-        conflicting_appointments = Appointment.query.filter(
-            Appointment.nurse_id == nurse_id,
-            Appointment.status == 'scheduled',
-            ((Appointment.appointment_time <= appointment_time) & (Appointment.end_time > appointment_time)) |
-            ((Appointment.appointment_time < end_time) & (Appointment.end_time >= end_time)) |
-            ((Appointment.appointment_time >= appointment_time) & (Appointment.end_time <= end_time))
-        ).count()
-        
-        if conflicting_appointments > 0:
-            return jsonify({'success': False, 'message': 'Цей час вже зайнятий'}), 400
-        
+            }
 
-        new_appointment = Appointment(
-            client_id=current_user.id,
-            nurse_id=nurse_id,
-            nurse_service_id=service_id,
-            appointment_time=appointment_time,
-            end_time=end_time,
-            status='scheduled'
-        )
-        
-        db.session.add(new_appointment)
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Запис успішно створено',
-            'appointment_id': new_appointment.id
-        })
-        
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f"Error creating appointment: {str(e)}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        })   
+    return jsonify(appoint_list)
+
+def calendar_appointment_color(Status):
+    colors_dictionary={
+        'scheduled':'gray',
+        'request_sended':'yellow',
+        'nurse_confirmed':'green',
+        'completed':'blue',
+        'cancelled':'red'
+
+    }
+    return colors_dictionary.get(Status)
+
+@client_bp.route('/working_hours')
+@login_required
+def working_hours():
+    if current_user.role != 'client':
+        return jsonify({'error': 'Доступ заборонено'}), 403
+
+    nurse_id = request.args.get('nurse_id')
+    service_id = request.args.get('service_id')
+    date_work = request.args.get('date')
+    if not service_id or service_id or nurse_id:
+        return jsonify({'error': 'data is not here'}), 400
+
+    service=NurseService.query.get(service_id)
+    date=datetime.strptime(date_work, '%Y-%m-%d').date()
+    start_working_hours_nurse=9
+    end_working_hours_nurse=17
+
+    appointments_active=Appointment.query.filter(Appointment.nurse_id==nurse_id, db.func.date(Appointment.appointment_time)==date).all()
+    
+
+
+
+
+
+            
+    
+
+    
+
