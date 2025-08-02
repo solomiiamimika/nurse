@@ -351,7 +351,102 @@ def get_available_times():
 
 
 
+@client_bp.route('/get_nurse_services')
+@login_required
+def get_nurse_services():
+    if current_user.role != 'client':
+        return jsonify({'error': 'Доступ заборонено'}), 403
+    
+    nurse_id = request.args.get('nurse_id')
+    if not nurse_id:
+        return jsonify({'error': 'Не вказано медсестру'}), 400
+    
+    try:
+        services = NurseService.query.filter_by(
+            nurse_id=nurse_id,
+            is_available=True
+        ).all()
+        
+        services_data = [{
+            'id': service.id,
+            'name': service.name if service.name else service.base_service.name,
+            'price': service.price,
+            'duration': service.duration,
+            'description': service.description
+        } for service in services]
+        
+        return jsonify(services_data)
+    except Exception as e:
+        current_app.logger.error(f"Error getting nurse services: {str(e)}")
+        return jsonify({'error': 'Помилка сервера'}), 500
 
+
+
+@client_bp.route('/create_appointment', methods=['POST'])
+@login_required
+def create_appointment():
+    if current_user.role != 'client':
+        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+    
+    try:
+        data = request.get_json()
+        nurse_id = data.get('nurse_id')
+        service_id = data.get('service_id')
+        date_time = data.get('date_time')
+        notes = data.get('notes')
+        
+        if not all([nurse_id, service_id, date_time]):
+            return jsonify({'success': False, 'message': 'Необхідно заповнити всі поля'}), 400
+        
+    
+        nurse = User.query.get(nurse_id)
+        if not nurse or nurse.role != 'nurse':
+            return jsonify({'success': False, 'message': 'Медсестру не знайдено'}), 404
+        
+        service = NurseService.query.get(service_id)
+        if not service or service.nurse_id != int(nurse_id):
+            return jsonify({'success': False, 'message': 'Послугу не знайдено'}), 404
+        
+
+        appointment_time = datetime.strptime(date_time, '%Y-%m-%dT%H:%M')
+        end_time = appointment_time + timedelta(minutes=service.duration)
+        
+        conflicting_appointments = Appointment.query.filter(
+            Appointment.nurse_id == nurse_id,
+            Appointment.status == 'scheduled',
+            ((Appointment.appointment_time <= appointment_time) & (Appointment.end_time > appointment_time)) |
+            ((Appointment.appointment_time < end_time) & (Appointment.end_time >= end_time)) |
+            ((Appointment.appointment_time >= appointment_time) & (Appointment.end_time <= end_time))
+        ).count()
+        
+        if conflicting_appointments > 0:
+            return jsonify({'success': False, 'message': 'Цей час вже зайнятий'}), 400
+        
+
+        new_appointment = Appointment(
+            client_id=current_user.id,
+            nurse_id=nurse_id,
+            nurse_service_id=service_id,
+            appointment_time=appointment_time,
+            end_time=end_time,
+            notes=notes,
+            status='scheduled',
+
+        )
+        
+        db.session.add(new_appointment)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Запис успішно створено',
+            'appointment_id': new_appointment.id
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error creating appointment: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
 
             
     

@@ -115,6 +115,12 @@ def delete_document():
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
+@nurse_bp.route('/appointments')
+@login_required
+def appointments():
+    if current_user.role != 'nurse':
+        return jsonify({'error': 'Доступ заборонено'}), 403
+    return render_template('nurse/appointments.html')
 
 @nurse_bp.route('/update_location', methods=['POST'])
 @login_required
@@ -326,29 +332,52 @@ def manage_services():
 @nurse_bp.route('/get_appointments')
 @login_required
 def get_appointments():
+    print("Отримано запит до /nurse/get_appointments")  # Логування
     if current_user.role != 'nurse':
         return jsonify({'error': 'Доступ заборонено'}), 403
-    appoint_information = Appointment.query.filter_by(client_id=current_user.id).all()
-    appoint_list=[]
-    for app in appoint_information:
-        appoint_list.append({
-            'id':app.id,
-            'name':app.nurse_service.name,
-            'start':app.appointment_time,
-            'end':app.end_time,
-            'color':calendar_appointment_color(app.status),
-            'photo':app.client.photo,
-            'extended':{
-                'client_name':app.client.user_name,
-                'nurse_name':app.nurse.user_name,
-                'status':app.stauts,
-                'notes':app.notes
-            
-
-            }
-
-        })   
-    return jsonify(appoint_list)
+    
+    try:
+        start_date = request.args.get('start')
+        end_date = request.args.get('end')
+        query = Appointment.query.filter_by(nurse_id=current_user.id)
+        
+        if start_date and end_date:
+            try:
+                start = datetime.fromisoformat(start_date)
+                end = datetime.fromisoformat(end_date)
+                query = query.filter(
+                    Appointment.appointment_time >= start,
+                    Appointment.appointment_time <= end
+                )
+            except ValueError as e:
+                print(f"Помилка формату дати: {e}")
+        
+        appointments = query.all()
+        result = []
+        
+        for app in appointments:
+            service_name = app.nurse_service.name if app.nurse_service else "Послуга"
+            result.append({
+                'id': app.id,
+                'title': f"{service_name} - {app.client.user_name}",
+                'start': app.appointment_time.isoformat(),
+                'end': app.end_time.isoformat(),
+                'color': calendar_appointment_color(app.status),
+                'extendedProps': {
+                    'client_name': app.client.user_name,
+                    'nurse_name': app.nurse.user_name,
+                    'status': app.status,
+                    'notes': app.notes,
+                    'photo': app.client.photo if app.client.photo else None
+                }
+            })
+        
+        print(f"Повертаємо {len(result)} записів")  # Логування
+        return jsonify(result)
+    
+    except Exception as e:
+        print(f"Помилка у get_appointments: {str(e)}")  # Логування
+        return jsonify({'error': 'Внутрішня помилка сервера'}), 500
 
 def calendar_appointment_color(Status):
     colors_dictionary={
