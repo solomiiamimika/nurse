@@ -4,7 +4,7 @@ from sqlalchemy.sql.sqltypes import DateTime
 from app. extensions import db, bcrypt
 from app.models import Appointment, NurseService, User,Message
 from . import client_bp
-from datetime import datetime
+from datetime import datetime, timedelta
 import os 
 from werkzeug.utils import secure_filename
 import json
@@ -289,7 +289,65 @@ def working_hours():
     end_working_hours_nurse=17
 
     appointments_active=Appointment.query.filter(Appointment.nurse_id==nurse_id, db.func.date(Appointment.appointment_time)==date).all()
-    
+
+
+@client_bp.route('/get_available_times')
+@login_required
+def get_available_times():
+    if current_user.role != 'client':
+        return jsonify({'error': 'Доступ заборонено'}), 403
+
+    nurse_id = request.args.get('nurse_id')
+    service_id = request.args.get('service_id')
+    date_str = request.args.get('date')
+
+    if not all([nurse_id, service_id, date_str]):
+        return jsonify({'error': 'Необхідно вказати медсестру, послугу та дату'}), 400
+
+    try:
+        date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        service = NurseService.query.get(service_id)
+
+        if not service or service.nurse_id != int(nurse_id):
+            return jsonify({'error': 'Послугу не знайдено'}), 404
+
+        # Робочий час медсестри (приклад: з 9 до 18)
+        work_start = 9
+        work_end = 18
+
+        # Отримуємо всі заплановані записи на цей день
+        appointments = Appointment.query.filter(
+            Appointment.nurse_id == nurse_id,
+            db.func.date(Appointment.appointment_time) == date,
+            Appointment.status.in_(['scheduled', 'confirmed'])
+        ).all()
+    # Генеруємо доступні слоти
+        available_slots = []
+        current_time = datetime.combine(date, datetime.min.time()) + timedelta(hours=work_start)
+        end_time = datetime.combine(date, datetime.min.time()) + timedelta(hours=work_end)
+
+        while current_time + timedelta(minutes=service.duration) <= end_time:
+            slot_end = current_time + timedelta(minutes=service.duration)
+
+            # Перевіряємо чи цей слот не перетинається з існуючими записами
+            is_available = True
+            for app in appointments:
+                if (current_time < app.end_time) and (slot_end > app.appointment_time):
+                    is_available = False
+                    break
+
+            if is_available:
+                available_slots.append(current_time.strftime('%H:%M'))
+
+            current_time += timedelta(minutes=30)  # Крок 30 хвилин
+
+        return jsonify(available_slots)
+
+    except Exception as e:
+        current_app.logger.error(f"Error getting available times: {str(e)}")
+        return jsonify({'error': 'Помилка сервера'}), 500
+        
+
 
 
 

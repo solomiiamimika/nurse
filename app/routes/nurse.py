@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, current_app, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
-from app.models import User, Message, db, Service, NurseService
+from app.models import User, Message, db, Service, NurseService, Appointment
 from datetime import datetime
 import json
 import os
@@ -322,3 +322,73 @@ def manage_services():
     return render_template('nurse/services.html',
                          standard_services=standard_services,
                          nurse_services=nurse_services)
+                         
+@nurse_bp.route('/get_appointments')
+@login_required
+def get_appointments():
+    if current_user.role != 'nurse':
+        return jsonify({'error': 'Доступ заборонено'}), 403
+    appoint_information = Appointment.query.filter_by(client_id=current_user.id).all()
+    appoint_list=[]
+    for app in appoint_information:
+        appoint_list.append({
+            'id':app.id,
+            'name':app.nurse_service.name,
+            'start':app.appointment_time,
+            'end':app.end_time,
+            'color':calendar_appointment_color(app.status),
+            'photo':app.client.photo,
+            'extended':{
+                'client_name':app.client.user_name,
+                'nurse_name':app.nurse.user_name,
+                'status':app.stauts,
+                'notes':app.notes
+            
+
+            }
+
+        })   
+    return jsonify(appoint_list)
+
+def calendar_appointment_color(Status):
+    colors_dictionary={
+        'scheduled':'gray',
+        'request_sended':'yellow',
+        'nurse_confirmed':'green',
+        'completed':'blue',
+        'cancelled':'red'
+
+    }
+    return colors_dictionary.get(Status) 
+
+
+@nurse_bp.route('/update_appointment_status', methods=['POST'])
+@login_required
+def update_appointment_status():
+    if current_user.role != 'nurse':
+        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+
+    try:
+        data = request.get_json()
+        appointment_id = data.get('appointment_id')
+        status = data.get('status')
+
+        if not appointment_id or not status:
+            return jsonify({'success': False, 'message': 'Необхідно вказати запис та статус'}), 400
+
+        appointment = Appointment.query.filter_by(
+            id=appointment_id,
+            nurse_id=current_user.id
+        ).first()
+
+        if not appointment:
+            return jsonify({'success': False, 'message': 'Запис не знайдено'}), 404
+
+        appointment.status = status
+        db.session.commit()
+
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error updating appointment status: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
