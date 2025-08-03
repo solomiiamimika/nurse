@@ -238,28 +238,58 @@ def appointments():
 def get_appointments():
     if current_user.role != 'client':
         return jsonify({'error': 'Доступ заборонено'}), 403
-    appoint_information = Appointment.query.filter_by(client_id=current_user.id).all()
-    appoint_list=[]
-    for app in appoint_information:
-        appoint_list.append({
-            'id':app.id,
-            'name':app.nurse_service.name,
-            'start':app.appointment_time,
-            'end':app.end_time,
-            'color':calendar_appointment_color(app.status),
-            'photo':app.nurse.photo,
-            'extended':{
-                'client_name':app.client.user_name,
-                'nurse_name':app.nurse.user_name,
-                'status':app.stauts,
-                'notes':app.notes
+    
+    try:
+        start_date = request.args.get('start')
+        end_date = request.args.get('end')
+        
+        query = Appointment.query.filter_by(client_id=current_user.id)
+        
+        if start_date and end_date:
+            try:
+                start = datetime.fromisoformat(start_date)
+                end = datetime.fromisoformat(end_date)
+                query = query.filter(
+                    Appointment.appointment_time >= start,
+                    Appointment.appointment_time <= end
+                )
+            except ValueError as e:
+                current_app.logger.error(f"Помилка формату дати: {e}")
+        
+        appointments = query.order_by(Appointment.appointment_time.asc()).all()
+        
+        result = []
+        for app in appointments:
+            service_name = app.nurse_service.name if app.nurse_service else "Послуга"
+            nurse_name = app.nurse.user_name if app.nurse else "Медсестра"
             
-
-            }
-
-        })   
-    return jsonify(appoint_list)
-
+            result.append({
+                'id': app.id,
+                'title': f"{service_name} - {nurse_name}",
+                'start': app.appointment_time.isoformat(),
+                'end': app.end_time.isoformat(),
+                'color': get_appointment_color(app.status),
+                'extendedProps': {
+                    'status': app.status,
+                    'notes': app.notes or '',
+                    'nurse_name': nurse_name,
+                    'service_name': service_name
+                }
+            })
+        
+        return jsonify(result)
+    
+    except Exception as e:
+        current_app.logger.error(f"Помилка у get_appointments: {str(e)}")
+        return jsonify({'error': 'Внутрішня помилка сервера'}), 500
+def get_appointment_color(status):
+    colors = {
+        'scheduled': 'gray',
+        'confirmed': 'blue',
+        'completed': 'green',
+        'cancelled': 'red'
+    }
+    return colors.get(status, 'gray')
 def calendar_appointment_color(Status):
     colors_dictionary={
         'scheduled':'gray',

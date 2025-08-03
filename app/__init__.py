@@ -27,8 +27,8 @@ def create_app():
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
-    app.register_blueprint(client_bp)
-    app.register_blueprint(nurse_bp)
+    app.register_blueprint(client_bp,url_prefix='/client')
+    app.register_blueprint(nurse_bp,url_prefix='/nurse')
     app.register_blueprint(google_blueprint)
 
     @login_manager.user_loader
