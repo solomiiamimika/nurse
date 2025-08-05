@@ -2,12 +2,21 @@ from flask import render_template, redirect, url_for, flash, request,abort,jsoni
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy.sql.sqltypes import DateTime
 from app. extensions import db, bcrypt
-from app.models import Appointment, NurseService, User,Message
+from app.models import Appointment, NurseService, User,Message,Payment
 from . import client_bp
 from datetime import datetime, timedelta
 import os 
 from werkzeug.utils import secure_filename
 import json
+
+import stripe
+from flask_cors import cross_origin
+
+
+STRIPE_PUBLIC_KEY = 'ваш_публічний_ключ'
+STRIPE_SECRET_KEY = 'ваш_секретний_ключ'
+STRIPE_WEBHOOK_SECRET = 'ваш_webhook_ключ'
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'uploads')
@@ -482,4 +491,124 @@ def create_appointment():
     
 
     
+@client_bp.route('/create_apple_pay_session', methods=['POST'])
+@login_required
+def create_apple_pay_session():
+    try:
+        appointment_id = request.json.get('appointment_id')
+        appointment = Appointment.query.get_or_404(appointment_id)
+        
+        if appointment.client_id != current_user.id:
+            abort(403)
 
+        # Створюємо сесію оплати Stripe
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card', 'apple_pay'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'uah',
+                    'product_data': {
+                        'name': appointment.nurse_service.name,
+                    },
+                    'unit_amount': int(appointment.nurse_service.price * 100),  # В копійках
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=url_for('client.payment_success', appointment_id=appointment_id, _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=url_for('client.payment_cancel', _external=True),
+            customer_email=current_user.email,
+            metadata={
+                'appointment_id': appointment_id,
+                'user_id': current_user.id
+            }
+        )
+
+        return jsonify({'sessionId': session.id})
+    
+    except Exception as e:
+        current_app.logger.error(f"Apple Pay error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@client_bp.route('/payment_success/<int:appointment_id>')
+@login_required
+def payment_success(appointment_id):
+    appointment = Appointment.query.get_or_404(appointment_id)
+    session_id = request.args.get('session_id')
+    
+    try:
+        # Перевіряємо оплату через Stripe API
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        if session.payment_status == 'paid':
+            payment = Payment(
+                user_id=current_user.id,
+                appointment_id=appointment_id,
+                amount=appointment.nurse_service.price,
+                payment_date=datetime.now(),
+                status='completed',
+                transaction_id=session.payment_intent,
+                payment_method='apple_pay'
+            )
+            
+            db.session.add(payment)
+            appointment.status = 'confirmed_paid'
+            db.session.commit()
+            
+            flash('Оплата через Apple Pay успішна!', 'success')
+        else:
+            flash('Оплата не підтверджена', 'warning')
+    
+    except Exception as e:
+        current_app.logger.error(f"Payment verification error: {str(e)}")
+        flash('Помилка при перевірці платежу', 'danger')
+    
+    return redirect(url_for('client.appointments'))
+
+@client_bp.route('/stripe_webhook', methods=['POST'])
+@cross_origin()
+def stripe_webhook():
+    payload = request.get_data(as_text=True)
+    sig_header = request.headers.get('Stripe-Signature')
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, current_app.config['STRIPE_WEBHOOK_SECRET']
+        )
+    except ValueError as e:
+        return jsonify({'error': 'Invalid payload'}), 400
+    except stripe.error.SignatureVerificationError as e:
+        return jsonify({'error': 'Invalid signature'}), 400
+
+    # Обробка події успішної оплати
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        handle_successful_payment(session)
+
+    return jsonify({'status': 'success'})
+
+def handle_successful_payment(session):
+    try:
+        appointment_id = session['metadata'].get('appointment_id')
+        user_id = session['metadata'].get('user_id')
+        
+        if appointment_id and user_id:
+            payment = Payment(
+                user_id=user_id,
+                appointment_id=appointment_id,
+                amount=float(session['amount_total']) / 100,
+                payment_date=datetime.now(),
+                status='completed',
+                transaction_id=session['payment_intent'],
+                payment_method=session['payment_method_types'][0]
+            )
+            
+            db.session.add(payment)
+            
+            appointment = Appointment.query.get(appointment_id)
+            if appointment:
+                appointment.status = 'confirmed_paid'
+            
+            db.session.commit()
+    except Exception as e:
+        current_app.logger.error(f"Webhook error: {str(e)}")

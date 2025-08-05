@@ -27,6 +27,9 @@
         </div>
     </div>
 </div>
+
+
+
 {% endblock %}
 
 {% block scripts %}
@@ -49,11 +52,44 @@ document.addEventListener('DOMContentLoaded', function() {
         locale: 'uk',
         events: '/client/get_appointments',
         eventClick: function(info) {
-            alert('Запис: ' + info.event.title);
+            // Заповнюємо модальне вікно даними
+            const props = info.event.extendedProps;
+            document.getElementById('detailClientName').textContent = props.client_name;
+            document.getElementById('detailServiceName').textContent = props.service_name;
+            document.getElementById('detailDateTime').textContent = 
+                info.event.start.toLocaleString('uk-UA');
+            document.getElementById('detailStatus').textContent = 
+                getStatusText(props.status);
+            document.getElementById('detailNotes').textContent = 
+                props.notes || 'Немає приміток';
+                
+            // Додаємо кнопки дій залежно від статусу
+            const actionsContainer = document.getElementById('appointmentActions');
+            actionsContainer.innerHTML = '';
+            
+            if (props.status === 'scheduled') {
+                // Кнопки для запланованого запису
+                actionsContainer.innerHTML = `
+                    <button class="btn btn-success" onclick="updateStatus(${info.event.id}, 'confirmed')">
+                        Підтвердити
+                    </button>
+                    <button class="btn btn-danger" onclick="updateStatus(${info.event.id}, 'cancelled')">
+                        Скасувати
+                    </button>
+                `;
+            } else if (props.status === 'confirmed') {
+                // Кнопка для підтвердженого запису
+                actionsContainer.innerHTML = `
+                    <button class="btn btn-primary" onclick="updateStatus(${info.event.id}, 'completed')">
+                        Завершити
+                    </button>
+                `;
+            }
+            const modal = new bootstrap.Modal(document.getElementById('appointmentDetailsModal'));
+            modal.show();
         }
     });
     calendar.render();
-
     // Обробник кнопки нового запису
     document.getElementById('newAppointmentBtn').addEventListener('click', function() {
         // Тут буде логіка відкриття форми запису
