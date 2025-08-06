@@ -114,6 +114,10 @@ class Payment (db.Model):
     amount = Column(Float, nullable=False)
     payment_date = Column(DateTime, default=datetime.now)
     status = Column (String(20), default='pending') # pending, completed, failed    
+    transaction_id = Column(String(50))
+    payment_method = Column(String(50))
+    
+
             
 
 class MedicalRecord(db.Model):

@@ -47,6 +47,7 @@
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/uk.min.js'></script>
 
 <script>
+const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 document.addEventListener('DOMContentLoaded', function() {
     // Ініціалізація календаря
     const calendarEl = document.getElementById('calendar');
@@ -106,6 +107,8 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken 
+
             },
             body: JSON.stringify({
                 appointment_id: appointmentId,

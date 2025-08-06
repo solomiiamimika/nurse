@@ -41,6 +41,7 @@
 {% endblock %} {% block scripts %}
 <script>
       let map;
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
       let userMarker;
       let clientsLayer = L.layerGroup();
       let socket;
@@ -207,7 +208,7 @@
 
               const response = await fetch('{{ url_for("nurse.update_location") }}', {
                   method: 'POST',
-                  headers: {'Content-Type': 'application/json'},
+                  headers: {'Content-Type': 'application/json','X-CSRFToken': csrfToken},
                   body: JSON.stringify({
                       latitude: latitude,
                       longitude: longitude

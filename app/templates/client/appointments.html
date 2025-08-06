@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+
 <div class="client-appointments">
     <h2>Мої записи</h2>
     
@@ -28,7 +29,44 @@
     </div>
 </div>
 
-
+<!-- Модальне вікно деталей запису -->
+<div class="modal fade" id="appointmentDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Деталі запису</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <strong>Послуга:</strong> <span id="detailServiceName"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Дата та час:</strong> <span id="detailDateTime"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Статус:</strong> <span id="detailStatus"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Примітки:</strong> <span id="detailNotes"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>Сума:</strong> <span id="detailAmount"></span> UAH
+                </div>
+                <div id="paymentSection" class="mb-3" style="display: none;">
+                    <button id="payNowBtn" class="btn btn-success">
+                        <i class="fas fa-credit-card"></i> Оплатити зараз
+                    </button>
+                </div>
+                <div id="paymentStatus" class="alert" style="display: none;"></div>
+                <div id="appointmentActions" class="d-flex gap-2"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрити</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
 
@@ -37,8 +75,14 @@
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/uk.min.js'></script>
+<script src="https://js.stripe.com/v3/"></script>
 
 <script>
+
+let currentAppointmentId = null;
+const stripe = Stripe('{{ config.STRIPE_PUBLIC_KEY }}');
+const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
 document.addEventListener('DOMContentLoaded', function() {
     // Ініціалізація календаря
     const calendarEl = document.getElementById('calendar');
@@ -52,9 +96,10 @@ document.addEventListener('DOMContentLoaded', function() {
         locale: 'uk',
         events: '/client/get_appointments',
         eventClick: function(info) {
+            currentAppointmentId = info.event.id;
+            
             // Заповнюємо модальне вікно даними
             const props = info.event.extendedProps;
-            document.getElementById('detailClientName').textContent = props.client_name;
             document.getElementById('detailServiceName').textContent = props.service_name;
             document.getElementById('detailDateTime').textContent = 
                 info.event.start.toLocaleString('uk-UA');
@@ -62,41 +107,49 @@ document.addEventListener('DOMContentLoaded', function() {
                 getStatusText(props.status);
             document.getElementById('detailNotes').textContent = 
                 props.notes || 'Немає приміток';
+            document.getElementById('detailAmount').textContent = 
+                props.amount || '0.00';
                 
+            // Показуємо секцію оплати, якщо запис не оплачено
+            const paymentSection = document.getElementById('paymentSection');
+            const paymentStatus = document.getElementById('paymentStatus');
+            
+            if (props.status === 'scheduled' || props.status === 'confirmed') {
+                paymentSection.style.display = 'block';
+                paymentStatus.style.display = 'none';
+            } else {
+                paymentSection.style.display = 'none';
+                
+                if (props.status === 'confirmed_paid') {
+                    paymentStatus.style.display = 'block';
+                    paymentStatus.className = 'alert alert-success';
+                    paymentStatus.textContent = 'Оплачено';
+                }
+            }
+            
             // Додаємо кнопки дій залежно від статусу
             const actionsContainer = document.getElementById('appointmentActions');
             actionsContainer.innerHTML = '';
             
             if (props.status === 'scheduled') {
-                // Кнопки для запланованого запису
                 actionsContainer.innerHTML = `
-                    <button class="btn btn-success" onclick="updateStatus(${info.event.id}, 'confirmed')">
-                        Підтвердити
-                    </button>
-                    <button class="btn btn-danger" onclick="updateStatus(${info.event.id}, 'cancelled')">
-                        Скасувати
-                    </button>
-                `;
-            } else if (props.status === 'confirmed') {
-                // Кнопка для підтвердженого запису
-                actionsContainer.innerHTML = `
-                    <button class="btn btn-primary" onclick="updateStatus(${info.event.id}, 'completed')">
-                        Завершити
+                    <button class="btn btn-danger" onclick="cancelAppointment(${info.event.id})">
+                        Скасувати запис
                     </button>
                 `;
             }
+            
             const modal = new bootstrap.Modal(document.getElementById('appointmentDetailsModal'));
             modal.show();
         }
     });
     calendar.render();
+    
     // Обробник кнопки нового запису
     document.getElementById('newAppointmentBtn').addEventListener('click', function() {
-        // Тут буде логіка відкриття форми запису
-        fetch('/client/get_nurses_for_appointment')  // Ваш endpoint для отримання медсестер
+        fetch('/client/get_nurses_for_appointment')
             .then(response => response.json())
             .then(nurses => {
-                // Динамічно створити форму вибору медсестри/послуги/дати
                 const formHtml = `
                     <form id="appointmentForm">
                         <div class="mb-3">
@@ -105,7 +158,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 ${nurses.map(n => `<option value="${n.id}">${n.name}</option>`).join('')}
                             </select>
                         </div>
-                        <!-- Інші поля форми -->
                         <button type="submit" class="btn btn-primary">Записатися</button>
                     </form>
                 `;
@@ -115,7 +167,90 @@ document.addEventListener('DOMContentLoaded', function() {
                 modal.show();
             });
     });
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    // Обробник кнопки оплати
+    document.getElementById('payNowBtn').addEventListener('click', function() {
+        if (!currentAppointmentId) return;
+        
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Обробка...';
+        
+        fetch('/client/create_payment_session', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                appointment_id: currentAppointmentId
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Помилка мережі');
+            }
+            return response.json();
+        })
+        .then(data => {
+            return stripe.redirectToCheckout({ sessionId: data.sessionId });
+        })
+        .then(result => {
+            if (result.error) {
+                showPaymentError(result.error.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-credit-card"></i> Оплатити зараз';
+            }
+        })
+        .catch(error => {
+            console.error('Помилка:', error);
+            showPaymentError(error.message);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-credit-card"></i> Оплатити зараз';
+        });
+    });
 });
+
+function getStatusText(status) {
+    const statuses = {
+        'scheduled': 'Заплановано',
+        'confirmed': 'Підтверджено',
+        'completed': 'Завершено',
+        'cancelled': 'Скасовано',
+        'confirmed_paid': 'Оплачено та підтверджено'
+    };
+    return statuses[status] || status;
+}
+
+function showPaymentError(message) {
+    const paymentStatus = document.getElementById('paymentStatus');
+    paymentStatus.style.display = 'block';
+    paymentStatus.className = 'alert alert-danger';
+    paymentStatus.textContent = 'Помилка оплати: ' + message;
+}
+
+function cancelAppointment(appointmentId) {
+    if (confirm('Ви впевнені, що хочете скасувати цей запис?')) {
+        fetch('/client/cancel_appointment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                appointment_id: appointmentId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Помилка: ' + data.message);
+            }
+        });
+    }
+}
 </script>
 
 <style>
@@ -126,6 +261,37 @@ document.addEventListener('DOMContentLoaded', function() {
         padding: 20px;
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    
+    .fc-event {
+        cursor: pointer;
+    }
+    
+    /* Стилі для різних статусів */
+    .fc-event.scheduled {
+        background-color: #ffc107;
+        border-color: #ffc107;
+    }
+    
+    .fc-event.confirmed {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    
+    .fc-event.confirmed_paid {
+        background-color: #198754;
+        border-color: #198754;
+    }
+    
+    .fc-event.completed {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+    
+    .fc-event.cancelled {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        text-decoration: line-through;
     }
 </style>
 {% endblock %}
