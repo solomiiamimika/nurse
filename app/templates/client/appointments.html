@@ -80,7 +80,7 @@
 <script>
 
 let currentAppointmentId = null;
-const stripe = Stripe('{{ config.STRIPE_PUBLIC_KEY }}');
+const stripe = Stripe('{{ stripe_public_key }}');
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
 document.addEventListener('DOMContentLoaded', function() {

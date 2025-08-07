@@ -8,11 +8,13 @@ from datetime import datetime, timedelta
 import os 
 from werkzeug.utils import secure_filename
 import json
-
+from dotenv import load_dotenv
 import stripe
 from flask_cors import cross_origin
+load_dotenv()
+stripe.api_key=os.getenv('STRIPE_SECRET_KEY')
 
-stripe.api_key=current_app.cofig['STRIPE_PUBLIC_KEY']
+stripe_public_key = os.getenv('STRIPE_PUBLIC_KEY')
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -236,7 +238,7 @@ def get_chat_messages():
 def appointments():
     if current_user.role != 'client':
         return jsonify({'error': 'Доступ заборонено'}), 403
-    return render_template('client/appointments.html')
+    return render_template('client/appointments.html', stripe_public_key = stripe_public_key)
 
 
 @client_bp.route('/get_appointments')
@@ -534,31 +536,37 @@ def payment_success(appointment_id):
     session_id = request.args.get('session_id')
     
     try:
-        # Перевіряємо оплату через Stripe API
-        session = stripe.checkout.Session.retrieve(session_id)
-        
-        if session.payment_status == 'paid':
-            payment = Payment(
-                user_id=current_user.id,
-                appointment_id=appointment_id,
-                amount=appointment.nurse_service.price,
-                payment_date=datetime.now(),
-                status='completed',
-                transaction_id=session.payment_intent,
-                payment_method='apple_pay'
-            )
+        if session_id:
+            # Verify the payment with Stripe
+            session = stripe.checkout.Session.retrieve(session_id)
             
-            db.session.add(payment)
-            appointment.status = 'confirmed_paid'
-            db.session.commit()
-            
-            flash('Оплата через Apple Pay успішна!', 'success')
+            if session.payment_status == 'paid' and session.metadata.get('appointment_id') == str(appointment_id):
+                payment = Payment(
+                    user_id=current_user.id,
+                    appointment_id=appointment_id,
+                    amount=float(session.amount_total) / 100,
+                    payment_date=datetime.utcnow(),
+                    status='completed',
+                    transaction_id=session.payment_intent,
+                    payment_method=session.payment_method_types[0] if session.payment_method_types else 'card'
+                )
+                
+                db.session.add(payment)
+                appointment.status = 'confirmed_paid'
+                db.session.commit()
+                
+                flash('Оплата успішна!', 'success')
+            else:
+                flash('Оплата не підтверджена', 'warning')
         else:
-            flash('Оплата не підтверджена', 'warning')
+            flash('Інформація про оплату відсутня', 'warning')
     
-    except Exception as e:
-        current_app.logger.error(f"Payment verification error: {str(e)}")
+    except stripe.error.StripeError as e:
+        current_app.logger.error(f"Stripe verification error: {str(e)}")
         flash('Помилка при перевірці платежу', 'danger')
+    except Exception as e:
+        current_app.logger.error(f"Error in payment_success: {str(e)}")
+        flash('Помилка сервера', 'danger')
     
     return redirect(url_for('client.appointments'))
 
@@ -609,3 +617,142 @@ def handle_successful_payment(session):
             db.session.commit()
     except Exception as e:
         current_app.logger.error(f"Webhook error: {str(e)}")
+
+
+
+
+
+@client_bp.route('/create_payment_session', methods=['POST'])
+@login_required
+def create_payment_session():
+    try:
+        data = request.get_json()
+        appointment_id = data.get('appointment_id')
+        
+        if not appointment_id:
+            return jsonify({'error': 'Appointment ID is required'}), 400
+            
+        appointment = Appointment.query.get_or_404(appointment_id)
+        
+        if appointment.client_id != current_user.id:
+            return jsonify({'error': 'Unauthorized'}), 403
+            
+        if appointment.status == 'confirmed_paid':
+            return jsonify({'error': 'Appointment already paid'}), 400
+
+        # Create Stripe Checkout session
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'uah',
+                    'product_data': {
+                        'name': appointment.nurse_service.name,
+                    },
+                    'unit_amount': int(appointment.nurse_service.price * 100),  # Convert to cents
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=url_for('client.payment_success', appointment_id=appointment_id, _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=url_for('client.payment_cancel', _external=True),
+            customer_email=current_user.email,
+            metadata={
+                'appointment_id': appointment_id,
+                'user_id': current_user.id
+            }
+        )
+
+        return jsonify({'sessionId': session.id})
+        
+    except stripe.error.StripeError as e:
+        current_app.logger.error(f"Stripe error in create_payment_session: {str(e)}")
+        return jsonify({'error': 'Payment service error'}), 500
+    except Exception as e:
+        current_app.logger.error(f"Error in create_payment_session: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+
+@client_bp.route('/payment_cancel')
+@login_required
+def payment_cancel():
+    try:
+        session_id = request.args.get('session_id')
+        
+        if session_id:
+            # Отримуємо сесію Stripe для логування
+            session = stripe.checkout.Session.retrieve(session_id)
+            
+            # Логуємо скасування
+            current_app.logger.info(f"Payment canceled - Session ID: {session_id}, Status: {session.payment_status}")
+            
+            # Якщо є appointment_id в metadata, можемо оновити статус
+            if 'appointment_id' in session.metadata:
+                appointment = Appointment.query.get(session.metadata['appointment_id'])
+                if appointment and appointment.client_id == current_user.id:
+                    appointment.status = 'payment_canceled'
+                    db.session.commit()
+        
+        # Створюємо запис про скасування платежу
+        payment_record = Payment(
+            user_id=current_user.id,
+            status='canceled',
+            payment_date=datetime.utcnow(),
+            payment_method='stripe',
+            amount=0,
+            transaction_id=session_id or 'manual_cancel'
+        )
+        db.session.add(payment_record)
+        db.session.commit()
+        
+    except stripe.error.StripeError as e:
+        current_app.logger.error(f"Stripe error in payment_cancel: {str(e)}")
+    except Exception as e:
+        current_app.logger.error(f"Error in payment_cancel: {str(e)}")
+        db.session.rollback()
+    
+    flash('Оплату скасовано. Ви можете спробувати ще раз.', 'warning')
+    return redirect(url_for('client.appointments'))
+
+
+
+@client_bp.route('/cancel_appointment', methods=['POST'])
+@login_required
+def cancel_appointment():
+    if current_user.role != 'client':
+        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+    
+    try:
+        data = request.get_json()
+        appointment_id = data.get('appointment_id')
+        reason = data.get('reason', '')
+        
+        if not appointment_id:
+            return jsonify({'success': False, 'message': 'Не вказано ID запису'}), 400
+        
+        appointment = Appointment.query.filter_by(
+            id=appointment_id,
+            client_id=current_user.id
+        ).first()
+        
+        if not appointment:
+            return jsonify({'success': False, 'message': 'Запис не знайдено'}), 404
+        
+        # Check if it's too late to cancel (e.g., less than 24 hours before)
+        if appointment.appointment_time - datetime.utcnow() < timedelta(hours=24):
+            return jsonify({
+                'success': False,
+                'message': 'Скасування менш ніж за 24 години до запису неможливе'
+            }), 400
+        
+        appointment.status = 'cancelled'
+        appointment.cancellation_reason = reason
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Запис скасовано'})
+    
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error cancelling appointment: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
