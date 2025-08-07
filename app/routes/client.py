@@ -12,10 +12,7 @@ import json
 import stripe
 from flask_cors import cross_origin
 
-
-STRIPE_PUBLIC_KEY = 'ваш_публічний_ключ'
-STRIPE_SECRET_KEY = 'ваш_секретний_ключ'
-STRIPE_WEBHOOK_SECRET = 'ваш_webhook_ключ'
+stripe.api_key=current_app.cofig['STRIPE_PUBLIC_KEY']
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -530,25 +527,57 @@ def create_apple_pay_session():
         current_app.logger.error(f"Apple Pay error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-
+@client_bp.route('/payment_success/<int:appointment_id>')
+@login_required
+def payment_success(appointment_id):
+    appointment = Appointment.query.get_or_404(appointment_id)
+    session_id = request.args.get('session_id')
+    
+    try:
+        # Перевіряємо оплату через Stripe API
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        if session.payment_status == 'paid':
+            payment = Payment(
+                user_id=current_user.id,
+                appointment_id=appointment_id,
+                amount=appointment.nurse_service.price,
+                payment_date=datetime.now(),
+                status='completed',
+                transaction_id=session.payment_intent,
+                payment_method='apple_pay'
+            )
+            
+            db.session.add(payment)
+            appointment.status = 'confirmed_paid'
+            db.session.commit()
+            
+            flash('Оплата через Apple Pay успішна!', 'success')
+        else:
+            flash('Оплата не підтверджена', 'warning')
+    
+    except Exception as e:
+        current_app.logger.error(f"Payment verification error: {str(e)}")
+        flash('Помилка при перевірці платежу', 'danger')
+    
+    return redirect(url_for('client.appointments'))
 
 @client_bp.route('/stripe_webhook', methods=['POST'])
+@cross_origin()
 def stripe_webhook():
     payload = request.get_data(as_text=True)
     sig_header = request.headers.get('Stripe-Signature')
-    webhook_secret = current_app.config['STRIPE_WEBHOOK_SECRET']
 
     try:
         event = stripe.Webhook.construct_event(
-            payload, sig_header, webhook_secret
+            payload, sig_header, current_app.config['STRIPE_WEBHOOK_SECRET']
         )
     except ValueError as e:
-        current_app.logger.error(f"Invalid payload: {str(e)}")
         return jsonify({'error': 'Invalid payload'}), 400
     except stripe.error.SignatureVerificationError as e:
-        current_app.logger.error(f"Invalid signature: {str(e)}")
         return jsonify({'error': 'Invalid signature'}), 400
 
+    # Обробка події успішної оплати
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         handle_successful_payment(session)
@@ -557,123 +586,26 @@ def stripe_webhook():
 
 def handle_successful_payment(session):
     try:
-        # Verify this is a new payment
-        existing_payment = Payment.query.filter_by(transaction_id=session.payment_intent).first()
-        if existing_payment:
-            return
-
-        payment = Payment(
-            user_id=session.metadata.get('user_id'),
-            appointment_id=session.metadata.get('appointment_id'),
-            amount=float(session.amount_total) / 100,
-            payment_date=datetime.now(),
-            status='completed',
-            transaction_id=session.payment_intent,
-            payment_method=session.metadata.get('payment_type', 'card')
-        )
+        appointment_id = session['metadata'].get('appointment_id')
+        user_id = session['metadata'].get('user_id')
         
-        db.session.add(payment)
-        
-        appointment = Appointment.query.get(session.metadata.get('appointment_id'))
-        if appointment:
-            appointment.status = 'confirmed_paid'
-        
-        db.session.commit()
-        
-    except Exception as e:
-        current_app.logger.error(f"Webhook error: {str(e)}")
-        db.session.rollback()
-
-
-
-
-@client_bp.route('/create_payment_session', methods=['POST'])
-@login_required
-def create_payment_session():
-    try:
-        data = request.get_json()
-        appointment_id = data.get('appointment_id')
-        
-        if not appointment_id:
-            return jsonify({'error': 'Appointment ID is required'}), 400
-            
-        appointment = Appointment.query.get_or_404(appointment_id)
-        
-        if appointment.client_id != current_user.id:
-            return jsonify({'error': 'Unauthorized'}), 403
-            
-        if appointment.status == 'confirmed_paid':
-            return jsonify({'error': 'Appointment already paid'}), 400
-
-        # Create Stripe Checkout session
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price_data': {
-                    'currency': 'uah',
-                    'product_data': {
-                        'name': appointment.nurse_service.name,
-                    },
-                    'unit_amount': int(appointment.nurse_service.price * 100),  # Convert to cents
-                },
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=url_for('client.payment_success', appointment_id=appointment_id, _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=url_for('client.payment_cancel', _external=True),
-            customer_email=current_user.email,
-            metadata={
-                'appointment_id': appointment_id,
-                'user_id': current_user.id
-            }
-        )
-
-        return jsonify({'sessionId': session.id})
-        
-    except Exception as e:
-        current_app.logger.error(f"Payment session error: {str(e)}")
-        return jsonify({'error': str(e)}), 500
-
-@client_bp.route('/payment_success/<int:appointment_id>')
-@login_required
-def payment_success(appointment_id):
-    appointment = Appointment.query.get_or_404(appointment_id)
-    session_id = request.args.get('session_id')
-    
-    try:
-        # Verify payment with Stripe
-        session = stripe.checkout.Session.retrieve(session_id)
-        
-        if session.payment_status == 'paid':
-            # Create payment record
+        if appointment_id and user_id:
             payment = Payment(
-                user_id=current_user.id,
+                user_id=user_id,
                 appointment_id=appointment_id,
-                amount=appointment.nurse_service.price,
+                amount=float(session['amount_total']) / 100,
                 payment_date=datetime.now(),
                 status='completed',
-                transaction_id=session.payment_intent,
-                payment_method='card'
+                transaction_id=session['payment_intent'],
+                payment_method=session['payment_method_types'][0]
             )
             
             db.session.add(payment)
             
-            # Update appointment status
-            appointment.status = 'confirmed_paid'
+            appointment = Appointment.query.get(appointment_id)
+            if appointment:
+                appointment.status = 'confirmed_paid'
+            
             db.session.commit()
-            
-            flash('Payment successful! Your appointment is confirmed.', 'success')
-        else:
-            flash('Payment not completed', 'warning')
-            
     except Exception as e:
-        current_app.logger.error(f"Payment verification error: {str(e)}")
-        flash('Error verifying payment', 'danger')
-    
-    return redirect(url_for('client.appointments'))
-
-@client_bp.route('/payment_cancel')
-@login_required
-def payment_cancel():
-    flash('Payment was cancelled', 'warning')
-    return redirect(url_for('client.appointments'))
+        current_app.logger.error(f"Webhook error: {str(e)}")

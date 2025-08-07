@@ -1,17 +1,27 @@
 from flask import Flask
+from wtforms.csrf.core import CSRF
 from .extensions import db, bcrypt, login_manager, migrate, socketio, google_blueprint
 from app.models import User, Message, Service, Appointment, Payment, MedicalRecord, Prescription, Review
 from app.routes import auth_bp, main_bp, client_bp, nurse_bp
 from flask_wtf.csrf import CSRFProtect
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 def create_app():
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'dev-secret-key'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mobile_nurse.db'
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv ('SQLALCHEMY_DATABASE_URI')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['GOOGLE_OAUTH_CLIENT_ID'] = '739082915470-dm5ppev70pv4169eoo890rm61ahhae6s.apps.googleusercontent.com'
-    app.config['GOOGLE_OAUTH_CLIENT_SECRET'] = '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'
-    csrf = CSRFProtect()
+    app.config['GOOGLE_OAUTH_CLIENT_ID'] = os.getenv ('GOOGLE_OAUTH_CLIENT_ID')
+    app.config['GOOGLE_OAUTH_CLIENT_SECRET'] = os.getenv ('GOOGLE_OAUTH_CLIENT_SECRET')
+    csrf=CSRFProtect()
+
+#banking
+    app.config['STRIPE_PUBLIC_KEY']= os.getenv ('STRIPE_PUBLIC_KEY')
+    app.config['STRIPE_SECRET_KEY']= os.getenv ('STRIPE_SECRET_KEY')
+
     # Ініціалізація розширень
     db.init_app(app)
     bcrypt.init_app(app)
