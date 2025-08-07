@@ -6,6 +6,7 @@
   </div>
   <div class="dashboard-options">
     <form action="{{url_for('auth.logout')}}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" class="btn btn-info">
         <i class="fas fa-sign-out-alt"></i> Вийти
       </button>
@@ -107,7 +108,13 @@
           currentChatRecipient = client;
           document.getElementById('chatRecipientName').textContent = client.name;
 
-          fetch(`{{ url_for('nurse.get_chat_messages') }}?recipient_id=${client.id}`)
+          fetch(`{{ url_for('nurse.get_chat_messages') }}?recipient_id=${client.id}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken  // Додаємо CSRF-токен у заголовки
+                }
+            })
               .then(response => response.json())
               .then(messages => {
                   const chatContainer = document.getElementById('chatMessages');
@@ -231,7 +238,8 @@
       async function toggleOnlineStatus() {
           try {
               const response = await fetch('{{ url_for("nurse.toggle_online") }}', {
-                  method: 'POST'
+                  method: 'POST',
+                 headers: {'Content-Type': 'application/json','X-CSRFToken': csrfToken}
               });
 
               if (!response.ok) throw new Error("Помилка сервера");
@@ -263,7 +271,13 @@
           showStatus("Завантаження клієнтів...");
           clientsLayer.clearLayers();
 
-          const response = await fetch('{{ url_for("nurse.get_clients_locations") }}');
+          const response = await fetch('{{ url_for("nurse.get_clients_locations") }}', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken  // Додаємо CSRF-токен у заголовки
+            }
+        });
 
           if (!response.ok) {
               throw new Error(`HTTP помилка! Статус: ${response.status}`);
@@ -419,31 +433,4 @@
     margin-top: 5px;
   }
 </style>
-{% endblock %}body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0;
-background-image: url('2025-06-24 19.49.17.jpg'); background-size: cover;
-background-position: center; background-repeat: no-repeat; position: relative; }
-body::before { content: ''; position: fixed; top: 0; left: 0; height: 100%;
-width: 100%; background: rgba(0, 0, 0, 0.4); z-index: -1; } .overlay-content {
-position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-text-align: center; color: white; z-index: 1; animation: fadeIn 2s ease-in-out;
-width: 90%; max-width: 450px; } form { background: white; padding: 30px;
-border-radius: 15px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); text-align:
-left; } form label { display: block; margin-top: 10px; font-weight: bold; color:
-#333; } input[type="text"], input[type="password"], input[type="email"], select
-{ width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc;
-border-radius: 8px; box-sizing: border-box; } button.btn { width: 100%; padding:
-12px; margin-top: 20px; background-color: #0099ff; color: white; border: none;
-border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-button.btn:hover { background-color: #007acc; } .btn-google { background-color:
-#dd4b39; color: white; padding: 10px 15px; border-radius: 4px; text-decoration:
-none; display: inline-block; margin-top: 10px; width: 100%; max-width: 250px; }
-.btn-google:hover { background-color: #c23321; } .btn-outline { background:
-transparent; border: 2px solid white; padding: 10px 20px; border-radius: 10px;
-text-decoration: none; font-weight: bold; color: white; display: inline-block;
-margin-top: 10px; } .btn-outline:hover { background: white; color: #333; } h1 {
-font-size: 32px; margin-bottom: 20px; color: white; } .alert-area {
-margin-bottom: 15px; } .alert { padding: 10px; border-radius: 8px; font-weight:
-bold; text-align: center; } .alert-success { background-color: #d4edda; color:
-#155724; } .alert-danger { background-color: #f8d7da; color: #721c24; }
-@keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -60%); } to {
-opacity: 1; transform: translate(-50%, -50%); } }
+{% endblock %}

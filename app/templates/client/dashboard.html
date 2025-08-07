@@ -8,6 +8,7 @@
 
     <div class="dashboard-options">
         <form action="{{url_for('auth.logout')}}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-info">
                 <i class="fas fa-sign-out-alt"></i> Вийти
             </button>
@@ -69,6 +70,7 @@
 
 {% block scripts %}
 <script>
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
   let map, userMarker, nurseMarkers = [];
   let socket;
   let currentChatRecipient = null;
@@ -133,7 +135,13 @@
       currentChatRecipient = nurse;
       document.getElementById('chatRecipientName').textContent = nurse.name;
       
-      fetch(`{{ url_for('client.get_chat_messages') }}?recipient_id=${nurse.id}`)
+      fetch(`{{ url_for('client.get_chat_messages') }}?recipient_id=${nurse.id}`, {
+        method: 'GET',  // Це GET-запит
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        }
+    })
           .then(response => response.json())
           .then(messages => {
               const chatContainer = document.getElementById('chatMessages');
@@ -188,13 +196,12 @@
       }
   }
 
-  function loadInitialData() {
-      {% if current_user.latitude and current_user.longitude %}
-      updateUserMarker({{ current_user.latitude }}, {{ current_user.longitude }});
-      {% endif %}
-      loadNurses();
-  }
-
+    function loadInitialData() {
+        {% if current_user.latitude and current_user.longitude %}
+        updateUserMarker({{ current_user.latitude }}, {{ current_user.longitude }});
+        {% endif %}
+        loadNurses();  
+    }
   function updateUserMarker(lat, lng) {
       try {
           if (userMarker) map.removeLayer(userMarker);
@@ -216,11 +223,45 @@
       }
   }
 
+
+function openAppointmentModal(nurseId, nurseName) {
+    fetch(`/client/get_nurse_services?nurse_id=${nurseId}`, {
+        method: 'GET',  // Це GET-запит
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        }
+    })
+        .then(response => response.json())
+        .then(services => {
+            const select = document.getElementById('appointmentServiceSelect');
+            select.innerHTML = '';
+            
+            services.forEach(service => {
+                const option = document.createElement('option');
+                option.value = service.id;
+                option.textContent = `${service.name} - ${service.price} грн (${service.duration} хв)`;
+                select.appendChild(option);
+            });
+            
+            document.getElementById('appointmentNurseName').textContent = nurseName;
+            document.getElementById('appointmentNurseId').value = nurseId;
+            
+            const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
+            modal.show();
+        });
+}
   async function loadNurses() {
     try {
         updateStatus("Завантаження медсестер...");
 
-        const response = await fetch('{{ url_for("client.get_nurses_locations") }}');
+        const response = await fetch('{{ url_for("client.get_nurses_locations") }}', {
+        method: 'GET',  // Це GET-запит, не POST
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        }
+    });
         if (!response.ok) throw new Error("Помилка сервера");
 
         const nurses = await response.json();
@@ -280,51 +321,53 @@
 }
 
   async function handleLocation() {
-      try {
-          updateStatus("Визначення вашого місцезнаходження...");
+        try {
+            updateStatus("Визначення вашого місцезнаходження...");
 
-          if (!navigator.geolocation) {
-              throw new Error("Ваш браузер не підтримує геолокацію");
-          }
+            if (!navigator.geolocation) {
+                throw new Error("Ваш браузер не підтримує геолокацію");
+            }
 
-          const position = await new Promise((resolve, reject) => {
-              navigator.geolocation.getCurrentPosition(
-                  resolve,
-                  reject,
-                  {
-                      enableHighAccuracy: true,
-                      timeout: 10000,
-                      maximumAge: 0
-                  }
-              );
-          });
+            const position = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(
+                    resolve,
+                    reject,
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            });
 
-          const { latitude, longitude } = position.coords;
-          updateUserMarker(latitude, longitude);
+            const { latitude, longitude } = position.coords;
+            updateUserMarker(latitude, longitude);
 
-          const response = await fetch('{{ url_for("client.update_location") }}', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                  latitude: latitude,
-                  longitude: longitude
-              })
-          });
+            const response = await fetch('{{ url_for("client.update_location") }}', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken  // Додано CSRF-токен
+                },
+                body: JSON.stringify({
+                    latitude: latitude,
+                    longitude: longitude
+                })
+            });
 
-          if (!response.ok) throw new Error("Помилка сервера");
+            if (!response.ok) throw new Error("Помилка сервера");
 
-          const result = await response.json();
-          if (!result.success) throw new Error(result.message || "Помилка оновлення");
+            const result = await response.json();
+            if (!result.success) throw new Error(result.message || "Помилка оновлення");
 
-          updateStatus("Локація успішно оновлена");
-          loadNurses();
+            updateStatus("Локація успішно оновлена");
+            loadNurses();
 
-      } catch (error) {
-          updateStatus("Помилка: " + error.message, true);
-          console.error(error);
-      }
-  }
-
+        } catch (error) {
+            updateStatus("Помилка: " + error.message, true);
+            console.error(error);
+        }
+    }
   document.addEventListener('DOMContentLoaded', () => {
       console.log("DOM повністю завантажений");
       initSocket();
@@ -368,7 +411,10 @@ document.getElementById('confirmAppointmentBtn').addEventListener('click', () =>
     
     fetch('{{ url_for("client.create_appointment") }}', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
         body: JSON.stringify({
             nurse_id: nurseId,
             service_id: serviceId,
@@ -376,19 +422,24 @@ document.getElementById('confirmAppointmentBtn').addEventListener('click', () =>
             notes: notes
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => { throw new Error(text) });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             alert('Запис успішно створено!');
             const modal = bootstrap.Modal.getInstance(document.getElementById('appointmentModal'));
             modal.hide();
         } else {
-            alert('Помилка: ' + data.message);
+            alert('Помилка: ' + (data.message || 'Невідома помилка'));
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Сталася помилка при створенні запису');
+        alert('Сталася помилка при створенні запису: ' + error.message);
     });
 });
 
@@ -409,27 +460,7 @@ document.body.addEventListener('click', (e) => {
 });
 
 
-function openAppointmentModal(nurseId, nurseName) {
-    fetch(`/client/get_nurse_services?nurse_id=${nurseId}`)
-        .then(response => response.json())
-        .then(services => {
-            const select = document.getElementById('appointmentServiceSelect');
-            select.innerHTML = '';
-            
-            services.forEach(service => {
-                const option = document.createElement('option');
-                option.value = service.id;
-                option.textContent = `${service.name} - ${service.price} грн (${service.duration} хв)`;
-                select.appendChild(option);
-            });
-            
-            document.getElementById('appointmentNurseName').textContent = nurseName;
-            document.getElementById('appointmentNurseId').value = nurseId;
-            
-            const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
-            modal.show();
-        });
-}
+
 
       document.getElementById('messageInput').addEventListener('keypress', (e) => {
           if (e.key === 'Enter') {

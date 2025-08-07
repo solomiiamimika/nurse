@@ -19,6 +19,7 @@
 
   <!-- Форма оновлення профілю -->
   <form method="POST" enctype="multipart/form-data" class="mb-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="mb-3">
       <label for="full_name" class="form-label">Повне ім'я:</label>
       <input
@@ -132,16 +133,14 @@
         if (!confirm(`Видалити документ "${filename}"?`)) return;
 
         try {
-          const response = await fetch(
-            '{{ url_for("client.delete_document") }}',
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ doc_name: filename }),
-            }
-          );
+          const response = await fetch('{{ url_for("client.delete_document") }}', {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": csrfToken
+          },
+          body: JSON.stringify({ doc_name: filename })
+      });
 
           const result = await response.json();
 

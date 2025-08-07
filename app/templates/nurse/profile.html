@@ -19,6 +19,7 @@
 
   <!-- Форма оновлення профілю -->
   <form method="POST" enctype="multipart/form-data" class="mb-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="mb-3">
       <label for="full_name" class="form-label">Повне ім’я:</label>
       <input

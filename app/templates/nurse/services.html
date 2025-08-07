@@ -137,6 +137,7 @@
         ></button>
       </div>
       <form id="serviceForm" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="service_id" id="formServiceId" />
         <input type="hidden" name="action" id="formAction" />
         <input type="hidden" name="is_custom" id="formIsCustom" value="false" />
