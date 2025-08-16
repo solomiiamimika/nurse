@@ -158,4 +158,29 @@ class Review(db.Model):
     doctor = relationship('User', foreign_keys=[doctor_id])
 
 
+class ClientSelfCreatedAppointment(db.Model):
+    __tablename__= 'client_request'
+    id = Column(Integer, primary_key=True)
+    patient_id = Column(Integer, ForeignKey('user.id'), nullable=False)  # хто залишив відгук
+    doctor_id = Column(Integer, ForeignKey('user.id'), nullable=False)   # кому залишив
+    appointment_start_time = Column (DateTime, nullable=False)
+    end_time = Column(DateTime, nullable=False)
+    status = Column(String(20), default='scheduled') # scheduled, completed, canceled
+    notes = Column(Text)
+    payment = Column(Float)
+    nurse_service_id = Column(Integer,ForeignKey('nurse_service.id'),nullable = True)
+    service_name=Column(String, nullable=True)
+    service_description =Column(Text, nullable=True)
+    latitude = Column(Float) #широта
+    longitude = Column(Float) #довгота
+    created_appo = Column(DateTime, default=datetime.now)
+    
+    patient = relationship('User', foreign_keys=[patient_id])
+    doctor = relationship('User', foreign_keys=[doctor_id])
+    nurse_services = relationship('NurseService')
+    
 
+    
+    
+
+    

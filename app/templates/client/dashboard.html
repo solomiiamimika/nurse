@@ -1,530 +1,543 @@
-{% extends "base.html" %} 
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="client-dashboard">
-    <h2>Панель клієнта</h2>
-    <div style="position: absolute; top: 10px; right: 10px; z-index: 9999">
-        <a href="{{ url_for('client.profile') }}" style="font-size: 24px">☰</a>
-    </div> 
+  <h2>Панель клієнта</h2>
+  <div style="position: absolute; top: 10px; right: 10px; z-index: 9999">
+    <a href="{{ url_for('client.profile') }}" style="font-size: 24px">☰</a>
+  </div>
 
-    <div class="dashboard-options">
-        <form action="{{url_for('auth.logout')}}" method="post">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-info">
-                <i class="fas fa-sign-out-alt"></i> Вийти
-            </button>
-        </form>
-        <a href="{{ url_for('client.profile') }}" class="btn btn-info">
-            <i class="fas fa-user"></i> Профіль
-        </a>
-        <a href="{{ url_for('client.appointments') }}" class="btn btn-info">
-            <i class="fas fa-user"></i> Записи
-        </a>
-        <button id="location-btn" class="btn btn-info">
-            {% if current_user.location_approved %}
-            <i class="fas fa-map-marker-alt"></i> Оновити моє місцезнаходження
-            {% else %}
-            <i class="fas fa-map-marker-alt"></i> Надати доступ до місцезнаходження
-            {% endif %}
-        </button>
-        <div id="status" style="margin-top: 10px; min-height: 20px; color: green;"></div>
-    </div>
+  <div class="dashboard-options">
+    <form action="{{url_for('auth.logout')}}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <button type="submit" class="btn btn-info">
+        <i class="fas fa-sign-out-alt"></i> Вийти
+      </button>
+    </form>
+    <a href="{{ url_for('client.profile') }}" class="btn btn-info">
+      <i class="fas fa-user"></i> Профіль
+    </a>
+    <a href="{{ url_for('client.appointments') }}" class="btn btn-info">
+      <i class="fas fa-user"></i> Записи
+    </a>
+    <button id="location-btn" class="btn btn-info">
+      {% if current_user.location_approved %}
+      <i class="fas fa-map-marker-alt"></i> Оновити моє місцезнаходження {% else
+      %} <i class="fas fa-map-marker-alt"></i> Надати доступ до місцезнаходження
+      {% endif %}
+    </button>
+    <div
+      id="status"
+      style="margin-top: 10px; min-height: 20px; color: green"
+    ></div>
+  </div>
 
-    <div id="map-container" style="height: 500px; width: 100%; margin-top: 20px; border: 2px solid #ddd;"></div>
+  <div
+    id="map-container"
+    style="height: 500px; width: 100%; margin-top: 20px; border: 2px solid #ddd"
+  ></div>
 </div>
 <!-- Модальне вікно запису на прийом -->
-<div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="appointmentModalLabel">Запис до <span id="appointmentNurseName"></span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="appointmentNurseId">
-                
-                <div class="mb-3">
-                    <label for="appointmentServiceSelect" class="form-label">Послуга</label>
-                    <select class="form-select" id="appointmentServiceSelect">
-                        <option value="">Завантаження...</option>
-                    </select>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="appointmentDateTime" class="form-label">Дата та час</label>
-                    <input type="datetime-local" class="form-control" id="appointmentDateTime">
-                </div>
-                
-                <div class="mb-3">
-                    <label for="appointmentNotes" class="form-label">Примітки (необов'язково)</label>
-                    <textarea class="form-control" id="appointmentNotes" rows="3"></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
-                <button type="button" class="btn btn-primary" id="confirmAppointmentBtn">Підтвердити запис</button>
-            </div>
+<div
+  class="modal fade"
+  id="appointmentModal"
+  tabindex="-1"
+  aria-labelledby="appointmentModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="appointmentModalLabel">
+          Запис до <span id="appointmentNurseName"></span>
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="appointmentNurseId" />
+
+        <div class="mb-3">
+          <label for="appointmentServiceSelect" class="form-label"
+            >Послуга</label
+          >
+          <select class="form-select" id="appointmentServiceSelect">
+            <option value="">Завантаження...</option>
+          </select>
         </div>
+
+        <div class="mb-3">
+          <label for="appointmentDateTime" class="form-label"
+            >Дата та час</label
+          >
+          <input
+            type="datetime-local"
+            class="form-control"
+            id="appointmentDateTime"
+          />
+        </div>
+
+        <div class="mb-3">
+          <label for="appointmentNotes" class="form-label"
+            >Примітки (необов'язково)</label
+          >
+          <textarea
+            class="form-control"
+            id="appointmentNotes"
+            rows="3"
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Скасувати
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          id="confirmAppointmentBtn"
+        >
+          Підтвердити запис
+        </button>
+      </div>
     </div>
+  </div>
 </div>
-{% endblock %} 
-
-{% block scripts %}
+{% endblock %} {% block scripts %}
 <script>
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-  let map, userMarker, nurseMarkers = [];
-  let socket;
-  let currentChatRecipient = null;
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    let map, userMarker, nurseMarkers = [];
+    let socket;
+    let currentChatRecipient = null;
 
-  function updateStatus(message, isError = false) {
-      const statusEl = document.getElementById('status');
-      statusEl.textContent = message;
-      statusEl.style.color = isError ? 'red' : 'green';
-      console.log(message);
-  }
-
-  function initSocket() {
-      socket = io();
-      
-      socket.on('connect', () => {
-          console.log('Connected to Socket.IO server');
-          socket.emit('join', { user_id: '{{ current_user.id }}' });
-      });
-      
-      socket.on('new_message', (data) => {
-          if (currentChatRecipient && currentChatRecipient.id === data.sender_id) {
-              addMessageToChat(data, false);
-          } else {
-              showNewMessageNotification(data);
-          }
-      });
-      
-      socket.on('message_sent', (data) => {
-          console.log('Message delivered:', data);
-      });
-      
-      socket.on('error', (data) => {
-          updateStatus(data.message, true);
-      });
-  }
-
-  function showNewMessageNotification(messageData) {
-      const notification = document.createElement('div');
-      notification.className = 'alert alert-info alert-dismissible fade show';
-      notification.style.position = 'fixed';
-      notification.style.bottom = '20px';
-      notification.style.right = '20px';
-      notification.style.zIndex = '1000';
-      notification.innerHTML = `
-          <strong>Нове повідомлення від ${messageData.sender_name}</strong>
-          <p>${messageData.text}</p>
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      `;
-      
-      document.body.appendChild(notification);
-      
-      notification.querySelector('.btn-close').addEventListener('click', () => {
-          notification.remove();
-      });
-      
-      setTimeout(() => {
-          notification.remove();
-      }, 5000);
-  }
-
-  function openChatWithNurse(nurse) {
-      currentChatRecipient = nurse;
-      document.getElementById('chatRecipientName').textContent = nurse.name;
-      
-      fetch(`{{ url_for('client.get_chat_messages') }}?recipient_id=${nurse.id}`, {
-        method: 'GET',  // Це GET-запит
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken
-        }
-    })
-          .then(response => response.json())
-          .then(messages => {
-              const chatContainer = document.getElementById('chatMessages');
-              chatContainer.innerHTML = '';
-              
-              messages.forEach(msg => {
-                  addMessageToChat(msg, msg.sender_id === '{{ current_user.id }}');
-              });
-              
-              chatContainer.scrollTop = chatContainer.scrollHeight;
-          });
-      
-      const chatModal = new bootstrap.Modal(document.getElementById('chatModal'));
-      chatModal.show();
-  }
-
-  function addMessageToChat(messageData, isMyMessage) {
-      const chatContainer = document.getElementById('chatMessages');
-      const messageElement = document.createElement('div');
-      messageElement.className = `message ${isMyMessage ? 'my-message' : 'their-message'}`;
-      
-      const time = new Date(messageData.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      
-      messageElement.innerHTML = `
-          <div class="message-content">
-              ${!isMyMessage ? `<div class="sender-name">${messageData.sender_name}</div>` : ''}
-              <div class="message-text">${messageData.text}</div>
-              <div class="message-time">${time}</div>
-          </div>
-      `;
-      
-      chatContainer.appendChild(messageElement);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-  }
-
-  function initMap() {
-      try {
-          updateStatus("Спробуємо ініціалізувати карту...");
-
-          map = L.map('map-container').setView([50.4501, 30.5234], 12);
-
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          }).addTo(map);
-
-          updateStatus("Карта успішно завантажена");
-          loadInitialData();
-
-      } catch (error) {
-          updateStatus("Помилка ініціалізації: " + error.message, true);
-          console.error(error);
-      }
-  }
-
-    function loadInitialData() {
-        {% if current_user.latitude and current_user.longitude %}
-        updateUserMarker({{ current_user.latitude }}, {{ current_user.longitude }});
-        {% endif %}
-        loadNurses();  
+    function updateStatus(message, isError = false) {
+        const statusEl = document.getElementById('status');
+        statusEl.textContent = message;
+        statusEl.style.color = isError ? 'red' : 'green';
+        console.log(message);
     }
-  function updateUserMarker(lat, lng) {
-      try {
-          if (userMarker) map.removeLayer(userMarker);
 
-          userMarker = L.marker([lat, lng], {
-              icon: L.divIcon({
-                  className: 'user-marker',
-                  html: '<div style="background: blue; border-radius: 50%; width: 20px; height: 20px;"></div>',
-                  iconSize: [20, 20]
-              })
-          }).addTo(map);
+    function initSocket() {
+        socket = io();
 
-          map.setView([lat, lng], 12);
-          updateStatus("Місцезнаходження оновлено");
-
-      } catch (error) {
-          updateStatus("Помилка оновлення маркера", true);
-          console.error(error);
-      }
-  }
-
-
-function openAppointmentModal(nurseId, nurseName) {
-    fetch(`/client/get_nurse_services?nurse_id=${nurseId}`, {
-        method: 'GET',  // Це GET-запит
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken
-        }
-    })
-        .then(response => response.json())
-        .then(services => {
-            const select = document.getElementById('appointmentServiceSelect');
-            select.innerHTML = '';
-            
-            services.forEach(service => {
-                const option = document.createElement('option');
-                option.value = service.id;
-                option.textContent = `${service.name} - ${service.price} грн (${service.duration} хв)`;
-                select.appendChild(option);
-            });
-            
-            document.getElementById('appointmentNurseName').textContent = nurseName;
-            document.getElementById('appointmentNurseId').value = nurseId;
-            
-            const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
-            modal.show();
+        socket.on('connect', () => {
+            console.log('Connected to Socket.IO server');
+            socket.emit('join', { user_id: '{{ current_user.id }}' });
         });
-}
-  async function loadNurses() {
-    try {
-        updateStatus("Завантаження медсестер...");
 
-        const response = await fetch('{{ url_for("client.get_nurses_locations") }}', {
-        method: 'GET',  // Це GET-запит, не POST
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken
+        socket.on('new_message', (data) => {
+            if (currentChatRecipient && currentChatRecipient.id === data.sender_id) {
+                addMessageToChat(data, false);
+            } else {
+                showNewMessageNotification(data);
+            }
+        });
+
+        socket.on('message_sent', (data) => {
+            console.log('Message delivered:', data);
+        });
+
+        socket.on('error', (data) => {
+            updateStatus(data.message, true);
+        });
+    }
+
+    function openChatWithNurse(nurse) {
+        currentChatRecipient = nurse;
+        document.getElementById('chatRecipientName').textContent = nurse.name;
+
+        fetch(`{{ url_for('client.get_chat_messages') }}?recipient_id=${nurse.id}`, {
+          method: 'GET',  // Це GET-запит
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrfToken
+          }
+      })
+            .then(response => response.json())
+            .then(messages => {
+                const chatContainer = document.getElementById('chatMessages');
+                chatContainer.innerHTML = '';
+
+                messages.forEach(msg => {
+                    addMessageToChat(msg, msg.sender_id === '{{ current_user.id }}');
+                });
+
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            });
+
+        const chatModal = new bootstrap.Modal(document.getElementById('chatModal'));
+        chatModal.show();
+    }
+
+    function addMessageToChat(messageData, isMyMessage) {
+        const chatContainer = document.getElementById('chatMessages');
+        const messageElement = document.createElement('div');
+        messageElement.className = `message ${isMyMessage ? 'my-message' : 'their-message'}`;
+
+        const time = new Date(messageData.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+        messageElement.innerHTML = `
+            <div class="message-content">
+                ${!isMyMessage ? `<div class="sender-name">${messageData.sender_name}</div>` : ''}
+                <div class="message-text">${messageData.text}</div>
+                <div class="message-time">${time}</div>
+            </div>
+        `;
+
+        chatContainer.appendChild(messageElement);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function initMap() {
+        try {
+            updateStatus("Спробуємо ініціалізувати карту...");
+
+            map = L.map('map-container').setView([50.4501, 30.5234], 12);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            updateStatus("Карта успішно завантажена");
+            loadInitialData();
+
+        } catch (error) {
+            updateStatus("Помилка ініціалізації: " + error.message, true);
+            console.error(error);
         }
-    });
-        if (!response.ok) throw new Error("Помилка сервера");
+    }
 
-        const nurses = await response.json();
+      function loadInitialData() {
+          {% if current_user.latitude and current_user.longitude %}
+          updateUserMarker({{ current_user.latitude }}, {{ current_user.longitude }});
+          {% endif %}
+          loadNurses();
+      }
+    function updateUserMarker(lat, lng) {
+        try {
+            if (userMarker) map.removeLayer(userMarker);
 
-        nurseMarkers.forEach(m => map.removeLayer(m));
-        nurseMarkers = [];
-
-        nurses.forEach(nurse => {
-            const marker = L.marker([nurse.lat, nurse.lng], {
+            userMarker = L.marker([lat, lng], {
                 icon: L.divIcon({
-                    className: 'nurse-marker',
-                    html: `<div style="background: ${nurse.online ? 'green' : 'red'};
-                          border-radius: 50%; width: 20px; height: 20px;"></div>`,
+                    className: 'user-marker',
+                    html: '<div style="background: blue; border-radius: 50%; width: 20px; height: 20px;"></div>',
                     iconSize: [20, 20]
                 })
             }).addTo(map);
 
-            marker.bindPopup(`
-                <b>${nurse.name}</b><br>
-                Статус: ${nurse.online ? 'Доступна' : 'Недоступна'}<br>
-                <button class="btn btn-sm btn-primary start-chat-btn" data-nurse-id="${nurse.id}" data-nurse-name="${nurse.name}">
-                    <i class="fas fa-comment"></i> Написати
-                </button>
-                <button class="btn btn-sm btn-success mt-1 create-appointment-btn" 
-                        data-nurse-id="${nurse.id}" 
-                        data-nurse-name="${nurse.name}">
-                    <i class="fas fa-calendar-plus"></i> Записатись
-                </button>
-            `);
-            
-            nurseMarkers.push(marker);
-        });
-
-        
-        document.body.addEventListener('click', (e) => {
-            if (e.target.closest('.start-chat-btn')) {
-                const btn = e.target.closest('.start-chat-btn');
-                const nurseId = btn.getAttribute('data-nurse-id');
-                const nurseName = btn.getAttribute('data-nurse-name');
-                openChatWithNurse({id: nurseId, name: nurseName});
-            }
-            
-            if (e.target.closest('.create-appointment-btn')) {
-                const btn = e.target.closest('.create-appointment-btn');
-                const nurseId = btn.getAttribute('data-nurse-id');
-                const nurseName = btn.getAttribute('data-nurse-name');
-                openAppointmentModal(nurseId, nurseName);
-            }
-        });
-
-        updateStatus(`Знайдено ${nurses.length} медсестер`);
-
-    } catch (error) {
-        updateStatus("Помилка завантаження: " + error.message, true);
-        console.error(error);
-    }
-}
-
-  async function handleLocation() {
-        try {
-            updateStatus("Визначення вашого місцезнаходження...");
-
-            if (!navigator.geolocation) {
-                throw new Error("Ваш браузер не підтримує геолокацію");
-            }
-
-            const position = await new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(
-                    resolve,
-                    reject,
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                        maximumAge: 0
-                    }
-                );
-            });
-
-            const { latitude, longitude } = position.coords;
-            updateUserMarker(latitude, longitude);
-
-            const response = await fetch('{{ url_for("client.update_location") }}', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken  // Додано CSRF-токен
-                },
-                body: JSON.stringify({
-                    latitude: latitude,
-                    longitude: longitude
-                })
-            });
-
-            if (!response.ok) throw new Error("Помилка сервера");
-
-            const result = await response.json();
-            if (!result.success) throw new Error(result.message || "Помилка оновлення");
-
-            updateStatus("Локація успішно оновлена");
-            loadNurses();
+            map.setView([lat, lng], 12);
+            updateStatus("Місцезнаходження оновлено");
 
         } catch (error) {
-            updateStatus("Помилка: " + error.message, true);
+            updateStatus("Помилка оновлення маркера", true);
             console.error(error);
         }
     }
-  document.addEventListener('DOMContentLoaded', () => {
-      console.log("DOM повністю завантажений");
-      initSocket();
-      initMap();
 
-      const btn = document.getElementById('location-btn');
-      if (btn) {
-          btn.addEventListener('click', handleLocation);
+
+  function openAppointmentModal(nurseId, nurseName) {
+      fetch(`/client/get_nurse_services?nurse_id=${nurseId}`, {
+          method: 'GET',  // Це GET-запит
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrfToken
+          }
+      })
+          .then(response => response.json())
+          .then(services => {
+              const select = document.getElementById('appointmentServiceSelect');
+              select.innerHTML = '';
+
+              services.forEach(service => {
+                  const option = document.createElement('option');
+                  option.value = service.id;
+                  option.textContent = `${service.name} - ${service.price} грн (${service.duration} хв)`;
+                  select.appendChild(option);
+              });
+
+              document.getElementById('appointmentNurseName').textContent = nurseName;
+              document.getElementById('appointmentNurseId').value = nurseId;
+
+              const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
+              modal.show();
+          });
+  }
+    async function loadNurses() {
+      try {
+          updateStatus("Завантаження медсестер...");
+
+          const response = await fetch('{{ url_for("client.get_nurses_locations") }}', {
+          method: 'GET',  // Це GET-запит, не POST
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrfToken
+          }
+      });
+          if (!response.ok) throw new Error("Помилка сервера");
+
+          const nurses = await response.json();
+
+          nurseMarkers.forEach(m => map.removeLayer(m));
+          nurseMarkers = [];
+
+          nurses.forEach(nurse => {
+              const marker = L.marker([nurse.lat, nurse.lng], {
+                  icon: L.divIcon({
+                      className: 'nurse-marker',
+                      html: `<div style="background: ${nurse.online ? 'green' : 'red'};
+                            border-radius: 50%; width: 20px; height: 20px;"></div>`,
+                      iconSize: [20, 20]
+                  })
+              }).addTo(map);
+
+              marker.bindPopup(`
+                  <b>${nurse.name}</b><br>
+                  Статус: ${nurse.online ? 'Доступна' : 'Недоступна'}<br>
+                  <button class="btn btn-sm btn-primary start-chat-btn" data-nurse-id="${nurse.id}" data-nurse-name="${nurse.name}">
+                      <i class="fas fa-comment"></i> Написати
+                  </button>
+                  <button class="btn btn-sm btn-success mt-1 create-appointment-btn"
+                          data-nurse-id="${nurse.id}"
+                          data-nurse-name="${nurse.name}">
+                      <i class="fas fa-calendar-plus"></i> Записатись
+                  </button>
+              `);
+
+              nurseMarkers.push(marker);
+          });
+
+
+          document.body.addEventListener('click', (e) => {
+              if (e.target.closest('.start-chat-btn')) {
+                  const btn = e.target.closest('.start-chat-btn');
+                  const nurseId = btn.getAttribute('data-nurse-id');
+                  const nurseName = btn.getAttribute('data-nurse-name');
+                  openChatWithNurse({id: nurseId, name: nurseName});
+              }
+
+              if (e.target.closest('.create-appointment-btn')) {
+                  const btn = e.target.closest('.create-appointment-btn');
+                  const nurseId = btn.getAttribute('data-nurse-id');
+                  const nurseName = btn.getAttribute('data-nurse-name');
+                  openAppointmentModal(nurseId, nurseName);
+              }
+          });
+
+          updateStatus(`Знайдено ${nurses.length} медсестер`);
+
+      } catch (error) {
+          updateStatus("Помилка завантаження: " + error.message, true);
+          console.error(error);
+      }
+  }
+
+    async function handleLocation() {
+          try {
+              updateStatus("Визначення вашого місцезнаходження...");
+
+              if (!navigator.geolocation) {
+                  throw new Error("Ваш браузер не підтримує геолокацію");
+              }
+
+              const position = await new Promise((resolve, reject) => {
+                  navigator.geolocation.getCurrentPosition(
+                      resolve,
+                      reject,
+                      {
+                          enableHighAccuracy: true,
+                          timeout: 10000,
+                          maximumAge: 0
+                      }
+                  );
+              });
+
+              const { latitude, longitude } = position.coords;
+              updateUserMarker(latitude, longitude);
+
+              const response = await fetch('{{ url_for("client.update_location") }}', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'X-CSRFToken': csrfToken  // Додано CSRF-токен
+                  },
+                  body: JSON.stringify({
+                      latitude: latitude,
+                      longitude: longitude
+                  })
+              });
+
+              if (!response.ok) throw new Error("Помилка сервера");
+
+              const result = await response.json();
+              if (!result.success) throw new Error(result.message || "Помилка оновлення");
+
+              updateStatus("Локація успішно оновлена");
+              loadNurses();
+
+          } catch (error) {
+              updateStatus("Помилка: " + error.message, true);
+              console.error(error);
+          }
+      }
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log("DOM повністю завантажений");
+        initSocket();
+        initMap();
+
+        const btn = document.getElementById('location-btn');
+        if (btn) {
+            btn.addEventListener('click', handleLocation);
+        }
+
+        document.getElementById('sendMessageBtn').addEventListener('click', () => {
+            const messageText = document.getElementById('messageInput').value.trim();
+            if (messageText && currentChatRecipient) {
+                socket.emit('send_message', {
+                    text: messageText,
+                    sender_id: '{{ current_user.id }}',
+                    recipient: currentChatRecipient.id
+                });
+
+                addMessageToChat({
+                    sender_id: '{{ current_user.id }}',
+                    sender_name: 'Ви',
+                    text: messageText,
+                    timestamp: new Date().toISOString()
+                }, true);
+
+                document.getElementById('messageInput').value = '';
+            }
+        });
+
+  document.getElementById('confirmAppointmentBtn').addEventListener('click', () => {
+      const nurseId = document.getElementById('appointmentNurseId').value;
+      const serviceId = document.getElementById('appointmentServiceSelect').value;
+      const dateTime = document.getElementById('appointmentDateTime').value;
+      const notes = document.getElementById('appointmentNotes').value;
+
+      if (!serviceId || !dateTime) {
+          alert('Будь ласка, оберіть послугу та дату');
+          return;
       }
 
-      document.getElementById('sendMessageBtn').addEventListener('click', () => {
-          const messageText = document.getElementById('messageInput').value.trim();
-          if (messageText && currentChatRecipient) {
-              socket.emit('send_message', {
-                  text: messageText,
-                  sender_id: '{{ current_user.id }}',
-                  recipient: currentChatRecipient.id
-              });
-              
-              addMessageToChat({
-                  sender_id: '{{ current_user.id }}',
-                  sender_name: 'Ви',
-                  text: messageText,
-                  timestamp: new Date().toISOString()
-              }, true);
-              
-              document.getElementById('messageInput').value = '';
+      fetch('{{ url_for("client.create_appointment") }}', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrfToken
+          },
+          body: JSON.stringify({
+              nurse_id: nurseId,
+              service_id: serviceId,
+              date_time: dateTime,
+              notes: notes
+          })
+      })
+      .then(response => {
+          if (!response.ok) {
+              return response.text().then(text => { throw new Error(text) });
           }
-      });
-
-document.getElementById('confirmAppointmentBtn').addEventListener('click', () => {
-    const nurseId = document.getElementById('appointmentNurseId').value;
-    const serviceId = document.getElementById('appointmentServiceSelect').value;
-    const dateTime = document.getElementById('appointmentDateTime').value;
-    const notes = document.getElementById('appointmentNotes').value;
-    
-    if (!serviceId || !dateTime) {
-        alert('Будь ласка, оберіть послугу та дату');
-        return;
-    }
-    
-    fetch('{{ url_for("client.create_appointment") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken
-        },
-        body: JSON.stringify({
-            nurse_id: nurseId,
-            service_id: serviceId,
-            date_time: dateTime,
-            notes: notes
-        })
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.text().then(text => { throw new Error(text) });
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            alert('Запис успішно створено!');
-            const modal = bootstrap.Modal.getInstance(document.getElementById('appointmentModal'));
-            modal.hide();
-        } else {
-            alert('Помилка: ' + (data.message || 'Невідома помилка'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Сталася помилка при створенні запису: ' + error.message);
-    });
-});
-
-document.body.addEventListener('click', (e) => {
-    if (e.target.closest('.start-chat-btn')) {
-        const btn = e.target.closest('.start-chat-btn');
-        const nurseId = btn.getAttribute('data-nurse-id');
-        const nurseName = btn.getAttribute('data-nurse-name');
-        openChatWithNurse({id: nurseId, name: nurseName});
-    }
-    
-    if (e.target.closest('.create-appointment-btn')) {
-        const btn = e.target.closest('.create-appointment-btn');
-        const nurseId = btn.getAttribute('data-nurse-id');
-        const nurseName = btn.getAttribute('data-nurse-name');
-        openAppointmentModal(nurseId, nurseName);
-    }
-});
-
-
-
-
-      document.getElementById('messageInput').addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-              document.getElementById('sendMessageBtn').click();
+          return response.json();
+      })
+      .then(data => {
+          if (data.success) {
+              alert('Запис успішно створено!');
+              const modal = bootstrap.Modal.getInstance(document.getElementById('appointmentModal'));
+              modal.hide();
+          } else {
+              alert('Помилка: ' + (data.message || 'Невідома помилка'));
           }
+      })
+      .catch(error => {
+          console.error('Error:', error);
+          alert('Сталася помилка при створенні запису: ' + error.message);
       });
   });
+
+  document.body.addEventListener('click', (e) => {
+      if (e.target.closest('.start-chat-btn')) {
+          const btn = e.target.closest('.start-chat-btn');
+          const nurseId = btn.getAttribute('data-nurse-id');
+          const nurseName = btn.getAttribute('data-nurse-name');
+          openChatWithNurse({id: nurseId, name: nurseName});
+      }
+
+      if (e.target.closest('.create-appointment-btn')) {
+          const btn = e.target.closest('.create-appointment-btn');
+          const nurseId = btn.getAttribute('data-nurse-id');
+          const nurseName = btn.getAttribute('data-nurse-name');
+          openAppointmentModal(nurseId, nurseName);
+      }
+  });
+
+
+
+
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('sendMessageBtn').click();
+            }
+        });
+    });
 </script>
 
 <style>
-    .chat-messages-container {
-        height: 300px;
-        overflow-y: auto;
-        padding: 10px;
-        background-color: #f8f9fa;
-        border-radius: 5px;
-        margin-bottom: 10px;
-    }
-    
-    .message {
-        margin-bottom: 10px;
-        max-width: 80%;
-        padding: 8px 12px;
-        border-radius: 15px;
-        position: relative;
-    }
-    
-    .my-message {
-        background-color: #007bff;
-        color: white;
-        margin-left: auto;
-        border-bottom-right-radius: 0;
-    }
-    
-    .their-message {
-        background-color: #e9ecef;
-        margin-right: auto;
-        border-bottom-left-radius: 0;
-    }
-    
-    .message-content {
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .sender-name {
-        font-weight: bold;
-        font-size: 0.8em;
-        margin-bottom: 3px;
-    }
-    
-    .message-text {
-        word-wrap: break-word;
-    }
-    
-    .message-time {
-        font-size: 0.7em;
-        text-align: right;
-        opacity: 0.7;
-        margin-top: 3px;
-    }
-    
-    .start-chat-btn {
-        margin-top: 5px;
-    }
+  .chat-messages-container {
+    height: 300px;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+
+  .message {
+    margin-bottom: 10px;
+    max-width: 80%;
+    padding: 8px 12px;
+    border-radius: 15px;
+    position: relative;
+  }
+
+  .my-message {
+    background-color: #007bff;
+    color: white;
+    margin-left: auto;
+    border-bottom-right-radius: 0;
+  }
+
+  .their-message {
+    background-color: #e9ecef;
+    margin-right: auto;
+    border-bottom-left-radius: 0;
+  }
+
+  .message-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sender-name {
+    font-weight: bold;
+    font-size: 0.8em;
+    margin-bottom: 3px;
+  }
+
+  .message-text {
+    word-wrap: break-word;
+  }
+
+  .message-time {
+    font-size: 0.7em;
+    text-align: right;
+    opacity: 0.7;
+    margin-top: 3px;
+  }
+
+  .start-chat-btn {
+    margin-top: 5px;
+  }
 </style>
 {% endblock %}
