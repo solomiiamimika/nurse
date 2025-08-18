@@ -381,6 +381,7 @@
               console.error(error);
           }
       }
+      
     document.addEventListener('DOMContentLoaded', () => {
         console.log("DOM повністю завантажений");
         initSocket();
@@ -397,8 +398,9 @@
                 socket.emit('send_message', {
                     text: messageText,
                     sender_id: '{{ current_user.id }}',
-                    recipient: currentChatRecipient.id
+                    recipient_id: currentChatRecipient.id
                 });
+
 
                 addMessageToChat({
                     sender_id: '{{ current_user.id }}',
@@ -481,6 +483,14 @@
             }
         });
     });
+
+  socket.on('connection_response', (data) => {
+    console.log('Сервер підтвердив підключення:', data);
+});
+
+socket.on('error', (data) => {
+    console.error('Помилка:', data.message);
+});
 </script>
 
 <style>

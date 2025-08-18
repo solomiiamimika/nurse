@@ -11,6 +11,14 @@ import json
 from dotenv import load_dotenv
 import stripe
 from flask_cors import cross_origin
+
+
+from app.extensions import socketio, db
+from flask import current_app, request
+from flask_socketio import join_room, leave_room, emit
+from app.models import Message, db,User
+from datetime import datetime
+
 load_dotenv()
 stripe.api_key=os.getenv('STRIPE_SECRET_KEY')
 
@@ -792,41 +800,62 @@ def client_self_create_appointment():
         current_app.logger.error(f"cant create client_self_create_appointment: {str(e)}")
         
         
-        
-@client_bp.route('/', methods=['POST'])
-@login_required
-def client_self_create_appointment():
-    if current_user.role != 'client':
-       return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+
+@socketio.on('connect')
+def handle_connect():
+    print(f"Клієнт підключився: {request.sid}")
+    emit('connection_response', {'status': 'connected'})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print(f"Клієнт відключився: {request.sid}")
+
+@socketio.on('join')
+def handle_join(data):
+    user_id = data.get('user_id')
+    if user_id:
+        join_room(f"user_{user_id}")
+        current_app.logger.info(f'Користувач {user_id} приєднався до кімнати')
+
+@socketio.on('send_message')
+def handle_send_message(data):
     try:
-        data=request.get_json()
+        print(f"Отримано дані: {data}")  # Логування вхідних даних
         
-        check = ['latitude','longitude', 'appointment_start_time']
-        
-        appointment_start_time=data['appointment_start_time']
-        
-        if not all(i in data for i in check):
-            return jsonify({'error':'Not all fields are filled'})
-        
-        client_self_create_appointment = ClientSelfCreatedAppointment(
+        if not all(key in data for key in ['text', 'sender_id', 'recipient_id']):
+            raise ValueError("Недостатньо даних")
             
-            patient_id=current_user.id,
-            appointment_start_time=data['appointment_start_time'],
-            end_time = data['end_time'] or appointment_start_time + timedelta(hours=1),
-            latitude=data['latitude'],
-            longitude=data['longtitude'],
-            status = 'pending',
-            notes= data['notes'] or '',
-            service_name=data['service_name'] or '',
-            service_description =data['service_description'] or '',
-            payment = data['payment'] or '0'
-            
-            )
-        db.session.add(client_self_create_appointment)
+        # Створення повідомлення
+        message = Message(
+            sender_id=int(data['sender_id']),
+            recipient_id=int(data['recipient_id']),
+            text=data['text']
+        )
+        
+        # Збереження в БД
+        db.session.add(message)
         db.session.commit()
+        
+        # Отримання імені відправника
+        sender = User.query.get(message.sender_id)
+        sender_name = sender.user_name if sender else "Невідомий"
+        
+        # Відправка отримувачу
+        emit('new_message', {
+            'id': message.id,
+            'sender_id': message.sender_id,
+            'sender_name': sender_name,
+            'text': message.text,
+            'timestamp': message.timestamp.isoformat()
+        }, room=f"user_{message.recipient_id}")
+        
+        # Підтвердження відправнику
+        emit('message_sent', {
+            'id': message.id,
+            'status': 'delivered'
+        }, room=request.sid)
+        
     except Exception as e:
-        current_app.logger.error(f"cant create client_self_create_appointment: {str(e)}")        
-    
-    
-    
-   
+        print(f"Помилка: {str(e)}")
+        emit('error', {'message': str(e)}, room=request.sid)
+        db.session.rollback()
