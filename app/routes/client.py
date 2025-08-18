@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, request,abort,jsonify,current_app
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy.sql.sqltypes import DateTime
-from app. extensions import db, bcrypt
+from app.extensions import db, bcrypt
 from app.models import Appointment, NurseService, User,Message,Payment, ClientSelfCreatedAppointment
 from . import client_bp
 from datetime import datetime, timedelta
@@ -793,40 +793,3 @@ def client_self_create_appointment():
         
         
         
-@client_bp.route('/', methods=['POST'])
-@login_required
-def client_self_create_appointment():
-    if current_user.role != 'client':
-       return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
-    try:
-        data=request.get_json()
-        
-        check = ['latitude','longitude', 'appointment_start_time']
-        
-        appointment_start_time=data['appointment_start_time']
-        
-        if not all(i in data for i in check):
-            return jsonify({'error':'Not all fields are filled'})
-        
-        client_self_create_appointment = ClientSelfCreatedAppointment(
-            
-            patient_id=current_user.id,
-            appointment_start_time=data['appointment_start_time'],
-            end_time = data['end_time'] or appointment_start_time + timedelta(hours=1),
-            latitude=data['latitude'],
-            longitude=data['longtitude'],
-            status = 'pending',
-            notes= data['notes'] or '',
-            service_name=data['service_name'] or '',
-            service_description =data['service_description'] or '',
-            payment = data['payment'] or '0'
-            
-            )
-        db.session.add(client_self_create_appointment)
-        db.session.commit()
-    except Exception as e:
-        current_app.logger.error(f"cant create client_self_create_appointment: {str(e)}")        
-    
-    
-    
-   

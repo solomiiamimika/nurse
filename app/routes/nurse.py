@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, current_app, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
-from app.models import User, Message, db, Service, NurseService, Appointment
+from app.models import User, Message, db, Service, NurseService, Appointment, ClientSelfCreatedAppointment
 from datetime import datetime
 import json
 import os
