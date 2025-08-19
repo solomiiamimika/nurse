@@ -10,6 +10,13 @@ from werkzeug.utils import secure_filename
 import json
 from dotenv import load_dotenv
 import stripe
+
+from app.extensions import socketio, db
+from flask import current_app, request
+from flask_socketio import join_room, leave_room, emit
+from app.models import Message, db,User
+from datetime import datetime
+
 from flask_cors import cross_origin
 load_dotenv()
 stripe.api_key=os.getenv('STRIPE_SECRET_KEY')
@@ -761,35 +768,117 @@ def cancel_appointment():
 @login_required
 def client_self_create_appointment():
     if current_user.role != 'client':
-       return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+    
     try:
-        data=request.get_json()
+        data = request.get_json()
         
-        check = ['latitude','longitude', 'appointment_start_time']
+        required_fields = ['latitude', 'longitude', 'appointment_start_time']
         
-        appointment_start_time=data['appointment_start_time']
+        if not all(field in data for field in required_fields):
+            return jsonify({'success': False, 'error': 'Не всі обов\'язкові поля заповнені'}), 400
         
-        if not all(i in data for i in check):
-            return jsonify({'error':'Not all fields are filled'})
+        appointment_start_time = datetime.fromisoformat(data['appointment_start_time'].replace('Z', '+00:00'))
         
-        client_self_create_appointment = ClientSelfCreatedAppointment(
-            
+        end_time = data.get('end_time')
+        if end_time:
+            end_time = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+        else:
+            end_time = appointment_start_time + timedelta(hours=1)
+        
+        appointment = ClientSelfCreatedAppointment(
             patient_id=current_user.id,
-            appointment_start_time=data['appointment_start_time'],
-            end_time = data['end_time'] or appointment_start_time + timedelta(hours=1),
+            appointment_start_time=appointment_start_time,
+            end_time=end_time,
             latitude=data['latitude'],
-            longitude=data['longtitude'],
-            status = 'pending',
-            notes= data['notes'] or '',
-            service_name=data['service_name'] or '',
-            service_description =data['service_description'] or '',
-            payment = data['payment'] or '0',
-            
-            )
-        db.session.add(client_self_create_appointment)
+            longitude=data['longitude'],
+            status='pending',
+            notes=data.get('notes', ''),
+            service_name=data.get('service_name', ''),
+            service_description=data.get('service_description', ''),
+            payment=data.get('payment', 0),
+            created_at=datetime.now()
+        )
+        
+        db.session.add(appointment)
         db.session.commit()
+        
+        # Сповіщення медсестер про новий запит
+        #notify_nurses_about_new_appointment(appointment)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Запит успішно створено',
+            'appointment_id': appointment.id
+        }), 201
+        
     except Exception as e:
-        current_app.logger.error(f"cant create client_self_create_appointment: {str(e)}")
+        current_app.logger.error(f"Помилка створення запиту: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Внутрішня помилка сервера'}), 500
         
+
+
+
+
+
+
+
+@socketio.on('connect')
+def handle_connect():
+    print(f"Клієнт підключився: {request.sid}")
+    emit('connection_response', {'status': 'connected'})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print(f"Клієнт відключився: {request.sid}")
+
+@socketio.on('join')
+def handle_join(data):
+    user_id = data.get('user_id')
+    if user_id:
+        join_room(f"user_{user_id}")
+        current_app.logger.info(f'Користувач {user_id} приєднався до кімнати')
+
+@socketio.on('send_message')
+def handle_send_message(data):
+    try:
+        print(f"Отримано дані: {data}")  # Логування вхідних даних
         
+        if not all(key in data for key in ['text', 'sender_id', 'recipient_id']):
+            raise ValueError("Недостатньо даних")
+            
+        # Створення повідомлення
+        message = Message(
+            sender_id=int(data['sender_id']),
+            recipient_id=int(data['recipient_id']),
+            text=data['text']
+        )
         
+        # Збереження в БД
+        db.session.add(message)
+        db.session.commit()
+        
+        # Отримання імені відправника
+        sender = User.query.get(message.sender_id)
+        sender_name = sender.user_name if sender else "Невідомий"
+        
+        # Відправка отримувачу
+        emit('new_message', {
+            'id': message.id,
+            'sender_id': message.sender_id,
+            'sender_name': sender_name,
+            'text': message.text,
+            'timestamp': message.timestamp.isoformat()
+        }, room=f"user_{message.recipient_id}")
+        
+        # Підтвердження відправнику
+        emit('message_sent', {
+            'id': message.id,
+            'status': 'delivered'
+        }, room=request.sid)
+        
+    except Exception as e:
+        print(f"Помилка: {str(e)}")
+        emit('error', {'message': str(e)}, room=request.sid)
+        db.session.rollback()

@@ -339,25 +339,24 @@
           setInterval(loadClientsLocations, 30000);
 
           document.getElementById('sendMessageBtn').addEventListener('click', () => {
-              const messageText = document.getElementById('messageInput').value.trim();
-              if (messageText && currentChatRecipient) {
-                  socket.emit('send_message', {
-                      text: messageText,
-                      sender_id: '{{ current_user.id }}',
-                      recipient: currentChatRecipient.id
-                  });
+                const messageText = document.getElementById('messageInput').value.trim();
+                if (messageText && currentChatRecipient) {
+                    socket.emit('send_message', {
+                        text: messageText,
+                        sender_id: '{{ current_user.id }}',
+                        recipient_id: currentChatRecipient.id  // Виправлено: recipient_id замість recipient
+                    });
 
-                  addMessageToChat({
-                      sender_id: '{{ current_user.id }}',
-                      sender_name: 'Ви',
-                      text: messageText,
-                      timestamp: new Date().toISOString()
-                  }, true);
+                    addMessageToChat({
+                        sender_id: '{{ current_user.id }}',
+                        sender_name: 'Ви',
+                        text: messageText,
+                        timestamp: new Date().toISOString()
+                    }, true);
 
-                  document.getElementById('messageInput').value = '';
-              }
-          });
-
+                    document.getElementById('messageInput').value = '';
+                }
+            });
           document.getElementById('messageInput').addEventListener('keypress', (e) => {
               if (e.key === 'Enter') {
                   document.getElementById('sendMessageBtn').click();
