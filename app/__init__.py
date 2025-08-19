@@ -1,12 +1,15 @@
 from flask import Flask
 from wtforms.csrf.core import CSRF
-from .extensions import db, bcrypt, login_manager, migrate, socketio, google_blueprint
+from .extensions import db, bcrypt, login_manager, migrate, google_blueprint
 from app.models import User, Message, Service, Appointment, Payment, MedicalRecord, Prescription, Review
 from app.routes import auth_bp, main_bp, client_bp, nurse_bp
 from flask_wtf.csrf import CSRFProtect
-
+from .extensions import socketio
 import os
 from dotenv import load_dotenv
+
+
+
 
 load_dotenv()
 def create_app():
@@ -29,7 +32,7 @@ def create_app():
     login_manager.login_view = 'auth.login'
     migrate.init_app(app, db)
     csrf.init_app(app)
-    socketio.init_app(app,manage_session=False,cors_allowed_origins="*")
+    socketio.init_app(app)
 
     # Реєстрація блюпрінтів
     from app.routes.auth import auth_bp
