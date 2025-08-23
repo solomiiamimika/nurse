@@ -5,7 +5,7 @@ from datetime import datetime
 import json
 import os
 from werkzeug.utils import secure_filename
-
+from math import radians, sin, cos, sqrt, atan2
 nurse_bp = Blueprint('nurse', __name__)
 
 from app.extensions import socketio, db
@@ -13,7 +13,7 @@ from flask import current_app, request
 from flask_socketio import join_room, leave_room, emit
 from app.models import Message, db,User
 from datetime import datetime
-
+from sqlalchemy import func
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'uploads')
 DOCUMENTS_FOLDER = os.path.join(UPLOAD_FOLDER, 'documents')
@@ -533,3 +533,185 @@ def nurse_stats():
         'average_rating': avg_rating,
         'reviews_count': reviews_count
     })
+
+
+
+
+@nurse_bp.route('/nurse_get_requests', methods=['GET'])
+@login_required
+def nurse_get_requests():
+    """Отримати всі запити для медсестри (для карти)"""
+    if current_user.role != 'nurse':
+        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+    
+    try:
+        nurse_lat = current_user.latitude
+        nurse_lng = current_user.longitude
+        
+        # Базовий запит
+        query = ClientSelfCreatedAppointment.query.filter(
+            ClientSelfCreatedAppointment.status == 'pending'
+        )
+        
+
+        if nurse_lat and nurse_lng:
+            distance_formula = func.acos(
+                func.sin(func.radians(nurse_lat)) * func.sin(func.radians(ClientSelfCreatedAppointment.latitude)) +
+                func.cos(func.radians(nurse_lat)) * func.cos(func.radians(ClientSelfCreatedAppointment.latitude)) *
+                func.cos(func.radians(ClientSelfCreatedAppointment.longitude) - func.radians(nurse_lng))
+            ) * 6371  # Радіус Землі в км
+            
+            query = query.filter(distance_formula <= 50)  # 50 км радіус
+        
+        requests = query.all()
+        
+        result = []
+        for req in requests:
+            result.append({
+                'id': req.id,
+                'patient_name': req.patient.full_name,
+                'service_name': req.service_name,
+                'service_description': req.service_description,
+                'appointment_start_time': req.appointment_start_time.isoformat(),
+                'latitude': req.latitude,
+                'longitude': req.longitude,
+                'notes': req.notes,
+                'payment': req.payment,
+                'created_appo': req.created_appo.isoformat(),
+                'patient_id': req.patient_id
+            })
+        
+        return jsonify({'success': True, 'requests': result}), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Помилка отримання запитів: {str(e)}")
+        return jsonify({'success': False, 'error': 'Внутрішня помилка сервера'}), 500
+
+@nurse_bp.route('/nurse_accept_request/<int:request_id>', methods=['POST'])
+@login_required
+def nurse_accept_request(request_id):
+    if current_user.role != 'nurse':
+        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+    
+    try:
+        request = ClientSelfCreatedAppointment.query.get(request_id)
+        
+        if not request:
+            return jsonify({'success': False, 'message': 'Запит не знайдено'}), 404
+        
+        if request.status != 'pending':
+            return jsonify({'success': False, 'message': 'Запит вже оброблений'}), 400
+        
+        request.status = 'accepted'
+        request.doctor_id = current_user.id
+        
+        appointment = Appointment(
+            client_id=request.patient_id,
+            nurse_id=current_user.id,
+            nurse_service_id=request.nurse_service_id,
+            appointment_time=request.appointment_start_time,
+            end_time=request.end_time,
+            status='scheduled',
+            notes=request.notes
+        )
+        
+        db.session.add(appointment)
+        db.session.commit()
+        
+        # TODO: Надіслати сповіщення клієнту
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Запит прийнято',
+            'appointment_id': appointment.id
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Помилка прийняття запиту: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Внутрішня помилка сервера'}), 500
+
+@nurse_bp.route('/nurse_get_accepted_requests', methods=['GET'])
+@login_required
+def nurse_get_accepted_requests():
+    if current_user.role != 'nurse':
+        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+    
+    try:
+        requests = ClientSelfCreatedAppointment.query.filter_by(
+            doctor_id=current_user.id
+        ).order_by(ClientSelfCreatedAppointment.created_appo.desc()).all()
+        
+        result = []
+        for req in requests: 
+            result.append({
+                'id': req.id,
+                'patient_name': req.patient.full_name,
+                'service_name': req.service_name,
+                'status': req.status,
+                'appointment_start_time': req.appointment_start_time.isoformat(),
+                'created_appo': req.created_appo.isoformat(),
+                'latitude': req.latitude,
+                'longitude': req.longitude,
+                'notes': req.notes,
+                'payment': req.payment
+            })
+        
+        return jsonify({'success': True, 'requests': result}), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Помилка отримання прийнятих запитів: {str(e)}")
+        return jsonify({'success': False, 'error': 'Внутрішня помилка сервера'}), 500
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def notify_nurses_about_new_appointment(appointment):
+    """Сповістити медсестер про новий запит"""
+    # Знаходимо всіх медсестер поблизу
+    nurses = User.query.filter_by(role='nurse').all()
+    
+    for nurse in nurses:
+        if nurse.latitude and nurse.longitude:
+            # Розрахунок відстані
+            distance = calculate_distance(
+                nurse.latitude, nurse.longitude,
+                appointment.latitude, appointment.longitude
+            )
+            
+            if distance <= 50:  # 50 км радіус
+                # TODO: Реалізувати сповіщення (email, push, etc.)
+                pass
+
+def calculate_distance(lat1, lng1, lat2, lng2):
+
+    
+    R = 6371  # Радіус Землі в км
+    
+    lat1_rad = radians(lat1)
+    lng1_rad = radians(lng1)
+    lat2_rad = radians(lat2)
+    lng2_rad = radians(lng2)
+    
+    dlng = lng2_rad - lng1_rad
+    dlat = lat2_rad - lat1_rad
+    
+    a = sin(dlat/2)**2 + cos(lat1_rad) * cos(lat2_rad) * sin(dlng/2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1-a))
+    
+    return R * c
