@@ -67,6 +67,13 @@ class Message (db.Model):
     text = Column(Text)
     timestamp=Column(DateTime,default=datetime.now)
     is_read = Column(Boolean,default=False)
+    
+    
+    message_type = Column(String , default='text') # audio,video,photo
+    supabase_file_path = Column(String)
+    mime_type = Column(String)
+    file_name = Column(String)
+    file_size = Column(Integer)
 
 class Service(db.Model):
     __tablename__ = 'service'

@@ -882,3 +882,73 @@ def handle_send_message(data):
         print(f"Помилка: {str(e)}")
         emit('error', {'message': str(e)}, room=request.sid)
         db.session.rollback()
+
+
+
+
+
+
+@client_bp.route('/client_get_requests', methods=['GET'])
+@login_required
+def client_get_requests():
+    if current_user.role != 'client':
+        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+    
+    try:
+        requests = ClientSelfCreatedAppointment.query.filter_by(
+            patient_id=current_user.id
+        ).order_by(ClientSelfCreatedAppointment.created_appo.desc()).all()
+        
+        result = []
+        for req in requests:
+            result.append({
+                'id': req.id,
+                'service_name': req.service_name,
+                'status': req.status,
+                'appointment_start_time': req.appointment_start_time.isoformat(),
+                'created_appo': req.created_appo.isoformat(),
+                'latitude': req.latitude,
+                'longitude': req.longitude,
+                'notes': req.notes,
+                'payment': req.payment,
+                'doctor_id': req.doctor_id,
+                'nurse_name': req.doctor.full_name if req.doctor else None
+            })
+        
+        return jsonify({'success': True, 'requests': result}), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Помилка отримання запитів: {str(e)}")
+        return jsonify({'success': False, 'error': 'Внутрішня помилка сервера'}), 500
+
+@client_bp.route('/client_cancel_request/<int:request_id>', methods=['POST'])
+@login_required
+def client_cancel_request(request_id):
+    if current_user.role != 'client':
+        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+    
+    try:
+        request = ClientSelfCreatedAppointment.query.filter_by(
+            id=request_id, 
+            patient_id=current_user.id
+        ).first()
+        
+        if not request:
+            return jsonify({'success': False, 'message': 'Запит не знайдено'}), 404
+        
+        if request.status not in ['pending', 'accepted']:
+            return jsonify({'success': False, 'message': 'Неможливо скасувати цей запит'}), 400
+        
+        request.status = 'cancelled'
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Запит скасовано'}), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Помилка скасування запиту: {str(e)}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Внутрішня помилка сервера'}), 500
+
+
+
+
