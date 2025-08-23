@@ -496,3 +496,40 @@ def handle_send_message(data):
         print(f"Помилка: {str(e)}")
         emit('error', {'message': str(e)}, room=request.sid)
         db.session.rollback()
+
+
+@nurse_bp.route('/stats')
+@login_required
+def nurse_stats():
+    if current_user.role != 'nurse':
+        return jsonify({'error': 'Доступ заборонено'}), 403
+
+    accepted_statuses = ['confirmed', 'confirmed_paid', 'nurse_confirmed']
+    accepted_count = Appointment.query.filter(
+        Appointment.nurse_id == current_user.id,
+        Appointment.status.in_(accepted_statuses)
+    ).count()
+
+    completed_count = Appointment.query.filter(
+        Appointment.nurse_id == current_user.id,
+        Appointment.status == 'completed'
+    ).count()
+
+    avg_rating = current_user.average_rating  # з hybrid_property
+    reviews_count = current_user.reviews_count
+
+    # Додатково: скільки майбутніх активних
+    upcoming_count = Appointment.query.filter(
+        Appointment.nurse_id == current_user.id,
+        Appointment.appointment_time >= datetime.utcnow(),
+        Appointment.status.in_(accepted_statuses)
+    ).count()
+
+    return jsonify({
+        'nurse_id': current_user.id,
+        'accepted': accepted_count,
+        'completed': completed_count,
+        'upcoming': upcoming_count,
+        'average_rating': avg_rating,
+        'reviews_count': reviews_count
+    })

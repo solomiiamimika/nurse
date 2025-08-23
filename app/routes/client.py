@@ -2,7 +2,7 @@ from flask import render_template, redirect, url_for, flash, request,abort,jsoni
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy.sql.sqltypes import DateTime
 from app.extensions import db, bcrypt
-from app.models import Appointment, NurseService, User,Message,Payment, ClientSelfCreatedAppointment
+from app.models import Appointment, NurseService, User,Message,Payment, ClientSelfCreatedAppointment, Review
 from . import client_bp
 from datetime import datetime, timedelta
 import os 
@@ -882,3 +882,49 @@ def handle_send_message(data):
         print(f"Помилка: {str(e)}")
         emit('error', {'message': str(e)}, room=request.sid)
         db.session.rollback()
+
+
+@client_bp.route('/leave_review', methods=['POST'])
+@login_required
+def leave_review():
+    if current_user.role != 'client':
+        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+
+    data = request.get_json() or {}
+    appointment_id = data.get('appointment_id')
+    rating = data.get('rating')
+    comment = data.get('comment', '').strip()
+
+    if not appointment_id or rating is None:
+        return jsonify({'success': False, 'message': 'Необхідно вказати appointment_id і rating'}), 400
+
+    try:
+        rating = int(rating)
+        if rating < 1 or rating > 5:
+            raise ValueError
+    except Exception:
+        return jsonify({'success': False, 'message': 'Рейтинг має бути цілим від 1 до 5'}), 400
+
+    appo = Appointment.query.filter_by(id=appointment_id, client_id=current_user.id).first()
+    if not appo:
+        return jsonify({'success': False, 'message': 'Запис не знайдено'}), 404
+
+    if appo.status != 'completed':
+        return jsonify({'success': False, 'message': 'Відгук можна залишити лише після завершення візиту'}), 400
+
+    # Перевірка: щоб на один appointment не було дубля відгуку
+    existing = Review.query.filter_by(patient_id=current_user.id, doctor_id=appo.nurse_id, appointment_id=appo.id).first()
+    if existing:
+        return jsonify({'success': False, 'message': 'Відгук вже залишено'}), 400
+
+    review = Review(
+        patient_id=current_user.id,
+        doctor_id=appo.nurse_id,     # nurse
+        appointment_id=appo.id,
+        rating=rating,
+        comment=comment
+    )
+    db.session.add(review)
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': 'Дякуємо за відгук!'})

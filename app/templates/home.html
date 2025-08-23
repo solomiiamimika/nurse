@@ -1,8 +1,10 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Welcome | Nurse Portal</title>
+    <title>Human | Nurse Portal</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='auth.css') }}"
@@ -10,9 +12,13 @@
   </head>
   <body>
     <div class="overlay-content">
-      <h1>Welcome to the Nurse Portal</h1>
-      <a href="{{ url_for('auth.login') }}" class="start-button">Login</a>
-      <a href="{{ url_for('auth.register') }}" class="start-button">Register</a>
+      <h1 class="brand">Human</h1>
+      <h2 class="welcome">Welcome to the Nurse Portal</h2>
+
+      <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login</a>
+      <a href="{{ url_for('auth.register') }}" class="btn btn-secondary">Register</a>
+
     </div>
   </body>
 </html>
+
