@@ -98,3 +98,19 @@ h2 {
 }
 
 
+.map-header{
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(6px);
+  border-radius: 14px;
+  padding: 10px 12px;
+  margin: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.12);
+  display:flex; gap:12px; align-items:center;
+}
+.map-header .brand{ font-weight:800; color:#2c3e50; }
+.map-header .search-pill input{
+  border: none; outline: none;
+  background: #f3f4f6;
+  padding: 10px 12px; border-radius: 12px;
+  width: 260px;
+}

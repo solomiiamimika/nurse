@@ -12,6 +12,9 @@
         <i class="fas fa-sign-out-alt"></i> Вийти
       </button>
     </form>
+    <a href="{{ url_for('client.services') }}" class="btn btn-info">
+      <i class="fas fa-user"></i> Послуги
+    </a>
     <a href="{{ url_for('client.profile') }}" class="btn btn-info">
       <i class="fas fa-user"></i> Профіль
     </a>
@@ -130,9 +133,7 @@
         socket.on('new_message', (data) => {
             if (currentChatRecipient && currentChatRecipient.id === data.sender_id) {
                 addMessageToChat(data, false);
-            } else {
-                showNewMessageNotification(data);
-            }
+            } 
         });
 
         socket.on('message_sent', (data) => {

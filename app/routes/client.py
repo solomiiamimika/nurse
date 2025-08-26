@@ -999,3 +999,8 @@ def leave_review():
     db.session.commit()
 
     return jsonify({'success': True, 'message': 'Дякуємо за відгук!'})
+
+@client_bp.route("/services")
+@login_required
+def services():
+    return render_template("client/services.html")

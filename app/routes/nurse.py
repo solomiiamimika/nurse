@@ -666,21 +666,6 @@ def nurse_get_accepted_requests():
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def notify_nurses_about_new_appointment(appointment):
     """Сповістити медсестер про новий запит"""
     # Знаходимо всіх медсестер поблизу
