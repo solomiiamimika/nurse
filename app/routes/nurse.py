@@ -515,8 +515,8 @@ def nurse_stats():
         Appointment.status == 'completed'
     ).count()
 
-    avg_rating = current_user.average_rating  # з hybrid_property
-    reviews_count = current_user.reviews_count
+    avg_rating = current_user.average_nurse_rating  # з hybrid_property
+    reviews_count = current_user.reviews_nurse_count
 
     # Додатково: скільки майбутніх активних
     upcoming_count = Appointment.query.filter(

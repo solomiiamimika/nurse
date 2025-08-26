@@ -3,7 +3,10 @@ from flask_login import UserMixin
 from sqlalchemy import Column, Integer, Text, Boolean, DateTime, ForeignKey, Float, String, Date
 from sqlalchemy.orm import relationship
 from datetime import datetime
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy import func
 
+    
 
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
@@ -157,12 +160,22 @@ class Review(db.Model):
     id = Column(Integer, primary_key=True)
     patient_id = Column(Integer, ForeignKey('user.id'), nullable=False)  # хто залишив відгук
     doctor_id = Column(Integer, ForeignKey('user.id'), nullable=False)   # кому залишив
+    appointment_id = Column(Integer,ForeignKey('appointment.id'),nullable=False)
     rating = Column(Integer, nullable=False)  # оцінка, напр. від 1 до 5
     comment = Column(Text)                   # текстовий коментар
     created_at = Column(DateTime, default=datetime.now)    
 
     patient = relationship('User', foreign_keys=[patient_id])
     doctor = relationship('User', foreign_keys=[doctor_id])
+    
+    @hybrid_property
+    def average_nurse_rating(self):
+        return db.session.query(func.avg(Review.rating)).filter(Review.doctor_id == self.id).scalar() or 0
+    @hybrid_property
+    def reviews_nurse_count(self):
+        return Review.query.filter_by(doctor_id = self.id).count()
+        
+    
 
 
 class ClientSelfCreatedAppointment(db.Model):
