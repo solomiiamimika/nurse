@@ -3,7 +3,9 @@
 
 <div class="client-appointments">
     <h2>Мої записи</h2>
-    
+    <a href="{{ url_for('client.dashboard') }}" class="btn btn-info">
+        <i class="fas fa-user"></i> Назад
+    </a>
     <!-- Календар -->
     <div id="calendar"></div>
     
@@ -61,6 +63,55 @@
                 <div id="paymentStatus" class="alert" style="display: none;"></div>
                 <div id="appointmentActions" class="d-flex gap-2"></div>
             </div>
+
+            <hr>
+<div id="reviewSection">
+    <h6>Ваш відгук</h6>
+    <div id="existingReview" style="display: none;">
+        <div class="mb-2">
+            <strong>Ваша оцінка:</strong> 
+            <span id="userRating"></span>
+            <div class="rating-stars"></div>
+        </div>
+        <div class="mb-2">
+            <strong>Коментар:</strong>
+            <p id="userComment" class="mt-1"></p>
+        </div>
+        <button id="editReviewBtn" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-edit"></i> Редагувати відгук
+        </button>
+    </div>
+    
+                <div id="reviewForm" style="display: none;">
+                    <div class="mb-3">
+                        <label class="form-label">Оцінка</label>
+                        <div class="rating-input">
+                            {% for i in range(5, 0, -1) %}
+                            <input type="radio" id="star{{i}}" name="rating" value="{{i}}">
+                            <label for="star{{i}}" title="{{i}} зірок">☆</label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Коментар</label>
+                        <textarea class="form-control" id="reviewComment" rows="3" 
+                                placeholder="Залиште ваш відгук про роботу медсестри..."></textarea>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button id="submitReviewBtn" class="btn btn-success">
+                            <i class="fas fa-paper-plane"></i> Надіслати відгук
+                        </button>
+                        <button id="cancelReviewBtn" class="btn btn-secondary">Скасувати</button>
+                    </div>
+                </div>
+                
+                <div id="noReviewMessage" style="display: none;">
+                    <p class="text-muted">Ви ще не залишили відгук для цього запису.</p>
+                    <button id="addReviewBtn" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-plus"></i> Додати відгук
+                    </button>
+                </div>
+            </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрити</button>
             </div>
@@ -97,9 +148,9 @@ document.addEventListener('DOMContentLoaded', function() {
         events: '/client/get_appointments',
         eventClick: function(info) {
             currentAppointmentId = info.event.id;
-            
-            // Заповнюємо модальне вікно даними
             const props = info.event.extendedProps;
+            
+
             document.getElementById('detailServiceName').textContent = props.service_name;
             document.getElementById('detailDateTime').textContent = 
                 info.event.start.toLocaleString('uk-UA');
@@ -138,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </button>
                 `;
             }
-            
+            checkReviewStatus(currentAppointmentId);
             const modal = new bootstrap.Modal(document.getElementById('appointmentDetailsModal'));
             modal.show();
         }
@@ -251,6 +302,133 @@ function cancelAppointment(appointmentId) {
         });
     }
 }
+
+
+
+// Функція перевірки статусу відгуку
+function checkReviewStatus(appointmentId) {
+    fetch(`/client/can_review/${appointmentId}`)
+        .then(response => response.json())
+        .then(data => {
+            const reviewSection = document.getElementById('reviewSection');
+            const existingReview = document.getElementById('existingReview');
+            const reviewForm = document.getElementById('reviewForm');
+            const noReviewMessage = document.getElementById('noReviewMessage');
+            
+            if (data.can_review) {
+                noReviewMessage.style.display = 'block';
+                existingReview.style.display = 'none';
+                reviewForm.style.display = 'none';
+            } else if (data.review_exists) {
+                loadExistingReview(appointmentId);
+            } else {
+                noReviewMessage.style.display = 'block';
+                existingReview.style.display = 'none';
+                reviewForm.style.display = 'none';
+            }
+        });
+}
+
+// Завантаження існуючого відгуку
+function loadExistingReview(appointmentId) {
+    fetch(`/client/get_review/${appointmentId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('userRating').textContent = `${data.review.rating}/5`;
+                document.getElementById('userComment').textContent = data.review.comment || 'Без коментаря';
+                
+                // Відображення зірочок рейтингу
+                const starsContainer = document.querySelector('.rating-stars');
+                starsContainer.innerHTML = generateRatingStars(data.review.rating);
+                
+                document.getElementById('existingReview').style.display = 'block';
+                document.getElementById('reviewForm').style.display = 'none';
+                document.getElementById('noReviewMessage').style.display = 'none';
+            }
+        });
+}
+
+// Генерація HTML для зірочок рейтингу
+function generateRatingStars(rating) {
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+        stars += `<span class="rating-star ${i <= rating ? 'filled' : ''}">★</span>`;
+    }
+    return stars;
+}
+
+// Обробники кнопок для відгуків
+document.getElementById('addReviewBtn').addEventListener('click', function() {
+    document.getElementById('reviewForm').style.display = 'block';
+    document.getElementById('noReviewMessage').style.display = 'none';
+    document.getElementById('existingReview').style.display = 'none';
+});
+
+document.getElementById('editReviewBtn').addEventListener('click', function() {
+    document.getElementById('reviewForm').style.display = 'block';
+    document.getElementById('existingReview').style.display = 'none';
+    
+    // Завантаження поточних даних у форму
+    fetch(`/client/get_review/${currentAppointmentId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.querySelector(`input[name="rating"][value="${data.review.rating}"]`).checked = true;
+                document.getElementById('reviewComment').value = data.review.comment || '';
+            }
+        });
+});
+
+document.getElementById('cancelReviewBtn').addEventListener('click', function() {
+    document.getElementById('reviewForm').style.display = 'none';
+    checkReviewStatus(currentAppointmentId);
+});
+
+document.getElementById('submitReviewBtn').addEventListener('click', function() {
+    const rating = document.querySelector('input[name="rating"]:checked')?.value;
+    const comment = document.getElementById('reviewComment').value.trim();
+    
+    if (!rating) {
+        alert('Будь ласка, оберіть рейтинг');
+        return;
+    }
+    
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Відправка...';
+    
+    fetch('/client/leave_review', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+            appointment_id: currentAppointmentId,
+            rating: rating,
+            comment: comment
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Дякуємо за ваш відгук!');
+            checkReviewStatus(currentAppointmentId);
+        } else {
+            alert('Помилка: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Помилка:', error);
+        alert('Сталася помилка при відправці відгуку');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Надіслати відгук';
+    });
+});
+
 </script>
 
 <style>

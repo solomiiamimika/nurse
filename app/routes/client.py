@@ -980,7 +980,7 @@ def leave_review():
     if not appo:
         return jsonify({'success': False, 'message': 'Запис не знайдено'}), 404
 
-    if appo.status != 'completed':
+    if appo.status != 'confirmed_paid':
         return jsonify({'success': False, 'message': 'Відгук можна залишити лише після завершення візиту'}), 400
 
     # Перевірка: щоб на один appointment не було дубля відгуку
@@ -999,3 +999,72 @@ def leave_review():
     db.session.commit()
 
     return jsonify({'success': True, 'message': 'Дякуємо за відгук!'})
+
+
+
+
+
+
+
+
+
+@client_bp.route('/get_reviews/<int:nurse_id>')
+@login_required
+def get_nurse_reviews(nurse_id):
+    reviews = Review.query.filter_by(doctor_id=nurse_id).order_by(
+        Review.created_at.desc()
+    ).all()
+    
+    return jsonify({
+        'reviews': [{
+            'id': r.id,
+            'patient_name': r.patient.full_name,
+            'rating': r.rating,
+            'comment': r.comment,
+            'created_at': r.created_at.isoformat(),
+            'appointment_date': r.appointment.appointment_time.isoformat() if r.appointment else None
+        } for r in reviews]
+    })
+@client_bp.route('/get_review/<int:appointment_id>')
+@login_required
+def get_review(appointment_id):
+    review = Review.query.filter_by(
+        appointment_id=appointment_id,
+        patient_id=current_user.id
+    ).first()
+    
+    if review:
+        return jsonify({
+            'success': True,
+            'review': {
+                'rating': review.rating,
+                'comment': review.comment,
+                'created_at': review.created_at.isoformat()
+            }
+        })
+    else:
+        return jsonify({'success': False, 'message': 'Відгук не знайдено'}), 404
+
+@client_bp.route('/can_review/<int:appointment_id>')
+@login_required
+def can_review_appointment(appointment_id):
+    appointment = Appointment.query.filter_by(
+        id=appointment_id, 
+        client_id=current_user.id
+    ).first()
+    
+    if not appointment:
+        return jsonify({'can_review': False, 'reason': 'Запис не знайдено'})
+    
+    if appointment.status != 'completed':
+        return jsonify({'can_review': False, 'reason': 'Запис ще не завершено'})
+    
+    existing_review = Review.query.filter_by(
+        appointment_id=appointment_id,
+        patient_id=current_user.id
+    ).first()
+    
+    if existing_review:
+        return jsonify({'can_review': False, 'review_exists': True})
+    
+    return jsonify({'can_review': True, 'review_exists': False})
