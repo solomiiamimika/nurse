@@ -1,8 +1,46 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %} 
+{% block content %}
 <div class="container mt-4">
   <h2>Профіль клієнта</h2>
   <div style="position: absolute; top: 10px; right: 10px; z-index: 9999">
     <a href="{{ url_for('client.dashboard') }}" style="font-size: 24px">☰</a>
+  </div>
+
+  <!-- Повідомлення про успіх/помилку -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- QR код та кнопка генерації -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">QR-код вашого профілю</h5>
+      <button id="generateQRBtn" class="btn btn-sm btn-outline-primary">
+        Згенерувати QR-код
+      </button>
+    </div>
+    <div class="card-body text-center">
+      <div id="qrCodeContainer" class="d-none">
+        <div id="qrcode" class="mb-3"></div>
+        <p class="text-muted small">
+          Цей QR-код містить вашу контактну інформацію та медичні дані.
+          Лікар може відсканувати його для отримання інформації без необхідності входу в систему.
+        </p>
+        <a id="downloadQR" href="#" class="btn btn-sm btn-success">
+          Завантажити QR-код
+        </a>
+      </div>
+      <div id="qrCodePlaceholder" class="text-muted">
+        Натисніть кнопку "Згенерувати QR-код" для створення коду з вашою інформацією.
+      </div>
+    </div>
   </div>
 
   <!-- Фото профілю -->
@@ -12,14 +50,20 @@
     alt="Фото профілю"
     class="rounded-circle mb-3"
     style="width: 150px; height: 150px; object-fit: cover"
+    onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
   />
-  {% else %}
-  <p>Фото профілю не завантажено.</p>
+  {% endif %}
+  
+  {% if not user.profile_picture %}
+  <div class="mb-3 p-3 bg-light rounded">
+    <p class="mb-0">Фото профілю не завантажено.</p>
+  </div>
   {% endif %}
 
   <!-- Форма оновлення профілю -->
   <form method="POST" enctype="multipart/form-data" class="mb-4">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    
     <div class="mb-3">
       <label for="full_name" class="form-label">Повне ім'я:</label>
       <input
@@ -28,6 +72,7 @@
         id="full_name"
         class="form-control"
         value="{{ user.full_name or '' }}"
+        required
       />
     </div>
 
@@ -39,8 +84,10 @@
         id="phone_number"
         class="form-control"
         value="{{ user.phone_number or '' }}"
+        required
       />
     </div>
+    
     <div class="mb-3">
       <label for="date_birth" class="form-label">Дата народження:</label>
       <input
@@ -54,9 +101,7 @@
 
     <div class="mb-3">
       <label for="about_me" class="form-label">Про себе:</label>
-      <textarea name="about_me" id="about_me" class="form-control" rows="3">
-{{ user.about_me or '' }}</textarea
-      >
+      <textarea name="about_me" id="about_me" class="form-control" rows="3">{{ user.about_me or '' }}</textarea>
     </div>
 
     <div class="mb-3">
@@ -69,6 +114,7 @@
         value="{{ user.address or '' }}"
       />
     </div>
+    
     <div class="mb-3">
       <label for="profile_picture" class="form-label">Фото профілю:</label>
       <input
@@ -76,7 +122,9 @@
         name="profile_picture"
         id="profile_picture"
         class="form-control"
+        accept="image/*"
       />
+      <div class="form-text">Приймаються JPG, PNG, GIF (макс. 5MB)</div>
     </div>
 
     <div class="mb-3">
@@ -88,9 +136,11 @@
         multiple
         class="form-control"
       />
+      <div class="form-text">Можна вибрати кілька файлів (PDF, JPG, PNG)</div>
     </div>
 
     <button type="submit" class="btn btn-primary">Оновити профіль</button>
+    <a href="{{ url_for('client.dashboard') }}" class="btn btn-secondary">Назад до панелі</a>
   </form>
 
   <hr />
@@ -107,8 +157,10 @@
       <a
         href="{{ url_for('static', filename='uploads/documents/' ~ doc) }}"
         target="_blank"
-        >{{ doc }}</a
+        class="text-decoration-none"
       >
+        📄 {{ doc }}
+      </a>
       <button type="button" class="btn btn-sm btn-danger delete-doc-btn">
         Видалити
       </button>
@@ -116,9 +168,14 @@
     {% endfor %}
   </ul>
   {% else %}
-  <p>Документи не завантажено.</p>
+  <div class="alert alert-info">
+    Документи не завантажено.
+  </div>
   {% endif %}
 </div>
+
+<!-- Додаємо бібліотеку для генерації QR-кодів -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -134,18 +191,22 @@
 
         try {
           const response = await fetch('{{ url_for("client.delete_document") }}', {
-          method: "POST",
-          headers: {
-              "Content-Type": "application/json",
-              "X-CSRFToken": csrfToken
-          },
-          body: JSON.stringify({ doc_name: filename })
-      });
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({ doc_name: filename })
+          });
 
           const result = await response.json();
 
           if (result.success) {
             li.remove();
+            // Оновити сторінку, якщо документів більше не залишилось
+            if (docsList.children.length === 0) {
+              location.reload();
+            }
           } else {
             alert("Помилка: " + result.message);
           }
@@ -154,271 +215,84 @@
         }
       }
     });
+
+    // Додаткова перевірка для фото
+    const profilePicInput = document.getElementById('profile_picture');
+    if (profilePicInput) {
+      profilePicInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+          // Перевірка розміру файлу (макс. 5MB)
+          if (file.size > 5 * 1024 * 1024) {
+            alert('Файл занадто великий. Максимальний розмір - 5MB.');
+            this.value = '';
+          }
+          
+          // Перевірка типу файлу
+          const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+          if (!validTypes.includes(file.type)) {
+            alert('Дозволені лише JPG, PNG та GIF файли.');
+            this.value = '';
+          }
+        }
+      });
+    }
+
+    // Обробник для генерації QR-коду
+    const generateQRBtn = document.getElementById('generateQRBtn');
+    if (generateQRBtn) {
+      generateQRBtn.addEventListener('click', async function() {
+        try {
+          // Показуємо індикатор завантаження
+          generateQRBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Генерація...';
+          generateQRBtn.disabled = true;
+          
+          // Отримуємо дані з сервера
+          const response = await fetch('{{ url_for("client.generate_qr_data") }}');
+          const qrData = await response.json();
+          
+          // Генеруємо QR-код
+          const qrContainer = document.getElementById('qrcode');
+          qrContainer.innerHTML = '';
+          
+          QRCode.toCanvas(qrContainer, JSON.stringify(qrData), {
+            width: 200,
+            margin: 1,
+            color: {
+              dark: '#000000',
+              light: '#ffffff'
+            }
+          }, function(error) {
+            if (error) {
+              console.error(error);
+              alert('Помилка при генерації QR-коду');
+              generateQRBtn.innerHTML = 'Згенерувати QR-код';
+              generateQRBtn.disabled = false;
+              return;
+            }
+            
+            // Показуємо контейнер з QR-кодом
+            document.getElementById('qrCodeContainer').classList.remove('d-none');
+            document.getElementById('qrCodePlaceholder').classList.add('d-none');
+            
+            // Додаємо посилання для завантаження
+            const canvas = qrContainer.querySelector('canvas');
+            const downloadLink = document.getElementById('downloadQR');
+            downloadLink.href = canvas.toDataURL('image/png');
+            downloadLink.download = 'medical-profile-qr.png';
+            
+            // Відновлюємо кнопку
+            generateQRBtn.innerHTML = 'Оновити QR-код';
+            generateQRBtn.disabled = false;
+          });
+        } catch (error) {
+          console.error('Помилка:', error);
+          alert('Сталася помилка при генерації QR-коду');
+          generateQRBtn.innerHTML = 'Згенерувати QR-код';
+          generateQRBtn.disabled = false;
+        }
+      });
+    }
   });
 </script>
 {% endblock %}
-
-
-<!doctype html>
-<html lang="uk">
-<head>
-  <meta charset="utf-8" />
-  <title>Профіль — Human</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-  <style>
-    /* мінімальний стиль вкладок у стилі Wolt */
-    .profile-wrap{max-width:1000px;margin:24px auto;padding:16px}
-    .tabs{display:flex;gap:24px;align-items:center;border-bottom:1px solid #e5e7eb;margin-bottom:16px;flex-wrap:wrap}
-    .tabs a{
-      padding:12px 0;margin-right:12px;
-      font-weight:600;color:#6b7280;text-decoration:none;position:relative
-    }
-    .tabs a.active{color:#111827}
-    .tabs a.active::after{
-      content:"";position:absolute;left:0;bottom:-1px;height:3px;width:100%;
-      background:#111827;border-radius:3px
-    }
-    .tab-panel{display:none;}
-    .tab-panel.active{display:block;}
-    .card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.06);padding:18px}
-    .h1{font-size:28px;font-weight:800;margin:0 0 8px}
-    .muted{color:#6b7280}
-    .row{display:flex;gap:16px;flex-wrap:wrap}
-    .col{flex:1 1 320px}
-    .list{display:flex;flex-direction:column;gap:12px}
-    .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid #e5e7eb;border-radius:999px;padding:8px 12px;background:#fff}
-    .btn{display:inline-flex;align-items:center;gap:8px;border-radius:12px;border:1px solid #e5e7eb;background:#111827;color:#fff;padding:10px 14px;text-decoration:none}
-    .btn.outline{background:#fff;color:#111827}
-    .table{width:100%;border-collapse:collapse}
-    .table th,.table td{padding:10px 12px;border-bottom:1px solid #f3f4f6;text-align:left}
-    /* прості інпути */
-    .form label{font-weight:600;display:block;margin:8px 0 6px}
-    .form input,.form select,.form textarea{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px}
-    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-  </style>
-</head>
-<body>
-  <div class="profile-wrap">
-    <h1 class="h1">Профіль</h1>
-
-    <!-- Вкладки -->
-    <nav class="tabs" id="tabs">
-      <a href="#tab-personal" class="active">Особисті дані</a>
-      <a href="#tab-payments">Платіжні методи</a>
-      <a href="#tab-addresses">Адреси</a>
-      <a href="#tab-bonuses">Бонускарти</a>
-      <a href="#tab-history">Історія записів</a>
-      <a href="#tab-wallet">Баланс</a>
-      <a href="#tab-redeem">Застосувати код</a>
-    </nav>
-
-    <!-- Особисті дані -->
-    <section id="tab-personal" class="tab-panel active">
-      <div class="card form">
-        <form method="POST" enctype="multipart/form-data">
-          <div class="row">
-            <div class="col">
-              <label>Повне ім’я</label>
-              <input type="text" name="full_name" value="{{ user.full_name or '' }}">
-            </div>
-            <div class="col">
-              <label>Телефон</label>
-              <input type="text" name="phone_number" value="{{ user.phone_number or '' }}">
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col">
-              <label>Фото профілю</label>
-              <input type="file" name="profile_picture" accept="image/*">
-            </div>
-            <div class="col">
-              <label>Медичні документи</label>
-              <input type="file" name="documents" multiple>
-            </div>
-          </div>
-
-          <div class="actions">
-            <button class="btn" type="submit">Зберегти</button>
-            <a class="btn outline" href="{{ url_for('client.dashboard') }}">Назад до панелі</a>
-          </div>
-        </form>
-
-        {% if user_documents and user_documents|length>0 %}
-        <hr style="margin:18px 0;border:none;border-top:1px solid #f3f4f6">
-        <h3>Завантажені документи</h3>
-        <ul class="list">
-          {% for doc in user_documents %}
-            <li class="badge">
-              <span>{{ doc }}</span>
-              <form action="{{ url_for('client.delete_document') }}" method="post" onsubmit="return deleteDoc('{{ doc }}');">
-                <button class="btn outline" type="submit">Видалити</button>
-              </form>
-            </li>
-          {% endfor %}
-        </ul>
-        {% endif %}
-      </div>
-    </section>
-
-    <!-- Платіжні методи -->
-    <section id="tab-payments" class="tab-panel">
-      <div class="card">
-        <h3 style="margin-top:0">Платіжні методи</h3>
-        <div class="list">
-          <div class="badge"><img src="https://img.icons8.com/color/24/mastercard.png"/> Кредитні/дебетові картки <span class="muted">— додати картку</span></div>
-          <div class="badge"> Apple Pay <span class="muted">(якщо пристрій підтримує)</span></div>
-          <div class="badge">G Google Pay</div>
-        </div>
-        <div class="actions" style="margin-top:12px">
-          <!-- тут згодом підключиш Stripe SetupIntent / Customer Portal -->
-          <button class="btn outline" type="button" onclick="alert('Тут підключимо Stripe SetupIntent')">Додати картку</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Адреси -->
-    <section id="tab-addresses" class="tab-panel">
-      <div class="card">
-        <h3 style="margin-top:0">Адреси</h3>
-        <div id="addr-list" class="list"></div>
-        <div class="row" style="margin-top:12px">
-          <div class="col"><input id="addr-line" placeholder="Вулиця, будинок, квартира"></div>
-          <div class="col"><input id="addr-note" placeholder="Примітка (опціонально)"></div>
-        </div>
-        <div class="actions">
-          <button class="btn" type="button" onclick="addAddress()">Додати адресу</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Бонускарти -->
-    <section id="tab-bonuses" class="tab-panel">
-      <div class="card">
-        <h3 style="margin-top:0">Бонускарти</h3>
-        <p class="muted">Тут можна буде додати партнерські/знижкові карти.</p>
-      </div>
-    </section>
-
-    <!-- Історія записів -->
-    <section id="tab-history" class="tab-panel">
-      <div class="card">
-        <h3 style="margin-top:0">Історія записів</h3>
-        <table class="table" id="history-table">
-          <thead>
-            <tr>
-              <th>Дата/час</th>
-              <th>Послуга</th>
-              <th>Медсестра</th>
-              <th>Статус</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- Баланс -->
-    <section id="tab-wallet" class="tab-panel">
-      <div class="card">
-        <h3 style="margin-top:0">Баланс</h3>
-        <p class="muted">Тут зʼявиться баланс/кешбек, коли додамо білінг повністю.</p>
-      </div>
-    </section>
-
-    <!-- Застосувати код -->
-    <section id="tab-redeem" class="tab-panel">
-      <div class="card">
-        <h3 style="margin-top:0">Застосувати код</h3>
-        <div class="row">
-          <div class="col"><input id="redeem-code" placeholder="Введіть промокод"></div>
-          <div class="col"><button class="btn" type="button" onclick="redeem()">Застосувати</button></div>
-        </div>
-        <div id="redeem-msg" class="muted" style="margin-top:10px"></div>
-      </div>
-    </section>
-  </div>
-
-  <script>
-    // переключення вкладок
-    const tabLinks = document.querySelectorAll('#tabs a');
-    const panels = document.querySelectorAll('.tab-panel');
-    tabLinks.forEach(a=>{
-      a.addEventListener('click', (e)=>{
-        e.preventDefault();
-        tabLinks.forEach(x=>x.classList.remove('active'));
-        panels.forEach(p=>p.classList.remove('active'));
-        a.classList.add('active');
-        const id = a.getAttribute('href');
-        document.querySelector(id).classList.add('active');
-      });
-    });
-
-    // історія записів — використовує твій /client/get_appointments
-    async function loadHistory(){
-      try{
-        const r = await fetch('{{ url_for("client.get_appointments") }}');
-        const data = await r.json();
-        const tb = document.querySelector('#history-table tbody');
-        tb.innerHTML = '';
-        data.forEach(it=>{
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${new Date(it.start).toLocaleString()}</td>
-            <td>${it.extendedProps.service_name || ''}</td>
-            <td>${it.extendedProps.nurse_name || ''}</td>
-            <td>${it.extendedProps.status || ''}</td>
-          `;
-          tb.appendChild(tr);
-        });
-      }catch(e){ console.error(e); }
-    }
-    loadHistory();
-
-    // адреси — простий front-only mock (потім винесемо в БД)
-    const ADDR_KEY = 'human_addresses';
-    function getAddrs(){ return JSON.parse(localStorage.getItem(ADDR_KEY) || '[]'); }
-    function saveAddrs(xs){ localStorage.setItem(ADDR_KEY, JSON.stringify(xs)); renderAddrs(); }
-    function renderAddrs(){
-      const box = document.getElementById('addr-list');
-      const xs = getAddrs();
-      box.innerHTML = xs.length ? '' : '<div class="muted">Адрес ще немає</div>';
-      xs.forEach((a,i)=>{
-        const el = document.createElement('div');
-        el.className='badge';
-        el.innerHTML = `<span>${a.line}${a.note? ' • '+a.note:''}</span>
-          <button class="btn outline" type="button" onclick="delAddress(${i})">Видалити</button>`;
-        box.appendChild(el);
-      });
-    }
-    function addAddress(){
-      const line = document.getElementById('addr-line').value.trim();
-      const note = document.getElementById('addr-note').value.trim();
-      if(!line) return alert('Введіть адресу');
-      const xs = getAddrs(); xs.push({line, note}); saveAddrs(xs);
-      document.getElementById('addr-line').value='';
-      document.getElementById('addr-note').value='';
-    }
-    function delAddress(i){
-      const xs = getAddrs(); xs.splice(i,1); saveAddrs(xs);
-    }
-    renderAddrs();
-
-    // промокод (плейсхолдер)
-    function redeem(){
-      const code = document.getElementById('redeem-code').value.trim();
-      document.getElementById('redeem-msg').textContent = code ? `Код ${code} застосовано (демо)` : 'Введіть код';
-    }
-
-    // видалення документу через твій POST /client/delete_document (AJAX)
-    function deleteDoc(name){
-      fetch('{{ url_for("client.delete_document") }}', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({doc_name: name})
-      }).then(()=>location.reload());
-      return false;
-    }
-  </script>
-</body>
-</html>

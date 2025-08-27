@@ -178,21 +178,24 @@ let currentChatRecipient = null;
     }
 
     function initMap() {
-        try {
-            updateStatus("Спробуємо ініціалізувати карту...");
+    try {
+        updateStatus("Спробуємо ініціалізувати карту...");
 
-            map = L.map('map-container').setView([50.4501, 30.5234], 12);
+        map = L.map('map-container').setView([50.4501, 30.5234], 12);
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
 
-            updateStatus("Карта успішно завантажена");
-            loadInitialData();
+        updateStatus("Карта успішно завантажена");
+        loadInitialData();
 
-        } catch (error) {
-            updateStatus("Помилка ініціалізації: " + error.message, true);
-            console.error(error);}}
+    } catch (error) {
+        updateStatus("Помилка ініціалізації: " + error.message, true);
+        console.error(error);
+    } 
+} 
+
 // Функція для очищення зайвих backdrop елементів
 function cleanupBackdrops() {
     const backdrops = document.querySelectorAll('.modal-backdrop');
