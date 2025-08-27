@@ -34,11 +34,10 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(DOCUMENTS_FOLDER, exist_ok=True)
 os.makedirs(PROFILE_PICTURES_FOLDER, exist_ok=True)
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx'}
 
 def allowed_file(filename):
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+           filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
 
 @client_bp.route('/dashboard')
 @login_required
@@ -168,27 +167,37 @@ def profile():
     if current_user.role != 'client':
         return redirect(url_for('auth.login'))
     
+    formatted_date = current_user.date_birth.strftime('%Y-%m-%d') if current_user.date_birth else ''
+    
     if request.method == 'POST':
         try:
-            # Update basic info
             current_user.full_name = request.form.get('full_name')
             current_user.phone_number = request.form.get('phone_number')
+            current_user.about_me = request.form.get('about_me')
+            current_user.address = request.form.get('address')
             
-            # Handle profile picture
+            date_birth = request.form.get('date_birth')
+            if date_birth:
+                current_user.date_birth = datetime.strptime(date_birth, '%Y-%m-%d')
+            
             if 'profile_picture' in request.files:
                 file = request.files['profile_picture']
-                if file and allowed_file(file.filename):
+                if file and file.filename != '' and allowed_file(file.filename):
+                    if current_user.profile_picture:
+                        old_file_path = os.path.join(PROFILE_PICTURES_FOLDER, current_user.profile_picture)
+                        if os.path.exists(old_file_path):
+                            os.remove(old_file_path)
+                    
                     filename = secure_filename(f"client_{current_user.id}_{datetime.now().timestamp()}.{file.filename.rsplit('.', 1)[1].lower()}")
                     file_path = os.path.join(PROFILE_PICTURES_FOLDER, filename)
                     file.save(file_path)
                     current_user.profile_picture = filename
             
-            # Handle documents
             if 'documents' in request.files:
                 documents = request.files.getlist('documents')
                 saved_docs = []
                 for doc in documents:
-                    if doc and allowed_file(doc.filename):
+                    if doc and doc.filename != '' and allowed_file(doc.filename):
                         filename = secure_filename(f"doc_{current_user.id}_{datetime.now().timestamp()}_{doc.filename}")
                         file_path = os.path.join(DOCUMENTS_FOLDER, filename)
                         doc.save(file_path)
@@ -211,7 +220,8 @@ def profile():
     user_documents = json.loads(current_user.documents) if current_user.documents else []
     return render_template('client/profile.html', 
                          user=current_user,
-                         user_documents=user_documents)
+                         user_documents=user_documents,
+                         formatted_date=formatted_date)  
 
 
 @client_bp.route('/get_chat_messages')
