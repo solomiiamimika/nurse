@@ -181,7 +181,7 @@ def profile():
                     filename = secure_filename(f"client_{current_user.id}_{datetime.now().timestamp()}.{file.filename.rsplit('.', 1)[1].lower()}")
                     file_path = os.path.join(PROFILE_PICTURES_FOLDER, filename)
                     file.save(file_path)
-                    current_user.profile_picture = filename
+                    current_user.photo = filename
             
             # Handle documents
             if 'documents' in request.files:
