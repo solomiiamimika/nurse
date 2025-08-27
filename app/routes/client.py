@@ -1082,3 +1082,27 @@ def can_review_appointment(appointment_id):
 @login_required
 def services():
     return render_template("client/services.html")
+
+
+@client_bp.route('/generate_qr_data')
+@login_required
+def generate_qr_data():
+    user=current_user
+    list_of_documents=[]
+    if user.documents: 
+        documents=user.documents.split(',')
+
+    QR_data={
+        'id':user.id,
+        'full_name':user.full_name or '',
+        'documents':list_of_documents or '',
+        'date_birth':user.date_birth.strftime('%Y-%m-%d') or '',
+        'about_me':user.about_me or '',
+        'photo':user.photo or '',
+        'date':datetime.utcnow().isoformat()
+
+    }    
+
+    return jsonify(QR_data)
+
+    

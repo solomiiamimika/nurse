@@ -43,3 +43,13 @@ def search_nurses():
     # сортуємо за рейтингом (спершу кращі)
     results.sort(key=lambda x: (x['average_rating'] is None, -(x['average_rating'] or 0)))
     return jsonify(results[:50])
+
+
+@main_bp.route('/patient_info/<int:user_id>')
+def patient_info(user_id):
+    user=User.query.get_or_404(user_id)
+    if user.documents: 
+        documents=user.documents.split(',')
+    return render_template('client.html', user=user, documents=documents)    
+
+
