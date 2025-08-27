@@ -1,8 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
 from app.models import User
 from sqlalchemy import or_
-
-
+from datetime import datetime
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
@@ -50,6 +49,6 @@ def patient_info(user_id):
     user=User.query.get_or_404(user_id)
     if user.documents: 
         documents=user.documents.split(',')
-    return render_template('client.html', user=user, documents=documents)    
+    return render_template('client.html', user=user, documents=documents,now = datetime.now())    
 
 

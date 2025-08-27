@@ -255,14 +255,15 @@
           const qrContainer = document.getElementById('qrcode');
           qrContainer.innerHTML = '';
           
-          QRCode.toCanvas(qrContainer, JSON.stringify(qrData), {
+          // Використовуємо toDataURL для створення зображення
+          QRCode.toDataURL(qrData.profile_url, {  // Використовуємо URL, а не JSON
             width: 200,
             margin: 1,
             color: {
               dark: '#000000',
               light: '#ffffff'
             }
-          }, function(error) {
+          }, function(error, url) {
             if (error) {
               console.error(error);
               alert('Помилка при генерації QR-коду');
@@ -271,14 +272,19 @@
               return;
             }
             
+            // Створюємо img елемент з QR-кодом
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = "QR код профілю";
+            qrContainer.appendChild(img);
+            
             // Показуємо контейнер з QR-кодом
             document.getElementById('qrCodeContainer').classList.remove('d-none');
             document.getElementById('qrCodePlaceholder').classList.add('d-none');
             
             // Додаємо посилання для завантаження
-            const canvas = qrContainer.querySelector('canvas');
             const downloadLink = document.getElementById('downloadQR');
-            downloadLink.href = canvas.toDataURL('image/png');
+            downloadLink.href = url;
             downloadLink.download = 'medical-profile-qr.png';
             
             // Відновлюємо кнопку

@@ -1084,25 +1084,36 @@ def services():
     return render_template("client/services.html")
 
 
+# @client_bp.route('/generate_qr_data')
+# @login_required
+# def generate_qr_data():
+#     user=current_user
+#     list_of_documents=[]
+#     if user.documents: 
+#         documents=user.documents.split(',')
+
+#     QR_data={
+#         'id':user.id,
+#         'full_name':user.full_name or '',
+#         'documents':list_of_documents or '',
+#         'date_birth':user.date_birth.strftime('%Y-%m-%d') or '',
+#         'about_me':user.about_me or '',
+#         'photo':user.photo or '',
+#         'date':datetime.utcnow().isoformat()
+
+#     }    
+
+#     return jsonify(QR_data)
+
+
+
+
 @client_bp.route('/generate_qr_data')
 @login_required
 def generate_qr_data():
     user=current_user
-    list_of_documents=[]
-    if user.documents: 
-        documents=user.documents.split(',')
+    url = url_for("main.patient_info",user_id=user.id,_external = True)
 
-    QR_data={
-        'id':user.id,
-        'full_name':user.full_name or '',
-        'documents':list_of_documents or '',
-        'date_birth':user.date_birth.strftime('%Y-%m-%d') or '',
-        'about_me':user.about_me or '',
-        'photo':user.photo or '',
-        'date':datetime.utcnow().isoformat()
-
-    }    
-
-    return jsonify(QR_data)
+    return jsonify({'profile_url':url})
 
     
