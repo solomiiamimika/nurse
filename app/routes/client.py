@@ -124,41 +124,6 @@ def get_nurses_locations():
     } for nurse in nurses]
     
     return jsonify(nurses_data)
-
-
-
-@client_bp.route('/send_message', methods=['POST'])
-@login_required
-def send_message():
-    if current_user.role != 'client':
-        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
-    
-    try:
-        data = request.get_json()
-        recipient_id = data.get('recipient_id')
-        text = data.get('text')
-        
-        if not recipient_id or not text:
-            return jsonify({'success': False, 'message': 'Необхідно вказати отримувача та текст'}), 400
-        
-        # Перевірка, що отримувач - медсестра
-        recipient = User.query.filter_by(id=recipient_id, role='nurse').first()
-        if not recipient:
-            return jsonify({'success': False, 'message': 'Медсестру не знайдено'}), 404
-        
-        message = Message(
-            sender_id=current_user.id,
-            recipient_id=recipient_id,
-            text=text,
-            timestamp=datetime.utcnow()
-        )
-        db.session.add(message)
-        db.session.commit()
-        
-        return jsonify({'success': True})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
     
     
 @client_bp.route('/profile', methods=['GET', 'POST'])
@@ -857,6 +822,12 @@ def handle_send_message(data):
         
         if not all(key in data for key in ['text', 'sender_id', 'recipient_id']):
             raise ValueError("Недостатньо даних")
+            
+        file_data=None
+        if 'file' in data:
+            file=data['file']
+            file_name, file_URL=
+            
             
         # Створення повідомлення
         message = Message(
