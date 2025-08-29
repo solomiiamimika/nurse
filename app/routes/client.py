@@ -4,6 +4,7 @@ from sqlalchemy.sql.sqltypes import DateTime
 from app.extensions import db, bcrypt
 from app.models import Appointment, NurseService, User,Message,Payment, ClientSelfCreatedAppointment, Review
 from . import client_bp
+from app.supabase_storage import get_file_url,delete_from_supabase,upload_to_supabase,buckets
 from datetime import datetime, timedelta
 import os 
 from werkzeug.utils import secure_filename
@@ -60,10 +61,10 @@ def delete_document():
         if not doc_name:
             return jsonify({'success': False, 'message': 'Не вказано назву документа'})
 
-        doc_path = os.path.join(DOCUMENTS_FOLDER, doc_name)
-        if os.path.exists(doc_path):
-            os.remove(doc_path)
+        # Видалення з Supabase Storage
+        delete_from_supabase(doc_name, buckets['documents'])
         
+        # Оновлення БД
         if current_user.documents:
             documents = json.loads(current_user.documents)
             if doc_name in documents:
@@ -145,28 +146,38 @@ def profile():
             if date_birth:
                 current_user.date_birth = datetime.strptime(date_birth, '%Y-%m-%d')
             
+            # Обробка фото профілю
             if 'profile_picture' in request.files:
                 file = request.files['profile_picture']
                 if file and file.filename != '' and allowed_file(file.filename):
-                    if current_user.profile_picture:
-                        old_file_path = os.path.join(PROFILE_PICTURES_FOLDER, current_user.profile_picture)
-                        if os.path.exists(old_file_path):
-                            os.remove(old_file_path)
+                    # Видалення старого фото
+                    if current_user.photo:
+                        delete_from_supabase(current_user.profile_picture, buckets['profile_pictures'])
                     
-                    filename = secure_filename(f"client_{current_user.id}_{datetime.now().timestamp()}.{file.filename.rsplit('.', 1)[1].lower()}")
-                    file_path = os.path.join(PROFILE_PICTURES_FOLDER, filename)
-                    file.save(file_path)
-                    current_user.photo = filename
+                    # Завантаження нового фото
+                    filename, file_url = upload_to_supabase(
+                        file, 
+                        buckets['profile_pictures'], 
+                        current_user.id,
+                        'profile'
+                    )
+                    if filename:
+                        current_user.photo = filename
             
+            # Обробка документів
             if 'documents' in request.files:
                 documents = request.files.getlist('documents')
                 saved_docs = []
                 for doc in documents:
                     if doc and doc.filename != '' and allowed_file(doc.filename):
-                        filename = secure_filename(f"doc_{current_user.id}_{datetime.now().timestamp()}_{doc.filename}")
-                        file_path = os.path.join(DOCUMENTS_FOLDER, filename)
-                        doc.save(file_path)
-                        saved_docs.append(filename)
+                        filename, file_url = upload_to_supabase(
+                            doc, 
+                            buckets['documents'], 
+                            current_user.id,
+                            'document'
+                        )
+                        if filename:
+                            saved_docs.append(filename)
                 
                 if saved_docs:
                     current_docs = json.loads(current_user.documents) if current_user.documents else []
@@ -181,12 +192,15 @@ def profile():
             flash('Помилка при оновленні профілю', 'danger')
         
         return redirect(url_for('client.profile'))
-    
-    user_documents = json.loads(current_user.documents) if current_user.documents else []
-    return render_template('client/profile.html', 
-                         user=current_user,
-                         user_documents=user_documents,
-                         formatted_date=formatted_date)  
+    profile_photo = None
+    if current_user.photo:
+        profile_photo = get_file_url(current_user.photo,buckets['profile_pictures'])
+    documents_urls = {}
+    if current_user.documents:
+        documents = json.loads(current_user.documents)
+        for i in documents:
+            documents_urls[i] = get_file_url(i,buckets['documents'])
+    return render_template('client/profile.html',profile_photo = profile_photo,documents_urls=documents_urls,user = current_user)
 
 
 @client_bp.route('/get_chat_messages')
