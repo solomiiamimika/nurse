@@ -10,6 +10,24 @@ bcrypt = Bcrypt()
 login_manager = LoginManager()
 migrate = Migrate()
 socketio = SocketIO(async_mode='eventlet', cors_allowed_origins="*")
+from supabase import create_client,Client
+
+
+
+
+
+SUPABASE_URL = "https://mjmndbunrynhdtzxteit.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qbW5kYnVucnluaGR0enh0ZWl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2NDYwNTMsImV4cCI6MjA3MDIyMjA1M30.QL3pqprmqzcE4I6r0zWTESHJ1G_Ab6hvevxh26XXJ-U"
+if SUPABASE_URL and SUPABASE_KEY:
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+else:
+    supabase = None
+    print("⚠️  Supabase client not initialized - check environment variables")
+buckets = {
+    'documents':'user-documents',
+    'profile_pictures':'profile_pictures',
+    'messages':'message-media'
+}
 
 
 
