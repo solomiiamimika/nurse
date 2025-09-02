@@ -12,12 +12,12 @@ import json
 from dotenv import load_dotenv
 import stripe
 
-from app.extensions import socketio, db
+from app.extensions import socketio, db, buckets
 from flask import current_app, request
 from flask_socketio import join_room, leave_room, emit
 from app.models import Message, db,User
 from datetime import datetime
-
+from app.supabase_storage import upload_to_supabase
 from flask_cors import cross_origin
 load_dotenv()
 stripe.api_key=os.getenv('STRIPE_SECRET_KEY')
@@ -840,7 +840,14 @@ def handle_send_message(data):
         file_data=None
         if 'file' in data:
             file=data['file']
-            file_name, file_URL=
+            file_name, file_URL=upload_to_supabase(file, buckets['messages'], data['sender_id'], 'message')
+            if file_name:
+                file_data={
+                    'file_name': file_name,
+                    'URL': file_URL,
+                    'type': file.content_type
+                }
+            
             
             
         # Створення повідомлення
@@ -848,6 +855,7 @@ def handle_send_message(data):
             sender_id=int(data['sender_id']),
             recipient_id=int(data['recipient_id']),
             text=data['text']
+            file_data=json.dumps(file_data)if file_data else None
         )
         
         # Збереження в БД
@@ -864,6 +872,7 @@ def handle_send_message(data):
             'sender_id': message.sender_id,
             'sender_name': sender_name,
             'text': message.text,
+            'file_data':file_data,
             'timestamp': message.timestamp.isoformat()
         }, room=f"user_{message.recipient_id}")
         
