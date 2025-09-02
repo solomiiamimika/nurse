@@ -11,7 +11,8 @@ from werkzeug.utils import secure_filename
 import json
 from dotenv import load_dotenv
 import stripe
-
+import supabase
+import base64
 from app.extensions import socketio, db
 from flask import current_app, request
 from flask_socketio import join_room, leave_room, emit
@@ -832,42 +833,81 @@ def handle_join(data):
 @socketio.on('send_message')
 def handle_send_message(data):
     try:
-        print(f"Отримано дані: {data}")  # Логування вхідних даних
+        print(f"Отримано дані: {data}") 
         
-        if not all(key in data for key in ['text', 'sender_id', 'recipient_id']):
+        if not all(key in data for key in ['message_type', 'sender_id', 'recipient_id']):
             raise ValueError("Недостатньо даних")
             
-        file_data=None
-        if 'file' in data:
-            file=data['file']
-            file_name, file_URL=
+        message_text = data.get('text', '')
+        supabase_file_path = None
+        file_name = None
+        mime_type = None
+        file_size = None
+        
+        if data['message_type'] in ['image', 'video', 'audio'] and 'file_data' in data:
+            file_data = data['file_data']
+            file_name = data.get('file_name', 'file')
+            mime_type = data.get('mime_type', 'application/octet-stream')
             
+
+            bucket_name = 'messages'
             
-        # Створення повідомлення
+            timestamp = datetime.now().timestamp()
+            extension = file_name.split('.')[-1] if '.' in file_name else ''
+            unique_filename = f"{data['message_type']}_{data['sender_id']}_{timestamp}.{extension}" if extension else f"{data['message_type']}_{data['sender_id']}_{timestamp}"
+            
+
+            if file_data.startswith('data:'):
+                file_data = file_data.split(',')[1]
+            
+            file_bytes = base64.b64decode(file_data)
+            file_size = len(file_bytes)
+            
+            result = supabase.storage.from_(bucket_name).upload(
+                file=file_bytes,
+                path=unique_filename,
+                file_options={"content-type": mime_type}
+            )
+            
+            if result:
+                supabase_file_path = unique_filename
+                file_name = file_name
+            else:
+                raise ValueError("Помилка завантаження файлу на Supabase")
+        
         message = Message(
             sender_id=int(data['sender_id']),
             recipient_id=int(data['recipient_id']),
-            text=data['text']
+            text=message_text,
+            message_type=data['message_type'],
+            supabase_file_path=supabase_file_path,
+            file_name=file_name,
+            mime_type=mime_type,
+            file_size=file_size
         )
         
-        # Збереження в БД
         db.session.add(message)
         db.session.commit()
         
-        # Отримання імені відправника
         sender = User.query.get(message.sender_id)
         sender_name = sender.user_name if sender else "Невідомий"
         
-        # Відправка отримувачу
+        file_url = None
+        if supabase_file_path:
+            file_url = supabase.storage.from_(bucket_name).get_public_url(supabase_file_path)
+        
         emit('new_message', {
             'id': message.id,
             'sender_id': message.sender_id,
             'sender_name': sender_name,
             'text': message.text,
+            'message_type': message.message_type,
+            'file_url': file_url,
+            'file_name': message.file_name,
+            'file_size': message.file_size,
             'timestamp': message.timestamp.isoformat()
         }, room=f"user_{message.recipient_id}")
         
-        # Підтвердження відправнику
         emit('message_sent', {
             'id': message.id,
             'status': 'delivered'

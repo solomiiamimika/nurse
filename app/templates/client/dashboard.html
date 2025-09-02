@@ -73,9 +73,9 @@
   </div>
 </div>
 
-<!-- Модальне вікно чату (ДОДАНО ВІДСУТНІЙ ЕЛЕМЕНТ) -->
+<!-- Модальне вікно чату -->
 <div class="modal fade" id="chatModal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="chatModalLabel">Чат з <span id="chatRecipientName"></span></h5>
@@ -83,9 +83,33 @@
       </div>
       <div class="modal-body">
         <div class="chat-messages-container" id="chatMessages"></div>
+        
+        <!-- Кнопки для вибору типу файлу -->
+        <div class="btn-group mb-2" role="group">
+          <button type="button" class="btn btn-outline-primary btn-sm" id="attachImageBtn">
+            <i class="fas fa-image"></i> Фото
+          </button>
+          <button type="button" class="btn btn-outline-success btn-sm" id="attachVideoBtn">
+            <i class="fas fa-video"></i> Відео
+          </button>
+          <button type="button" class="btn btn-outline-info btn-sm" id="attachAudioBtn">
+            <i class="fas fa-microphone"></i> Голос
+          </button>
+        </div>
+        
         <div class="input-group">
           <input type="text" class="form-control" id="messageInput" placeholder="Введіть повідомлення...">
-          <button class="btn btn-primary" type="button" id="sendMessageBtn">Надіслати</button>
+          <button class="btn btn-primary" type="button" id="sendMessageBtn">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+        
+        <!-- Прихований input для завантаження файлів -->
+        <input type="file" id="fileInput" style="display: none;" accept="image/*,video/*,audio/*">
+        
+        <!-- Прелоадер для файлів -->
+        <div id="fileUploadProgress" class="progress mt-2" style="display: none;">
+          <div class="progress-bar" role="progressbar" style="width: 0%"></div>
         </div>
       </div>
     </div>
@@ -575,6 +599,156 @@ socket.on('connection_response', (data) => {
 
 socket.on('error', (data) => {
     console.error('Помилка:', data.message);
+});
+
+
+
+
+
+let currentFileType = null;
+
+// Обробники кнопок файлів
+document.getElementById('attachImageBtn').addEventListener('click', () => {
+    currentFileType = 'image';
+    document.getElementById('fileInput').accept = 'image/*';
+    document.getElementById('fileInput').click();
+});
+
+document.getElementById('attachVideoBtn').addEventListener('click', () => {
+    currentFileType = 'video';
+    document.getElementById('fileInput').accept = 'video/*';
+    document.getElementById('fileInput').click();
+});
+
+document.getElementById('attachAudioBtn').addEventListener('click', () => {
+    currentFileType = 'audio';
+    document.getElementById('fileInput').accept = 'audio/*';
+    document.getElementById('fileInput').click();
+});
+
+// Обробка вибору файлу
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Перевірка розміру файлу (макс. 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+        alert('Файл занадто великий. Максимальний розмір: 10MB');
+        return;
+    }
+    
+    // Показуємо прогрес бар
+    const progressBar = document.querySelector('.progress-bar');
+    const progressContainer = document.getElementById('fileUploadProgress');
+    progressContainer.style.display = 'block';
+    progressBar.style.width = '0%';
+    
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const base64Data = event.target.result;
+        
+        // Емулюємо прогрес завантаження
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 5;
+            progressBar.style.width = progress + '%';
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+                
+                // Відправляємо файл через Socket.IO
+                socket.emit('send_message', {
+                    message_type: currentFileType,
+                    sender_id: '{{ current_user.id }}',
+                    recipient_id: currentChatRecipient.id,
+                    file_data: base64Data,
+                    file_name: file.name,
+                    mime_type: file.type
+                });
+                
+                // Ховаємо прогрес бар
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                }, 1000);
+                
+                // Очищаємо input
+                document.getElementById('fileInput').value = '';
+            }
+        }, 50);
+    };
+    
+    reader.readAsDataURL(file);
+});
+
+// Оновлена функція для відображення повідомлень
+function addMessageToChat(messageData, isMyMessage) {
+    const chatContainer = document.getElementById('chatMessages');
+    const messageElement = document.createElement('div');
+    messageElement.className = `message ${isMyMessage ? 'my-message' : 'their-message'}`;
+
+    const time = new Date(messageData.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+    let messageContent = '';
+    
+    if (messageData.message_type === 'text') {
+        messageContent = `
+            <div class="message-text">${messageData.text}</div>
+        `;
+    } else if (messageData.message_type === 'image') {
+        messageContent = `
+            <div class="message-file">
+                <img src="${messageData.file_url}" alt="${messageData.file_name}" 
+                     style="max-width: 200px; max-height: 200px; border-radius: 8px;">
+                <div class="file-name">${messageData.file_name}</div>
+            </div>
+        `;
+    } else if (messageData.message_type === 'video') {
+        messageContent = `
+            <div class="message-file">
+                <video controls style="max-width: 200px; max-height: 200px; border-radius: 8px;">
+                    <source src="${messageData.file_url}" type="video/mp4">
+                    Ваш браузер не підтримує відео.
+                </video>
+                <div class="file-name">${messageData.file_name}</div>
+            </div>
+        `;
+    } else if (messageData.message_type === 'audio') {
+        messageContent = `
+            <div class="message-file">
+                <audio controls style="width: 100%;">
+                    <source src="${messageData.file_url}" type="audio/mpeg">
+                    Ваш браузер не підтримує аудіо.
+                </audio>
+                <div class="file-name">${messageData.file_name}</div>
+            </div>
+        `;
+    }
+
+    messageElement.innerHTML = `
+        <div class="message-content">
+            ${!isMyMessage ? `<div class="sender-name">${messageData.sender_name}</div>` : ''}
+            ${messageContent}
+            <div class="message-time">${time}</div>
+        </div>
+    `;
+
+    chatContainer.appendChild(messageElement);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+// Оновлений обробник відправки текстового повідомлення
+document.getElementById('sendMessageBtn').addEventListener('click', () => {
+    const messageText = document.getElementById('messageInput').value.trim();
+    if (messageText && currentChatRecipient) {
+        socket.emit('send_message', {
+            message_type: 'text',
+            text: messageText,
+            sender_id: '{{ current_user.id }}',
+            recipient_id: currentChatRecipient.id
+        });
+
+        document.getElementById('messageInput').value = '';
+    }
 });
 </script>
 
