@@ -223,8 +223,8 @@ function addMessageToChat(messageData, isMyMessage) {
 function initMap() {
     try {
         showStatus("Ініціалізація карти...");
-        const nurseLat = {{ current_user.latitude | default(50.4501) }};
-        const nurseLng = {{ current_user.longitude | default(30.5234) }};
+        const nurseLat = {{ current_user.latitude if current_user.latitude is not none else 50.4501 }};
+        const nurseLng = {{ current_user.longitude if current_user.longitude is not none else 30.5234}};
         
         map = L.map('combinedMap').setView([nurseLat, nurseLng], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
