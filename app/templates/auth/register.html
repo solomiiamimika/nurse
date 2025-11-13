@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>Register</title>
     <link
       rel="stylesheet"
@@ -23,9 +23,11 @@
       {% endif %} {% endwith %}
 
       <form method="POST">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required />
+        <label for="fullname">Full name:</label>
+        <input type="text" id="fullname" name="fullname" required />
 
         <label for="email">Email:</label>
         <input type="email" id="email" name="email" required />

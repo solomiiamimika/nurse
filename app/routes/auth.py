@@ -13,6 +13,7 @@ def register():
     
     if request.method == "POST":
         username = request.form.get('username')
+        fullname = request.form.get('fullname')
         email = request.form.get('email')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password') 
@@ -42,7 +43,8 @@ def register():
             user = User(
                 user_name=username,
                 email=email,
-                role=role
+                role=role,
+                full_name=fullname
             )
             if password:  # Якщо це не Google-користувач
                 user.password = password
