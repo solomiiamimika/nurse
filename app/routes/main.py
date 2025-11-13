@@ -2,8 +2,8 @@ from flask import Blueprint, render_template, request, jsonify
 from app.models import User
 from sqlalchemy import or_
 from datetime import datetime
-main_bp = Blueprint('main', __name__)
 
+main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 def home():
     return render_template('home.html')

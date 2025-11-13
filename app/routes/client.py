@@ -18,7 +18,7 @@ from flask import current_app, request
 from flask_socketio import join_room, leave_room, emit
 from app.models import Message, db,User
 from datetime import datetime
-from app.supabase_storage import upload_to_supabase
+from app.supabase_storage import upload_to_supabase,supabase
 from flask_cors import cross_origin
 load_dotenv()
 stripe.api_key=os.getenv('STRIPE_SECRET_KEY')
@@ -44,9 +44,22 @@ def allowed_file(filename):
 @client_bp.route('/dashboard')
 @login_required
 def dashboard():
-    if current_user.role!='client':
+    if current_user.role != 'client':
         return redirect(url_for('auth.login'))
-    return render_template('client/dashboard.html')
+    
+    search_query = request.args.get('q', '').strip()
+    nurses = []
+
+    if search_query:
+        nurses = User.query.filter(User.role == 'nurse', User.location_approved == True).outerjoin(NurseService).filter(
+            (User.full_name.ilike(f'%{search_query}%')) | 
+            (User.user_name.ilike(f'%{search_query}%')) |
+            (NurseService.name.ilike(f'%{search_query}%'))
+        ).distinct().all()
+    else:
+        nurses = User.query.filter_by(role='nurse', location_approved=True).all()
+
+    return render_template('client/dashboard.html', nurses=nurses, search_query=search_query)
 
 
 
@@ -841,7 +854,7 @@ def handle_send_message(data):
         file_data=None
         if 'file' in data:
             file=data['file']
-            file_name, file_URL=upload_to_supabase(file, buckets['messages'], data['sender_id'], 'message')
+            file_name, file_URL=upload_to_supabase(file, buckets['message-media'], data['sender_id'], 'message')
             if file_name:
                 file_data={
                     'file_name': file_name,
@@ -861,7 +874,7 @@ def handle_send_message(data):
             mime_type = data.get('mime_type', 'application/octet-stream')
             
 
-            bucket_name = 'messages'
+            bucket_name = 'message-media'
             
             timestamp = datetime.now().timestamp()
             extension = file_name.split('.')[-1] if '.' in file_name else ''
