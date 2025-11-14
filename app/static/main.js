@@ -4,7 +4,7 @@ const Header = L.Control.extend({
     div.innerHTML = `
       <div class="brand">Human</div>
       <div class="search-pill">
-        <input placeholder="Пошук медсестри…" />
+        <input placeholder="Services search…" />
       </div>
     `;
     L.DomEvent.disableClickPropagation(div);

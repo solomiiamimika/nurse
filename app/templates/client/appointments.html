@@ -1,475 +1,532 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 
 <div class="client-appointments">
-    <h2>Мої записи</h2>
-    <a href="{{ url_for('client.dashboard') }}" class="btn btn-info">
-        <i class="fas fa-user"></i> Назад
-    </a>
-    <!-- Календар -->
-    <div id="calendar"></div>
-    
-    <!-- Кнопка створення нового запису -->
-    <button id="newAppointmentBtn" class="btn btn-primary mt-3">
-        <i class="fas fa-plus"></i> Новий запис
-    </button>
+  <h2>My appointments</h2>
+  <a href="{{ url_for('client.dashboard') }}" class="btn btn-info">
+    <i class="fas fa-user"></i> Exit
+  </a>
+  <!-- Календар -->
+  <div id="calendar"></div>
+
+  <!-- Кнопка створення нового запису -->
+  <button id="newAppointmentBtn" class="btn btn-primary mt-3">
+    <i class="fas fa-plus"></i> New appointment
+  </button>
 </div>
 
 <!-- Модальне вікно для нового запису -->
-<div class="modal fade" id="newAppointmentModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Новий запис</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <!-- Форма буде динамічно заповнюватися через JS -->
-                <div id="appointmentFormContainer"></div>
-            </div>
-        </div>
+<div
+  class="modal fade"
+  id="newAppointmentModal"
+  tabindex="-1"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">New appointment</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <!-- Форма буде динамічно заповнюватися через JS -->
+        <div id="appointmentFormContainer"></div>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- Модальне вікно деталей запису -->
-<div class="modal fade" id="appointmentDetailsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Деталі запису</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <strong>Послуга:</strong> <span id="detailServiceName"></span>
-                </div>
-                <div class="mb-3">
-                    <strong>Дата та час:</strong> <span id="detailDateTime"></span>
-                </div>
-                <div class="mb-3">
-                    <strong>Статус:</strong> <span id="detailStatus"></span>
-                </div>
-                <div class="mb-3">
-                    <strong>Примітки:</strong> <span id="detailNotes"></span>
-                </div>
-                <div class="mb-3">
-                    <strong>Сума:</strong> <span id="detailAmount"></span> UAH
-                </div>
-                <div id="paymentSection" class="mb-3" style="display: none;">
-                    <button id="payNowBtn" class="btn btn-success">
-                        <i class="fas fa-credit-card"></i> Оплатити зараз
-                    </button>
-                </div>
-                <div id="paymentStatus" class="alert" style="display: none;"></div>
-                <div id="appointmentActions" class="d-flex gap-2"></div>
-            </div>
+<div
+  class="modal fade"
+  id="appointmentDetailsModal"
+  tabindex="-1"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Appointment details</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <strong>Service:</strong> <span id="detailServiceName"></span>
+        </div>
+        <div class="mb-3">
+          <strong>Date and time:</strong> <span id="detailDateTime"></span>
+        </div>
+        <div class="mb-3">
+          <strong>Status:</strong> <span id="detailStatus"></span>
+        </div>
+        <div class="mb-3">
+          <strong>Notes:</strong> <span id="detailNotes"></span>
+        </div>
+        <div class="mb-3">
+          <strong>Amount:</strong> <span id="detailAmount"></span> UAH
+        </div>
+        <div id="paymentSection" class="mb-3" style="display: none">
+          <button id="payNowBtn" class="btn btn-success">
+            <i class="fas fa-credit-card"></i> Make a payment now
+          </button>
+        </div>
+        <div id="paymentStatus" class="alert" style="display: none"></div>
+        <div id="appointmentActions" class="d-flex gap-2"></div>
+      </div>
 
-            <hr>
-<div id="reviewSection">
-    <h6>Ваш відгук</h6>
-    <div id="existingReview" style="display: none;">
-        <div class="mb-2">
-            <strong>Ваша оцінка:</strong> 
+      <hr />
+      <div id="reviewSection">
+        <h6>Your review</h6>
+        <div id="existingReview" style="display: none">
+          <div class="mb-2">
+            <strong>Your rating:</strong>
             <span id="userRating"></span>
             <div class="rating-stars"></div>
-        </div>
-        <div class="mb-2">
-            <strong>Коментар:</strong>
+          </div>
+          <div class="mb-2">
+            <strong>Comment:</strong>
             <p id="userComment" class="mt-1"></p>
+          </div>
+          <button id="editReviewBtn" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-edit"></i> Edit your review
+          </button>
         </div>
-        <button id="editReviewBtn" class="btn btn-sm btn-outline-primary">
-            <i class="fas fa-edit"></i> Редагувати відгук
+
+        <div id="reviewForm" style="display: none">
+          <div class="mb-3">
+            <label class="form-label">Service rating</label>
+            <div class="rating-input">
+              {% for i in range(5, 0, -1) %}
+              <input type="radio" id="star{{i}}" name="rating" value="{{i}}" />
+              <label for="star{{i}}" title="{{i}} зірок">☆</label>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Comment</label>
+            <textarea
+              class="form-control"
+              id="reviewComment"
+              rows="3"
+              placeholder="Place your feedback about service..."
+            ></textarea>
+          </div>
+          <div class="d-flex gap-2">
+            <button id="submitReviewBtn" class="btn btn-success">
+              <i class="fas fa-paper-plane"></i> Sent feedback
+            </button>
+            <button id="cancelReviewBtn" class="btn btn-secondary">
+              Cancell
+            </button>
+          </div>
+        </div>
+
+        <div id="noReviewMessage" style="display: none">
+          <p class="text-muted">Ви ще не залишили відгук для цього запису.</p>
+          <button id="addReviewBtn" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-plus"></i> Додати відгук
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          close
         </button>
+      </div>
     </div>
-    
-                <div id="reviewForm" style="display: none;">
-                    <div class="mb-3">
-                        <label class="form-label">Оцінка</label>
-                        <div class="rating-input">
-                            {% for i in range(5, 0, -1) %}
-                            <input type="radio" id="star{{i}}" name="rating" value="{{i}}">
-                            <label for="star{{i}}" title="{{i}} зірок">☆</label>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Коментар</label>
-                        <textarea class="form-control" id="reviewComment" rows="3" 
-                                placeholder="Залиште ваш відгук про роботу медсестри..."></textarea>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button id="submitReviewBtn" class="btn btn-success">
-                            <i class="fas fa-paper-plane"></i> Надіслати відгук
-                        </button>
-                        <button id="cancelReviewBtn" class="btn btn-secondary">Скасувати</button>
-                    </div>
-                </div>
-                
-                <div id="noReviewMessage" style="display: none;">
-                    <p class="text-muted">Ви ще не залишили відгук для цього запису.</p>
-                    <button id="addReviewBtn" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-plus"></i> Додати відгук
-                    </button>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрити</button>
-            </div>
-        </div>
-    </div>
+  </div>
 </div>
 
-{% endblock %}
-
-{% block scripts %}
+{% endblock %} {% block scripts %}
 <!-- Підключаємо FullCalendar -->
-<link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/uk.min.js'></script>
+<link
+  href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css"
+  rel="stylesheet"
+/>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/uk.min.js"></script>
 <script src="https://js.stripe.com/v3/"></script>
 
 <script>
+  let currentAppointmentId = null;
+  const stripe = Stripe("{{ stripe_public_key }}");
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-let currentAppointmentId = null;
-const stripe = Stripe('{{ stripe_public_key }}');
-const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-
-document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener("DOMContentLoaded", function () {
     // Ініціалізація календаря
-    const calendarEl = document.getElementById('calendar');
+    const calendarEl = document.getElementById("calendar");
     const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
-        locale: 'uk',
-        events: '/client/get_appointments',
-        eventClick: function(info) {
-            currentAppointmentId = info.event.id;
-            const props = info.event.extendedProps;
-            
+      initialView: "dayGridMonth",
+      headerToolbar: {
+        left: "prev,next today",
+        center: "title",
+        right: "dayGridMonth,timeGridWeek,timeGridDay",
+      },
+      locale: "uk",
+      events: "/client/get_appointments",
+      eventClick: function (info) {
+        currentAppointmentId = info.event.id;
+        const props = info.event.extendedProps;
 
-            document.getElementById('detailServiceName').textContent = props.service_name;
-            document.getElementById('detailDateTime').textContent = 
-                info.event.start.toLocaleString('uk-UA');
-            document.getElementById('detailStatus').textContent = 
-                getStatusText(props.status);
-            document.getElementById('detailNotes').textContent = 
-                props.notes || 'Немає приміток';
-            document.getElementById('detailAmount').textContent = 
-                props.amount || '0.00';
-                
-            // Показуємо секцію оплати, якщо запис не оплачено
-            const paymentSection = document.getElementById('paymentSection');
-            const paymentStatus = document.getElementById('paymentStatus');
-            
-            if (props.status === 'scheduled' || props.status === 'confirmed') {
-                paymentSection.style.display = 'block';
-                paymentStatus.style.display = 'none';
-            } else {
-                paymentSection.style.display = 'none';
-                
-                if (props.status === 'confirmed_paid') {
-                    paymentStatus.style.display = 'block';
-                    paymentStatus.className = 'alert alert-success';
-                    paymentStatus.textContent = 'Оплачено';
-                }
-            }
-            
-            // Додаємо кнопки дій залежно від статусу
-            const actionsContainer = document.getElementById('appointmentActions');
-            actionsContainer.innerHTML = '';
-            
-            if (props.status === 'scheduled') {
-                actionsContainer.innerHTML = `
+        document.getElementById("detailServiceName").textContent =
+          props.service_name;
+        document.getElementById("detailDateTime").textContent =
+          info.event.start.toLocaleString("uk-UA");
+        document.getElementById("detailStatus").textContent = getStatusText(
+          props.status
+        );
+        document.getElementById("detailNotes").textContent =
+          props.notes || "Немає приміток";
+        document.getElementById("detailAmount").textContent =
+          props.amount || "0.00";
+
+        // Показуємо секцію оплати, якщо запис не оплачено
+        const paymentSection = document.getElementById("paymentSection");
+        const paymentStatus = document.getElementById("paymentStatus");
+
+        if (props.status === "scheduled" || props.status === "confirmed") {
+          paymentSection.style.display = "block";
+          paymentStatus.style.display = "none";
+        } else {
+          paymentSection.style.display = "none";
+
+          if (props.status === "confirmed_paid") {
+            paymentStatus.style.display = "block";
+            paymentStatus.className = "alert alert-success";
+            paymentStatus.textContent = "Paid";
+          }
+        }
+
+        // Додаємо кнопки дій залежно від статусу
+        const actionsContainer = document.getElementById("appointmentActions");
+        actionsContainer.innerHTML = "";
+
+        if (props.status === "scheduled") {
+          actionsContainer.innerHTML = `
                     <button class="btn btn-danger" onclick="cancelAppointment(${info.event.id})">
-                        Скасувати запис
+                        Cancel appintment
                     </button>
                 `;
-            }
-            checkReviewStatus(currentAppointmentId);
-            const modal = new bootstrap.Modal(document.getElementById('appointmentDetailsModal'));
-            modal.show();
         }
+        checkReviewStatus(currentAppointmentId);
+        const modal = new bootstrap.Modal(
+          document.getElementById("appointmentDetailsModal")
+        );
+        modal.show();
+      },
     });
     calendar.render();
-    
+
     // Обробник кнопки нового запису
-    document.getElementById('newAppointmentBtn').addEventListener('click', function() {
-        fetch('/client/get_nurses_for_appointment')
-            .then(response => response.json())
-            .then(nurses => {
-                const formHtml = `
+    document
+      .getElementById("newAppointmentBtn")
+      .addEventListener("click", function () {
+        fetch("/client/get_nurses_for_appointment")
+          .then((response) => response.json())
+          .then((nurses) => {
+            const formHtml = `
                     <form id="appointmentForm">
                         <div class="mb-3">
-                            <label class="form-label">Медсестра</label>
+                            <label class="form-label">Nurse</label>
                             <select class="form-select" id="nurseSelect">
-                                ${nurses.map(n => `<option value="${n.id}">${n.name}</option>`).join('')}
+                                ${nurses
+                                  .map(
+                                    (n) =>
+                                      `<option value="${n.id}">${n.name}</option>`
+                                  )
+                                  .join("")}
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary">Записатися</button>
+                        <button type="submit" class="btn btn-primary">Make an appointmenrt</button>
                     </form>
                 `;
-                document.getElementById('appointmentFormContainer').innerHTML = formHtml;
-                
-                const modal = new bootstrap.Modal(document.getElementById('newAppointmentModal'));
-                modal.show();
-            });
-    });
+            document.getElementById("appointmentFormContainer").innerHTML =
+              formHtml;
+
+            const modal = new bootstrap.Modal(
+              document.getElementById("newAppointmentModal")
+            );
+            modal.show();
+          });
+      });
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
     // Обробник кнопки оплати
-    document.getElementById('payNowBtn').addEventListener('click', function() {
-        if (!currentAppointmentId) return;
-        
-        const btn = this;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Обробка...';
-        
-        fetch('/client/create_payment_session', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({
-                appointment_id: currentAppointmentId
-            })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Помилка мережі');
-            }
-            return response.json();
-        })
-        .then(data => {
-            return stripe.redirectToCheckout({ sessionId: data.sessionId });
-        })
-        .then(result => {
-            if (result.error) {
-                showPaymentError(result.error.message);
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-credit-card"></i> Оплатити зараз';
-            }
-        })
-        .catch(error => {
-            console.error('Помилка:', error);
-            showPaymentError(error.message);
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-credit-card"></i> Оплатити зараз';
-        });
-    });
-});
+    document.getElementById("payNowBtn").addEventListener("click", function () {
+      if (!currentAppointmentId) return;
 
-function getStatusText(status) {
-    const statuses = {
-        'scheduled': 'Заплановано',
-        'confirmed': 'Підтверджено',
-        'completed': 'Завершено',
-        'cancelled': 'Скасовано',
-        'confirmed_paid': 'Оплачено та підтверджено'
-    };
-    return statuses[status] || status;
-}
+      const btn = this;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
-function showPaymentError(message) {
-    const paymentStatus = document.getElementById('paymentStatus');
-    paymentStatus.style.display = 'block';
-    paymentStatus.className = 'alert alert-danger';
-    paymentStatus.textContent = 'Помилка оплати: ' + message;
-}
-
-function cancelAppointment(appointmentId) {
-    if (confirm('Ви впевнені, що хочете скасувати цей запис?')) {
-        fetch('/client/cancel_appointment', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({
-                appointment_id: appointmentId
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Помилка: ' + data.message);
-            }
-        });
-    }
-}
-
-
-
-// Функція перевірки статусу відгуку
-function checkReviewStatus(appointmentId) {
-    fetch(`/client/can_review/${appointmentId}`)
-        .then(response => response.json())
-        .then(data => {
-            const reviewSection = document.getElementById('reviewSection');
-            const existingReview = document.getElementById('existingReview');
-            const reviewForm = document.getElementById('reviewForm');
-            const noReviewMessage = document.getElementById('noReviewMessage');
-            
-            if (data.can_review) {
-                noReviewMessage.style.display = 'block';
-                existingReview.style.display = 'none';
-                reviewForm.style.display = 'none';
-            } else if (data.review_exists) {
-                loadExistingReview(appointmentId);
-            } else {
-                noReviewMessage.style.display = 'block';
-                existingReview.style.display = 'none';
-                reviewForm.style.display = 'none';
-            }
-        });
-}
-
-// Завантаження існуючого відгуку
-function loadExistingReview(appointmentId) {
-    fetch(`/client/get_review/${appointmentId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('userRating').textContent = `${data.review.rating}/5`;
-                document.getElementById('userComment').textContent = data.review.comment || 'Без коментаря';
-                
-                // Відображення зірочок рейтингу
-                const starsContainer = document.querySelector('.rating-stars');
-                starsContainer.innerHTML = generateRatingStars(data.review.rating);
-                
-                document.getElementById('existingReview').style.display = 'block';
-                document.getElementById('reviewForm').style.display = 'none';
-                document.getElementById('noReviewMessage').style.display = 'none';
-            }
-        });
-}
-
-// Генерація HTML для зірочок рейтингу
-function generateRatingStars(rating) {
-    let stars = '';
-    for (let i = 1; i <= 5; i++) {
-        stars += `<span class="rating-star ${i <= rating ? 'filled' : ''}">★</span>`;
-    }
-    return stars;
-}
-
-// Обробники кнопок для відгуків
-document.getElementById('addReviewBtn').addEventListener('click', function() {
-    document.getElementById('reviewForm').style.display = 'block';
-    document.getElementById('noReviewMessage').style.display = 'none';
-    document.getElementById('existingReview').style.display = 'none';
-});
-
-document.getElementById('editReviewBtn').addEventListener('click', function() {
-    document.getElementById('reviewForm').style.display = 'block';
-    document.getElementById('existingReview').style.display = 'none';
-    
-    // Завантаження поточних даних у форму
-    fetch(`/client/get_review/${currentAppointmentId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.querySelector(`input[name="rating"][value="${data.review.rating}"]`).checked = true;
-                document.getElementById('reviewComment').value = data.review.comment || '';
-            }
-        });
-});
-
-document.getElementById('cancelReviewBtn').addEventListener('click', function() {
-    document.getElementById('reviewForm').style.display = 'none';
-    checkReviewStatus(currentAppointmentId);
-});
-
-document.getElementById('submitReviewBtn').addEventListener('click', function() {
-    const rating = document.querySelector('input[name="rating"]:checked')?.value;
-    const comment = document.getElementById('reviewComment').value.trim();
-    
-    if (!rating) {
-        alert('Будь ласка, оберіть рейтинг');
-        return;
-    }
-    
-    const btn = this;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Відправка...';
-    
-    fetch('/client/leave_review', {
-        method: 'POST',
+      fetch("/client/create_payment_session", {
+        method: "POST",
         headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
         },
         body: JSON.stringify({
-            appointment_id: currentAppointmentId,
-            rating: rating,
-            comment: comment
+          appointment_id: currentAppointmentId,
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network error");
+          }
+          return response.json();
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Дякуємо за ваш відгук!');
-            checkReviewStatus(currentAppointmentId);
-        } else {
-            alert('Помилка: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Помилка:', error);
-        alert('Сталася помилка при відправці відгуку');
-    })
-    .finally(() => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Надіслати відгук';
+        .then((data) => {
+          return stripe.redirectToCheckout({ sessionId: data.sessionId });
+        })
+        .then((result) => {
+          if (result.error) {
+            showPaymentError(result.error.message);
+            btn.disabled = false;
+            btn.innerHTML =
+              '<i class="fas fa-credit-card"></i> Make your payment now';
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          showPaymentError(error.message);
+          btn.disabled = false;
+          btn.innerHTML =
+            '<i class="fas fa-credit-card"></i> Make your payment now';
+        });
     });
-});
+  });
 
+  function getStatusText(status) {
+    const statuses = {
+      scheduled: "Scheduled",
+      confirmed: "Підтверджено",
+      completed: "Completed",
+      cancelled: "Cancelled",
+      confirmed_paid: "Paid and confirmed",
+    };
+    return statuses[status] || status;
+  }
+
+  function showPaymentError(message) {
+    const paymentStatus = document.getElementById("paymentStatus");
+    paymentStatus.style.display = "block";
+    paymentStatus.className = "alert alert-danger";
+    paymentStatus.textContent = "Payment error:" + message;
+  }
+
+  function cancelAppointment(appointmentId) {
+    if (confirm("Are you sure you want to cancel this appointment?")) {
+      fetch("/client/cancel_appointment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify({
+          appointment_id: appointmentId,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert("Error: " + data.message);
+          }
+        });
+    }
+  }
+
+  // Функція перевірки статусу відгуку
+  function checkReviewStatus(appointmentId) {
+    fetch(`/client/can_review/${appointmentId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        const reviewSection = document.getElementById("reviewSection");
+        const existingReview = document.getElementById("existingReview");
+        const reviewForm = document.getElementById("reviewForm");
+        const noReviewMessage = document.getElementById("noReviewMessage");
+
+        if (data.can_review) {
+          noReviewMessage.style.display = "block";
+          existingReview.style.display = "none";
+          reviewForm.style.display = "none";
+        } else if (data.review_exists) {
+          loadExistingReview(appointmentId);
+        } else {
+          noReviewMessage.style.display = "block";
+          existingReview.style.display = "none";
+          reviewForm.style.display = "none";
+        }
+      });
+  }
+
+  // Завантаження існуючого відгуку
+  function loadExistingReview(appointmentId) {
+    fetch(`/client/get_review/${appointmentId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          document.getElementById(
+            "userRating"
+          ).textContent = `${data.review.rating}/5`;
+          document.getElementById("userComment").textContent =
+            data.review.comment || "Without comment";
+
+          // Відображення зірочок рейтингу
+          const starsContainer = document.querySelector(".rating-stars");
+          starsContainer.innerHTML = generateRatingStars(data.review.rating);
+
+          document.getElementById("existingReview").style.display = "block";
+          document.getElementById("reviewForm").style.display = "none";
+          document.getElementById("noReviewMessage").style.display = "none";
+        }
+      });
+  }
+
+  // Генерація HTML для зірочок рейтингу
+  function generateRatingStars(rating) {
+    let stars = "";
+    for (let i = 1; i <= 5; i++) {
+      stars += `<span class="rating-star ${
+        i <= rating ? "filled" : ""
+      }">★</span>`;
+    }
+    return stars;
+  }
+
+  // Обробники кнопок для відгуків
+  document
+    .getElementById("addReviewBtn")
+    .addEventListener("click", function () {
+      document.getElementById("reviewForm").style.display = "block";
+      document.getElementById("noReviewMessage").style.display = "none";
+      document.getElementById("existingReview").style.display = "none";
+    });
+
+  document
+    .getElementById("editReviewBtn")
+    .addEventListener("click", function () {
+      document.getElementById("reviewForm").style.display = "block";
+      document.getElementById("existingReview").style.display = "none";
+
+      // Завантаження поточних даних у форму
+      fetch(`/client/get_review/${currentAppointmentId}`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            document.querySelector(
+              `input[name="rating"][value="${data.review.rating}"]`
+            ).checked = true;
+            document.getElementById("reviewComment").value =
+              data.review.comment || "";
+          }
+        });
+    });
+
+  document
+    .getElementById("cancelReviewBtn")
+    .addEventListener("click", function () {
+      document.getElementById("reviewForm").style.display = "none";
+      checkReviewStatus(currentAppointmentId);
+    });
+
+  document
+    .getElementById("submitReviewBtn")
+    .addEventListener("click", function () {
+      const rating = document.querySelector(
+        'input[name="rating"]:checked'
+      )?.value;
+      const comment = document.getElementById("reviewComment").value.trim();
+
+      if (!rating) {
+        alert("Please select a rating");
+        return;
+      }
+
+      const btn = this;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Відправка...';
+
+      fetch("/client/leave_review", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify({
+          appointment_id: currentAppointmentId,
+          rating: rating,
+          comment: comment,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            alert("Thank you for your feedback!");
+            checkReviewStatus(currentAppointmentId);
+          } else {
+            alert("Error: " + data.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Помилка:", error);
+          alert("An error occurred while submitting the feedback");
+        })
+        .finally(() => {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit feedback';
+        });
+    });
 </script>
 
 <style>
-    #calendar {
-        max-width: 100%;
-        margin: 0 auto;
-        background-color: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    
-    .fc-event {
-        cursor: pointer;
-    }
-    
-    /* Стилі для різних статусів */
-    .fc-event.scheduled {
-        background-color: #ffc107;
-        border-color: #ffc107;
-    }
-    
-    .fc-event.confirmed {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-    }
-    
-    .fc-event.confirmed_paid {
-        background-color: #198754;
-        border-color: #198754;
-    }
-    
-    .fc-event.completed {
-        background-color: #6c757d;
-        border-color: #6c757d;
-    }
-    
-    .fc-event.cancelled {
-        background-color: #dc3545;
-        border-color: #dc3545;
-        text-decoration: line-through;
-    }
+  #calendar {
+    max-width: 100%;
+    margin: 0 auto;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .fc-event {
+    cursor: pointer;
+  }
+
+  /* Стилі для різних статусів */
+  .fc-event.scheduled {
+    background-color: #ffc107;
+    border-color: #ffc107;
+  }
+
+  .fc-event.confirmed {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+  }
+
+  .fc-event.confirmed_paid {
+    background-color: #198754;
+    border-color: #198754;
+  }
+
+  .fc-event.completed {
+    background-color: #6c757d;
+    border-color: #6c757d;
+  }
+
+  .fc-event.cancelled {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    text-decoration: line-through;
+  }
 </style>
 {% endblock %}
