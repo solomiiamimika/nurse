@@ -161,21 +161,19 @@ h2 {
   background: #f8f8f8;
 }
 
-/* --- GLOBAL TOP GLASS BACKGROUND --- */
+/* --- GLOBAL TOP GLASS BACKGROUND ---
 .top-glass-bg {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 180px;
-  /* Можеш зробити більше/менше */
   pointer-events: none;
-  /* щоб не перекривало кнопки */
   z-index: 1;
 
   background: linear-gradient(rgba(254, 174, 203, 0.6),
       rgba(247, 113, 166, 0.15),
       rgba(255, 180, 210, 0));
 
-  backdrop-filter: blur(18px);
-}
+  backdrop-filter: blur(18px); 
+}*/

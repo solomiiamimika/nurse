@@ -54,7 +54,8 @@ def dashboard():
         nurses = User.query.filter(User.role == 'nurse', User.location_approved == True).outerjoin(NurseService).filter(
             (User.full_name.ilike(f'%{search_query}%')) | 
             (User.user_name.ilike(f'%{search_query}%')) |
-            (NurseService.name.ilike(f'%{search_query}%'))
+            (NurseService.name.ilike(f'%{search_query}%')) |
+            (User.address.ilike(f'%{search_query}%')) 
         ).distinct().all()
     else:
         nurses = User.query.filter_by(role='nurse', location_approved=True).all()
