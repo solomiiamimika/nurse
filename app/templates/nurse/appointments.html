@@ -1,152 +1,169 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="nurse-appointments">
-    <h2>Мої записи</h2>
-    <a href="{{ url_for('nurse.dashboard') }}" class="btn btn-info">
-        <i class="fas fa-user"></i> Назад
-    </a>
-    <!-- Календар -->
-    <div id="calendar"></div>
+  <h2>My appointments</h2>
+  <a href="{{ url_for('nurse.dashboard') }}" class="btn btn-info">
+    <i class="fas fa-user"></i> Exit
+  </a>
+  <!-- Календар -->
+  <div id="calendar"></div>
 </div>
 
 <!-- Модальне вікно для деталей запису -->
-<div class="modal fade" id="appointmentDetailsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Деталі запису</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <strong>Клієнт:</strong> <span id="detailClientName"></span>
-                </div>
-                <div class="mb-3">
-                    <strong>Послуга:</strong> <span id="detailServiceName"></span>
-                </div>
-                <div class="mb-3">
-                    <strong>Дата та час:</strong> <span id="detailDateTime"></span>
-                </div>
-                <div class="mb-3">
-                    <strong>Статус:</strong> <span id="detailStatus"></span>
-                </div>
-                <div class="mb-3">
-                    <strong>Примітки:</strong> <div id="detailNotes"></div>
-                </div>
-            </div>
-            <div class="modal-footer" id="appointmentActions">
-                <!-- Кнопки дій з'являться тут -->
-            </div>
+<div
+  class="modal fade"
+  id="appointmentDetailsModal"
+  tabindex="-1"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Appointments details</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <strong>Client:</strong> <span id="detailClientName"></span>
         </div>
+        <div class="mb-3">
+          <strong>Service:</strong> <span id="detailServiceName"></span>
+        </div>
+        <div class="mb-3">
+          <strong>Date and time:</strong> <span id="detailDateTime"></span>
+        </div>
+        <div class="mb-3">
+          <strong>Status:</strong> <span id="detailStatus"></span>
+        </div>
+        <div class="mb-3">
+          <strong>Notes:</strong>
+          <div id="detailNotes"></div>
+        </div>
+      </div>
+      <div class="modal-footer" id="appointmentActions">
+        <!-- Кнопки дій з'являться тут -->
+      </div>
     </div>
+  </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
+{% endblock %} {% block scripts %}
 <!-- Підключаємо FullCalendar -->
-<link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/uk.min.js'></script>
+<link
+  href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css"
+  rel="stylesheet"
+/>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/uk.min.js"></script>
 
 <script>
-const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-document.addEventListener('DOMContentLoaded', function() {
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+  document.addEventListener("DOMContentLoaded", function () {
     // Ініціалізація календаря
-    const calendarEl = document.getElementById('calendar');
+    const calendarEl = document.getElementById("calendar");
     const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
-        locale: 'uk',
-        events: '/nurse/get_appointments',
-        eventClick: function(info) {
-            // Заповнюємо модальне вікно даними
-            const props = info.event.extendedProps;
-            document.getElementById('detailClientName').textContent = props.client_name;
-            document.getElementById('detailServiceName').textContent = props.service_name;
-            document.getElementById('detailDateTime').textContent = 
-                info.event.start.toLocaleString('uk-UA');
-            document.getElementById('detailStatus').textContent = 
-                getStatusText(props.status);
-            document.getElementById('detailNotes').textContent = 
-                props.notes || 'Немає приміток';
-                
-            // Додаємо кнопки дій залежно від статусу
-            const actionsContainer = document.getElementById('appointmentActions');
-            actionsContainer.innerHTML = '';
-            
-            if (props.status === 'scheduled') {
-                // Кнопки для запланованого запису
-                actionsContainer.innerHTML = `
+      initialView: "dayGridMonth",
+      headerToolbar: {
+        left: "prev,next today",
+        center: "title",
+        right: "dayGridMonth,timeGridWeek,timeGridDay",
+      },
+      locale: "en",
+      events: "/nurse/get_appointments",
+      eventClick: function (info) {
+        // Заповнюємо модальне вікно даними
+        const props = info.event.extendedProps;
+        document.getElementById("detailClientName").textContent =
+          props.client_name;
+        document.getElementById("detailServiceName").textContent =
+          props.service_name;
+        document.getElementById("detailDateTime").textContent =
+          info.event.start.toLocaleString("uk-UA");
+        document.getElementById("detailStatus").textContent = getStatusText(
+          props.status
+        );
+        document.getElementById("detailNotes").textContent =
+          props.notes || "No comments";
+
+        // Додаємо кнопки дій залежно від статусу
+        const actionsContainer = document.getElementById("appointmentActions");
+        actionsContainer.innerHTML = "";
+
+        if (props.status === "scheduled") {
+          // Кнопки для запланованого запису
+          actionsContainer.innerHTML = `
                     <button class="btn btn-success" onclick="updateStatus(${info.event.id}, 'confirmed')">
-                        Підтвердити
+                        Confirm
                     </button>
                     <button class="btn btn-danger" onclick="updateStatus(${info.event.id}, 'cancelled')">
-                        Скасувати
+                        Cancell
                     </button>
                 `;
-            } else if (props.status === 'confirmed') {
-                // Кнопка для підтвердженого запису
-                actionsContainer.innerHTML = `
+        } else if (props.status === "confirmed") {
+          // Кнопка для підтвердженого запису
+          actionsContainer.innerHTML = `
                     <button class="btn btn-primary" onclick="updateStatus(${info.event.id}, 'completed')">
-                        Завершити
+                        Done
                     </button>
                 `;
-            }
-            
-            const modal = new bootstrap.Modal(document.getElementById('appointmentDetailsModal'));
-            modal.show();
         }
+
+        const modal = new bootstrap.Modal(
+          document.getElementById("appointmentDetailsModal")
+        );
+        modal.show();
+      },
     });
     calendar.render();
-    
-    // Функція для оновлення статусу
-    window.updateStatus = function(appointmentId, status) {
-        fetch('/nurse/update_appointment_status', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken 
 
-            },
-            body: JSON.stringify({
-                appointment_id: appointmentId,
-                status: status
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                calendar.refetchEvents();
-                bootstrap.Modal.getInstance(document.getElementById('appointmentDetailsModal')).hide();
-            }
+    // Функція для оновлення статусу
+    window.updateStatus = function (appointmentId, status) {
+      fetch("/nurse/update_appointment_status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify({
+          appointment_id: appointmentId,
+          status: status,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            calendar.refetchEvents();
+            bootstrap.Modal.getInstance(
+              document.getElementById("appointmentDetailsModal")
+            ).hide();
+          }
         });
     };
-    
+
     // Допоміжна функція для відображення статусу
     function getStatusText(status) {
-        const statuses = {
-            'scheduled': 'Заплановано',
-            'confirmed': 'Підтверджено',
-            'completed': 'Завершено',
-            'cancelled': 'Скасовано'
-        };
-        return statuses[status] || status;
+      const statuses = {
+        scheduled: "scheduled",
+        confirmed: "confirmed",
+        completed: "completed",
+        cancelled: "cancel",
+      };
+      return statuses[status] || status;
     }
-});
+  });
 </script>
 
 <style>
-    #calendar {
-        max-width: 100%;
-        margin: 0 auto;
-        background-color: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
+  #calendar {
+    max-width: 100%;
+    margin: 0 auto;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
 </style>
 {% endblock %}

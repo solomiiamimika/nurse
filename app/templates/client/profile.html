@@ -1,119 +1,108 @@
-{% extends "base.html" %} 
-{% block content %}
-<div class="container mt-4">
-  <h2>Профіль клієнта</h2>
+{% extends "base.html" %} {% block content %}
+<div class="client-profile-page">
 
 
-  <!-- Повідомлення про успіх/помилку -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+  <h2 class="client-profile-title">Profile</h2>
 
-  <!-- QR код та кнопка генерації -->
-  <div class="card mb-4">
+  <!-- FLASH MESSAGES -->
+  {% with messages = get_flashed_messages(with_categories=true) %} {% if
+  messages %} {% for category, message in messages %}
+  <div
+    class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show"
+  >
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %} {% endif %} {% endwith %}
+
+  <!-- QR BLOCK -->
+  <div class="card mb-4 qr-card">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <h5 class="mb-0">QR-код вашого профілю</h5>
+      <span>Your profile QR Code</span>
       <button id="generateQRBtn" class="btn btn-sm btn-outline-primary">
-        Згенерувати QR-код
+        Generate
       </button>
     </div>
+
     <div class="card-body text-center">
       <div id="qrCodeContainer" class="d-none">
         <div id="qrcode" class="mb-3"></div>
         <p class="text-muted small">
-          Цей QR-код містить вашу контактну інформацію та медичні дані.
-          Лікар може відсканувати його для отримання інформації без необхідності входу в систему.
+          This QR code contains your medical and contact information.
         </p>
-        <a id="downloadQR" href="#" class="btn btn-sm btn-success">
-          Завантажити QR-код
-        </a>
+        <a id="downloadQR" href="#" class="btn btn-sm btn-success">Download</a>
       </div>
+
       <div id="qrCodePlaceholder" class="text-muted">
-        Натисніть кнопку "Згенерувати QR-код" для створення коду з вашою інформацією.
+        Click “Generate” to create a QR code
       </div>
     </div>
   </div>
 
-  <!-- Фото профілю -->
+  <!-- PHOTO -->
   {% if user.profile_picture %}
   <img
     src="{{ url_for('static', filename='uploads/profile_pictures/' ~ user.profile_picture) }}"
+    class="client-avatar"
     alt="Фото профілю"
-    class="rounded-circle mb-3"
-    style="width: 150px; height: 150px; object-fit: cover"
-    onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
   />
-  {% endif %}
-  
-  {% if not user.profile_picture %}
-  <div class="mb-3 p-3 bg-light rounded">
-    <p class="mb-0">Фото профілю не завантажено.</p>
-  </div>
+  {% else %}
+  <div class="client-no-photo">Profile photo not uploaded.</div>
   {% endif %}
 
-  <!-- Форма оновлення профілю -->
-  <form method="POST" enctype="multipart/form-data" class="mb-4">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    
+  <!-- FORM -->
+  <form method="POST" enctype="multipart/form-data" class="client-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
     <div class="mb-3">
-      <label for="full_name" class="form-label">Повне ім'я:</label>
+      <label class="form-label">Full name</label>
       <input
         type="text"
         name="full_name"
-        id="full_name"
         class="form-control"
         value="{{ user.full_name or '' }}"
-
       />
     </div>
 
     <div class="mb-3">
-      <label for="phone_number" class="form-label">Телефон:</label>
+      <label class="form-label">Phote number</label>
       <input
         type="text"
         name="phone_number"
-        id="phone_number"
         class="form-control"
         value="{{ user.phone_number or '' }}"
       />
     </div>
-    
+
     <div class="mb-3">
-      <label for="date_birth" class="form-label">Дата народження:</label>
+      <label class="form-label">Birth date</label>
       <input
         type="date"
         name="date_birth"
-        id="date_birth"
         class="form-control"
         value="{{ formatted_date }}"
       />
     </div>
 
     <div class="mb-3">
-      <label for="about_me" class="form-label">Про себе:</label>
-      <textarea name="about_me" id="about_me" class="form-control" rows="3">{{ user.about_me or '' }}</textarea>
+      <label class="form-label">About me</label>
+      <textarea name="about_me" class="form-control" rows="3">
+{{ user.about_me or '' }}</textarea
+      >
     </div>
 
     <div class="mb-3">
-      <label for="address" class="form-label">Адреса:</label>
+      <label class="form-label">Adress</label>
       <input
         type="text"
         name="address"
-        id="address"
         class="form-control"
         value="{{ user.address or '' }}"
       />
     </div>
-    
+
     <div class="mb-3">
-      <label for="profile_picture" class="form-label">Фото профілю:</label>
+      <label class="form-label">Profile photo:</label>
       <input
         type="file"
         name="profile_picture"
@@ -121,11 +110,11 @@
         class="form-control"
         accept="image/*"
       />
-      <div class="form-text">Приймаються JPG, PNG, GIF (макс. 5MB)</div>
+      <div class="form-text">JPG, PNG, and GIF are accepted (max 5MB)</div>
     </div>
 
     <div class="mb-3">
-      <label for="documents" class="form-label">Завантажити документи:</label>
+      <label class="form-label">Download documents</label>
       <input
         type="file"
         name="documents"
@@ -133,41 +122,32 @@
         multiple
         class="form-control"
       />
-      <div class="form-text">Можна вибрати кілька файлів (PDF, JPG, PNG)</div>
+      <div class="form-text">You can select multiple files (PDF, JPG, PNG)</div>
     </div>
 
-    <button type="submit" class="btn btn-primary">Оновити профіль</button>
-    <a href="{{ url_for('client.dashboard') }}" class="btn btn-secondary">Назад до панелі</a>
+    <button type="submit" class="btn btn-primary">Update</button>
+    <a href="{{ url_for('client.dashboard') }}" class="btn btn-secondary mt-2"
+      >Back</a
+    >
   </form>
 
-  <hr />
+  <!-- DOCUMENT LIST -->
+  <h4 class="mt-4 mb-3" style="color: var(--green-700)">Your documents</h4>
 
-  <!-- Перелік документів -->
-  <h4>Ваші документи:</h4>
-  {% if user_documents %}
-  <ul class="list-group" id="documents-list">
-    {% for doc in user_documents %}
-    <li
-      class="list-group-item d-flex justify-content-between align-items-center"
-      data-filename="{{ doc }}"
+  {% if user_documents %} {% for doc in user_documents %}
+  <div
+    class="client-doc-item d-flex justify-content-between align-items-center"
+    data-filename="{{ doc }}"
+  >
+    <a
+      href="{{ url_for('static', filename='uploads/documents/' ~ doc) }}"
+      target="_blank"
+      >📄 {{ doc }}</a
     >
-      <a
-        href="{{ url_for('static', filename='uploads/documents/' ~ doc) }}"
-        target="_blank"
-        class="text-decoration-none"
-      >
-        📄 {{ doc }}
-      </a>
-      <button type="button" class="btn btn-sm btn-danger delete-doc-btn">
-        Видалити
-      </button>
-    </li>
-    {% endfor %}
-  </ul>
-  {% else %}
-  <div class="alert alert-info">
-    Документи не завантажено.
+    <button class="btn btn-sm btn-danger delete-doc-btn">Delete</button>
   </div>
+  {% endfor %} {% else %}
+  <div class="alert alert-info">Documents not uploaded.</div>
   {% endif %}
 </div>
 
@@ -184,17 +164,20 @@
         const li = event.target.closest("li");
         const filename = li.getAttribute("data-filename");
 
-        if (!confirm(`Видалити документ "${filename}"?`)) return;
+        if (!confirm(`Delete document "${filename}"?`)) return;
 
         try {
-          const response = await fetch('{{ url_for("client.delete_document") }}', {
-            method: "POST",
-            headers: {
+          const response = await fetch(
+            '{{ url_for("client.delete_document") }}',
+            {
+              method: "POST",
+              headers: {
                 "Content-Type": "application/json",
-                "X-CSRFToken": "{{ csrf_token() }}"
-            },
-            body: JSON.stringify({ doc_name: filename })
-          });
+                "X-CSRFToken": "{{ csrf_token() }}",
+              },
+              body: JSON.stringify({ doc_name: filename }),
+            }
+          );
 
           const result = await response.json();
 
@@ -205,93 +188,105 @@
               location.reload();
             }
           } else {
-            alert("Помилка: " + result.message);
+            alert("Error: " + result.message);
           }
         } catch (error) {
-          alert("Помилка сервера: " + error.message);
+          alert("Server error: " + error.message);
         }
       }
     });
 
     // Додаткова перевірка для фото
-    const profilePicInput = document.getElementById('profile_picture');
+    const profilePicInput = document.getElementById("profile_picture");
     if (profilePicInput) {
-      profilePicInput.addEventListener('change', function() {
+      profilePicInput.addEventListener("change", function () {
         const file = this.files[0];
         if (file) {
           // Перевірка розміру файлу (макс. 5MB)
           if (file.size > 5 * 1024 * 1024) {
-            alert('Файл занадто великий. Максимальний розмір - 5MB.');
-            this.value = '';
+            alert("The file is too large. The maximum size is 5MB.");
+            this.value = "";
           }
-          
+
           // Перевірка типу файлу
-          const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+          const validTypes = ["image/jpeg", "image/png", "image/gif"];
           if (!validTypes.includes(file.type)) {
-            alert('Дозволені лише JPG, PNG та GIF файли.');
-            this.value = '';
+            alert("Only JPG, PNG, and GIF files are allowed.");
+            this.value = "";
           }
         }
       });
     }
 
     // Обробник для генерації QR-коду
-    const generateQRBtn = document.getElementById('generateQRBtn');
+    const generateQRBtn = document.getElementById("generateQRBtn");
     if (generateQRBtn) {
-      generateQRBtn.addEventListener('click', async function() {
+      generateQRBtn.addEventListener("click", async function () {
         try {
           // Показуємо індикатор завантаження
-          generateQRBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Генерація...';
+          generateQRBtn.innerHTML =
+            '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
           generateQRBtn.disabled = true;
-          
+
           // Отримуємо дані з сервера
-          const response = await fetch('{{ url_for("client.generate_qr_data") }}');
+          const response = await fetch(
+            '{{ url_for("client.generate_qr_data") }}'
+          );
           const qrData = await response.json();
-          
+
           // Генеруємо QR-код
-          const qrContainer = document.getElementById('qrcode');
-          qrContainer.innerHTML = '';
-          
+          const qrContainer = document.getElementById("qrcode");
+          qrContainer.innerHTML = "";
+
           // Використовуємо toDataURL для створення зображення
-          QRCode.toDataURL(qrData.profile_url, {  // Використовуємо URL, а не JSON
-            width: 200,
-            margin: 1,
-            color: {
-              dark: '#000000',
-              light: '#ffffff'
-            }
-          }, function(error, url) {
-            if (error) {
-              console.error(error);
-              alert('Помилка при генерації QR-коду');
-              generateQRBtn.innerHTML = 'Згенерувати QR-код';
+          QRCode.toDataURL(
+            qrData.profile_url,
+            {
+              // Використовуємо URL, а не JSON
+              width: 200,
+              margin: 1,
+              color: {
+                dark: "#000000",
+                light: "#ffffff",
+              },
+            },
+            function (error, url) {
+              if (error) {
+                console.error(error);
+                alert("An error occurred while generating the QR code");
+                generateQRBtn.innerHTML = "Generate QR code";
+                generateQRBtn.disabled = false;
+                return;
+              }
+
+              // Створюємо img елемент з QR-кодом
+              const img = document.createElement("img");
+              img.src = url;
+              img.alt = "Profile QR code ";
+              qrContainer.appendChild(img);
+
+              // Показуємо контейнер з QR-кодом
+              document
+                .getElementById("qrCodeContainer")
+                .classList.remove("d-none");
+              document
+                .getElementById("qrCodePlaceholder")
+                .classList.add("d-none");
+
+              // Додаємо посилання для завантаження
+              const downloadLink = document.getElementById("downloadQR");
+              downloadLink.href = url;
+              downloadLink.download = "medical-profile-qr.png";
+
+              // Відновлюємо кнопку
+              generateQRBtn.innerHTML = "Update QR code";
               generateQRBtn.disabled = false;
-              return;
             }
-            
-            // Створюємо img елемент з QR-кодом
-            const img = document.createElement('img');
-            img.src = url;
-            img.alt = "QR код профілю";
-            qrContainer.appendChild(img);
-            
-            // Показуємо контейнер з QR-кодом
-            document.getElementById('qrCodeContainer').classList.remove('d-none');
-            document.getElementById('qrCodePlaceholder').classList.add('d-none');
-            
-            // Додаємо посилання для завантаження
-            const downloadLink = document.getElementById('downloadQR');
-            downloadLink.href = url;
-            downloadLink.download = 'medical-profile-qr.png';
-            
-            // Відновлюємо кнопку
-            generateQRBtn.innerHTML = 'Оновити QR-код';
-            generateQRBtn.disabled = false;
-          });
+          );
         } catch (error) {
-          console.error('Помилка:', error);
-          alert('Сталася помилка при генерації QR-коду');
-          generateQRBtn.innerHTML = 'Згенерувати QR-код';
+          console.error("Error:", error);
+          alert("An error occurred while generating the QR code");
+          generateQRBtn.innerHTML = "Generate QR code";
           generateQRBtn.disabled = false;
         }
       });

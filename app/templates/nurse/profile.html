@@ -1,27 +1,29 @@
 {% extends "base.html" %} {% block content %}
-<div class="container mt-4">
-  <h2>Профіль медсестри</h2>
-  <div style="position: absolute; top: 10px; right: 10px; z-index: 9999">
-        <a href="{{ url_for('nurse.dashboard') }}" style="font-size: 24px">☰</a>
-  </div> 
+<div class="container mt-4 profile-page">
+  <h2 class="profile-title">Service provider profile</h2>
+
+  <!-- Гамбургер-меню -->
+  <div class="profile-menu-icon">
+    <a href="{{ url_for('nurse.dashboard') }}">☰</a>
+  </div>
 
   <!-- Фото профілю -->
   {% if user.photo %}
   <img
     src="{{ url_for('static', filename='uploads/profile_pictures/' ~ user.photo) }}"
-    alt="Фото профілю"
-    class="rounded-circle mb-3"
-    style="width: 150px; height: 150px; object-fit: cover"
+    alt="Profile photo"
+    class="rounded-circle mb-3 profile-avatar"
   />
   {% else %}
-  <p>Фото профілю не завантажено.</p>
+  <p class="profile-placeholder-text">Profile photo not uploaded.</p>
   {% endif %}
 
   <!-- Форма оновлення профілю -->
-  <form method="POST" enctype="multipart/form-data" class="mb-4">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <form method="POST" enctype="multipart/form-data" class="mb-4 profile-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
     <div class="mb-3">
-      <label for="full_name" class="form-label">Повне ім’я:</label>
+      <label for="full_name" class="form-label">Full name:</label>
       <input
         type="text"
         name="full_name"
@@ -32,7 +34,7 @@
     </div>
 
     <div class="mb-3">
-      <label for="phone_number" class="form-label">Телефон:</label>
+      <label for="phone_number" class="form-label">Phone number:</label>
       <input
         type="text"
         name="phone_number"
@@ -43,7 +45,7 @@
     </div>
 
     <div class="mb-3">
-      <label for="date_birth" class="form-label">Дата народження:</label>
+      <label for="date_birth" class="form-label">Birth date:</label>
       <input
         type="date"
         name="date_birth"
@@ -54,14 +56,14 @@
     </div>
 
     <div class="mb-3">
-      <label for="about_me" class="form-label">Про себе:</label>
+      <label for="about_me" class="form-label">About me:</label>
       <textarea name="about_me" id="about_me" class="form-control" rows="3">
 {{ user.about_me or '' }}</textarea
       >
     </div>
 
     <div class="mb-3">
-      <label for="address" class="form-label">Адреса:</label>
+      <label for="address" class="form-label">Address:</label>
       <input
         type="text"
         name="address"
@@ -72,7 +74,7 @@
     </div>
 
     <div class="mb-3">
-      <label for="profile_picture" class="form-label">Фото профілю:</label>
+      <label for="profile_picture" class="form-label">Profile photo:</label>
       <input
         type="file"
         name="profile_picture"
@@ -82,7 +84,7 @@
     </div>
 
     <div class="mb-3">
-      <label for="documents" class="form-label">Завантажити документи:</label>
+      <label for="documents" class="form-label">Documents upload:</label>
       <input
         type="file"
         name="documents"
@@ -92,16 +94,18 @@
       />
     </div>
 
-    <button type="submit" class="btn btn-primary">Оновити профіль</button>
-    <a href="{{ url_for('nurse.dashboard') }}" class="btn btn-secondary">Назад до панелі</a>
+    <button type="submit" class="btn btn-primary">Update profile</button>
+    <a href="{{ url_for('nurse.dashboard') }}" class="btn btn-secondary">
+      Back to dashboard
+    </a>
   </form>
 
   <hr />
 
   <!-- Перелік документів -->
-  <h4>Ваші документи:</h4>
+  <h4 class="profile-subtitle">Your documents:</h4>
   {% if user_documents %}
-  <ul class="list-group" id="documents-list">
+  <ul class="list-group profile-doc-list" id="documents-list">
     {% for doc in user_documents %}
     <li
       class="list-group-item d-flex justify-content-between align-items-center"
@@ -113,13 +117,13 @@
         >{{ doc }}</a
       >
       <button type="button" class="btn btn-sm btn-danger delete-doc-btn">
-        Видалити
+        Delete
       </button>
     </li>
     {% endfor %}
   </ul>
   {% else %}
-  <p>Документи не завантажено.</p>
+  <p class="profile-placeholder-text">Documents not uploaded.</p>
   {% endif %}
 </div>
 
@@ -133,7 +137,7 @@
         const li = event.target.closest("li");
         const filename = li.getAttribute("data-filename");
 
-        if (!confirm(`Видалити документ "${filename}"?`)) return;
+        if (!confirm(`Delete document "${filename}"?`)) return;
 
         try {
           const formData = new FormData();
@@ -153,10 +157,10 @@
             li.remove();
             alert(result.message);
           } else {
-            alert("Помилка: " + result.message);
+            alert("Error: " + result.message);
           }
         } catch (error) {
-          alert("Помилка сервера: " + error.message);
+          alert("Server error: " + error.message);
         }
       }
     });

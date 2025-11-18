@@ -111,7 +111,7 @@ def update_location():
         
         return jsonify({
             'success': True,
-            'message': 'Локація оновлена',
+            'message': 'Location updated',
             'latitude': current_user.latitude,
             'longitude': current_user.longitude
         })
@@ -122,7 +122,7 @@ def update_location():
 @login_required
 def get_nurses_locations():
     if current_user.role != 'client':
-        return jsonify({'error': 'Доступ заборонено'}), 403
+        return jsonify({'error': 'Entrance not allowed'}), 403
     
     nurses = User.query.filter(
         User.role == 'nurse',

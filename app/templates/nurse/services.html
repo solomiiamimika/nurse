@@ -1,20 +1,23 @@
 {% extends "base.html" %} 
 {% block content %}
 <div class="nurse-services">
-  <h2>Управління послугами</h2>
+   <a href="javascript:history.back()" class="btn btn-outline-secondary mb-3">
+    ← Back
+  </a>
+  <h2>Service Management</h2>
 
   <!-- Standard Services Section -->
   <div class="standard-services mb-5">
-    <h4>Стандартні послуги</h4>
+    <h4>Standart services</h4>
     <div class="table-responsive">
       <table class="table table-striped">
         <thead>
           <tr>
-            <th>Назва</th>
-            <th>Опис</th>
-            <th>Базова ціна</th>
-            <th>Базова тривалість</th>
-            <th>Дії</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Prise</th>
+            <th>Duration</th>
+            <th>Service</th>
           </tr>
         </thead>
         <tbody>
@@ -35,13 +38,13 @@
                 data-description="{{ nurse_service.description }}"
                 data-available="{{ nurse_service.is_available }}"
               >
-                <i class="fas fa-edit"></i> Змінити
+                <i class="fas fa-edit"></i> Change
               </button>
               <button
                 class="btn btn-sm btn-danger remove-service-btn"
                 data-service-id="{{ service.id }}"
               >
-                <i class="fas fa-trash"></i> Видалити
+                <i class="fas fa-trash"></i> Delete
               </button>
               {% else %}
               <button
@@ -49,8 +52,9 @@
                 data-service-id="{{ service.id }}"
                 data-name="{{ service.name }}"
               >
-                <i class="fas fa-plus"></i> Додати
+                <i class="fas fa-plus"></i> Add
               </button>
+              
               {% endif %}
             </td>
           </tr>
@@ -63,21 +67,20 @@
   <!-- Custom Services Section -->
   <div class="custom-services">
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h4>Мої послуги</h4>
+      <h4>My services</h4>
       <button class="btn btn-primary" id="addCustomServiceBtn">
-        <i class="fas fa-plus"></i> Додати власну послугу
-      </button>
+        <i class="fas fa-plus"></i> Add my service
     </div>
     <div class="table-responsive">
       <table class="table table-striped">
         <thead>
           <tr>
-            <th>Назва</th>
-            <th>Опис</th>
-            <th>Ціна</th>
-            <th>Тривалість</th>
-            <th>Статус</th>
-            <th>Дії</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Duration</th>
+            <th>Status</th>
+            <th>Service</th>
           </tr>
         </thead>
         <tbody>
@@ -89,9 +92,9 @@
             <td>{{ service.duration }} хв</td>
             <td>
               {% if service.is_available %}
-                <span class="badge bg-success">Доступна</span>
+                <span class="badge bg-success">Available</span>
               {% else %}
-                <span class="badge bg-secondary">Недоступна</span>
+                <span class="badge bg-secondary">Unavailable</span>
               {% endif %}
             </td>
             <td>
@@ -105,14 +108,14 @@
                 data-name="{{ service.name }}"
                 data-custom="true"
               >
-                <i class="fas fa-edit"></i> Змінити
+                <i class="fas fa-edit"></i> Change
               </button>
               <button
                 class="btn btn-sm btn-danger remove-service-btn"
                 data-service-id="{{ service.id }}"
                 data-custom="true"
               >
-                <i class="fas fa-trash"></i> Видалити
+                <i class="fas fa-trash"></i> Delete
               </button>
             </td>
           </tr>
@@ -128,7 +131,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="serviceModalTitle">Додати послугу</h5>
+        <h5 class="modal-title" id="serviceModalTitle">Add service </h5>
         <button
           type="button"
           class="btn-close"
@@ -144,7 +147,7 @@
 
         <div class="modal-body">
           <div class="mb-3" id="customNameField">
-            <label for="name" class="form-label">Назва послуги</label>
+            <label for="name" class="form-label">Service name</label>
             <input
               type="text"
               class="form-control"
@@ -154,7 +157,7 @@
             />
           </div>
           <div class="mb-3">
-            <label for="price" class="form-label">Ціна (грн)</label>
+            <label for="price" class="form-label">Price(Eur)</label>
             <input
               type="number"
               step="0.01"
@@ -165,7 +168,7 @@
             />
           </div>
           <div class="mb-3">
-            <label for="duration" class="form-label">Тривалість (хвилини)</label>
+            <label for="duration" class="form-label">Duration (min)</label>
             <input
               type="number"
               class="form-control"
@@ -175,7 +178,7 @@
             />
           </div>
           <div class="mb-3">
-            <label for="description" class="form-label">Опис (необов'язково)</label>
+            <label for="description" class="form-label">Description (not necessarily)</label>
             <textarea
               class="form-control"
               id="description"
@@ -192,7 +195,7 @@
               checked
             />
             <label class="form-check-label" for="is_available"
-              >Доступна для запису</label
+              >Available for booking</label
             >
           </div>
         </div>
@@ -202,9 +205,9 @@
             class="btn btn-secondary"
             data-bs-dismiss="modal"
           >
-            Скасувати
+            Cancel
           </button>
-          <button type="submit" class="btn btn-primary">Зберегти</button>
+          <button type="submit" class="btn btn-primary">Save</button>
         </div>
       </form>
     </div>
@@ -216,15 +219,15 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Підтвердження видалення</h5>
+        <h5 class="modal-title">Deletion confirmation</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        Ви впевнені, що хочете видалити цю послугу?
+        Are you sure you want to delete this service?
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
-        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Видалити</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
       </div>
     </div>
   </div>

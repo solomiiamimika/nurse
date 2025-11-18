@@ -171,7 +171,7 @@
         center: "title",
         right: "dayGridMonth,timeGridWeek,timeGridDay",
       },
-      locale: "uk",
+      locale: "en",
       events: "/client/get_appointments",
       eventClick: function (info) {
         currentAppointmentId = info.event.id;
@@ -478,7 +478,7 @@
           }
         })
         .catch((error) => {
-          console.error("Помилка:", error);
+          console.error("Error:", error);
           alert("An error occurred while submitting the feedback");
         })
         .finally(() => {

@@ -57,7 +57,7 @@
                 type="text"
                 id="messageInput"
                 class="form-control"
-                placeholder="Введіть повідомлення..."
+                placeholder="Enter your message..."
               />
               <button class="btn btn-primary" id="sendMessageBtn">
                 <i class="fas fa-paper-plane"></i>
@@ -89,7 +89,7 @@
         });
 
         socket.on("new_message", (data) => {
-          console.log("Отримано нове повідомлення:", data);
+          console.log("New message received:", data);
           if (
             data.sender_id.toString() ===
             document.getElementById("chatModal").dataset.recipientId
@@ -99,11 +99,11 @@
         });
 
         socket.on("message_sent", (data) => {
-          console.log("Повідомлення доставлено:", data);
+          console.log("Message delivered:", data);
         });
 
         socket.on("error", (data) => {
-          console.error("Помилка Socket.IO:", data.message);
+          console.error("Error Socket.IO:", data.message);
         });
       }
 

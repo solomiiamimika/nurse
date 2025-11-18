@@ -44,68 +44,53 @@
       <i class="fas fa-search"></i> Find
     </button>
   </form>
-  </div>
-  
+</div>
 
-  <div class="row">
+<div class="premium-box mt-4">
+  <div class="row g-4">
     <div class="col-md-8">
-      <div class="card mb-4">
-        <div class="card-header">
-          <h5>Nearby services map</h5>
-        </div>
-        <div class="card-body">
-          <div id="nursesMap" style="height: 500px; width: 100%"></div>
-        </div>
-      </div>
+      <h5 class="premium-title">Nearby services map</h5>
+      <div id="nursesMap" style="height: 480px; width: 100%"></div>
     </div>
 
     <div class="col-md-4">
-      <div class="card mb-4" style="height: 500px; overflow-y: auto">
-        <div class="card-header">
-          <h5>Search results</h5>
-        </div>
-        <div class="card-body">
-          {% if nurses %} {% for nurse in nurses %}
-          <div class="card mb-2 nurse-item border-start border-4 border-info">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-start">
-                <h6 class="card-title">
-                  {{ nurse.full_name or nurse.user_name }}
-                </h6>
-                {% if nurse.online %}
-                <span class="badge bg-success">Online</span>
-                {% else %}
-                <span class="badge bg-secondary">Offline</span>
-                {% endif %}
-              </div>
+      <h5 class="premium-title">Search results</h5>
 
-              <p class="card-text mb-1 small text-muted">
-                <i class="fas fa-map-marker-alt"></i>
-                {{ nurse.address or "Локація не вказана" }}
-              </p>
+      <div style="height: 480px; overflow-y: auto; padding-right: 10px">
+        {% if nurses %} {% for nurse in nurses %}
+        <div class="card mb-3 nurse-item">
+          <div class="card-body">
+            <h6>{{ nurse.full_name or nurse.user_name }}</h6>
 
-              <div class="mt-2 d-grid gap-2">
-                <button
-                  class="btn btn-sm btn-outline-primary"
-                  onclick="openChat('{{ nurse.id }}', '{{ nurse.full_name or nurse.user_name }}')"
-                >
-                  <i class="fas fa-comment"></i> Chat
-                </button>
-                <button
-                  class="btn btn-sm btn-success"
-                  onclick="openBookingModal('{{ nurse.id }}', '{{ nurse.full_name or nurse.user_name }}')"
-                >
-                  <i class="fas fa-plus"></i> Book now
-                </button>
-              </div>
-            </div>
+            {% if nurse.online %}
+            <span class="badge badge-online">Online</span>
+            {% else %}
+            <span class="badge badge-offline">Offline</span>
+            {% endif %}
+
+            <p class="small text-muted mt-2">
+              <i class="fas fa-map-marker-alt"></i> {{ nurse.address or
+              'Location not found' }}
+            </p>
+
+            <button
+              class="btn-premium mt-2"
+              onclick="openChat('{{ nurse.id }}','{{ nurse.full_name }}')"
+            >
+              Chat
+            </button>
+
+            <button
+              class="btn-premium-secondary mt-2"
+              onclick="openBookingModal('{{ nurse.id }}','{{ nurse.full_name }}')"
+            >
+              Book now
+            </button>
           </div>
-          {% endfor %} {% else %}
-          <div class="alert alert-warning">
-            No services found for your request.
-          </div>
-          {% endif %}
         </div>
+        {% endfor %} {% else %}
+        <div class="alert alert-warning">No services found.</div>
+        {% endif %}
       </div>
     </div>
   </div>
