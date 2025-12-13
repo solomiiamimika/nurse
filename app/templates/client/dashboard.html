@@ -1,7 +1,7 @@
 {% extends "base.html" %} {% block content %}
 <div class="client-dashboard">
-  <h2>Hi, {{ current_user.full_name if current_user.full_name else current_user.user_name}}!</h2>
-  <h5 style="text-align: center">Client dashboard</h5>
+  <h2>Hi, {{ current_user.full_name if current_user.full_name else current_user.username}}!</h2>
+  <h5 style="text-align: center">client dashboard</h5>
 
   <div class="dashboard-options" style="margin-bottom: 20px">
     <form
@@ -179,31 +179,21 @@
   }
 
   // --- Ініціалізація Карти ---
- function initMap() {
+  function initMap() {
       try {
-          // 1. Отримуємо координати. Якщо в базі None, JS отримає null.
-          // Використовуємо конструкцію "if else" прямо в Jinja для надійності
-          const userLat = {{ current_user.latitude if current_user.latitude else 'null' }};
-          const userLng = {{ current_user.longitude if current_user.longitude else 'null' }};
+          const clientLat = {{ current_user.latitude | default(50.4501) }};
+          const clientLng = {{ current_user.longitude | default(30.5234) }};
 
-          // 2. Визначаємо центр карти. 
-          // Якщо у юзера є координати - центруємо на ньому.
-          // Якщо немає (новий акаунт) - центруємо на Києві (дефолт).
-          const mapCenterLat = userLat !== null ? userLat : 50.4501;
-          const mapCenterLng = userLng !== null ? userLng : 30.5234;
-
-          // 3. Створюємо карту
-          map = L.map('nursesMap').setView([mapCenterLat, mapCenterLng], 12);
-          
+          map = L.map('nursesMap').setView([clientLat, clientLng], 12);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
               attribution: '© OpenStreetMap contributors'
           }).addTo(map);
 
           nursesLayer.addTo(map);
 
-          // 4. Ставимо маркер "Я тут" ТІЛЬКИ якщо у юзера вже збережені координати
-          if (userLat !== null && userLng !== null) {
-              userMarker = L.marker([userLat, userLng], {
+          // Маркер КЛІЄНТА (Я)
+          if (clientLat && clientLng) {
+              userMarker = L.marker([clientLat, clientLng], {
                   icon: L.divIcon({
                       className: 'my-marker',
                       html: '<div style="background-color: blue; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white;"></div>',
