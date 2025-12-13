@@ -9,7 +9,7 @@ from sqlalchemy import func
     
 
 class User(db.Model, UserMixin):
-    __tablename__ = 'user'
+    __tablename__ ='user'
     id = Column(Integer, primary_key=True)
     user_name = Column(Text, unique=True, nullable=False, name='uq_user_user_name')
     email = Column(Text(), unique=True, nullable=False, name='uq_user_email')

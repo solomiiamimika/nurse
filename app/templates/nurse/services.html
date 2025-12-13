@@ -25,8 +25,8 @@
           <tr>
             <td>{{ service.name }}</td>
             <td>{{ service.description }}</td>
-            <td>{{ service.base_price }} грн</td>
-            <td>{{ service.base_duration }} хв</td>
+            <td>{{ service.base_price }} Euro</td>
+            <td>{{ service.base_duration }} min</td>
             <td>
               {% set nurse_service = nurse_services|selectattr("service_id", "equalto", service.id)|first %} 
               {% if nurse_service %}

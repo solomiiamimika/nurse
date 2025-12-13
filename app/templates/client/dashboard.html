@@ -1,6 +1,6 @@
 {% extends "base.html" %} {% block content %}
 <div class="client-dashboard">
-  <h2>Hi, {{ current_user.full_name }}!</h2>
+  <h2>Hi, {{ current_user.full_name if current_user.full_name else current_user.user_name}}!</h2>
   <h5 style="text-align: center">Client dashboard</h5>
 
   <div class="dashboard-options" style="margin-bottom: 20px">
