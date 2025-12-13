@@ -30,7 +30,7 @@
                         {% if user.profile_picture %}
                         <div class="text-center mb-4">
                             <img src="{{ url_for('static', filename='uploads/profile_pictures/' ~ user.profile_picture) }}" 
-                                 alt="Фото профілю" 
+                                 alt="Profile Picture" 
                                  class="rounded-circle img-thumbnail"
                                  style="width: 200px; height: 200px; object-fit: cover">
                         </div>
@@ -51,7 +51,7 @@
                                 <span class="fs-5">{{ user.full_name or 'Doesn't exist' }}</span>
                             </div>
                             <div class="col-md-6">
-                                <strong>Телефон:</strong> 
+                                <strong>Phone number:</strong> 
                                 <span class="fs-5">{{ user.phone_number or 'Doesn't exist' }}</span>
                             </div>
                         </div>
@@ -74,7 +74,7 @@
                                         {% set today = now.date() %}
                                         {% set birth_date = user.date_birth %}
                                         {% set age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day)) %}
-                                        {{ age }} років
+                                        {{ age }} years
                                     {% else %}
                                         Doesn't exist
                                     {% endif %}

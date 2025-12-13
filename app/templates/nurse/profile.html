@@ -2,12 +2,12 @@
 <div class="container mt-4 profile-page">
   <h2 class="profile-title">Service provider profile</h2>
 
-  <!-- Гамбургер-меню -->
+  <!-- Hamburger menu -->
   <div class="profile-menu-icon">
     <a href="{{ url_for('nurse.dashboard') }}">☰</a>
   </div>
 
-  <!-- Фото профілю -->
+  <!-- Profile photo -->
   {% if user.photo %}
   <img
     src="{{ url_for('static', filename='uploads/profile_pictures/' ~ user.photo) }}"
@@ -18,7 +18,7 @@
   <p class="profile-placeholder-text">Profile photo not uploaded.</p>
   {% endif %}
 
-  <!-- Форма оновлення профілю -->
+  <!-- Profile update form -->
   <form method="POST" enctype="multipart/form-data" class="mb-4 profile-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
@@ -102,7 +102,7 @@
 
   <hr />
 
-  <!-- Перелік документів -->
+  <!-- Document list -->
   <h4 class="profile-subtitle">Your documents:</h4>
   {% if user_documents %}
   <ul class="list-group profile-doc-list" id="documents-list">

@@ -81,7 +81,7 @@
         });
 
         socket.on("connect", () => {
-          console.log("Підключено до Socket.IO сервера");
+          console.log("Connected to the Socket.IO server.");
 
           if (window.currentUserId) {
             socket.emit("join", { user_id: window.currentUserId });

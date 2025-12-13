@@ -1,1003 +1,383 @@
-body {
-  font-family: 'Segoe UI', sans-serif;
-  margin: 0;
-  padding: 0;
-  background-image: url('2025-06-24 19.49.17.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  position: relative;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: -1;
-}
-
-.nurse-dashboard {
-  padding: 40px 20px;
-  background-color: rgba(255,255,255,0.9);
-  max-width: 1000px;
-  margin: auto;
-  border-radius: 15px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  margin-top: 50px;
-}
-
-h2 {
-  text-align: center;
-  font-size: 28px;
-  margin-bottom: 20px;
-  color: #2c3e50;
-}
-
-.dashboard-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 15px;
-  justify-content: center;
-}
-
-.dashboard-options button,
-.dashboard-options form button {
-  background-color: #5a6b4a;
-  color: white;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-weight: bold;
-  transition: 0.3s;
-  cursor: pointer;
-}
-
-.dashboard-options button:hover,
-.dashboard-options form button:hover {
-  background-color: #5a6b4a;
-}
-
-#status-message {
-  margin-top: 8px;
-  font-size: 14px;
-  color: rgb(133, 121, 222);
-  min-height: 20px;
-  text-align: center;
-}
-
-#map-container {
-  height: 500px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
-  margin-top: 20px;
-}
-
-.nurse-marker,
-.client-marker {
-  z-index: 1000;
-}
-
-@media (max-width: 768px) {
-  .dashboard-options {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .dashboard-options button,
-  .dashboard-options form button {
-    width: 100%;
-  
-}
-}
-
-
-.map-header{
-  background: rgba(255,255,255,.92);
-  backdrop-filter: blur(6px);
-  border-radius: 14px;
-  padding: 10px 12px;
-  margin: 12px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.12);
-  display:flex; gap:12px; align-items:center;
-}
-.map-header .brand{ font-weight:800; color:#2c3e50; }
-.map-header .search-pill input{
-  border: none; outline: none;
-  background: #f3f4f6;
-  padding: 10px 12px; border-radius: 12px;
-  width: 260px;
-}
-
-
-/* --- WOLT STYLE SEARCH BAR --- */
-.top-search-bar {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-  margin-top: 5px;
-  gap: 10px;
-}
-
-.search-input {
-  width: 70%;
-  max-width: 600px;
-  padding: 14px 22px;
-  border-radius: 999px;
-  /* повністю кругле */
-  border: 1px solid #e5e5e5;
-  background: white;
-
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
-  font-size: 16px;
-}
-
-.search-btn {
-  padding: 14px 24px;
-  background: white;
-  border: 1px solid #e5e5e5;
-
-  border-radius: 999px;
-  /* кругла як "Registrieren" */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
-
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.search-btn:hover {
-  background: #f8f8f8;
-}
-
-/* --- GLOBAL TOP GLASS BACKGROUND ---
-.top-glass-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 180px;
-  pointer-events: none;
-  z-index: 1;
-
-  background: linear-gradient(rgba(254, 174, 203, 0.6),
-      rgba(247, 113, 166, 0.15),
-      rgba(255, 180, 210, 0));
-
-  backdrop-filter: blur(18px); 
-}*/
-
-:root {
-  --green-700: #3f4a36;
-  --pink-200: #f2d3d8;
-  --text-light: #ffffff;
-
-  --radius: 14px;
-  --shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-}
-
-/* ====== PAGE WRAPPER ====== */
-.nurse-services {
-  padding: 20px;
-  background: #fafafa;
-}
-
-/* ====== BACK BUTTON (iOS style) ====== */
-.back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  padding: 10px 16px;
-  border-radius: var(--radius);
-  background: var(--green-700);
-  color: var(--text-light);
-  text-decoration: none;
-  box-shadow: var(--shadow);
-  transition: 0.2s ease;
-}
-
-.back-btn:hover {
-  background: #2f3929;
-  /* трішки темніше */
-}
-
-/* ====== HEADINGS ====== */
-.nurse-services h2,
-.nurse-services h4 {
-  font-weight: 600;
-  color: var(--green-700);
-}
-
-/* ====== TABLE WRAPPER ====== */
-.table-responsive {
-  border-radius: var(--radius);
-  overflow: hidden;
-  background: white;
-  box-shadow: var(--shadow);
-}
-
-/* TABLE HEADERS */
-.table th {
-  background: var(--pink-200);
-  color: var(--green-700);
-  font-weight: 600;
-}
-
-/* ====== BUTTONS (premium) ====== */
-.btn-primary {
-  background-color: var(--green-700) !important;
-  border: none;
-  color: var(--text-light);
-  border-radius: var(--radius);
-}
-
-.btn-primary:hover {
-  background-color: #2f3929 !important;
-}
-
-.btn-info {
-  background-color: var(--pink-200) !important;
-  border: none;
-  color: var(--green-700);
-  border-radius: var(--radius);
-}
-
-.btn-danger {
-  background-color: #b84a4a !important;
-  border: none;
-  color: white;
-  border-radius: var(--radius);
-}
-
-/* ====== BADGES ====== */
-.badge.bg-success {
-  background: var(--green-700) !important;
-}
-
-.badge.bg-secondary {
-  background: #c8c8c8 !important;
-}
-
-/* ====== MODAL (iOS premium) ====== */
-.modal-content {
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  border: none;
-}
-
-.modal-header {
-  background: var(--pink-200);
-  border-radius: var(--radius) var(--radius) 0 0;
-  border-bottom: none;
-}
-
-.modal-footer button {
-  border-radius: var(--radius);
-}
-
-/* ====== FORM ====== */
-.form-control {
-  border-radius: var(--radius);
-  border: 1px solid #dddddd;
-  padding: 10px;
-}
-
-.form-label {
-  color: var(--green-700);
-  font-weight: 500;
-}
-
-/* ====== MOBILE RESPONSIVENESS ====== */
-
-/* Phone view */
-@media (max-width: 576px) {
-
-  .nurse-services {
-    padding: 10px;
-  }
-
-  .back-btn {
-    padding: 8px 12px;
-    font-size: 14px;
-  }
-
-  /* Make tables scroll instead of breaking */
-  table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-
-  .btn {
-    padding: 6px 10px !important;
-    font-size: 13px !important;
-  }
-
-  .modal-content {
-    margin: 12px;
-  }
-}
-
-----------------
-
-:root {
-  --green-700: #3f4a36;
-  --pink-200: #f2d3d8;
-  --text-light: #ffffff;
-
-  --radius: 14px;
-  --shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-}
-
-/* ====== PAGE WRAPPER ====== */
-.nurse-dashboard {
-  padding: 20px;
-}
-
-/* ====== PAGE TITLE ====== */
-.nurse-dashboard h2 {
-  font-size: 26px;
-  font-weight: 600;
-  color: var(--green-700);
-  margin-bottom: 25px;
-}
-
-/* ====== TOP BUTTON PANEL (options) ====== */
-.dashboard-options {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 25px;
-}
-
-.dashboard-options .btn {
-  border-radius: var(--radius);
-  padding: 10px 16px;
-  font-size: 15px;
-  box-shadow: var(--shadow);
-}
-
-/* ====== Primary iOS-Uber BUTTONS ====== */
-.btn-info {
-  background: var(--pink-200) !important;
-  border: none;
-  color: var(--green-700);
-  font-weight: 500;
-}
-
-.btn-info:hover {
-  background: #e3bfc6 !important;
-}
-
-.btn-success {
-  background: var(--green-700) !important;
-  color: var(--text-light) !important;
-  border: none;
-}
-
-.btn-success:hover {
-  background: #2f3929 !important;
-}
-
-/* ====== CARDS ====== */
-.card {
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  border: none;
-  overflow: hidden;
-}
-
-.card-header {
-  background: var(--pink-200);
-  color: var(--green-700);
-  font-weight: 600;
-  font-size: 18px;
-}
-
-.card-body {
-  background: #ffffff;
-}
-
-/* ====== MAP ====== */
-#combinedMap {
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-/* ====== REQUEST CARDS (right column) ====== */
-.request-item {
-  border-radius: var(--radius);
-  border: 1px solid #eee;
-  box-shadow: var(--shadow);
-  padding: 12px;
-  transition: 0.2s ease;
-  cursor: pointer;
-}
-
-.request-item:hover {
-  transform: translateY(-2px);
-}
-
-/* ====== MODALS (iOS style) ====== */
-.modal-content {
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  border: none;
-}
-
-.modal-header {
-  background: var(--pink-200);
-  border-radius: var(--radius) var(--radius) 0 0;
-  border-bottom: none;
-  color: var(--green-700);
-}
-
-/* ====== CHAT WINDOW ====== */
-.chat-messages-container {
-  height: 300px;
-  overflow-y: auto;
-  padding: 12px;
-  border-radius: var(--radius);
-  background: #f7f7f7;
-}
-
-.message {
-  max-width: 80%;
-  margin-bottom: 10px;
-  padding: 10px 14px;
-  border-radius: var(--radius);
-  font-size: 14px;
-}
-
-.my-message {
-  background: var(--green-700);
-  color: var(--text-light);
-  margin-left: auto;
-  border-bottom-right-radius: 0;
-}
-
-.their-message {
-  background: var(--pink-200);
-  color: var(--green-700);
-  margin-right: auto;
-  border-bottom-left-radius: 0;
-}
-
-/* ====== MOBILE RESPONSIVE ====== */
-@media (max-width: 576px) {
-  .nurse-dashboard {
-    padding: 10px;
-  }
-
-  .nurse-dashboard h2 {
-    font-size: 22px;
-  }
-
-  .dashboard-options .btn {
-    padding: 8px 12px;
-    font-size: 14px;
-  }
-
-  .card-header {
-    font-size: 16px;
-  }
-
-  #combinedMap {
-    height: 350px !important;
-  }
-
-  .chat-messages-container {
-    height: 250px;
-  }
-}
--------------------------------------
-/* ============= PREMIUM DASHBOARD FINAL STYLE ============= */
-
-:root {
-  --green-700: #3f4a36;
-  --pink-200: #f2d3d8;
-  --text-light: #ffffff;
-
-  --radius: 14px;
-  --shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-}
-
-/* MAIN WRAPPER */
-.nurse-dashboard {
-  padding: 20px;
-  max-width: 1100px;
-  margin: auto;
-  border-radius: var(--radius);
-}
-
-/* PAGE TITLE */
-.nurse-dashboard h2 {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--green-700);
-  text-align: center;
-  margin-bottom: 25px;
-}
-
-/* OPTIONS PANEL */
-.dashboard-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
-}
-
-.dashboard-options .btn {
-  padding: 12px 18px;
-  font-size: 15px;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  border: none;
-}
-
-/* BUTTON COLORS */
-.btn-info {
-  background: var(--pink-200) !important;
-  color: var(--green-700) !important;
-}
-
-.btn-success {
-  background: var(--green-700) !important;
-  color: var(--text-light) !important;
-}
-
-/* CARDS */
-.card {
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  border: none;
-}
-
-.card-header {
-  background: var(--pink-200);
-  color: var(--green-700);
-  font-weight: 600;
-  font-size: 18px;
-}
-
-.card-body {
-  background: #ffffff;
-}
-
-/* MAP */
-#combinedMap {
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-/* REQUEST ITEMS */
-.request-item {
-  border-radius: var(--radius);
-  padding: 12px;
-  box-shadow: var(--shadow);
-  transition: 0.2s ease;
-  cursor: pointer;
-}
-
-.request-item:hover {
-  transform: translateY(-3px);
-}
-
-/* CHAT BUBBLES */
-.my-message {
-  background: var(--green-700);
-  color: var(--text-light);
-}
-
-.their-message {
-  background: var(--pink-200);
-  color: var(--green-700);
-}
-
-/* MOBILE */
-@media (max-width: 576px) {
-  .nurse-dashboard {
-    padding: 10px;
-  }
-
-  .dashboard-options .btn {
-    width: 100%;
-  }
-
-  #combinedMap {
-    height: 350px !important;
-  }
-}
-
-/* ---------------- PREMIUM PROFILE PAGE ---------------- */
-
-:root {
-  --green-700: #3f4a36;
-  --pink-200: #f2d3d8;
-  --text-light: #ffffff;
-
-  --radius: 18px;
-  --shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
-  --blur-bg: rgba(255, 255, 255, 0.62);
-}
-
-/* MAIN WRAPPER */
-.profile-page {
-  max-width: 650px;
-  margin: 40px auto;
-  padding: 24px;
-  border-radius: var(--radius);
-  backdrop-filter: blur(16px);
-  background: var(--blur-bg);
-  box-shadow: var(--shadow);
-  position: relative;
-}
-
-/* TITLE */
-.profile-title {
-  text-align: center;
-  font-size: 30px;
-  font-weight: 700;
-  color: var(--green-700);
-  margin-bottom: 25px;
-}
-
-/* MENU ICON — FLOATING BUTTON */
-.profile-menu-icon a {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: var(--green-700);
-  padding: 12px 16px;
-  border-radius: 50%;
-  color: white;
-  font-size: 22px;
-  box-shadow: var(--shadow);
-  text-decoration: none;
-  z-index: 9999;
-}
-
-/* AVATAR */
-.profile-avatar {
-  width: 150px;
-  height: 150px;
-  object-fit: cover;
-  margin: 0 auto 18px;
-  display: block;
-  border-radius: 50%;
-  box-shadow: 0 0 0 5px var(--pink-200), var(--shadow);
-}
-
-.profile-placeholder-text {
-  color: #666;
-  text-align: center;
-}
-
-/* FORM CARD */
-.profile-form {
-  background: rgba(255, 255, 255, 0.85);
-  padding: 22px;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  margin-bottom: 20px;
-}
-
-/* INPUTS — iOS STYLE */
-.profile-page .form-control {
-  border: none;
-  padding: 14px 16px;
-  border-radius: var(--radius);
-  background: #f5f5f5;
-  box-shadow: inset 0 0 0 1px #ddd;
-}
-
-/* LABEL */
-.profile-page .form-label {
-  font-weight: 600;
-  color: var(--green-700);
-}
-
-/* BUTTONS */
-.profile-page .btn-primary {
-  width: 100%;
-  padding: 14px;
-  border-radius: var(--radius);
-  font-size: 16px;
-  background: var(--green-700);
-  border: none;
-  color: var(--text-light);
-  box-shadow: var(--shadow);
-  margin-bottom: 10px;
-}
-
-.profile-page .btn-primary:hover {
-  background: #2f3929;
-}
-
-.profile-page .btn-secondary {
-  width: 100%;
-  padding: 14px;
-  font-size: 16px;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-/* DOCUMENTS TITLE */
-.profile-subtitle {
-  font-size: 22px;
-  font-weight: 600;
-  color: var(--green-700);
-  margin: 25px 0 10px;
-}
-
-/* DOCUMENT CARD */
-.profile-doc-list .list-group-item {
-  margin-bottom: 10px;
-  border-radius: var(--radius);
-  border: none;
-  box-shadow: var(--shadow);
-  padding: 14px 18px;
-  background: white;
-}
-
-/* MOBILE */
-@media (max-width: 576px) {
-  .profile-page {
-    margin: 20px 10px;
-    padding: 16px;
-  }
-
-  .profile-title {
-    font-size: 24px;
-  }
-
-  .profile-menu-icon a {
-    top: 16px;
-    right: 16px;
-  }
-
-  .profile-avatar {
-    width: 120px;
-    height: 120px;
-  }
-}
-
-/* ---------------- PREMIUM CLIENT PROFILE ---------------- */
-
-:root {
-  --green-700: #3f4a36;
-  --pink-200: #f2d3d8;
-  --text-light: #ffffff;
-
-  --radius: 18px;
-  --shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
-  --blur-bg: rgba(255, 255, 255, 0.65);
-}
-
-/* MAIN WRAPPER */
-.client-profile-page {
-  max-width: 650px;
-  margin: 40px auto;
-  padding: 24px;
-  border-radius: var(--radius);
-  backdrop-filter: blur(18px);
-  background: var(--blur-bg);
-  box-shadow: var(--shadow);
-}
-
-/* TITLE */
-.client-profile-title {
-  font-size: 30px;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 20px;
-  color: var(--green-700);
-}
-
-/* FLOATING MENU ICON */
-.client-menu-icon a {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: var(--green-700);
-  color: white;
-  padding: 12px 16px;
-  border-radius: 50%;
-  font-size: 22px;
-  box-shadow: var(--shadow);
-  text-decoration: none;
-  z-index: 9999;
-}
-
-/* AVATAR */
-.client-avatar {
-  width: 150px;
-  height: 150px;
-  object-fit: cover;
-  display: block;
-  margin: 0 auto 18px;
-  border-radius: 50%;
-  box-shadow: 0 0 0 5px var(--pink-200), var(--shadow);
-}
-
-.client-no-photo {
-  background: #fafafa;
-  padding: 15px;
-  border-radius: var(--radius);
-  text-align: center;
-  color: #666;
-  box-shadow: var(--shadow);
-}
-
-/* FORM CARD */
-.client-form {
-  background: rgba(255, 255, 255, 0.85);
-  padding: 22px;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  margin-bottom: 25px;
-}
-
-/* INPUTS (iOS style) */
-.client-profile-page .form-control {
-  border: none;
-  padding: 14px 16px;
-  border-radius: var(--radius);
-  background: #f3f3f3;
-  box-shadow: inset 0 0 0 1px #ddd;
-  font-size: 15px;
-}
-
-.client-profile-page .form-label {
-  font-weight: 600;
-  color: var(--green-700);
-}
-
-/* BUTTONS */
-.client-profile-page .btn-primary {
-  width: 100%;
-  padding: 14px;
-  font-size: 16px;
-  border-radius: var(--radius);
-  background: var(--green-700);
-  border: none;
-  color: var(--text-light);
-  box-shadow: var(--shadow);
-}
-
-.client-profile-page .btn-primary:hover {
-  background: #2f3929;
-}
-
-.client-profile-page .btn-secondary {
-  width: 100%;
-  padding: 12px;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-/* DOCUMENT CARD LIST */
-.client-doc-item {
-  padding: 16px;
-  border-radius: var(--radius);
-  background: white;
-  box-shadow: var(--shadow);
-  margin-bottom: 12px;
-}
-
-.client-doc-item a {
-  text-decoration: none;
-  font-weight: 600;
-  color: var(--green-700);
-}
-
-/* QR BLOCK */
-.qr-card {
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  background: rgba(255, 255, 255, 0.85);
-}
-
-.qr-card .card-header {
-  background: var(--pink-200);
-  color: var(--green-700);
-  font-weight: bold;
-}
-
-/* MOBILE */
-@media (max-width: 576px) {
-  .client-profile-page {
-    margin: 20px 10px;
-    padding: 18px;
-  }
-
-  .client-avatar {
-    width: 120px;
-    height: 120px;
-  }
-
-  .client-profile-title {
-    font-size: 24px;
-  }
-}
-/* ---- PREMIUM DESIGN ---- */
-
-/* Глобальний контейнер */
-.client-dashboard {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-/* Преміальний стиль кнопок */
-.btn-premium {
-  background-color: var(--green-700);
-  color: var(--text-light);
-  border-radius: 12px;
-  padding: 12px 18px;
-  border: none;
-  width: 100%;
-  font-weight: 600;
-  transition: 0.2s ease;
-}
-
-.btn-premium:hover {
-  background-color: #2f3828;
-}
-
-/* Вторинна кнопка */
-.btn-premium-secondary {
-  background-color: #6e757c;
-  color: white;
-  border-radius: 12px;
-  padding: 12px 18px;
-  border: none;
-  width: 100%;
-  font-weight: 600;
-}
-
-.btn-premium-secondary:hover {
-  background-color: #5a6167;
-}
-
-/* Контейнер для карти + списку */
-.premium-box {
-  background: #fff;
-  border-radius: 22px;
-  padding: 20px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
-}
-
-/* Преміальний заголовок */
-.premium-title {
-  color: var(--green-700);
-  font-weight: 700;
-  margin-bottom: 15px;
-}
-
-/* список */
-.nurse-item {
-  border-radius: 18px !important;
-  border: 1px solid #ddd !important;
-}
-
-/* статус онлайн/офлайн */
-.badge-online {
-  background-color: var(--green-700) !important;
-}
-
-.badge-offline {
-  background-color: #999 !important;
+/* ===================== THEME (one place) ===================== */
+:root{
+  --green-700:#3f4a36;
+  --pink-200:#f2d3d8;
+  --text-light:#fff;
+
+  --radius:18px;
+  --radius-sm:14px;
+  --shadow:0 10px 25px rgba(0,0,0,.08);
+  --shadow-strong:0 8px 28px rgba(0,0,0,.12);
+  --blur-bg:rgba(255,255,255,.65);
+}
+
+/* ===================== BASE ===================== */
+body{
+  font-family:'Segoe UI',sans-serif;
+  margin:0;
+  padding:0;
+  background-image:url('2025-06-24 19.49.17.jpg');
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  position:relative;
+}
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  z-index:-1;
+}
+
+h2{ text-align:center; font-size:28px; margin:0 0 20px; color:#2c3e50; }
+
+/* ===================== DASHBOARDS (client + nurse same style) ===================== */
+.client-dashboard,
+.nurse-dashboard{
+  max-width:1200px;
+  margin:0 auto;
+  padding:20px;
+  border-radius:var(--radius-sm);
+}
+
+.dashboard-options{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  justify-content:center;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+/* buttons inside dashboard options (both <button> and bootstrap .btn) */
+.dashboard-options :is(button,.btn,form button){
+  border:none;
+  border-radius:999px;
+  padding:10px 18px;
+  font-weight:600;
+  cursor:pointer;
+  box-shadow:var(--shadow);
+  transition:.2s ease;
+}
+
+/* “pill” look like your client dashboard */
+.dashboard-options :is(button,.btn,form button){
+  background:var(--pink-200);
+  color:var(--green-700);
+}
+.dashboard-options :is(button,.btn,form button):hover{
+  filter:brightness(.98);
+}
+
+/* ===================== WOLT STYLE SEARCH ===================== */
+.top-search-bar{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin:5px 0 20px;
+}
+.search-input{
+  width:70%;
+  max-width:600px;
+  padding:14px 22px;
+  border-radius:999px;
+  border:1px solid #e5e5e5;
+  background:#fff;
+  box-shadow:0 4px 10px rgba(0,0,0,.12);
+  font-size:16px;
+}
+.search-btn{
+  padding:14px 24px;
+  border-radius:999px;
+  border:1px solid #e5e5e5;
+  background:#fff;
+  box-shadow:0 4px 10px rgba(0,0,0,.12);
+  font-weight:600;
+  font-size:16px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.search-btn:hover{ background:#f8f8f8; }
+
+#status-message{
+  margin-top:8px;
+  font-size:14px;
+  color:rgb(133,121,222);
+  min-height:20px;
+  text-align:center;
+}
+
+/* ===================== PREMIUM CONTENT WRAPPER (map + list) ===================== */
+.premium-box{
+  background:#fff;
+  border-radius:22px;
+  padding:20px;
+  box-shadow:0 4px 30px rgba(0,0,0,.08);
+}
+.premium-title{
+  color:var(--green-700);
+  font-weight:700;
+  margin:0 0 15px;
+}
+
+/* map containers used in different pages */
+#map-container,
+#combinedMap{
+  height:500px;
+  border-radius:var(--radius-sm);
+  overflow:hidden;
+  box-shadow:0 5px 20px rgba(0,0,0,.15);
+}
+
+/* markers */
+.nurse-marker,.client-marker{ z-index:1000; }
+
+/* ===================== REQUEST / LIST ITEMS ===================== */
+.request-item,
+.nurse-item{
+  border-radius:18px;
+  border:1px solid #ddd;
+  box-shadow:var(--shadow);
+  padding:12px;
+  transition:.2s ease;
+  cursor:pointer;
+  background:#fff;
+}
+.request-item:hover{ transform:translateY(-2px); }
+
+/* ===================== CHAT ===================== */
+.chat-messages-container{
+  height:300px;
+  overflow-y:auto;
+  padding:12px;
+  border-radius:var(--radius-sm);
+  background:#f7f7f7;
+}
+.message{
+  max-width:80%;
+  margin-bottom:10px;
+  padding:10px 14px;
+  border-radius:var(--radius-sm);
+  font-size:14px;
+}
+.my-message{
+  background:var(--green-700);
+  color:var(--text-light);
+  margin-left:auto;
+  border-bottom-right-radius:0;
+}
+.their-message{
+  background:var(--pink-200);
+  color:var(--green-700);
+  margin-right:auto;
+  border-bottom-left-radius:0;
+}
+
+/* ===================== BOOTSTRAP BUTTON OVERRIDES (keep your palette) ===================== */
+.btn-primary{
+  background:var(--green-700)!important;
+  border:none!important;
+  color:var(--text-light)!important;
+  border-radius:var(--radius-sm)!important;
+}
+.btn-primary:hover{ background:#2f3929!important; }
+
+.btn-success{
+  background:var(--green-700)!important;
+  border:none!important;
+  color:var(--text-light)!important;
+  border-radius:var(--radius-sm)!important;
+}
+.btn-success:hover{ background:#2f3929!important; }
+
+.btn-info{
+  background:var(--pink-200)!important;
+  border:none!important;
+  color:var(--green-700)!important;
+  border-radius:var(--radius-sm)!important;
+}
+.btn-info:hover{ background:#e3bfc6!important; }
+
+.btn-danger{
+  background:#b84a4a!important;
+  border:none!important;
+  color:#fff!important;
+  border-radius:var(--radius-sm)!important;
+}
+
+/* premium custom buttons (your existing ones) */
+.btn-premium{
+  background:var(--green-700);
+  color:var(--text-light);
+  border-radius:12px;
+  padding:12px 18px;
+  border:none;
+  width:100%;
+  font-weight:600;
+  transition:.2s ease;
+}
+.btn-premium:hover{ background:#2f3828; }
+
+.btn-premium-secondary{
+  background:#6e757c;
+  color:#fff;
+  border-radius:12px;
+  padding:12px 18px;
+  border:none;
+  width:100%;
+  font-weight:600;
+}
+.btn-premium-secondary:hover{ background:#5a6167; }
+
+/* badges */
+.badge.bg-success,
+.badge-online{ background:var(--green-700)!important; }
+.badge.bg-secondary,
+.badge-offline{ background:#999!important; }
+
+/* ===================== CARDS / MODALS ===================== */
+.card{
+  border-radius:var(--radius-sm);
+  box-shadow:var(--shadow);
+  border:none;
+  overflow:hidden;
+}
+.card-header{
+  background:var(--pink-200);
+  color:var(--green-700);
+  font-weight:600;
+  font-size:18px;
+}
+.card-body{ background:#fff; }
+
+.modal-content{
+  border-radius:var(--radius-sm);
+  box-shadow:var(--shadow);
+  border:none;
+}
+.modal-header{
+  background:var(--pink-200);
+  border-radius:var(--radius-sm) var(--radius-sm) 0 0;
+  border-bottom:none;
+  color:var(--green-700);
+}
+
+/* ===================== PROFILE PAGES (nurse + client) ===================== */
+.profile-page,
+.client-profile-page{
+  max-width:650px;
+  margin:40px auto;
+  padding:24px;
+  border-radius:var(--radius);
+  backdrop-filter:blur(16px);
+  background:var(--blur-bg);
+  box-shadow:var(--shadow-strong);
+}
+
+.profile-title,
+.client-profile-title{
+  text-align:center;
+  font-size:30px;
+  font-weight:700;
+  color:var(--green-700);
+  margin:0 0 20px;
+}
+
+.profile-menu-icon a,
+.client-menu-icon a{
+  position:fixed;
+  top:20px;
+  right:20px;
+  background:var(--green-700);
+  color:#fff;
+  padding:12px 16px;
+  border-radius:50%;
+  font-size:22px;
+  box-shadow:var(--shadow-strong);
+  text-decoration:none;
+  z-index:9999;
+}
+
+.profile-avatar,
+.client-avatar{
+  width:150px;
+  height:150px;
+  object-fit:cover;
+  display:block;
+  margin:0 auto 18px;
+  border-radius:50%;
+  box-shadow:0 0 0 5px var(--pink-200), var(--shadow-strong);
+}
+
+.profile-form,
+.client-form{
+  background:rgba(255,255,255,.85);
+  padding:22px;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  margin-bottom:20px;
+}
+
+.profile-page .form-control,
+.client-profile-page .form-control{
+  border:none;
+  padding:14px 16px;
+  border-radius:var(--radius);
+  background:#f3f3f3;
+  box-shadow:inset 0 0 0 1px #ddd;
+  font-size:15px;
+}
+
+.profile-page .form-label,
+.client-profile-page .form-label{
+  font-weight:600;
+  color:var(--green-700);
+}
+
+/* ===================== NURSE SERVICES TABLE PAGE ===================== */
+.nurse-services{ padding:20px; background:#fafafa; }
+.back-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:15px;
+  padding:10px 16px;
+  border-radius:var(--radius-sm);
+  background:var(--green-700);
+  color:var(--text-light);
+  text-decoration:none;
+  box-shadow:var(--shadow);
+}
+.back-btn:hover{ background:#2f3929; }
+
+.table-responsive{
+  border-radius:var(--radius-sm);
+  overflow:hidden;
+  background:#fff;
+  box-shadow:var(--shadow);
+}
+.table th{
+  background:var(--pink-200);
+  color:var(--green-700);
+  font-weight:600;
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width:768px){
+  .dashboard-options{ flex-direction:column; align-items:stretch; }
+  .dashboard-options :is(button,.btn,form button){ width:100%; }
+}
+@media (max-width:576px){
+  .client-dashboard,.nurse-dashboard{ padding:10px; }
+  #map-container,#combinedMap{ height:350px!important; }
+  .chat-messages-container{ height:250px; }
+
+  table{ display:block; overflow-x:auto; white-space:nowrap; }
+  .profile-page,.client-profile-page{ margin:20px 10px; padding:18px; }
+  .profile-title,.client-profile-title{ font-size:24px; }
+  .profile-avatar,.client-avatar{ width:120px; height:120px; }
 }

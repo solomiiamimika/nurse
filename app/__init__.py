@@ -27,7 +27,7 @@ def create_app():
     app.config['STRIPE_PUBLIC_KEY']= os.getenv ('STRIPE_PUBLIC_KEY')
     app.config['STRIPE_SECRET_KEY']= os.getenv ('STRIPE_SECRET_KEY')
 
-    # Ініціалізація розширень
+    # Initializing extensions
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
@@ -36,7 +36,7 @@ def create_app():
     csrf.init_app(app)
     socketio.init_app(app)
 
-    # Реєстрація блюпрінтів
+    # Registering blueprints
     from app.routes.auth import auth_bp
     from app.routes.main import main_bp
     from app.routes.client import client_bp
@@ -52,7 +52,7 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    # Додаткові налаштування для Google OAuth
+    # Additional configuration for Google OAuth
     @app.context_processor
     def inject_google_oauth():
         return dict(

@@ -7,44 +7,44 @@ from datetime import datetime
 
 @socketio.on('connect')
 def handle_connect():
-    print(f"Клієнт підключився: {request.sid}")
+    print(f"The client connected: {request.sid}")
     emit('connection_response', {'status': 'connected'})
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print(f"Клієнт відключився: {request.sid}")
+    print(f"The client disconnected: {request.sid}")
 
 @socketio.on('join')
 def handle_join(data):
     user_id = data.get('user_id')
     if user_id:
         join_room(f"user_{user_id}")
-        current_app.logger.info(f'Користувач {user_id} приєднався до кімнати')
+        current_app.logger.info(f'User {user_id} joined the room.')
 
 @socketio.on('send_message')
 def handle_send_message(data):
     try:
-        print(f"Отримано дані: {data}")  # Логування вхідних даних
+        print(f"Received data: {data}")  # Logging incoming data
         
         if not all(key in data for key in ['text', 'sender_id', 'recipient_id']):
-            raise ValueError("Недостатньо даних")
+            raise ValueError("Insufficient data provided.")
             
-        # Створення повідомлення
+        # Creating a message
         message = Message(
             sender_id=int(data['sender_id']),
             recipient_id=int(data['recipient_id']),
             text=data['text']
         )
         
-        # Збереження в БД
+        # Saving to the database
         db.session.add(message)
         db.session.commit()
         
-        # Отримання імені відправника
+        # Retrieving the sender’s name
         sender = User.query.get(message.sender_id)
-        sender_name = sender.user_name if sender else "Невідомий"
+        sender_name = sender.user_name if sender else "Unknown"
         
-        # Відправка отримувачу
+        # Sending to the recipient
         emit('new_message', {
             'id': message.id,
             'sender_id': message.sender_id,
@@ -53,13 +53,13 @@ def handle_send_message(data):
             'timestamp': message.timestamp.isoformat()
         }, room=f"user_{message.recipient_id}")
         
-        # Підтвердження відправнику
+        # Confirmation to the sender
         emit('message_sent', {
             'id': message.id,
             'status': 'delivered'
         }, room=request.sid)
         
     except Exception as e:
-        print(f"Помилка: {str(e)}")
+        print(f"Error: {str(e)}")
         emit('error', {'message': str(e)}, room=request.sid)
         db.session.rollback()

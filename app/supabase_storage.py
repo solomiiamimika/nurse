@@ -6,14 +6,14 @@ from app.extensions import supabase,buckets
 from flask import current_app
 
 def upload_to_supabase(file, bucket_name, user_id, file_type='document'):
-    """Завантаження файлу на Supabase Storage"""
+    """Uploading a file to Supabase Storage"""
     try:
-        # Генеруємо унікальне ім'я файлу
+        # Generate a unique filename
         timestamp = datetime.now().timestamp()
         extension = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
         filename = secure_filename(f"{file_type}_{user_id}_{timestamp}.{extension}")
         
-        # Завантажуємо файл
+        # Upload the file
         file_bytes = file.read()
         result = supabase.storage.from_(bucket_name).upload(
             file=file_bytes,
@@ -22,7 +22,7 @@ def upload_to_supabase(file, bucket_name, user_id, file_type='document'):
         )
         
         if result:
-            # Отримуємо публічний URL
+            # Get the public URL
             public_url = supabase.storage.from_(bucket_name).get_public_url(filename)
             return filename, public_url
         
@@ -33,7 +33,7 @@ def upload_to_supabase(file, bucket_name, user_id, file_type='document'):
         return None, None
 
 def delete_from_supabase(filename, bucket_name):
-    """Видалення файлу з Supabase Storage"""
+    """Delete file from Supabase Storage"""
     try:
         result = supabase.storage.from_(bucket_name).remove([filename])
         return result
@@ -42,7 +42,7 @@ def delete_from_supabase(filename, bucket_name):
         return False
 
 def get_file_url(filename, bucket_name):
-    """Отримання публічного URL файлу"""
+    """Get public URL file"""
     try:
         return supabase.storage.from_(bucket_name).get_public_url(filename)
     except Exception as e:

@@ -17,8 +17,8 @@ class User(db.Model, UserMixin):
     password_hash = Column(Text, nullable=False)
     
     google_id = Column(String(100), unique=True, nullable=True)
-    latitude = Column(Float) #широта
-    longitude = Column(Float) #довгота
+    latitude = Column(Float) 
+    longitude = Column(Float) 
 
     location_approved = Column(Boolean,default = False)
 
@@ -158,11 +158,11 @@ class Prescription(db.Model):
 class Review(db.Model):
     __tablename__ = 'review'
     id = Column(Integer, primary_key=True)
-    patient_id = Column(Integer, ForeignKey('user.id'), nullable=False)  # хто залишив відгук
-    doctor_id = Column(Integer, ForeignKey('user.id'), nullable=False)   # кому залишив
+    patient_id = Column(Integer, ForeignKey('user.id'), nullable=False)  # who left the review
+    doctor_id = Column(Integer, ForeignKey('user.id'), nullable=False)   # whom they left it for
     appointment_id = Column(Integer,ForeignKey('appointment.id'),nullable=False)
-    rating = Column(Integer, nullable=False)  # оцінка, напр. від 1 до 5
-    comment = Column(Text)                   # текстовий коментар
+    rating = Column(Integer, nullable=False)  #rating (e.g., from 1 to 5)
+    comment = Column(Text)                   # text comment
     created_at = Column(DateTime, default=datetime.now)    
 
     patient = relationship('User', foreign_keys=[patient_id])
@@ -181,8 +181,8 @@ class Review(db.Model):
 class ClientSelfCreatedAppointment(db.Model):
     __tablename__= 'client_self_create_appointment'
     id = Column(Integer, primary_key=True)
-    patient_id = Column(Integer, ForeignKey('user.id'), nullable=False)  # хто залишив відгук
-    doctor_id = Column(Integer, ForeignKey('user.id'), nullable=True)   # кому залишив
+    patient_id = Column(Integer, ForeignKey('user.id'), nullable=False)  # who left the review
+    doctor_id = Column(Integer, ForeignKey('user.id'), nullable=True)   # whom they left it for
     appointment_start_time = Column (DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
     status = Column(String(20), default='scheduled') # scheduled, completed, canceled
