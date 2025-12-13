@@ -13,7 +13,7 @@ def register():
     
     if request.method == "POST":
         username = request.form.get('username')
-        fullname = request.form.get('fullname')
+        fullname = request.form.get('full_name')
         email = request.form.get('email')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password') 
