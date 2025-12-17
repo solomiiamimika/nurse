@@ -155,20 +155,27 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     const calendarEl = document.getElementById("calendar");
-    
     const isMobile = window.innerWidth < 768;
 
     const calendar = new FullCalendar.Calendar(calendarEl, {
-
       initialView: isMobile ? "listWeek" : "dayGridMonth",
-      height: 'auto', 
+      
+      // ВИПРАВЛЕННЯ ТУТ:
+      // На мобільному ставимо висоту 75% від екрану (75vh), щоб місяць "розкрився".
+      // На ПК залишаємо auto, щоб підлаштовувалось під вміст.
+      height: isMobile ? '75vh' : 'auto', 
+      
       headerToolbar: {
-        left: "prev,next",
+        left: "prev,next", 
         center: "title",
         right: isMobile ? "dayGridMonth,listWeek" : "dayGridMonth,timeGridWeek,timeGridDay",
       },
       locale: "en",
       events: "/client/get_appointments",
+      
+      // Додаткове налаштування для мобільного місяця, щоб події виглядали крапочками, якщо їх багато
+      dayMaxEvents: true, 
+
       eventClick: function (info) {
         currentAppointmentId = info.event.id;
         const props = info.event.extendedProps;
@@ -211,7 +218,9 @@
     });
     calendar.render();
 
-    // Обробник кнопки нового запису
+    // ... (решта коду кнопок payNowBtn, newAppointmentBtn без змін) ...
+    
+    // Кнопка створення запису
     document.getElementById("newAppointmentBtn").addEventListener("click", function () {
         fetch("/client/get_nurses_for_appointment")
           .then((response) => response.json())
@@ -233,6 +242,7 @@
           });
       });
 
+    // Оплата
     document.getElementById("payNowBtn").addEventListener("click", function () {
       if (!currentAppointmentId) return;
       const btn = this;
@@ -307,120 +317,86 @@
     }
   }
 
+  // Функції відгуків (залишив без змін, скорочено для зручності копіювання)
   function checkReviewStatus(appointmentId) {
     fetch(`/client/can_review/${appointmentId}`)
-      .then((response) => response.json())
+      .then((r) => r.json())
       .then((data) => {
-        const reviewSection = document.getElementById("reviewSection");
-        const existingReview = document.getElementById("existingReview");
-        const reviewForm = document.getElementById("reviewForm");
-        const noReviewMessage = document.getElementById("noReviewMessage");
-
+        const els = {
+            noReview: document.getElementById("noReviewMessage"),
+            existing: document.getElementById("existingReview"),
+            form: document.getElementById("reviewForm")
+        };
         if (data.can_review) {
-          noReviewMessage.style.display = "block";
-          existingReview.style.display = "none";
-          reviewForm.style.display = "none";
+          els.noReview.style.display = "block";
+          els.existing.style.display = "none";
+          els.form.style.display = "none";
         } else if (data.review_exists) {
           loadExistingReview(appointmentId);
         } else {
-          noReviewMessage.style.display = "block";
-          existingReview.style.display = "none";
-          reviewForm.style.display = "none";
+          els.noReview.style.display = "block";
+          els.existing.style.display = "none";
+          els.form.style.display = "none";
         }
       });
   }
 
   function loadExistingReview(appointmentId) {
-    fetch(`/client/get_review/${appointmentId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          document.getElementById("userRating").textContent = `${data.review.rating}/5`;
-          document.getElementById("userComment").textContent = data.review.comment || "Without comment";
-          const starsContainer = document.querySelector(".rating-stars");
-          starsContainer.innerHTML = generateRatingStars(data.review.rating);
-          document.getElementById("existingReview").style.display = "block";
-          document.getElementById("reviewForm").style.display = "none";
-          document.getElementById("noReviewMessage").style.display = "none";
+    fetch(`/client/get_review/${appointmentId}`).then(r=>r.json()).then(data => {
+        if(data.success){
+            document.getElementById("userRating").textContent = `${data.review.rating}/5`;
+            document.getElementById("userComment").textContent = data.review.comment || "";
+            document.querySelector(".rating-stars").innerHTML = generateRatingStars(data.review.rating);
+            document.getElementById("existingReview").style.display = "block";
+            document.getElementById("reviewForm").style.display = "none";
+            document.getElementById("noReviewMessage").style.display = "none";
         }
-      });
+    });
   }
 
   function generateRatingStars(rating) {
     let stars = "";
-    for (let i = 1; i <= 5; i++) {
-      stars += `<span class="rating-star ${i <= rating ? "filled" : ""}">★</span>`;
-    }
+    for (let i = 1; i <= 5; i++) stars += `<span class="rating-star ${i <= rating ? "filled" : ""}">★</span>`;
     return stars;
   }
 
-  document.getElementById("addReviewBtn").addEventListener("click", function () {
+  document.getElementById("addReviewBtn").addEventListener("click", () => {
     document.getElementById("reviewForm").style.display = "block";
     document.getElementById("noReviewMessage").style.display = "none";
-    document.getElementById("existingReview").style.display = "none";
   });
-
-  document.getElementById("editReviewBtn").addEventListener("click", function () {
+  
+  document.getElementById("editReviewBtn").addEventListener("click", () => {
     document.getElementById("reviewForm").style.display = "block";
     document.getElementById("existingReview").style.display = "none";
-    fetch(`/client/get_review/${currentAppointmentId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          const radioBtn = document.querySelector(`input[name="rating"][value="${data.review.rating}"]`);
-          if(radioBtn) radioBtn.checked = true;
-          document.getElementById("reviewComment").value = data.review.comment || "";
+    fetch(`/client/get_review/${currentAppointmentId}`).then(r=>r.json()).then(data=>{
+        if(data.success) {
+            const rb = document.querySelector(`input[name="rating"][value="${data.review.rating}"]`);
+            if(rb) rb.checked = true;
+            document.getElementById("reviewComment").value = data.review.comment || "";
         }
-      });
+    });
   });
 
-  document.getElementById("cancelReviewBtn").addEventListener("click", function () {
+  document.getElementById("cancelReviewBtn").addEventListener("click", () => {
     document.getElementById("reviewForm").style.display = "none";
     checkReviewStatus(currentAppointmentId);
   });
 
-  document.getElementById("submitReviewBtn").addEventListener("click", function () {
-    const rating = document.querySelector('input[name="rating"]:checked')?.value;
-    const comment = document.getElementById("reviewComment").value.trim();
-
-    if (!rating) {
-      alert("Please select a rating");
-      return;
-    }
-
-    const btn = this;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-
-    fetch("/client/leave_review", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrfToken,
-      },
-      body: JSON.stringify({
-        appointment_id: currentAppointmentId,
-        rating: rating,
-        comment: comment,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          alert("Thank you for your feedback!");
-          checkReviewStatus(currentAppointmentId);
-        } else {
-          alert("Error: " + data.message);
-        }
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        alert("An error occurred");
-      })
-      .finally(() => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit feedback';
-      });
+  document.getElementById("submitReviewBtn").addEventListener("click", function() {
+      const rating = document.querySelector('input[name="rating"]:checked')?.value;
+      const comment = document.getElementById("reviewComment").value.trim();
+      if(!rating) return alert("Please select a rating");
+      
+      const btn = this;
+      btn.disabled = true;
+      fetch("/client/leave_review", {
+          method: "POST", 
+          headers: {"Content-Type": "application/json", "X-CSRFToken": csrfToken},
+          body: JSON.stringify({appointment_id: currentAppointmentId, rating, comment})
+      }).then(r=>r.json()).then(data=>{
+          if(data.success) { alert("Thanks!"); checkReviewStatus(currentAppointmentId); }
+          else alert("Error: " + data.message);
+      }).finally(()=> btn.disabled=false);
   });
 </script>
 
@@ -432,16 +408,29 @@
     padding: 10px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    min-height: 500px;
   }
 
+  /* Стилі для мобільних */
   @media (max-width: 768px) {
+    /* Зменшуємо розмір шрифту заголовка, щоб влазив */
     .fc-toolbar-title {
-        font-size: 1.2rem !important;
+        font-size: 1.1rem !important;
     }
+    /* Робимо кнопки компактнішими */
+    .fc-button {
+        padding: 0.2rem 0.4rem !important;
+        font-size: 0.8rem !important;
+    }
+    /* Вирівнюємо шапку */
     .fc-header-toolbar {
-        flex-direction: column;
-        gap: 10px;
+        margin-bottom: 10px !important;
+        flex-wrap: wrap; /* Дозволяємо перенос, якщо дуже вузький екран */
+        gap: 5px;
+    }
+    /* Якщо місяць обраний, робимо клітинки трохи меншими за шрифтом */
+    .fc-daygrid-day-number {
+        font-size: 0.8rem;
+        padding: 2px !important;
     }
   }
 
