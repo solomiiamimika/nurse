@@ -514,7 +514,7 @@ def create_apple_pay_session():
             payment_method_types=['card', 'apple_pay'],
             line_items=[{
                 'price_data': {
-                    'currency': 'uah',
+                    'currency': 'eur',
                     'product_data': {
                         'name': appointment.nurse_service.name,
                     },
@@ -654,7 +654,7 @@ def create_payment_session():
             payment_method_types=['card'],
             line_items=[{
                 'price_data': {
-                    'currency': 'uah',
+                    'currency': 'eur',
                     'product_data': {
                         'name': appointment.nurse_service.name,
                     },

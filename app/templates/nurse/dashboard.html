@@ -1,4 +1,6 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %} 
+{% block content %}
+
 <div class="nurse-dashboard">
   <h2>Service provider dashboard</h2>
 
@@ -9,57 +11,53 @@
         <i class="fas fa-sign-out-alt"></i> Exit
       </button>
     </form>
+    
     <a href="{{ url_for('nurse.appointments') }}" class="btn btn-info">
       <i class="fas fa-calendar"></i> Appointments
     </a>
+    
     <button id="location-btn" class="btn btn-info">
       <i class="fas fa-map-marker-alt"></i> Update my location
     </button>
+    
     <a href="{{ url_for('nurse.manage_services') }}" class="btn btn-info">
       <i class="fas fa-concierge-bell"></i> My services
     </a>
+    
     <a href="{{ url_for('nurse.profile') }}" class="btn btn-info">
       <i class="fas fa-user"></i> Profile
     </a>
+    
     <button
       id="toggle-online-btn"
       class="btn {{ 'btn-success' if current_user.online else 'btn-secondary' }}"
     >
       {{ 'Online' if current_user.online else 'Offline' }}
     </button>
-    <div id="status-message" class="mt-2 small"></div>
+    
+    <div id="status-message" class="mt-2 small" style="width: 100%;"></div>
   </div>
-
-  <div class="row">
-    <!-- Map  -->
-    <div class="col-md-8">
-      <div class="card mb-4">
-        <div class="card-header">
-          <h5>Client and Service Request Map</h5>
-        </div>
-        <div class="card-body">
-          <div id="combinedMap" style="height: 500px; width: 100%"></div>
-        </div>
-      </div>
+</div> 
+<div class="premium-box mt-4">
+  <div class="row g-4"> <div class="col-md-8">
+      <h5 class="premium-title">Client and Service Request Map</h5>
+      <div id="combinedMap" style="height: 500px; width: 100%"></div>
     </div>
 
-    <!-- List of requests -->
     <div class="col-md-4">
-      <div class="card mb-4">
-        <div class="card-header">
-          <h5>Available requests</h5>
-        </div>
-        <div class="card-body">
-          <div id="requestsList">
-            <div class="text-center">
-              <div class="spinner-border" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
+      <h5 class="premium-title">Available requests</h5>
+      
+      <div style="height: 500px; overflow-y: auto; padding-right: 10px">
+        <div id="requestsList">
+          <div class="text-center mt-5">
+            <div class="spinner-border text-secondary" role="status">
+              <span class="visually-hidden">Loading...</span>
             </div>
           </div>
         </div>
       </div>
     </div>
+
   </div>
 </div>
 
@@ -74,19 +72,14 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Request details</h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
           <strong>Client:</strong> <span id="detailPatientName"></span>
         </div>
         <div class="mb-3">
-          <strong>:</strong> <span id="detailServiceName"></span>
+          <strong>Service:</strong> <span id="detailServiceName"></span>
         </div>
         <div class="mb-3">
           <strong>Service overview:</strong>
@@ -105,12 +98,8 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          Close
-        </button>
-        <button type="button" class="btn btn-primary" id="acceptRequestBtn">
-          Accept request
-        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="acceptRequestBtn">Accept request</button>
       </div>
     </div>
   </div>
@@ -131,7 +120,7 @@
       </div>
       <div class="modal-body">
         <div class="chat-messages-container" id="chatMessages"></div>
-        <div class="input-group">
+        <div class="input-group mt-3">
           <input
             type="text"
             class="form-control"
@@ -167,8 +156,10 @@
   // Status functions 
   function showStatus(message, isError = false) {
       const statusEl = document.getElementById('status-message');
-      statusEl.textContent = message;
-      statusEl.style.color = isError ? 'red' : 'green';
+      if(statusEl) {
+        statusEl.textContent = message;
+        statusEl.style.color = isError ? 'red' : 'green';
+      }
       console.log(message);
   }
 
@@ -268,11 +259,11 @@
               userMarker = L.marker([nurseLat, nurseLng], {
                   icon: L.divIcon({
                       className: 'nurse-marker',
-                      html: '<div style="background-color: purple; border-radius: 50%; width: 20px; height: 20px;"></div>',
+                      html: '<div style="background-color: purple; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>',
                       iconSize: [20, 20]
                   }),
-                  title: 'your location'
-              }).addTo(map).bindPopup('Your location').openPopup();
+                  title: 'Your location'
+              }).addTo(map).bindPopup('Your location');
           }
 
           loadClientsLocations();
@@ -287,7 +278,7 @@
   // Client functions
   async function loadClientsLocations() {
       try {
-          showStatus("Loading clients...");
+          // showStatus("Loading clients..."); // Можна прибрати щоб не спамило
           clientsLayer.clearLayers();
 
           const response = await fetch('{{ url_for("nurse.get_clients_locations") }}', {
@@ -305,18 +296,20 @@
               const marker = L.marker([client.lat, client.lng], {
                   icon: L.divIcon({
                       className: 'client-marker',
-                      html: '<div style="background-color: blue; border-radius: 50%; width: 20px; height: 20px;"></div>',
+                      html: '<div style="background-color: blue; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white;"></div>',
                       iconSize: [20, 20]
                   })
               }).addTo(clientsLayer);
 
               const popupContent = `
                   <b>${client.name}</b>
-                  <button class="btn btn-sm btn-primary start-chat-btn"
-                          data-client-id="${client.id}"
-                          data-client-name="${client.name}">
-                      <i class="fas fa-comment"></i> Write
-                  </button>
+                  <div class="mt-2">
+                    <button class="btn btn-sm btn-primary start-chat-btn"
+                            data-client-id="${client.id}"
+                            data-client-name="${client.name}">
+                        <i class="fas fa-comment"></i> Write
+                    </button>
+                  </div>
               `;
 
               marker.bindPopup(popupContent);
@@ -334,10 +327,7 @@
               });
           });
 
-          showStatus(`Loaded ${clients.length} clients`);
-
       } catch (error) {
-          showStatus("Error loading clients: " + error.message, true);
           console.error("Error loading clients:", error);
       }
   }
@@ -358,14 +348,14 @@
           .catch(error => {
               console.error('Error:', error);
               document.getElementById('requestsList').innerHTML =
-                  '<div class="alert alert-danger">Error loading requests</div>';
+                  '<div class="alert alert-danger">Error connection</div>';
           });
   }
 
   function displayRequests(requests) {
       const container = document.getElementById('requestsList');
       if (requests.length === 0) {
-          container.innerHTML = '<div class="alert alert-info">No requests available at the moment</div>';
+          container.innerHTML = '<div class="alert alert-info text-center">No requests available</div>';
           return;
       }
 
@@ -373,13 +363,12 @@
       requests.forEach(request => {
           const time = new Date(request.appointment_start_time).toLocaleString('uk-UA');
           html += `
-              <div class="card mb-2 request-item" data-id="${request.id}">
-                  <div class="card-body">
-                      <h6 class="card-title">${request.service_name || 'Service'}</h6>
-                      <p class="card-text mb-1"><small>Клієнт: ${request.patient_name || 'Unknown'}</small></p>
-                      <p class="card-text mb-1"><small>Час: ${time}</small></p>
-                      <p class="card-text"><small>Distance: ${calculateDistance(request).toFixed(1)} км</small></p>
-                      <button class="btn btn-sm btn-primary view-request-btn" data-id="${request.id}">Details</button>
+              <div class="card mb-3 nurse-item" data-id="${request.id}"> <div class="card-body">
+                      <h6 class="card-title" style="color: var(--green-700); font-weight: bold;">${request.service_name || 'Service'}</h6>
+                      <p class="card-text mb-1"><small><i class="fas fa-user"></i> ${request.patient_name || 'Unknown'}</small></p>
+                      <p class="card-text mb-1"><small><i class="fas fa-clock"></i> ${time}</small></p>
+                      <p class="card-text"><small><i class="fas fa-map-marker-alt"></i> ${calculateDistance(request).toFixed(1)} км</small></p>
+                      <button class="btn-premium view-request-btn" data-id="${request.id}">Details</button>
                   </div>
               </div>
           `;
@@ -403,7 +392,7 @@
               const marker = L.marker([request.latitude, request.longitude], {
                   icon: L.divIcon({
                       className: 'request-marker',
-                      html: '<div style="background-color: red; border-radius: 50%; width: 20px; height: 20px;"></div>',
+                      html: '<div style="background-color: #d13a3a; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white;"></div>',
                       iconSize: [20, 20]
                   })
               }).addTo(map).bindPopup(`
@@ -417,11 +406,18 @@
   }
 
   function showRequestDetails(requestId, requests = null) {
+      // Якщо викликаємо з попапу карти, requests може не бути
       if (!requests) {
-          loadRequests();
+          // Тут можна було б зробити fetch конкретного запиту, але спростимо
+           fetch('/nurse/nurse_get_requests')
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) showRequestDetails(requestId, data.requests);
+            });
           return;
       }
 
+      // Якщо масиви вже є, шукаємо в ньому (type conversion == для id)
       const request = requests.find(r => r.id == requestId);
       if (!request) return;
 
@@ -453,7 +449,7 @@
           }
       })
       .catch(error => {
-          console.error('Errror:', error);
+          console.error('Error:', error);
           alert('An error occurred');
       });
   }
@@ -493,7 +489,7 @@
           userMarker = L.marker([latitude, longitude], {
               icon: L.divIcon({
                   className: 'nurse-marker',
-                  html: '<div style="background-color: purple; border-radius: 50%; width: 20px; height: 20px;"></div>',
+                  html: '<div style="background-color: purple; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white;"></div>',
                   iconSize: [20, 20]
               }),
               title: 'Your location'
@@ -589,80 +585,4 @@
       });
   });
 </script>
-
-<style>
-  .request-item {
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-  .request-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  #combinedMap {
-    border-radius: 8px;
-  }
-  .nurse-marker,
-  .client-marker,
-  .request-marker {
-    z-index: 1000;
-  }
-  #status-message {
-    min-height: 20px;
-    font-size: 14px;
-  }
-  .chat-messages-container {
-    height: 300px;
-    overflow-y: auto;
-    padding: 10px;
-    background-color: #f8f9fa;
-    border-radius: 5px;
-    margin-bottom: 10px;
-  }
-  .message {
-    margin-bottom: 10px;
-    max-width: 80%;
-    padding: 8px 12px;
-    border-radius: 15px;
-    position: relative;
-  }
-  .my-message {
-    background-color: #007bff;
-    color: white;
-    margin-left: auto;
-    border-bottom-right-radius: 0;
-  }
-  .their-message {
-    background-color: #e9ecef;
-    margin-right: auto;
-    border-bottom-left-radius: 0;
-  }
-  .message-content {
-    display: flex;
-    flex-direction: column;
-  }
-  .sender-name {
-    font-weight: bold;
-    font-size: 0.8em;
-    margin-bottom: 3px;
-  }
-  .message-text {
-    word-wrap: break-word;
-  }
-  .message-time {
-    font-size: 0.7em;
-    text-align: right;
-    opacity: 0.7;
-    margin-top: 3px;
-  }
-  .start-chat-btn {
-    margin-top: 5px;
-  }
-  .dashboard-options {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-</style>
 {% endblock %}
