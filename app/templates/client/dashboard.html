@@ -73,12 +73,7 @@
               'Location not found' }}
             </p>
 
-            <button
-              class="btn-premium mt-2"
-              onclick="openChat('{{ nurse.id }}','{{ nurse.full_name }}')"
-            >
-              Chat
-            </button>
+
 
             <button
               class="btn-premium-secondary mt-2"
@@ -243,9 +238,13 @@
               const popupContent = `
                   <b>${nurse.name}</b><br>
                   <div class="mt-2">
+<<<<<<< Updated upstream
                       <button class="btn btn-sm btn-primary" onclick="openChat('${nurse.id}', '${nurse.name}')">
                           <i class="fas fa-comment"></i> Chat
                       </button>
+=======
+
+>>>>>>> Stashed changes
                       <button class="btn btn-sm btn-success" onclick="openBookingModal('${nurse.id}', '${nurse.name}')">
                           <i class="fas fa-plus"></i> Appointment
                       </button>

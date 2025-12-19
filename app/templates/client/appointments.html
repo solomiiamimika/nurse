@@ -159,9 +159,7 @@
     const calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: isMobile ? "listWeek" : "dayGridMonth",
       
-      // ВИПРАВЛЕННЯ ТУТ:
-      // На мобільному ставимо висоту 75% від екрану (75vh), щоб місяць "розкрився".
-      // На ПК залишаємо auto, щоб підлаштовувалось під вміст.
+
       height: isMobile ? '75vh' : 'auto', 
       
       headerToolbar: {
@@ -171,8 +169,7 @@
       },
       locale: "en",
       events: "/client/get_appointments",
-      
-      // Додаткове налаштування для мобільного місяця, щоб події виглядали крапочками, якщо їх багато
+
       dayMaxEvents: true, 
 
       eventClick: function (info) {

@@ -15,29 +15,7 @@
   </div>
   {% endfor %} {% endif %} {% endwith %}
 
-  <!-- QR BLOCK -->
-  <div class="card mb-4 qr-card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <span>Your profile QR Code</span>
-      <button id="generateQRBtn" class="btn btn-sm btn-outline-primary">
-        Generate
-      </button>
-    </div>
-
-    <div class="card-body text-center">
-      <div id="qrCodeContainer" class="d-none">
-        <div id="qrcode" class="mb-3"></div>
-        <p class="text-muted small">
-          This QR code contains your medical and contact information.
-        </p>
-        <a id="downloadQR" href="#" class="btn btn-sm btn-success">Download</a>
-      </div>
-
-      <div id="qrCodePlaceholder" class="text-muted">
-        Click “Generate” to create a QR code
-      </div>
-    </div>
-  </div>
+  
 
   <!-- PHOTO -->
   {% if user.profile_picture %}
@@ -151,8 +129,11 @@
   {% endif %}
 </div>
 
+<<<<<<< Updated upstream
 <!-- add bibliothek for generating QR codes -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+=======
+>>>>>>> Stashed changes
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -218,6 +199,7 @@
       });
     }
 
+<<<<<<< Updated upstream
     // generator for generating QR code
     const generateQRBtn = document.getElementById("generateQRBtn");
     if (generateQRBtn) {
@@ -291,6 +273,10 @@
         }
       });
     }
+=======
+    // Обробник для генерації QR-коду
+    
+>>>>>>> Stashed changes
   });
 </script>
 {% endblock %}
