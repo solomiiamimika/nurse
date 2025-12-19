@@ -31,7 +31,7 @@
   </div>
 
   <div class="row">
-    <!-- Карта (об'єднана функціональність) -->
+    <!-- Map  -->
     <div class="col-md-8">
       <div class="card mb-4">
         <div class="card-header">
@@ -43,7 +43,7 @@
       </div>
     </div>
 
-    <!-- Список запитів (нове) -->
+    <!-- List of requests -->
     <div class="col-md-4">
       <div class="card mb-4">
         <div class="card-header">
@@ -63,7 +63,7 @@
   </div>
 </div>
 
-<!-- Модальне вікно деталей запиту -->
+<!-- Modal window details request -->
 <div
   class="modal fade"
   id="requestDetailsModal"
@@ -116,12 +116,12 @@
   </div>
 </div>
 
-<!-- Чат модальне вікно (як було) -->
+<!-- Chat modal window -->
 <div class="modal fade" id="chatModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Chat з <span id="chatRecipientName"></span></h5>
+        <h5 class="modal-title">Chat with <span id="chatRecipientName"></span></h5>
         <button
           type="button"
           class="btn-close"
@@ -136,7 +136,7 @@
             type="text"
             class="form-control"
             id="messageInput"
-            placeholder="Введіть повідомлення..."
+            placeholder="Enter your message..."
           />
           <button class="btn btn-primary" type="button" id="sendMessageBtn">
             <i class="fas fa-paper-plane"></i>
@@ -147,7 +147,7 @@
   </div>
 </div>
 {% endblock %} {% block scripts %}
-<!-- Leaflet для карти -->
+<!-- Leaflet for map -->
 <link
   rel="stylesheet"
   href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
@@ -164,7 +164,7 @@
   let currentChatRecipient = null;
   let currentRequestId = null;
   const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-  // Функції статусу (як було)
+  // Status functions 
   function showStatus(message, isError = false) {
       const statusEl = document.getElementById('status-message');
       statusEl.textContent = message;
@@ -172,7 +172,7 @@
       console.log(message);
   }
 
-  // Socket функції (як було)
+  // Socket function
   function initSocket() {
       socket = io();
       socket.on('connect', () => {
@@ -249,10 +249,10 @@
       chatContainer.scrollTop = chatContainer.scrollHeight;
   }
 
-  // Ініціалізація карти (об'єднана)
+  // Map initialization... 
   function initMap() {
       try {
-          showStatus("Ініціалізація карти...");
+          showStatus("Map initialization...");
           const nurseLat = {{ current_user.latitude if current_user.latitude is not none else 50.4501 }};
           const nurseLng = {{ current_user.longitude if current_user.longitude is not none else 30.5234}};
 
@@ -263,7 +263,7 @@
 
           clientsLayer.addTo(map);
 
-          // Маркер медсестри (кружечок як було)
+          // Nurse marker
           if (nurseLat && nurseLng) {
               userMarker = L.marker([nurseLat, nurseLng], {
                   icon: L.divIcon({
@@ -284,7 +284,7 @@
       }
   }
 
-  // Функції для клієнтів (як було)
+  // Client functions
   async function loadClientsLocations() {
       try {
           showStatus("Loading clients...");
@@ -342,7 +342,7 @@
       }
   }
 
-  // Функції для запитів (нове)
+  // Functions for requests
   function loadRequests() {
       fetch('/nurse/nurse_get_requests')
           .then(response => response.json())
@@ -474,7 +474,7 @@
       return R * c;
   }
 
-  // Функції геолокації (як було)
+  // Geolocation functions
   async function updateLocation() {
       try {
           showStatus("Determining your location...");
@@ -549,7 +549,7 @@
       }
   }
 
-  // Ініціалізація
+  // Initialization
   document.addEventListener('DOMContentLoaded', () => {
       initSocket();
       initMap();

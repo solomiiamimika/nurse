@@ -151,7 +151,7 @@
   {% endif %}
 </div>
 
-<!-- Додаємо бібліотеку для генерації QR-кодів -->
+<!-- add bibliothek for generating QR codes -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 
 <script>
@@ -183,7 +183,7 @@
 
           if (result.success) {
             li.remove();
-            // Оновити сторінку, якщо документів більше не залишилось
+            // Reload the page if no documents remain.
             if (docsList.children.length === 0) {
               location.reload();
             }
@@ -196,19 +196,19 @@
       }
     });
 
-    // Додаткова перевірка для фото
+    // Additional photo validation
     const profilePicInput = document.getElementById("profile_picture");
     if (profilePicInput) {
       profilePicInput.addEventListener("change", function () {
         const file = this.files[0];
         if (file) {
-          // Перевірка розміру файлу (макс. 5MB)
+          //File size check (max. 5 MB)
           if (file.size > 5 * 1024 * 1024) {
             alert("The file is too large. The maximum size is 5MB.");
             this.value = "";
           }
 
-          // Перевірка типу файлу
+          // check file type
           const validTypes = ["image/jpeg", "image/png", "image/gif"];
           if (!validTypes.includes(file.type)) {
             alert("Only JPG, PNG, and GIF files are allowed.");
@@ -218,31 +218,31 @@
       });
     }
 
-    // Обробник для генерації QR-коду
+    // generator for generating QR code
     const generateQRBtn = document.getElementById("generateQRBtn");
     if (generateQRBtn) {
       generateQRBtn.addEventListener("click", async function () {
         try {
-          // Показуємо індикатор завантаження
+          // show upload indicator
           generateQRBtn.innerHTML =
             '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
           generateQRBtn.disabled = true;
 
-          // Отримуємо дані з сервера
+          // get data from server
           const response = await fetch(
             '{{ url_for("client.generate_qr_data") }}'
           );
           const qrData = await response.json();
 
-          // Генеруємо QR-код
+          // Generate QR code
           const qrContainer = document.getElementById("qrcode");
           qrContainer.innerHTML = "";
 
-          // Використовуємо toDataURL для створення зображення
+          // use toDataURL for picture generation
           QRCode.toDataURL(
             qrData.profile_url,
             {
-              // Використовуємо URL, а не JSON
+              // use URL, not JSON
               width: 200,
               margin: 1,
               color: {
@@ -259,13 +259,13 @@
                 return;
               }
 
-              // Створюємо img елемент з QR-кодом
+              // Create img element with QR code
               const img = document.createElement("img");
               img.src = url;
               img.alt = "Profile QR code ";
               qrContainer.appendChild(img);
 
-              // Показуємо контейнер з QR-кодом
+              // Show the container with the QR code
               document
                 .getElementById("qrCodeContainer")
                 .classList.remove("d-none");
@@ -273,12 +273,12 @@
                 .getElementById("qrCodePlaceholder")
                 .classList.add("d-none");
 
-              // Додаємо посилання для завантаження
+              // Add a link for downloading
               const downloadLink = document.getElementById("downloadQR");
               downloadLink.href = url;
               downloadLink.download = "medical-profile-qr.png";
 
-              // Відновлюємо кнопку
+              // Restore the button
               generateQRBtn.innerHTML = "Update QR code";
               generateQRBtn.disabled = false;
             }

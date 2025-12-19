@@ -43,7 +43,7 @@ def profile():
     
     if request.method == 'POST':
         try:
-            # Оновлюємо основну інформацію
+            # update main info
             current_user.full_name = request.form.get('full_name')
             current_user.phone_number = request.form.get('phone_number')
             current_user.about_me = request.form.get('about_me')
@@ -78,11 +78,11 @@ def profile():
                     current_user.documents = json.dumps(current_docs)
             
             db.session.commit()
-            flash('Профіль успішно оновлено!', 'success')
+            flash('Profile successfully updated!', 'success')
         except Exception as e:
             db.session.rollback()
             current_app.logger.error(f"Error updating profile: {str(e)}")
-            flash('Помилка при оновленні профілю', 'danger')
+            flash('Error updating profile', 'danger')
         
         return redirect(url_for('nurse.profile'))
     
@@ -98,12 +98,12 @@ def profile():
 @login_required
 def delete_document():
     if current_user.role != 'nurse':
-        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
     
     try:
         doc_name = request.json.get('doc_name')
         if not doc_name:
-            return jsonify({'success': False, 'message': 'Не вказано назву документа'})
+            return jsonify({'success': False, 'message': 'Document name not specified'})
 
         doc_path = os.path.join(DOCUMENTS_FOLDER, doc_name)
         if os.path.exists(doc_path):
@@ -124,19 +124,19 @@ def delete_document():
 @login_required
 def appointments():
     if current_user.role != 'nurse':
-        return jsonify({'error': 'Доступ заборонено'}), 403
+        return jsonify({'error': 'Access denied'}), 403
     return render_template('nurse/appointments.html')
 
 @nurse_bp.route('/update_location', methods=['POST'])
 @login_required
 def update_location():
     if current_user.role != 'nurse':
-        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
     
     try:
         data = request.get_json()
         if not data or 'latitude' not in data or 'longitude' not in data:
-            return jsonify({'success': False, 'message': 'Необхідно надати координати'}), 400
+            return jsonify({'success': False, 'message': 'Coordinates are required'}), 400
         
         current_user.latitude = float(data['latitude'])
         current_user.longitude = float(data['longitude'])
@@ -145,7 +145,7 @@ def update_location():
         
         return jsonify({
             'success': True,
-            'message': 'Локація оновлена',
+            'message': 'Location updated',
             'latitude': current_user.latitude,
             'longitude': current_user.longitude
         })
@@ -157,7 +157,7 @@ def update_location():
 @login_required
 def toggle_online():
     if current_user.role != 'nurse':
-        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
     
     try:
         current_user.online = not current_user.online
@@ -174,7 +174,7 @@ def toggle_online():
 @login_required
 def get_clients_locations():
     if current_user.role != 'nurse':
-        return jsonify({'error': 'Доступ заборонено'}), 403
+        return jsonify({'error': 'Access denied'}), 403
     
     try:
         clients = User.query.filter(
@@ -194,18 +194,18 @@ def get_clients_locations():
         return jsonify(clients_data)
     except Exception as e:
         current_app.logger.error(f"Error getting clients locations: {str(e)}")
-        return jsonify({'error': 'Помилка сервера'}), 500
+        return jsonify({'error': 'Server error'}), 500
     
     
 @nurse_bp.route('/get_chat_messages')
 @login_required
 def get_chat_messages():
     if current_user.role != 'nurse':
-        return jsonify({'error': 'Доступ заборонено'}), 403
+        return jsonify({'error': 'Access denied'}), 403
     
     recipient_id = request.args.get('recipient_id')
     if not recipient_id:
-        return jsonify({'error': 'Не вказано отримувача'}), 400
+        return jsonify({'error': 'Recipient not specified'}), 400
     
     try:
         messages = Message.query.filter(
@@ -216,7 +216,7 @@ def get_chat_messages():
         messages_data = [{
             'id': msg.id,
             'sender_id': msg.sender_id,
-            'sender_name': msg.sender.user_name if msg.sender_id != current_user.id else 'Ви',
+            'sender_name': msg.sender.user_name if msg.sender_id != current_user.id else 'You',
             'text': msg.text,
             'timestamp': msg.timestamp.isoformat()
         } for msg in messages]
@@ -224,7 +224,7 @@ def get_chat_messages():
         return jsonify(messages_data)
     except Exception as e:
         current_app.logger.error(f"Error getting chat messages: {str(e)}")
-        return jsonify({'error': 'Помилка сервера'}), 500
+        return jsonify({'error': 'Server error'}), 500
     
 @nurse_bp.route('/services', methods=['GET', 'POST'])
 @login_required
@@ -250,12 +250,12 @@ def manage_services():
                     is_available='is_available' in request.form
                 )
                 db.session.add(new_service)
-                flash('Власну послугу додано успішно', 'success')
+                flash('Custom service added successfully', 'success')
             
             elif action == 'add':
                 service_id = request.form.get('service_id')
                 if not service_id:
-                    flash('Не обрано послугу', 'danger')
+                    flash('No service selected', 'danger')
                     return redirect(url_for('nurse.manage_services'))
                 
                 new_service = NurseService(
@@ -268,7 +268,7 @@ def manage_services():
                     is_available='is_available' in request.form
                 )
                 db.session.add(new_service)
-                flash('Стандартну послугу додано успішно', 'success')
+                flash('Standard service added successfully', 'success')
             
             elif action == 'update':
                 service_id = request.form.get('service_id')
@@ -292,9 +292,9 @@ def manage_services():
                     service.duration = int(request.form.get('duration'))
                     service.description = request.form.get('description', '')
                     service.is_available = 'is_available' in request.form
-                    flash('Послугу оновлено успішно', 'success')
+                    flash('Service updated successfully', 'success')
                 else:
-                    flash('Послугу не знайдено', 'danger')
+                    flash('Service not found', 'danger')
             
             elif action == 'remove':
                 service_id = request.form.get('service_id')
@@ -305,9 +305,9 @@ def manage_services():
                 
                 if service:
                     db.session.delete(service)
-                    flash('Стандартну послугу видалено успішно', 'success')
+                    flash('Standard service removed successfully', 'success')
                 else:
-                    flash('Послугу не знайдено', 'danger')
+                    flash('Service not found', 'danger')
             
             elif action == 'remove_custom':
                 service_id = request.form.get('service_id')
@@ -318,15 +318,15 @@ def manage_services():
                 
                 if service:
                     db.session.delete(service)
-                    flash('Власну послугу видалено успішно', 'success')
+                    flash('Custom service removed successfully', 'success')
                 else:
-                    flash('Послугу не знайдено', 'danger')
-            
+                    flash('Service not found', 'danger')
+
             db.session.commit()
         except Exception as e:
             db.session.rollback()
             current_app.logger.error(f"Error managing services: {str(e)}")
-            flash(f'Помилка при обробці запиту: {str(e)}', 'danger')
+            flash(f'Error processing request: {str(e)}', 'danger')
         
         return redirect(url_for('nurse.manage_services'))
 
@@ -337,9 +337,9 @@ def manage_services():
 @nurse_bp.route('/get_appointments')
 @login_required
 def get_appointments():
-    print("Отримано запит до /nurse/get_appointments")  # Логування
+    print("Received request to /nurse/get_appointments")  # Logging
     if current_user.role != 'nurse':
-        return jsonify({'error': 'Доступ заборонено'}), 403
+        return jsonify({'error': 'Access denied'}), 403
     
     try:
         start_date = request.args.get('start')
@@ -355,13 +355,13 @@ def get_appointments():
                     Appointment.appointment_time <= end
                 )
             except ValueError as e:
-                print(f"Помилка формату дати: {e}")
+                print(f"Error parsing date format: {e}")
         
         appointments = query.all()
         result = []
         
         for app in appointments:
-            service_name = app.nurse_service.name if app.nurse_service else "Послуга"
+            service_name = app.nurse_service.name if app.nurse_service else "Service"
             result.append({
                 'id': app.id,
                 'title': f"{service_name} - {app.client.user_name}",
@@ -376,13 +376,13 @@ def get_appointments():
                     'photo': app.client.photo if app.client.photo else None
                 }
             })
-        
-        print(f"Повертаємо {len(result)} записів")  # Логування
+
+        print(f"Returning {len(result)} records")  # Logging
         return jsonify(result)
     
     except Exception as e:
-        print(f"Помилка у get_appointments: {str(e)}")  # Логування
-        return jsonify({'error': 'Внутрішня помилка сервера'}), 500
+        print(f"Error in get_appointments: {str(e)}")  # Logging
+        return jsonify({'error': 'Internal server error'}), 500
 
 def calendar_appointment_color(Status):
     colors_dictionary={
@@ -400,7 +400,7 @@ def calendar_appointment_color(Status):
 @login_required
 def update_appointment_status():
     if current_user.role != 'nurse':
-        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
 
     try:
         data = request.get_json()
@@ -408,7 +408,7 @@ def update_appointment_status():
         status = data.get('status')
 
         if not appointment_id or not status:
-            return jsonify({'success': False, 'message': 'Необхідно вказати запис та статус'}), 400
+            return jsonify({'success': False, 'message': 'You must specify the record and the status.'}), 400
 
         appointment = Appointment.query.filter_by(
             id=appointment_id,
@@ -416,7 +416,7 @@ def update_appointment_status():
         ).first()
 
         if not appointment:
-            return jsonify({'success': False, 'message': 'Запис не знайдено'}), 404
+            return jsonify({'success': False, 'message': 'Appointment not found'}), 404
 
         appointment.status = status
         db.session.commit()
@@ -440,44 +440,44 @@ def update_appointment_status():
 
 @socketio.on('connect')
 def handle_connect():
-    print(f"Клієнт підключився: {request.sid}")
+    print(f"Client connected: {request.sid}")
     emit('connection_response', {'status': 'connected'})
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print(f"Клієнт відключився: {request.sid}")
+    print(f"Client disconnected: {request.sid}")
 
 @socketio.on('join')
 def handle_join(data):
     user_id = data.get('user_id')
     if user_id:
         join_room(f"user_{user_id}")
-        current_app.logger.info(f'Користувач {user_id} приєднався до кімнати')
+        current_app.logger.info(f'User {user_id} joined the room')
 
 @socketio.on('send_message')
 def handle_send_message(data):
     try:
-        print(f"Отримано дані: {data}")  # Логування вхідних даних
+        print(f"Received data: {data}")  # Logging incoming data
         
         if not all(key in data for key in ['text', 'sender_id', 'recipient_id']):
-            raise ValueError("Недостатньо даних")
+            raise ValueError("Not enough data")
             
-        # Створення повідомлення
+        # Create a message
         message = Message(
             sender_id=int(data['sender_id']),
             recipient_id=int(data['recipient_id']),
             text=data['text']
         )
         
-        # Збереження в БД
+        # Save in DB
         db.session.add(message)
         db.session.commit()
         
-        # Отримання імені відправника
+        # get the senders name
         sender = User.query.get(message.sender_id)
-        sender_name = sender.user_name if sender else "Невідомий"
+        sender_name = sender.user_name if sender else "Unknown"
         
-        # Відправка отримувачу
+        # Send to the recipient
         emit('new_message', {
             'id': message.id,
             'sender_id': message.sender_id,
@@ -486,15 +486,15 @@ def handle_send_message(data):
             'timestamp': message.timestamp.isoformat()
         }, room=f"user_{message.recipient_id}")
         
-        # Підтвердження відправнику
+        # Confirmation to the sender
         emit('message_sent', {
             'id': message.id,
             'status': 'delivered'
         }, room=request.sid)
         
     except Exception as e:
-        print(f"Помилка: {str(e)}")
-        emit('error', {'message': str(e)}, room=request.sid)
+        print(f"Error: {str(e)}")
+        emit('Error', {'message': str(e)}, room=request.sid)
         db.session.rollback()
 
 
@@ -502,7 +502,7 @@ def handle_send_message(data):
 @login_required
 def nurse_stats():
     if current_user.role != 'nurse':
-        return jsonify({'error': 'Доступ заборонено'}), 403
+        return jsonify({'error': 'Access denied'}), 403
 
     accepted_statuses = ['confirmed', 'confirmed_paid', 'nurse_confirmed']
     accepted_count = Appointment.query.filter(
@@ -515,10 +515,10 @@ def nurse_stats():
         Appointment.status == 'completed'
     ).count()
 
-    avg_rating = current_user.average_nurse_rating  # з hybrid_property
+    avg_rating = current_user.average_nurse_rating  # with hybrid_property
     reviews_count = current_user.reviews_nurse_count
 
-    # Додатково: скільки майбутніх активних
+    # Additionally: how many upcoming active requests
     upcoming_count = Appointment.query.filter(
         Appointment.nurse_id == current_user.id,
         Appointment.appointment_time >= datetime.utcnow(),
@@ -540,15 +540,15 @@ def nurse_stats():
 @nurse_bp.route('/nurse_get_requests', methods=['GET'])
 @login_required
 def nurse_get_requests():
-    """Отримати всі запити для медсестри (для карти)"""
+    """Fetch all requests for the nurse (for the map)"""
     if current_user.role != 'nurse':
-        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
     
     try:
         nurse_lat = current_user.latitude
         nurse_lng = current_user.longitude
         
-        # Базовий запит
+        # Base request
         query = ClientSelfCreatedAppointment.query.filter(
             ClientSelfCreatedAppointment.status == 'pending'
         )
@@ -559,9 +559,9 @@ def nurse_get_requests():
                 func.sin(func.radians(nurse_lat)) * func.sin(func.radians(ClientSelfCreatedAppointment.latitude)) +
                 func.cos(func.radians(nurse_lat)) * func.cos(func.radians(ClientSelfCreatedAppointment.latitude)) *
                 func.cos(func.radians(ClientSelfCreatedAppointment.longitude) - func.radians(nurse_lng))
-            ) * 6371  # Радіус Землі в км
+            ) * 6371  # Earth’s radius in km
             
-            query = query.filter(distance_formula <= 50)  # 50 км радіус
+            query = query.filter(distance_formula <= 50)  # 50 km radius
         
         requests = query.all()
         
@@ -584,23 +584,23 @@ def nurse_get_requests():
         return jsonify({'success': True, 'requests': result}), 200
         
     except Exception as e:
-        current_app.logger.error(f"Помилка отримання запитів: {str(e)}")
-        return jsonify({'success': False, 'error': 'Внутрішня помилка сервера'}), 500
+        current_app.logger.error(f"Error retrieving requests: {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 @nurse_bp.route('/nurse_accept_request/<int:request_id>', methods=['POST'])
 @login_required
 def nurse_accept_request(request_id):
     if current_user.role != 'nurse':
-        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
     
     try:
         request = ClientSelfCreatedAppointment.query.get(request_id)
         
         if not request:
-            return jsonify({'success': False, 'message': 'Запит не знайдено'}), 404
+            return jsonify({'success': False, 'message': 'Request not found'}), 404
         
         if request.status != 'pending':
-            return jsonify({'success': False, 'message': 'Запит вже оброблений'}), 400
+            return jsonify({'success': False, 'message': 'Request already processed'}), 400
         
         request.status = 'accepted'
         request.doctor_id = current_user.id
@@ -618,24 +618,24 @@ def nurse_accept_request(request_id):
         db.session.add(appointment)
         db.session.commit()
         
-        # TODO: Надіслати сповіщення клієнту
+        # TODO: Send notification to client
         
         return jsonify({
             'success': True, 
-            'message': 'Запит прийнято',
+            'message': 'Request accepted',
             'appointment_id': appointment.id
         }), 200
         
     except Exception as e:
-        current_app.logger.error(f"Помилка прийняття запиту: {str(e)}")
+        current_app.logger.error(f"Error accepting request: {str(e)}")
         db.session.rollback()
-        return jsonify({'success': False, 'error': 'Внутрішня помилка сервера'}), 500
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 @nurse_bp.route('/nurse_get_accepted_requests', methods=['GET'])
 @login_required
 def nurse_get_accepted_requests():
     if current_user.role != 'nurse':
-        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
     
     try:
         requests = ClientSelfCreatedAppointment.query.filter_by(
@@ -660,33 +660,33 @@ def nurse_get_accepted_requests():
         return jsonify({'success': True, 'requests': result}), 200
         
     except Exception as e:
-        current_app.logger.error(f"Помилка отримання прийнятих запитів: {str(e)}")
-        return jsonify({'success': False, 'error': 'Внутрішня помилка сервера'}), 500
+        current_app.logger.error(f"Error retrieving accepted requests: {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 
 
 
 def notify_nurses_about_new_appointment(appointment):
-    """Сповістити медсестер про новий запит"""
-    # Знаходимо всіх медсестер поблизу
+    """Notify service provider about a new request"""
+    # Find all services nearby
     nurses = User.query.filter_by(role='nurse').all()
     
     for nurse in nurses:
         if nurse.latitude and nurse.longitude:
-            # Розрахунок відстані
+            # Calculate distance
             distance = calculate_distance(
                 nurse.latitude, nurse.longitude,
                 appointment.latitude, appointment.longitude
             )
             
-            if distance <= 50:  # 50 км радіус
-                # TODO: Реалізувати сповіщення (email, push, etc.)
+            if distance <= 50:  # 50 km radius
+                # TODO: Implement notifications (email, push, etc.)
                 pass
 
 def calculate_distance(lat1, lng1, lat2, lng2):
 
     
-    R = 6371  # Радіус Землі в км
+    R = 6371  # Earth’s radius in km
     
     lat1_rad = radians(lat1)
     lng1_rad = radians(lng1)

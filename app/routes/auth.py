@@ -24,7 +24,7 @@ def register():
             errors.append('Username must be at least 2 characters long')
         if not email or '@' not in email:
             errors.append('Invalid email address')
-        if password and len(password) < 6:  # Змінимо для Google-користувачів
+        if password and len(password) < 6:  #We’ll update it for Google users.
             errors.append('Password must be at least 6 characters long')
         if password and password != confirm_password:
             errors.append('Passwords do not match')
@@ -46,7 +46,7 @@ def register():
                 role=role,
                 full_name=fullname
             )
-            if password:  # Якщо це не Google-користувач
+            if password:  # If this is not a Google user
                 user.password = password
             
             db.session.add(user)
@@ -86,20 +86,20 @@ def google_login():
     
     google_data = resp.json()
     
-    # Перевіряємо чи користувач вже існує
+    # Check if the user already exists
     user = User.query.filter_by(google_id=google_data["id"]).first()
     
     if not user:
-        # Перевіряємо чи email вже використовується
+        # Check if the email is already in use
         user = User.query.filter_by(email=google_data["email"]).first()
         if user:
-            # Прив'язуємо Google ID до існуючого акаунта
+            # Link the Google ID to an existing account
             user.google_id = google_data["id"]
             db.session.commit()
         else:
-            # Створюємо нового користувача
+            # Create a new user
             username = google_data["email"].split('@')[0]
-            # Перевіряємо унікальність username
+            # Check username uniqueness
             counter = 1
             original_username = username
             while User.query.filter_by(user_name=username).first():
@@ -110,7 +110,7 @@ def google_login():
                 google_id=google_data["id"],
                 email=google_data["email"],
                 user_name=username,
-                role='client',  # За замовчуванням
+                role='client', 
                 online=True
             )
             db.session.add(user)
@@ -122,7 +122,7 @@ def google_login():
 
 @auth_bp.route('/logout', methods=['GET', 'POST'])
 def logout():
-    # Додатково виходимо з Google
+    # Additionally, we sign out of Google.
     if google_blueprint.session.authorized:
         token = google_blueprint.token["access_token"]
         google_blueprint.session.get(

@@ -68,18 +68,18 @@ def dashboard():
 @login_required
 def delete_document():
     if current_user.role != 'client':
-        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
     
     try:
         data = request.get_json()
         doc_name = data.get('doc_name')
         if not doc_name:
-            return jsonify({'success': False, 'message': 'Не вказано назву документа'})
+            return jsonify({'success': False, 'message': 'Document name is not specified.'})
 
-        # Видалення з Supabase Storage
+        # Deleting from Supabase Storage
         delete_from_supabase(doc_name, buckets['documents'])
-        
-        # Оновлення БД
+
+        # Updating the database
         if current_user.documents:
             documents = json.loads(current_user.documents)
             if doc_name in documents:
@@ -91,18 +91,18 @@ def delete_document():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
-#################################################33
+
 
 @client_bp.route('/update_location', methods=['POST'])
 @login_required
 def update_location():
     if current_user.role != 'client':
-        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
     
     try:
         data = request.get_json()
         if not data or 'latitude' not in data or 'longitude' not in data:
-            return jsonify({'success': False, 'message': 'Необхідно надати координати'}), 400
+            return jsonify({'success': False, 'message': 'Coordinates are required'}), 400
         
         current_user.latitude = float(data['latitude'])
         current_user.longitude = float(data['longitude'])
@@ -161,15 +161,15 @@ def profile():
             if date_birth:
                 current_user.date_birth = datetime.strptime(date_birth, '%Y-%m-%d')
             
-            # Обробка фото профілю
+            # Profile photo processing
             if 'profile_picture' in request.files:
                 file = request.files['profile_picture']
                 if file and file.filename != '' and allowed_file(file.filename):
-                    # Видалення старого фото
+                    # deleting old photo
                     if current_user.photo:
                         delete_from_supabase(current_user.profile_picture, buckets['profile_pictures'])
                     
-                    # Завантаження нового фото
+                    # Upload new photo
                     filename, file_url = upload_to_supabase(
                         file, 
                         buckets['profile_pictures'], 
@@ -179,7 +179,7 @@ def profile():
                     if filename:
                         current_user.photo = filename
             
-            # Обробка документів
+            # Documents processing
             if 'documents' in request.files:
                 documents = request.files.getlist('documents')
                 saved_docs = []
@@ -200,11 +200,11 @@ def profile():
                     current_user.documents = json.dumps(current_docs)
             
             db.session.commit()
-            flash('Профіль успішно оновлено!', 'success')
+            flash('Profile successfully updated!', 'success')
         except Exception as e:
             db.session.rollback()
             current_app.logger.error(f"Error updating profile: {str(e)}")
-            flash('Помилка при оновленні профілю', 'danger')
+            flash('Error updating profile', 'danger')
         
         return redirect(url_for('client.profile'))
     profile_photo = None
@@ -222,11 +222,11 @@ def profile():
 @login_required
 def get_chat_messages():
     if current_user.role != 'client':
-        return jsonify({'error': 'Доступ заборонено'}), 403
+        return jsonify({'error': 'access denied'}), 403
     
     recipient_id = request.args.get('recipient_id')
     if not recipient_id:
-        return jsonify({'error': 'Не вказано отримувача'}), 400
+        return jsonify({'error': 'Recipient not specified'}), 400
     
     messages = Message.query.filter(
         ((Message.sender_id == current_user.id) & (Message.recipient_id == recipient_id)) |
@@ -236,7 +236,7 @@ def get_chat_messages():
     messages_data = [{
         'id': msg.id,
         'sender_id': msg.sender_id,
-        'sender_name': msg.sender.user_name if msg.sender_id != current_user.id else 'Ви',
+        'sender_name': msg.sender.user_name if msg.sender_id != current_user.id else 'You',
         'text': msg.text,
         'timestamp': msg.timestamp.isoformat()
     } for msg in messages]
@@ -248,7 +248,7 @@ def get_chat_messages():
 @login_required
 def appointments():
     if current_user.role != 'client':
-        return jsonify({'error': 'Доступ заборонено'}), 403
+        return jsonify({'error': 'access denied'}), 403
     return render_template('client/appointments.html', stripe_public_key = stripe_public_key)
 
 
@@ -256,7 +256,7 @@ def appointments():
 @login_required
 def get_appointments():
     if current_user.role != 'client':
-        return jsonify({'error': 'Доступ заборонено'}), 403
+        return jsonify({'error': 'access denied'}), 403
     
     try:
         start_date = request.args.get('start')
@@ -273,14 +273,14 @@ def get_appointments():
                     Appointment.appointment_time <= end
                 )
             except ValueError as e:
-                current_app.logger.error(f"Помилка формату дати: {e}")
+                current_app.logger.error(f"Error parsing date format: {e}")
         
         appointments = query.order_by(Appointment.appointment_time.asc()).all()
         
         result = []
         for app in appointments:
-            service_name = app.nurse_service.name if app.nurse_service else "Послуга"
-            nurse_name = app.nurse.user_name if app.nurse else "Медсестра"
+            service_name = app.nurse_service.name if app.nurse_service else "Service"
+            nurse_name = app.nurse.user_name if app.nurse else "Nurse"
             
             result.append({
                 'id': app.id,
@@ -299,8 +299,8 @@ def get_appointments():
         return jsonify(result)
     
     except Exception as e:
-        current_app.logger.error(f"Помилка у get_appointments: {str(e)}")
-        return jsonify({'error': 'Внутрішня помилка сервера'}), 500
+        current_app.logger.error(f"error in get_appointments: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 def get_appointment_color(status):
     colors = {
         'scheduled': 'gray',
@@ -324,7 +324,7 @@ def calendar_appointment_color(Status):
 @login_required
 def working_hours():
     if current_user.role != 'client':
-        return jsonify({'error': 'Доступ заборонено'}), 403
+        return jsonify({'error': 'access denied'}), 403
 
     nurse_id = request.args.get('nurse_id')
     service_id = request.args.get('service_id')
@@ -344,33 +344,33 @@ def working_hours():
 @login_required
 def get_available_times():
     if current_user.role != 'client':
-        return jsonify({'error': 'Доступ заборонено'}), 403
+        return jsonify({'error': 'access denied'}), 403
 
     nurse_id = request.args.get('nurse_id')
     service_id = request.args.get('service_id')
     date_str = request.args.get('date')
 
     if not all([nurse_id, service_id, date_str]):
-        return jsonify({'error': 'Необхідно вказати медсестру, послугу та дату'}), 400
+        return jsonify({'error': 'Service provider, service and date must be specified'}), 400
 
     try:
         date = datetime.strptime(date_str, '%Y-%m-%d').date()
         service = NurseService.query.get(service_id)
 
         if not service or service.nurse_id != int(nurse_id):
-            return jsonify({'error': 'Послугу не знайдено'}), 404
+            return jsonify({'error': 'Service provider not found'}), 404
 
-        # Робочий час медсестри (приклад: з 9 до 18)
+        # working hours
         work_start = 9
         work_end = 18
 
-        # Отримуємо всі заплановані записи на цей день
+        # getting all scheduled appointments for this day
         appointments = Appointment.query.filter(
             Appointment.nurse_id == nurse_id,
             db.func.date(Appointment.appointment_time) == date,
             Appointment.status.in_(['scheduled', 'confirmed'])
         ).all()
-    # Генеруємо доступні слоти
+    # Generate available slots
         available_slots = []
         current_time = datetime.combine(date, datetime.min.time()) + timedelta(hours=work_start)
         end_time = datetime.combine(date, datetime.min.time()) + timedelta(hours=work_end)
@@ -378,7 +378,7 @@ def get_available_times():
         while current_time + timedelta(minutes=service.duration) <= end_time:
             slot_end = current_time + timedelta(minutes=service.duration)
 
-            # Перевіряємо чи цей слот не перетинається з існуючими записами
+            # Check if this slot does not overlap with existing appointments
             is_available = True
             for app in appointments:
                 if (current_time < app.end_time) and (slot_end > app.appointment_time):
@@ -388,27 +388,25 @@ def get_available_times():
             if is_available:
                 available_slots.append(current_time.strftime('%H:%M'))
 
-            current_time += timedelta(minutes=30)  # Крок 30 хвилин
+            current_time += timedelta(minutes=30)  # Step 30 minutes
 
         return jsonify(available_slots)
 
     except Exception as e:
         current_app.logger.error(f"Error getting available times: {str(e)}")
-        return jsonify({'error': 'Помилка сервера'}), 500
+        return jsonify({'error': 'Internal server error'}), 500
         
-
-
 
 
 @client_bp.route('/get_nurse_services')
 @login_required
 def get_nurse_services():
     if current_user.role != 'client':
-        return jsonify({'error': 'Доступ заборонено'}), 403
+        return jsonify({'error': 'access denied'}), 403
     
     nurse_id = request.args.get('nurse_id')
     if not nurse_id:
-        return jsonify({'error': 'Не вказано медсестру'}), 400
+        return jsonify({'error': 'No services specified'}), 400
     
     try:
         services = NurseService.query.filter_by(
@@ -427,7 +425,7 @@ def get_nurse_services():
         return jsonify(services_data)
     except Exception as e:
         current_app.logger.error(f"Error getting nurse services: {str(e)}")
-        return jsonify({'error': 'Помилка сервера'}), 500
+        return jsonify({'error': 'Internal server error'}), 500
 
 
 
@@ -435,7 +433,7 @@ def get_nurse_services():
 @login_required
 def create_appointment():
     if current_user.role != 'client':
-        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+        return jsonify({'success': False, 'message': 'access denied'}), 403
     
     try:
         data = request.get_json()
@@ -445,16 +443,16 @@ def create_appointment():
         notes = data.get('notes')
         
         if not all([nurse_id, service_id, date_time]):
-            return jsonify({'success': False, 'message': 'Необхідно заповнити всі поля'}), 400
+            return jsonify({'success': False, 'message': 'All fields must be filled'}), 400
         
     
         nurse = User.query.get(nurse_id)
         if not nurse or nurse.role != 'nurse':
-            return jsonify({'success': False, 'message': 'Медсестру не знайдено'}), 404
+            return jsonify({'success': False, 'message': 'Service provider not found'}), 404
         
         service = NurseService.query.get(service_id)
         if not service or service.nurse_id != int(nurse_id):
-            return jsonify({'success': False, 'message': 'Послугу не знайдено'}), 404
+            return jsonify({'success': False, 'message': 'Service not found'}), 404
         
 
         appointment_time = datetime.strptime(date_time, '%Y-%m-%dT%H:%M')
@@ -469,7 +467,7 @@ def create_appointment():
         ).count()
         
         if conflicting_appointments > 0:
-            return jsonify({'success': False, 'message': 'Цей час вже зайнятий'}), 400
+            return jsonify({'success': False, 'message': 'This time is already taken'}), 400
         
 
         new_appointment = Appointment(
@@ -488,7 +486,7 @@ def create_appointment():
         
         return jsonify({
             'success': True,
-            'message': 'Запис успішно створено',
+            'message': 'Appointment created successfully',
             'appointment_id': new_appointment.id
         })
         
@@ -511,7 +509,7 @@ def create_apple_pay_session():
         if appointment.client_id != current_user.id:
             abort(403)
 
-        # Створюємо сесію оплати Stripe
+        # creating session for Stripe payment
         session = stripe.checkout.Session.create(
             payment_method_types=['card', 'apple_pay'],
             line_items=[{
@@ -520,7 +518,7 @@ def create_apple_pay_session():
                     'product_data': {
                         'name': appointment.nurse_service.name,
                     },
-                    'unit_amount': int(appointment.nurse_service.price * 100),  # В копійках
+                    'unit_amount': int(appointment.nurse_service.price * 100),  # in cents
                 },
                 'quantity': 1,
             }],
@@ -565,20 +563,20 @@ def payment_success(appointment_id):
                 db.session.add(payment)
                 appointment.status = 'confirmed_paid'
                 db.session.commit()
-                
-                flash('Оплата успішна!', 'success')
+
+                flash('Payment successful!', 'success')
             else:
-                flash('Оплата не підтверджена', 'warning')
+                flash('Payment not confirmed', 'warning')
         else:
-            flash('Інформація про оплату відсутня', 'warning')
+            flash('Payment information is missing', 'warning')
     
     except stripe.error.StripeError as e:
         current_app.logger.error(f"Stripe verification error: {str(e)}")
-        flash('Помилка при перевірці платежу', 'danger')
+        flash('Error during payment verification', 'danger')
     except Exception as e:
         current_app.logger.error(f"Error in payment_success: {str(e)}")
-        flash('Помилка сервера', 'danger')
-    
+        flash('Server error', 'danger')
+
     return redirect(url_for('client.appointments'))
 
 @client_bp.route('/stripe_webhook', methods=['POST'])
@@ -596,7 +594,7 @@ def stripe_webhook():
     except stripe.error.SignatureVerificationError as e:
         return jsonify({'error': 'Invalid signature'}), 400
 
-    # Обробка події успішної оплати
+    # Handling a successful payment event
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         handle_successful_payment(session)
@@ -692,20 +690,20 @@ def payment_cancel():
         session_id = request.args.get('session_id')
         
         if session_id:
-            # Отримуємо сесію Stripe для логування
+            # getting Stripe session for logging
             session = stripe.checkout.Session.retrieve(session_id)
             
-            # Логуємо скасування
+            # Log cancellation info
             current_app.logger.info(f"Payment canceled - Session ID: {session_id}, Status: {session.payment_status}")
             
-            # Якщо є appointment_id в metadata, можемо оновити статус
+            # If there is appointment_id in metadata, we can update the status
             if 'appointment_id' in session.metadata:
                 appointment = Appointment.query.get(session.metadata['appointment_id'])
                 if appointment and appointment.client_id == current_user.id:
                     appointment.status = 'payment_canceled'
                     db.session.commit()
         
-        # Створюємо запис про скасування платежу
+        # Creating a record of the canceled payment
         payment_record = Payment(
             user_id=current_user.id,
             status='canceled',
@@ -723,7 +721,7 @@ def payment_cancel():
         current_app.logger.error(f"Error in payment_cancel: {str(e)}")
         db.session.rollback()
     
-    flash('Оплату скасовано. Ви можете спробувати ще раз.', 'warning')
+    flash('Payment canceled. You can try again.', 'warning')
     return redirect(url_for('client.appointments'))
 
 
@@ -732,7 +730,7 @@ def payment_cancel():
 @login_required
 def cancel_appointment():
     if current_user.role != 'client':
-        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+        return jsonify({'success': False, 'message': 'access denied'}), 403
     
     try:
         data = request.get_json()
@@ -740,7 +738,7 @@ def cancel_appointment():
         reason = data.get('reason', '')
         
         if not appointment_id:
-            return jsonify({'success': False, 'message': 'Не вказано ID запису'}), 400
+            return jsonify({'success': False, 'message': 'ID for Appointment Not Specified'}), 400
         
         appointment = Appointment.query.filter_by(
             id=appointment_id,
@@ -748,20 +746,20 @@ def cancel_appointment():
         ).first()
         
         if not appointment:
-            return jsonify({'success': False, 'message': 'Запис не знайдено'}), 404
+            return jsonify({'success': False, 'message': 'Appointment not found'}), 404
         
         # Check if it's too late to cancel (e.g., less than 24 hours before)
         if appointment.appointment_time - datetime.utcnow() < timedelta(hours=24):
             return jsonify({
                 'success': False,
-                'message': 'Скасування менш ніж за 24 години до запису неможливе'
+                'message': 'Cancellation less than 24 hours before the appointment is not possible'
             }), 400
         
         appointment.status = 'cancelled'
         appointment.cancellation_reason = reason
         db.session.commit()
         
-        return jsonify({'success': True, 'message': 'Запис скасовано'})
+        return jsonify({'success': True, 'message': 'Appointment cancelled'})
     
     except Exception as e:
         db.session.rollback()
@@ -772,7 +770,7 @@ def cancel_appointment():
 @login_required
 def client_self_create_appointment():
     if current_user.role != 'client':
-        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+        return jsonify({'success': False, 'message': 'access denied'}), 403
     
     try:
         data = request.get_json()
@@ -780,7 +778,7 @@ def client_self_create_appointment():
         required_fields = ['latitude', 'longitude', 'appointment_start_time']
         
         if not all(field in data for field in required_fields):
-            return jsonify({'success': False, 'error': 'Не всі обов\'язкові поля заповнені'}), 400
+            return jsonify({'success': False, 'error': 'Not all required fields are filled'}), 400
         
         appointment_start_time = datetime.fromisoformat(data['appointment_start_time'].replace('Z', '+00:00'))
         
@@ -807,50 +805,47 @@ def client_self_create_appointment():
         db.session.add(appointment)
         db.session.commit()
         
-        # Сповіщення медсестер про новий запит
+       
         #notify_nurses_about_new_appointment(appointment)
         
         return jsonify({
             'success': True,
-            'message': 'Запит успішно створено',
+            'message': 'Request successfully created',
             'appointment_id': appointment.id
         }), 201
         
     except Exception as e:
-        current_app.logger.error(f"Помилка створення запиту: {str(e)}")
+        current_app.logger.error(f"Error creating appointment request: {str(e)}")
         db.session.rollback()
-        return jsonify({'success': False, 'error': 'Внутрішня помилка сервера'}), 500
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
         
-
-
-
 
 
 
 
 @socketio.on('connect')
 def handle_connect():
-    print(f"Клієнт підключився: {request.sid}")
+    print(f"Client connected: {request.sid}")
     emit('connection_response', {'status': 'connected'})
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print(f"Клієнт відключився: {request.sid}")
+    print(f"Client disconnected: {request.sid}")
 
 @socketio.on('join')
 def handle_join(data):
     user_id = data.get('user_id')
     if user_id:
         join_room(f"user_{user_id}")
-        current_app.logger.info(f'Користувач {user_id} приєднався до кімнати')
+        current_app.logger.info(f'User {user_id} joined the room')
 
 @socketio.on('send_message')
 def handle_send_message(data):
     try:
-        print(f"Отримано дані: {data}") 
+        print(f"Received data: {data}") 
         
         if not all(key in data for key in ['message_type', 'sender_id', 'recipient_id']):
-            raise ValueError("Недостатньо даних")
+            raise ValueError(" Not enough data to send a message")
             
         file_data=None
         if 'file' in data:
@@ -898,7 +893,7 @@ def handle_send_message(data):
                 supabase_file_path = unique_filename
                 file_name = file_name
             else:
-                raise ValueError("Помилка завантаження файлу на Supabase")
+                raise ValueError("Error uploading file to Supabase")
         
         message = Message(
             sender_id=int(data['sender_id']),
@@ -915,7 +910,7 @@ def handle_send_message(data):
         db.session.commit()
         
         sender = User.query.get(message.sender_id)
-        sender_name = sender.user_name if sender else "Невідомий"
+        sender_name = sender.user_name if sender else "Unknown"
         
         file_url = None
         if supabase_file_path:
@@ -939,7 +934,7 @@ def handle_send_message(data):
         }, room=request.sid)
         
     except Exception as e:
-        print(f"Помилка: {str(e)}")
+        print(f"Error: {str(e)}")
         emit('error', {'message': str(e)}, room=request.sid)
         db.session.rollback()
 
@@ -952,7 +947,7 @@ def handle_send_message(data):
 @login_required
 def client_get_requests():
     if current_user.role != 'client':
-        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
     
     try:
         requests = ClientSelfCreatedAppointment.query.filter_by(
@@ -978,14 +973,14 @@ def client_get_requests():
         return jsonify({'success': True, 'requests': result}), 200
         
     except Exception as e:
-        current_app.logger.error(f"Помилка отримання запитів: {str(e)}")
-        return jsonify({'success': False, 'error': 'Внутрішня помилка сервера'}), 500
+        current_app.logger.error(f"Error retrieving requests: {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 @client_bp.route('/client_cancel_request/<int:request_id>', methods=['POST'])
 @login_required
 def client_cancel_request(request_id):
     if current_user.role != 'client':
-        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
     
     try:
         request = ClientSelfCreatedAppointment.query.filter_by(
@@ -994,20 +989,20 @@ def client_cancel_request(request_id):
         ).first()
         
         if not request:
-            return jsonify({'success': False, 'message': 'Запит не знайдено'}), 404
+            return jsonify({'success': False, 'message': 'Request not found'}), 404
         
         if request.status not in ['pending', 'accepted']:
-            return jsonify({'success': False, 'message': 'Неможливо скасувати цей запит'}), 400
-        
+            return jsonify({'success': False, 'message': 'Cannot cancel this request'}), 400
+
         request.status = 'cancelled'
         db.session.commit()
         
-        return jsonify({'success': True, 'message': 'Запит скасовано'}), 200
+        return jsonify({'success': True, 'message': 'Request cancelled'}), 200
         
     except Exception as e:
-        current_app.logger.error(f"Помилка скасування запиту: {str(e)}")
+        current_app.logger.error(f"Error cancelling request: {str(e)}")
         db.session.rollback()
-        return jsonify({'success': False, 'error': 'Внутрішня помилка сервера'}), 500
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 
 
@@ -1019,7 +1014,7 @@ def client_cancel_request(request_id):
 @login_required
 def leave_review():
     if current_user.role != 'client':
-        return jsonify({'success': False, 'message': 'Доступ заборонено'}), 403
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
 
     data = request.get_json() or {}
     appointment_id = data.get('appointment_id')
@@ -1027,26 +1022,25 @@ def leave_review():
     comment = data.get('comment', '').strip()
 
     if not appointment_id or rating is None:
-        return jsonify({'success': False, 'message': 'Необхідно вказати appointment_id і rating'}), 400
+        return jsonify({'success': False, 'message': 'appointment_id and rating are required'}), 400
 
     try:
         rating = int(rating)
         if rating < 1 or rating > 5:
             raise ValueError
     except Exception:
-        return jsonify({'success': False, 'message': 'Рейтинг має бути цілим від 1 до 5'}), 400
+        return jsonify({'success': False, 'message': 'Rating must be an integer from 1 to 5'}), 400
 
     appo = Appointment.query.filter_by(id=appointment_id, client_id=current_user.id).first()
     if not appo:
-        return jsonify({'success': False, 'message': 'Запис не знайдено'}), 404
-
+        return jsonify({'success': False, 'message': 'Appointment not found'}), 404
     if appo.status != 'confirmed_paid':
-        return jsonify({'success': False, 'message': 'Відгук можна залишити лише після завершення візиту'}), 400
+        return jsonify({'success': False, 'message': 'Review can be left only after the visit is completed'}), 400
 
-    # Перевірка: щоб на один appointment не було дубля відгуку
+    # Check to prevent duplicate reviews for the same appointment.
     existing = Review.query.filter_by(patient_id=current_user.id, doctor_id=appo.nurse_id, appointment_id=appo.id).first()
     if existing:
-        return jsonify({'success': False, 'message': 'Відгук вже залишено'}), 400
+        return jsonify({'success': False, 'message': 'Review already left'}), 400
 
     review = Review(
         patient_id=current_user.id,
@@ -1058,7 +1052,7 @@ def leave_review():
     db.session.add(review)
     db.session.commit()
 
-    return jsonify({'success': True, 'message': 'Дякуємо за відгук!'})
+    return jsonify({'success': True, 'message': 'Thank you for your review!'})
 
 
 
@@ -1103,7 +1097,7 @@ def get_review(appointment_id):
             }
         })
     else:
-        return jsonify({'success': False, 'message': 'Відгук не знайдено'}), 404
+        return jsonify({'success': False, 'message': 'Review not found'}), 404
 
 @client_bp.route('/can_review/<int:appointment_id>')
 @login_required
@@ -1114,11 +1108,11 @@ def can_review_appointment(appointment_id):
     ).first()
     
     if not appointment:
-        return jsonify({'can_review': False, 'reason': 'Запис не знайдено'})
+        return jsonify({'can_review': False, 'reason': 'Appointment not found'})
     
     if appointment.status != 'completed':
-        return jsonify({'can_review': False, 'reason': 'Запис ще не завершено'})
-    
+        return jsonify({'can_review': False, 'reason': 'Appointment not completed'})
+
     existing_review = Review.query.filter_by(
         appointment_id=appointment_id,
         patient_id=current_user.id

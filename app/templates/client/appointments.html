@@ -5,16 +5,16 @@
   <a href="{{ url_for('client.dashboard') }}" class="btn btn-info">
     <i class="fas fa-user"></i> Exit
   </a>
-  <!-- Календар -->
+  <!-- Calendar -->
   <div id="calendar"></div>
 
-  <!-- Кнопка створення нового запису -->
+  <!-- Button to create a new appointment -->
   <button id="newAppointmentBtn" class="btn btn-primary mt-3">
     <i class="fas fa-plus"></i> New appointment
   </button>
 </div>
 
-<!-- Модальне вікно для нового запису -->
+<!-- Modal for new appointment -->
 <div
   class="modal fade"
   id="newAppointmentModal"
@@ -33,14 +33,14 @@
         ></button>
       </div>
       <div class="modal-body">
-        <!-- Форма буде динамічно заповнюватися через JS -->
+        <!-- The form will be filled in dynamically using JS. -->
         <div id="appointmentFormContainer"></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Модальне вікно деталей запису -->
+<!-- Appointment details modal -->
 <div
   class="modal fade"
   id="appointmentDetailsModal"
@@ -131,9 +131,9 @@
         </div>
 
         <div id="noReviewMessage" style="display: none">
-          <p class="text-muted">Ви ще не залишили відгук для цього запису.</p>
+          <p class="text-muted">No review has been submitted for this entry yet.</p>
           <button id="addReviewBtn" class="btn btn-outline-primary btn-sm">
-            <i class="fas fa-plus"></i> Додати відгук
+            <i class="fas fa-plus"></i> Add a review
           </button>
         </div>
       </div>
@@ -147,7 +147,7 @@
 </div>
 
 {% endblock %} {% block scripts %}
-<!-- Підключаємо FullCalendar -->
+<!-- Connect FullCalendar -->
 <link
   href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css"
   rel="stylesheet"
@@ -162,7 +162,7 @@
   const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
   document.addEventListener("DOMContentLoaded", function () {
-    // Ініціалізація календаря
+    // Calendar initialization
     const calendarEl = document.getElementById("calendar");
     const calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: "dayGridMonth",
@@ -185,11 +185,11 @@
           props.status
         );
         document.getElementById("detailNotes").textContent =
-          props.notes || "Немає приміток";
+          props.notes || "No notes provided";
         document.getElementById("detailAmount").textContent =
           props.amount || "0.00";
 
-        // Показуємо секцію оплати, якщо запис не оплачено
+        // Display the payment section for unpaid entries
         const paymentSection = document.getElementById("paymentSection");
         const paymentStatus = document.getElementById("paymentStatus");
 
@@ -206,7 +206,7 @@
           }
         }
 
-        // Додаємо кнопки дій залежно від статусу
+        // Add action buttons depending on the status
         const actionsContainer = document.getElementById("appointmentActions");
         actionsContainer.innerHTML = "";
 
@@ -226,7 +226,7 @@
     });
     calendar.render();
 
-    // Обробник кнопки нового запису
+    // New record button handler
     document
       .getElementById("newAppointmentBtn")
       .addEventListener("click", function () {
@@ -259,7 +259,7 @@
           });
       });
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-    // Обробник кнопки оплати
+    // Handler for the payment button
     document.getElementById("payNowBtn").addEventListener("click", function () {
       if (!currentAppointmentId) return;
 
@@ -345,7 +345,7 @@
     }
   }
 
-  // Функція перевірки статусу відгуку
+  // Function to check the review status
   function checkReviewStatus(appointmentId) {
     fetch(`/client/can_review/${appointmentId}`)
       .then((response) => response.json())
@@ -369,7 +369,7 @@
       });
   }
 
-  // Завантаження існуючого відгуку
+  // Loading an existing feedback
   function loadExistingReview(appointmentId) {
     fetch(`/client/get_review/${appointmentId}`)
       .then((response) => response.json())
@@ -381,7 +381,7 @@
           document.getElementById("userComment").textContent =
             data.review.comment || "Without comment";
 
-          // Відображення зірочок рейтингу
+          // Rendering rating stars
           const starsContainer = document.querySelector(".rating-stars");
           starsContainer.innerHTML = generateRatingStars(data.review.rating);
 
@@ -392,7 +392,7 @@
       });
   }
 
-  // Генерація HTML для зірочок рейтингу
+  // HTML generation for rating stars
   function generateRatingStars(rating) {
     let stars = "";
     for (let i = 1; i <= 5; i++) {
@@ -403,7 +403,7 @@
     return stars;
   }
 
-  // Обробники кнопок для відгуків
+  // Event handlers for feedback buttons
   document
     .getElementById("addReviewBtn")
     .addEventListener("click", function () {
@@ -418,7 +418,7 @@
       document.getElementById("reviewForm").style.display = "block";
       document.getElementById("existingReview").style.display = "none";
 
-      // Завантаження поточних даних у форму
+      // Loading existing data into the form
       fetch(`/client/get_review/${currentAppointmentId}`)
         .then((response) => response.json())
         .then((data) => {
@@ -502,7 +502,7 @@
     cursor: pointer;
   }
 
-  /* Стилі для різних статусів */
+  /* Style for different event statuses */
   .fc-event.scheduled {
     background-color: #ffc107;
     border-color: #ffc107;

@@ -171,28 +171,30 @@
   let nursesLayer = L.layerGroup();
   const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-  // --- Функції Статусу ---
+  // --- Status fuction ---
   function showStatus(message, isError = false) {
       const statusEl = document.getElementById('status-message');
       statusEl.textContent = message;
       statusEl.style.color = isError ? 'red' : 'green';
   }
 
-  // --- Ініціалізація Карти ---
+  // --- map initialisation ---
   function initMap() {
       try {
-          // 1. Отримуємо координати. Якщо в базі None, JS отримає null.
-          // Використовуємо конструкцію "if else" прямо в Jinja для надійності
+          // 1. Get the coordinates. If they are None in the database, JS will receive null.
+          // We use an "if/else" construct directly in Jinja for reliability.
+
           const userLat = {{ current_user.latitude if current_user.latitude else 'null' }};
           const userLng = {{ current_user.longitude if current_user.longitude else 'null' }};
 
-          // 2. Визначаємо центр карти. 
-          // Якщо у юзера є координати - центруємо на ньому.
-          // Якщо немає (новий акаунт) - центруємо на Києві (дефолт).
+          // 2. Determine the map center.
+// If the user has coordinates, center the map on them.
+// If not (new account), center the map on Kyiv (default).
+
           const mapCenterLat = userLat !== null ? userLat : 50.4501;
           const mapCenterLng = userLng !== null ? userLng : 30.5234;
 
-          // 3. Створюємо карту
+          // 3. Creating the map
           map = L.map('nursesMap').setView([mapCenterLat, mapCenterLng], 12);
           
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -201,7 +203,7 @@
 
           nursesLayer.addTo(map);
 
-          // 4. Ставимо маркер "Я тут" ТІЛЬКИ якщо у юзера вже збережені координати
+          // 4. Show the “I’m here” marker only if the user has saved coordinates.
           if (userLat !== null && userLng !== null) {
               userMarker = L.marker([userLat, userLng], {
                   icon: L.divIcon({
@@ -213,14 +215,14 @@
               }).addTo(map).bindPopup('Your location');
           }
 
-          loadNursesLocations(); // Завантажуємо медсестер
+          loadNursesLocations(); // Loading services onto the map
 
       } catch (error) {
           console.error("Map error:", error);
       }
   }
 
-  // --- Завантаження Медсестер на карту ---
+  // --- Loading services onto the map ---
   async function loadNursesLocations() {
       try {
           nursesLayer.clearLayers();
@@ -228,7 +230,7 @@
           const nurses = await response.json();
 
           nurses.forEach(nurse => {
-              // Створюємо маркер для медсестри
+              // create marker FOR SERVICE PROVIDER
               const marker = L.marker([nurse.lat, nurse.lng], {
                   icon: L.divIcon({
                       className: 'nurse-marker',
@@ -237,15 +239,15 @@
                   })
               }).addTo(nursesLayer);
 
-              // Попап з кнопками
+              // Popup with buttons
               const popupContent = `
                   <b>${nurse.name}</b><br>
                   <div class="mt-2">
                       <button class="btn btn-sm btn-primary" onclick="openChat('${nurse.id}', '${nurse.name}')">
-                          <i class="fas fa-comment"></i> Чат
+                          <i class="fas fa-comment"></i> Chat
                       </button>
                       <button class="btn btn-sm btn-success" onclick="openBookingModal('${nurse.id}', '${nurse.name}')">
-                          <i class="fas fa-plus"></i> Запис
+                          <i class="fas fa-plus"></i> Appointment
                       </button>
                   </div>
               `;
@@ -257,7 +259,7 @@
       }
   }
 
-  // --- Оновлення локації клієнта ---
+  // --- Updating the client’s location ---
   async function updateLocation() {
       if (!navigator.geolocation) return alert("Geolocation is not supported");
 
@@ -265,7 +267,7 @@
       navigator.geolocation.getCurrentPosition(async (position) => {
           const {latitude, longitude} = position.coords;
 
-          // Оновлюємо маркер на карті
+          // update marker on map 
           if (userMarker) map.removeLayer(userMarker);
           userMarker = L.marker([latitude, longitude], {
               icon: L.divIcon({
@@ -276,7 +278,7 @@
           }).addTo(map);
           map.setView([latitude, longitude], 12);
 
-          // Відправляємо на сервер
+          // Send to the server
           const res = await fetch('{{ url_for("client.update_location") }}', {
               method: 'POST',
               headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
@@ -287,7 +289,7 @@
       }, () => showStatus("Access to geolocation is denied", true));
   }
 
-  // --- Логіка Бронювання (Модальне вікно) ---
+  // --- Booking logic (modal window) ---
   function openBookingModal(nurseId, nurseName) {
       document.getElementById('bookingNurseName').textContent = nurseName;
       document.getElementById('nurseIdInput').value = nurseId;
@@ -297,7 +299,7 @@
 
       new bootstrap.Modal(document.getElementById('bookingModal')).show();
 
-      // Завантажуємо послуги
+      // Loading services
       fetch(`/client/get_nurse_services?nurse_id=${nurseId}`)
           .then(r => r.json())
           .then(services => {

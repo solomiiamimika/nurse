@@ -11,7 +11,7 @@ def home():
 
 @main_bp.route('/search_nurses')
 def search_nurses():
-    # фільтри: мінімальний рейтинг і/або частина імені
+    # filters: minimum rating and/or part of the name
     min_rating = request.args.get('min_rating', type=float)
     q = request.args.get('q', '', type=str).strip()
 
@@ -25,7 +25,7 @@ def search_nurses():
 
     nurses = query.all()
 
-    # застосуємо фільтр по середньому рейтингу на Python-рівні (через hybrid теж можна, але так простіше)
+    # We’ll apply the filter by average rating at the Python level (we could also do it via a hybrid property, but this is simpler).
     results = []
     for n in nurses:
         avg = n.average_rating
@@ -39,7 +39,7 @@ def search_nurses():
             'reviews_count': n.reviews_count
         })
 
-    # сортуємо за рейтингом (спершу кращі)
+    # Sort by rating (best first)
     results.sort(key=lambda x: (x['average_rating'] is None, -(x['average_rating'] or 0)))
     return jsonify(results[:50])
 
