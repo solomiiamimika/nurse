@@ -2,364 +2,209 @@
 
 <div class="client-appointments">
   <h2>My appointments</h2>
-  <a href="{{ url_for('client.dashboard') }}" class="btn btn-info">
-    <i class="fas fa-user"></i> Exit
-  </a>
-  <!-- Calendar -->
+  <div class="mb-3 d-flex gap-2">
+    <a href="{{ url_for('client.dashboard') }}" class="btn btn-info">
+      <i class="fas fa-user"></i> Exit
+    </a>
+  </div>
+
   <div id="calendar"></div>
 
-
-<!-- Modal for new appointment -->
-<div
-  class="modal fade"
-  id="newAppointmentModal"
-  tabindex="-1"
-  aria-hidden="true"
->
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">New appointment</h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
-      <div class="modal-body">
-        <!-- The form will be filled in dynamically using JS. -->
-        <div id="appointmentFormContainer"></div>
+  <div class="modal fade" id="newAppointmentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New appointment</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="appointmentFormContainer"></div>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Appointment details modal -->
-<div
-  class="modal fade"
-  id="appointmentDetailsModal"
-  tabindex="-1"
-  aria-hidden="true"
->
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Appointment details</h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
-      <div class="modal-body">
-        <div class="mb-3">
-          <strong>Service:</strong> <span id="detailServiceName"></span>
+  <div class="modal fade" id="appointmentDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Appointment details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="mb-3">
-          <strong>Date and time:</strong> <span id="detailDateTime"></span>
-        </div>
-        <div class="mb-3">
-          <strong>Status:</strong> <span id="detailStatus"></span>
-        </div>
-        <div class="mb-3">
-          <strong>Notes:</strong> <span id="detailNotes"></span>
-        </div>
-        <div class="mb-3">
-          <strong>Amount:</strong> <span id="detailAmount"></span> UAH
-        </div>
-        <div id="paymentSection" class="mb-3" style="display: none">
-          <button id="payNowBtn" class="btn btn-success">
-            <i class="fas fa-credit-card"></i> Make a payment now
-          </button>
-        </div>
-        <div id="paymentStatus" class="alert" style="display: none"></div>
-        <div id="appointmentActions" class="d-flex gap-2"></div>
-      </div>
-
-      <hr />
-      <div id="reviewSection">
-        <h6>Your review</h6>
-        <div id="existingReview" style="display: none">
-          <div class="mb-2">
-            <strong>Your rating:</strong>
-            <span id="userRating"></span>
-            <div class="rating-stars"></div>
+        <div class="modal-body">
+          <div class="mb-3"><strong>Service:</strong> <span id="detailServiceName"></span></div>
+          <div class="mb-3"><strong>Date and time:</strong> <span id="detailDateTime"></span></div>
+          <div class="mb-3"><strong>Status:</strong> <span id="detailStatus"></span></div>
+          <div class="mb-3"><strong>Notes:</strong> <span id="detailNotes"></span></div>
+          <div class="mb-3"><strong>Amount:</strong> <span id="detailAmount"></span> UAH</div>
+          
+          <div id="paymentSection" class="mb-3" style="display: none">
+            <button id="payNowBtn" class="btn btn-success w-100">
+              <i class="fas fa-credit-card"></i> Make a payment now
+            </button>
           </div>
-          <div class="mb-2">
-            <strong>Comment:</strong>
-            <p id="userComment" class="mt-1"></p>
-          </div>
-          <button id="editReviewBtn" class="btn btn-sm btn-outline-primary">
-            <i class="fas fa-edit"></i> Edit your review
-          </button>
-        </div>
+          <div id="paymentStatus" class="alert" style="display: none"></div>
+          <div id="appointmentActions" class="d-flex gap-2"></div>
 
-        <div id="reviewForm" style="display: none">
-          <div class="mb-3">
-            <label class="form-label">Service rating</label>
-            <div class="rating-input">
-              {% for i in range(5, 0, -1) %}
-              <input type="radio" id="star{{i}}" name="rating" value="{{i}}" />
-              <label for="star{{i}}" title="{{i}} зірок">☆</label>
-              {% endfor %}
+          <hr />
+          <div id="reviewSection">
+            <h6>Your review</h6>
+            <div id="existingReview" style="display: none">
+              <div class="mb-2">
+                <strong>Your rating:</strong> <span id="userRating"></span>
+                <div class="rating-stars"></div>
+              </div>
+              <p id="userComment" class="mt-1"></p>
+              <button id="editReviewBtn" class="btn btn-sm btn-outline-primary">Edit review</button>
+            </div>
+
+            <div id="reviewForm" style="display: none">
+              <div class="mb-3">
+                <label class="form-label">Rating</label>
+                <div class="rating-input">
+                  {% for i in range(5, 0, -1) %}
+                  <input type="radio" id="star{{i}}" name="rating" value="{{i}}" />
+                  <label for="star{{i}}">☆</label>
+                  {% endfor %}
+                </div>
+              </div>
+              <textarea class="form-control mb-2" id="reviewComment" rows="3" placeholder="Feedback..."></textarea>
+              <div class="d-flex gap-2">
+                <button id="submitReviewBtn" class="btn btn-success btn-sm">Submit</button>
+                <button id="cancelReviewBtn" class="btn btn-secondary btn-sm">Cancel</button>
+              </div>
+            </div>
+
+            <div id="noReviewMessage" style="display: none">
+              <button id="addReviewBtn" class="btn btn-outline-primary btn-sm">Add a review</button>
             </div>
           </div>
-          <div class="mb-3">
-            <label class="form-label">Comment</label>
-            <textarea
-              class="form-control"
-              id="reviewComment"
-              rows="3"
-              placeholder="Place your feedback about service..."
-            ></textarea>
-          </div>
-          <div class="d-flex gap-2">
-            <button id="submitReviewBtn" class="btn btn-success">
-              <i class="fas fa-paper-plane"></i> Sent feedback
-            </button>
-            <button id="cancelReviewBtn" class="btn btn-secondary">
-              Cancell
-            </button>
-          </div>
         </div>
-
-        <div id="noReviewMessage" style="display: none">
-          <p class="text-muted">No review has been submitted for this entry yet.</p>
-          <button id="addReviewBtn" class="btn btn-outline-primary btn-sm">
-            <i class="fas fa-plus"></i> Add a review
-          </button>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          close
-        </button>
       </div>
     </div>
   </div>
 </div>
 
-{% endblock %} {% block scripts %}
+{% endblock %}
+
+{% block scripts %}
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/uk.min.js"></script>
 <script src="https://js.stripe.com/v3/"></script>
 
 <script>
-    let currentAppointmentId = null;
-    const stripe = Stripe("{{ stripe_public_key }}");
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+  let currentAppointmentId = null;
+  const stripe = Stripe("{{ stripe_public_key }}");
 
-    document.addEventListener("DOMContentLoaded", function () {
-        const calendarEl = document.getElementById("calendar");
-        const isMobile = window.innerWidth < 768;
+  document.addEventListener("DOMContentLoaded", function () {
+    const calendarEl = document.getElementById("calendar");
+    const isMobile = window.innerWidth < 768;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: isMobile ? "listWeek" : "dayGridMonth",
-            height: isMobile ? '75vh' : 'auto',
-            headerToolbar: {
-                left: "prev,next",
-                center: "title",
-                right: isMobile ? "dayGridMonth,listWeek" : "dayGridMonth,timeGridWeek,timeGridDay",
-            },
-            locale: "en",
-            events: "/client/get_appointments",
-            dayMaxEvents: true,
-            eventClassNames: function(arg) {
-                return [arg.event.extendedProps.status];
-            },
-            eventClick: function (info) {
-                currentAppointmentId = info.event.id;
-                const props = info.event.extendedProps;
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: isMobile ? "listWeek" : "dayGridMonth",
+      locale: "en",
+      events: "/client/get_appointments",
+      eventClick: function (info) {
+        currentAppointmentId = info.event.id;
+        const props = info.event.extendedProps;
 
-                document.getElementById("detailServiceName").textContent = props.service_name;
-                document.getElementById("detailDateTime").textContent = info.event.start.toLocaleString("uk-UA");
-                document.getElementById("detailStatus").textContent = getStatusText(props.status);
-                document.getElementById("detailNotes").textContent = props.notes || "No notes provided";
-                document.getElementById("detailAmount").textContent = props.amount || "0.00";
+        document.getElementById("detailServiceName").textContent = props.service_name;
+        document.getElementById("detailDateTime").textContent = info.event.start.toLocaleString();
+        document.getElementById("detailStatus").textContent = props.status;
+        document.getElementById("detailNotes").textContent = props.notes || "No notes";
+        document.getElementById("detailAmount").textContent = props.amount || "0.00";
 
-                const paymentSection = document.getElementById("paymentSection");
-                const paymentStatus = document.getElementById("paymentStatus");
-
-                if (props.status === "scheduled" || props.status === "confirmed") {
-                    paymentSection.style.display = "block";
-                    paymentStatus.style.display = "none";
-                } else {
-                    paymentSection.style.display = "none";
-                    if (props.status === "confirmed_paid") {
-                        paymentStatus.style.display = "block";
-                        paymentStatus.className = "alert alert-success";
-                        paymentStatus.textContent = "Paid";
-                    }
-                }
-
-                const actionsContainer = document.getElementById("appointmentActions");
-                actionsContainer.innerHTML = "";
-                if (props.status === "scheduled") {
-                    actionsContainer.innerHTML = `
-                        <button class="btn btn-danger" onclick="cancelAppointment(${info.event.id})">
-                            Cancel appointment
-                        </button>`;
-                }
-
-                checkReviewStatus(currentAppointmentId);
-                const modal = new bootstrap.Modal(document.getElementById("appointmentDetailsModal"));
-                modal.show();
-            },
-        });
-        calendar.render();
-
-        // Обробник оплати Stripe
-        document.getElementById("payNowBtn").addEventListener("click", function () {
-            if (!currentAppointmentId) return;
-            const btn = this;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-
-            fetch("/client/create_payment_session", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken,
-                },
-                body: JSON.stringify({ appointment_id: currentAppointmentId }),
-            })
-            .then(response => response.json())
-            .then(data => stripe.redirectToCheckout({ sessionId: data.sessionId }))
-            .catch(error => {
-                console.error("Error:", error);
-                showPaymentError(error.message);
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-credit-card"></i> Make a payment now';
-            });
-        });
-
-        // Кнопки керування відгуками
-        document.getElementById("addReviewBtn").addEventListener("click", () => {
-            document.getElementById("reviewForm").style.display = "block";
-            document.getElementById("noReviewMessage").style.display = "none";
-        });
-
-        document.getElementById("editReviewBtn").addEventListener("click", () => {
-            document.getElementById("reviewForm").style.display = "block";
-            document.getElementById("existingReview").style.display = "none";
-            
-            fetch(`/client/get_review/${currentAppointmentId}`)
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        const rb = document.querySelector(`input[name="rating"][value="${data.review.rating}"]`);
-                        if (rb) rb.checked = true;
-                        document.getElementById("reviewComment").value = data.review.comment || "";
-                    }
-                });
-        });
-
-        document.getElementById("cancelReviewBtn").addEventListener("click", () => {
-            document.getElementById("reviewForm").style.display = "none";
-            checkReviewStatus(currentAppointmentId);
-        });
-
-        document.getElementById("submitReviewBtn").addEventListener("click", function () {
-            const rating = document.querySelector('input[name="rating"]:checked')?.value;
-            const comment = document.getElementById("reviewComment").value.trim();
-            if (!rating) return alert("Please select a rating");
-
-            const btn = this;
-            btn.disabled = true;
-            fetch("/client/leave_review", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
-                body: JSON.stringify({ appointment_id: currentAppointmentId, rating, comment })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    alert("Thanks!");
-                    checkReviewStatus(currentAppointmentId);
-                } else {
-                    alert("Error: " + data.message);
-                }
-            })
-            .finally(() => btn.disabled = false);
-        });
-    }); 
-
-    function getStatusText(status) {
-        const statuses = {
-            scheduled: "Scheduled",
-            confirmed: "Approved",
-            completed: "Completed",
-            cancelled: "Cancelled",
-            confirmed_paid: "Paid and confirmed",
-        };
-        return statuses[status] || status;
-    }
-
-    function showPaymentError(message) {
-        const paymentStatus = document.getElementById("paymentStatus");
-        paymentStatus.style.display = "block";
-        paymentStatus.className = "alert alert-danger";
-        paymentStatus.textContent = "Payment error: " + message;
-    }
-
-    function cancelAppointment(appointmentId) {
-        if (confirm("Are you sure you want to cancel this appointment?")) {
-            fetch("/client/cancel_appointment", {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
-                body: JSON.stringify({ appointment_id: appointmentId }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) location.reload();
-                else alert("Error: " + data.message);
-            });
+        // Логіка оплати
+        const pSection = document.getElementById("paymentSection");
+        const pStatus = document.getElementById("paymentStatus");
+        if (props.status === "scheduled" || props.status === "confirmed") {
+          pSection.style.display = "block";
+          pStatus.style.display = "none";
+        } else {
+          pSection.style.display = "none";
+          if (props.status === "confirmed_paid") {
+            pStatus.style.display = "block";
+            pStatus.className = "alert alert-success";
+            pStatus.textContent = "Paid";
+          }
         }
-    }
 
-    function checkReviewStatus(appointmentId) {
-        fetch(`/client/can_review/${appointmentId}`)
-            .then(r => r.json())
-            .then(data => {
-                const els = {
-                    noReview: document.getElementById("noReviewMessage"),
-                    existing: document.getElementById("existingReview"),
-                    form: document.getElementById("reviewForm")
-                };
-                // Скидаємо видимість
-                els.noReview.style.display = "none";
-                els.existing.style.display = "none";
-                els.form.style.display = "none";
+        checkReviewStatus(currentAppointmentId);
+        new bootstrap.Modal(document.getElementById("appointmentDetailsModal")).show();
+      }
+    });
+    calendar.render();
 
-                if (data.review_exists) {
-                    loadExistingReview(appointmentId);
-                } else if (data.can_review) {
-                    els.noReview.style.display = "block";
-                }
-            });
-    }
+    // ВІДКРИТТЯ ФОРМИ НОВОГО ЗАПИСУ
+    document.getElementById("newAppointmentBtn").addEventListener("click", function() {
+        fetch("/client/get_nurses_for_appointment")
+          .then(r => r.json())
+          .then(nurses => {
+              let html = `<form id="actualAppForm">
+                <select class="form-select mb-3" id="nurseSelect">
+                  ${nurses.map(n => `<option value="${n.id}">${n.name}</option>`).join('')}
+                </select>
+                <button type="submit" class="btn btn-primary">Book Now</button>
+              </form>`;
+              document.getElementById("appointmentFormContainer").innerHTML = html;
+              new bootstrap.Modal(document.getElementById("newAppointmentModal")).show();
+          });
+    });
 
-    function loadExistingReview(appointmentId) {
-        fetch(`/client/get_review/${appointmentId}`)
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById("userRating").textContent = `${data.review.rating}/5`;
-                    document.getElementById("userComment").textContent = data.review.comment || "";
-                    document.querySelector(".rating-stars").innerHTML = generateRatingStars(data.review.rating);
-                    document.getElementById("existingReview").style.display = "block";
-                }
-            });
-    }
+    // ОПЛАТА STRIPE
+    document.getElementById("payNowBtn").addEventListener("click", function () {
+      this.disabled = true;
+      fetch("/client/create_payment_session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+        body: JSON.stringify({ appointment_id: currentAppointmentId })
+      })
+      .then(r => r.json())
+      .then(data => stripe.redirectToCheckout({ sessionId: data.sessionId }));
+    });
 
-    function generateRatingStars(rating) {
-        let stars = "";
-        for (let i = 1; i <= 5; i++) {
-            stars += `<span class="rating-star ${i <= rating ? "filled" : ""}" style="color: ${i <= rating ? '#ffc107' : '#ddd'}">★</span>`;
-        }
-        return stars;
-    }
+    // ВІДГУКИ - ОБРОБНИКИ
+    document.getElementById("addReviewBtn").addEventListener("click", () => {
+        document.getElementById("reviewForm").style.display = "block";
+        document.getElementById("noReviewMessage").style.display = "none";
+    });
+
+    document.getElementById("submitReviewBtn").addEventListener("click", function() {
+        const rating = document.querySelector('input[name="rating"]:checked')?.value;
+        const comment = document.getElementById("reviewComment").value;
+        fetch("/client/leave_review", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+            body: JSON.stringify({ appointment_id: currentAppointmentId, rating, comment })
+        }).then(() => { alert("Saved!"); location.reload(); });
+    });
+  });
+
+  // Функції поза DOMContentLoaded для глобального доступу
+  function checkReviewStatus(id) {
+      fetch(`/client/can_review/${id}`).then(r => r.json()).then(data => {
+          document.getElementById("noReviewMessage").style.display = data.can_review ? "block" : "none";
+          if (data.review_exists) loadReview(id);
+      });
+  }
+
+  function loadReview(id) {
+      fetch(`/client/get_review/${id}`).then(r => r.json()).then(data => {
+          if (data.success) {
+              document.getElementById("existingReview").style.display = "block";
+              document.getElementById("userRating").textContent = data.review.rating + "/5";
+              document.getElementById("userComment").textContent = data.review.comment;
+          }
+      });
+  }
 </script>
+
+<style>
+  #calendar { background: white; padding: 15px; border-radius: 10px; }
+  .rating-input { direction: rtl; display: inline-block; }
+  .rating-input input { display: none; }
+  .rating-input label { font-size: 2rem; color: #ddd; cursor: pointer; }
+  .rating-input input:checked ~ label, .rating-input label:hover, .rating-input label:hover ~ label { color: #f5b301; }
+</style>
+{% endblock %}

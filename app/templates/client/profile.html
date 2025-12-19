@@ -199,84 +199,8 @@
       });
     }
 
-<<<<<<< Updated upstream
-    // generator for generating QR code
-    const generateQRBtn = document.getElementById("generateQRBtn");
-    if (generateQRBtn) {
-      generateQRBtn.addEventListener("click", async function () {
-        try {
-          // show upload indicator
-          generateQRBtn.innerHTML =
-            '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
-          generateQRBtn.disabled = true;
-
-          // get data from server
-          const response = await fetch(
-            '{{ url_for("client.generate_qr_data") }}'
-          );
-          const qrData = await response.json();
-
-          // Generate QR code
-          const qrContainer = document.getElementById("qrcode");
-          qrContainer.innerHTML = "";
-
-          // use toDataURL for picture generation
-          QRCode.toDataURL(
-            qrData.profile_url,
-            {
-              // use URL, not JSON
-              width: 200,
-              margin: 1,
-              color: {
-                dark: "#000000",
-                light: "#ffffff",
-              },
-            },
-            function (error, url) {
-              if (error) {
-                console.error(error);
-                alert("An error occurred while generating the QR code");
-                generateQRBtn.innerHTML = "Generate QR code";
-                generateQRBtn.disabled = false;
-                return;
-              }
-
-              // Create img element with QR code
-              const img = document.createElement("img");
-              img.src = url;
-              img.alt = "Profile QR code ";
-              qrContainer.appendChild(img);
-
-              // Show the container with the QR code
-              document
-                .getElementById("qrCodeContainer")
-                .classList.remove("d-none");
-              document
-                .getElementById("qrCodePlaceholder")
-                .classList.add("d-none");
-
-              // Add a link for downloading
-              const downloadLink = document.getElementById("downloadQR");
-              downloadLink.href = url;
-              downloadLink.download = "medical-profile-qr.png";
-
-              // Restore the button
-              generateQRBtn.innerHTML = "Update QR code";
-              generateQRBtn.disabled = false;
-            }
-          );
-        } catch (error) {
-          console.error("Error:", error);
-          alert("An error occurred while generating the QR code");
-          generateQRBtn.innerHTML = "Generate QR code";
-          generateQRBtn.disabled = false;
-        }
-      });
-    }
-=======
     // Обробник для генерації QR-коду
     
->>>>>>> Stashed changes
   });
 </script>
 {% endblock %}
