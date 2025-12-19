@@ -1,30 +1,18 @@
 {% extends "base.html" %} {% block content %}
 <div class="nurse-appointments">
   <h2>My appointments</h2>
-  <a href="{{ url_for('nurse.dashboard') }}" class="btn btn-info">
+  <a href="{{ url_for('nurse.dashboard') }}" class="btn btn-info mb-3">
     <i class="fas fa-user"></i> Exit
   </a>
-  <!-- Calendar -->
   <div id="calendar"></div>
 </div>
 
-<!-- Modal window for appointment details -->
-<div
-  class="modal fade"
-  id="appointmentDetailsModal"
-  tabindex="-1"
-  aria-hidden="true"
->
+<div class="modal fade" id="appointmentDetailsModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Appointments details</h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
+        <h5 class="modal-title">Appointment details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
@@ -41,43 +29,43 @@
         </div>
         <div class="mb-3">
           <strong>Notes:</strong>
-          <div id="detailNotes"></div>
+          <div id="detailNotes" class="p-2 border rounded bg-light"></div>
         </div>
       </div>
       <div class="modal-footer" id="appointmentActions">
-        <!-- Action buttons will appear here -->
-      </div>
+        </div>
     </div>
   </div>
 </div>
-{% endblock %} {% block scripts %}
+{% endblock %}
+
+{% block scripts %}
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/uk.min.js"></script>
 
 <script>
-  const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-
   document.addEventListener("DOMContentLoaded", function () {
-    // Initialize calendar
     const calendarEl = document.getElementById("calendar");
     const isMobile = window.innerWidth < 768;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
     const calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: isMobile ? "listWeek" : "dayGridMonth",
-      
       height: isMobile ? '75vh' : 'auto',
-      
       headerToolbar: {
-        left: "prev,next",
+        left: "prev,next today",
         center: "title",
         right: isMobile ? "dayGridMonth,listWeek" : "dayGridMonth,timeGridWeek,timeGridDay",
       },
       locale: "en",
-      
       events: "/nurse/get_appointments",
-
       dayMaxEvents: true,
+
+      // Додаємо класи для кольорів подій залежно від статусу
+      eventClassNames: function(arg) {
+        return [arg.event.extendedProps.status];
+      },
 
       eventClick: function (info) {
         const props = info.event.extendedProps;
@@ -88,31 +76,34 @@
         document.getElementById("detailStatus").textContent = getStatusText(props.status);
         document.getElementById("detailNotes").textContent = props.notes || "No comments";
 
-
         const actionsContainer = document.getElementById("appointmentActions");
         actionsContainer.innerHTML = "";
 
+        // Логіка кнопок для медсестри
         if (props.status === "scheduled") {
-          // Buttons for scheduled appointment
           actionsContainer.innerHTML = `
             <button class="btn btn-success" onclick="updateStatus(${info.event.id}, 'confirmed')">Confirm</button>
             <button class="btn btn-danger" onclick="updateStatus(${info.event.id}, 'cancelled')">Cancel</button>
           `;
-        } else if (props.status === "confirmed") {
-          // Button for confirmed appointment
+        } else if (props.status === "confirmed" || props.status === "confirmed_paid") {
           actionsContainer.innerHTML = `
-            <button class="btn btn-primary" onclick="updateStatus(${info.event.id}, 'completed')">Done</button>
+            <button class="btn btn-primary" onclick="updateStatus(${info.event.id}, 'completed')">Mark as Done</button>
           `;
         }
+        
+        actionsContainer.innerHTML += `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>`;
 
         const modal = new bootstrap.Modal(document.getElementById("appointmentDetailsModal"));
         modal.show();
       },
     });
+
     calendar.render();
 
-    // Function for updating status
+    // Функція оновлення статусу (робимо її глобальною через window)
     window.updateStatus = function (appointmentId, status) {
+      if (!confirm(`Change status to ${status}?`)) return;
+
       fetch("/nurse/update_appointment_status", {
         method: "POST",
         headers: {
@@ -124,24 +115,27 @@
           status: status,
         }),
       })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.success) {
-            calendar.refetchEvents(); 
-            bootstrap.Modal.getInstance(document.getElementById("appointmentDetailsModal")).hide();
-          } else {
-            alert("Error: " + data.message);
-          }
-        })
-        .catch(err => console.error(err));
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          calendar.refetchEvents(); // Оновлюємо календар без перезавантаження сторінки
+          const modalElem = document.getElementById("appointmentDetailsModal");
+          const modalInstance = bootstrap.Modal.getInstance(modalElem);
+          if (modalInstance) modalInstance.hide();
+        } else {
+          alert("Error: " + data.message);
+        }
+      })
+      .catch(err => console.error("Fetch error:", err));
     };
 
     function getStatusText(status) {
       const statuses = {
-        scheduled: "scheduled",
-        confirmed: "confirmed",
-        completed: "completed",
-        cancelled: "cancel",
+        scheduled: "Pending",
+        confirmed: "Confirmed",
+        completed: "Completed",
+        cancelled: "Cancelled",
+        confirmed_paid: "Paid & Confirmed",
       };
       return statuses[status] || status;
     }
@@ -153,24 +147,21 @@
     max-width: 100%;
     margin: 0 auto;
     background-color: white;
-    padding: 10px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
 
-  /* Адаптивність для мобільних */
+  /* Стилі для різних статусів подій */
+  .fc-event.scheduled { background-color: #ffc107 !important; border-color: #ffc107 !important; color: #000 !important; }
+  .fc-event.confirmed { background-color: #0d6efd !important; border-color: #0d6efd !important; }
+  .fc-event.confirmed_paid { background-color: #198754 !important; border-color: #198754 !important; }
+  .fc-event.completed { background-color: #6c757d !important; border-color: #6c757d !important; }
+  .fc-event.cancelled { background-color: #dc3545 !important; border-color: #dc3545 !important; text-decoration: line-through; }
+
   @media (max-width: 768px) {
-    .fc-toolbar-title {
-        font-size: 1.1rem !important;
-    }
-    .fc-header-toolbar {
-        flex-direction: column;
-        gap: 5px;
-    }
-    .fc-button {
-        padding: 0.2rem 0.5rem;
-        font-size: 0.9rem;
-    }
+    .fc-toolbar-title { font-size: 1rem !important; }
+    .fc-header-toolbar { flex-wrap: wrap; gap: 10px; justify-content: center; }
   }
 </style>
 {% endblock %}

@@ -148,326 +148,218 @@
 <script src="https://js.stripe.com/v3/"></script>
 
 <script>
-  let currentAppointmentId = null;
-  const stripe = Stripe("{{ stripe_public_key }}");
-  const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-
-  document.addEventListener("DOMContentLoaded", function () {
-    const calendarEl = document.getElementById("calendar");
-    const isMobile = window.innerWidth < 768;
-
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: isMobile ? "listWeek" : "dayGridMonth",
-      
-
-      height: isMobile ? '75vh' : 'auto', 
-      
-      headerToolbar: {
-        left: "prev,next", 
-        center: "title",
-        right: isMobile ? "dayGridMonth,listWeek" : "dayGridMonth,timeGridWeek,timeGridDay",
-      },
-      locale: "en",
-      events: "/client/get_appointments",
-
-      dayMaxEvents: true, 
-
-      eventClick: function (info) {
-        currentAppointmentId = info.event.id;
-        const props = info.event.extendedProps;
-
-        document.getElementById("detailServiceName").textContent =
-          props.service_name;
-        document.getElementById("detailDateTime").textContent =
-          info.event.start.toLocaleString("uk-UA");
-        document.getElementById("detailStatus").textContent = getStatusText(
-          props.status
-        );
-        document.getElementById("detailNotes").textContent =
-          props.notes || "No notes provided";
-        document.getElementById("detailAmount").textContent =
-          props.amount || "0.00";
-
-        // Display the payment section for unpaid entries
-        const paymentSection = document.getElementById("paymentSection");
-        const paymentStatus = document.getElementById("paymentStatus");
-
-        if (props.status === "scheduled" || props.status === "confirmed") {
-          paymentSection.style.display = "block";
-          paymentStatus.style.display = "none";
-        } else {
-          paymentSection.style.display = "none";
-          if (props.status === "confirmed_paid") {
-            paymentStatus.style.display = "block";
-            paymentStatus.className = "alert alert-success";
-            paymentStatus.textContent = "Paid";
-          }
-        }
-
-        const actionsContainer = document.getElementById("appointmentActions");
-        actionsContainer.innerHTML = "";
-
-        if (props.status === "scheduled") {
-          actionsContainer.innerHTML = `
-            <button class="btn btn-danger" onclick="cancelAppointment(${info.event.id})">
-                Cancel appointment
-            </button>
-          `;
-        }
-        checkReviewStatus(currentAppointmentId);
-        const modal = new bootstrap.Modal(document.getElementById("appointmentDetailsModal"));
-        modal.show();
-      },
-    });
-    calendar.render();
-
-    // New record button handler
-    document
-      .getElementById("newAppointmentBtn")
-      .addEventListener("click", function () {
-        fetch("/client/get_nurses_for_appointment")
-          .then((response) => response.json())
-          .then((nurses) => {
-            const formHtml = `
-                <form id="appointmentForm">
-                    <div class="mb-3">
-                        <label class="form-label">Nurse</label>
-                        <select class="form-select" id="nurseSelect">
-                            ${nurses.map((n) => `<option value="${n.id}">${n.name}</option>`).join("")}
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Make an appointment</button>
-                </form>
-            `;
-            document.getElementById("appointmentFormContainer").innerHTML = formHtml;
-            const modal = new bootstrap.Modal(document.getElementById("newAppointmentModal"));
-            modal.show();
-          });
-      });
+    let currentAppointmentId = null;
+    const stripe = Stripe("{{ stripe_public_key }}");
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-    // Handler for the payment button
-    document.getElementById("payNowBtn").addEventListener("click", function () {
-      if (!currentAppointmentId) return;
-      const btn = this;
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
-      fetch("/client/create_payment_session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrfToken,
-        },
-        body: JSON.stringify({ appointment_id: currentAppointmentId }),
-      })
-        .then((response) => {
-             if (!response.ok) throw new Error("Network error");
-             return response.json();
-        })
-        .then((data) => stripe.redirectToCheckout({ sessionId: data.sessionId }))
-        .then((result) => {
-          if (result && result.error) {
-            showPaymentError(result.error.message);
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-credit-card"></i> Make a payment now';
-          }
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-          showPaymentError(error.message);
-          btn.disabled = false;
-          btn.innerHTML = '<i class="fas fa-credit-card"></i> Make a payment now';
+    document.addEventListener("DOMContentLoaded", function () {
+        const calendarEl = document.getElementById("calendar");
+        const isMobile = window.innerWidth < 768;
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: isMobile ? "listWeek" : "dayGridMonth",
+            height: isMobile ? '75vh' : 'auto',
+            headerToolbar: {
+                left: "prev,next",
+                center: "title",
+                right: isMobile ? "dayGridMonth,listWeek" : "dayGridMonth,timeGridWeek,timeGridDay",
+            },
+            locale: "en",
+            events: "/client/get_appointments",
+            dayMaxEvents: true,
+            eventClassNames: function(arg) {
+                return [arg.event.extendedProps.status];
+            },
+            eventClick: function (info) {
+                currentAppointmentId = info.event.id;
+                const props = info.event.extendedProps;
+
+                document.getElementById("detailServiceName").textContent = props.service_name;
+                document.getElementById("detailDateTime").textContent = info.event.start.toLocaleString("uk-UA");
+                document.getElementById("detailStatus").textContent = getStatusText(props.status);
+                document.getElementById("detailNotes").textContent = props.notes || "No notes provided";
+                document.getElementById("detailAmount").textContent = props.amount || "0.00";
+
+                const paymentSection = document.getElementById("paymentSection");
+                const paymentStatus = document.getElementById("paymentStatus");
+
+                if (props.status === "scheduled" || props.status === "confirmed") {
+                    paymentSection.style.display = "block";
+                    paymentStatus.style.display = "none";
+                } else {
+                    paymentSection.style.display = "none";
+                    if (props.status === "confirmed_paid") {
+                        paymentStatus.style.display = "block";
+                        paymentStatus.className = "alert alert-success";
+                        paymentStatus.textContent = "Paid";
+                    }
+                }
+
+                const actionsContainer = document.getElementById("appointmentActions");
+                actionsContainer.innerHTML = "";
+                if (props.status === "scheduled") {
+                    actionsContainer.innerHTML = `
+                        <button class="btn btn-danger" onclick="cancelAppointment(${info.event.id})">
+                            Cancel appointment
+                        </button>`;
+                }
+
+                checkReviewStatus(currentAppointmentId);
+                const modal = new bootstrap.Modal(document.getElementById("appointmentDetailsModal"));
+                modal.show();
+            },
         });
-    });
-  });
+        calendar.render();
 
-  function getStatusText(status) {
-    const statuses = {
-      scheduled: "Scheduled",
-      confirmed: "Approved",
-      completed: "Completed",
-      cancelled: "Cancelled",
-      confirmed_paid: "Paid and confirmed",
-    };
-    return statuses[status] || status;
-  }
+        // Обробник оплати Stripe
+        document.getElementById("payNowBtn").addEventListener("click", function () {
+            if (!currentAppointmentId) return;
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
-  function showPaymentError(message) {
-    const paymentStatus = document.getElementById("paymentStatus");
-    paymentStatus.style.display = "block";
-    paymentStatus.className = "alert alert-danger";
-    paymentStatus.textContent = "Payment error:" + message;
-  }
-
-  function cancelAppointment(appointmentId) {
-    if (confirm("Are you sure you want to cancel this appointment?")) {
-      fetch("/client/cancel_appointment", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrfToken,
-        },
-        body: JSON.stringify({ appointment_id: appointmentId }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.success) {
-            location.reload();
-          } else {
-            alert("Error: " + data.message);
-          }
+            fetch("/client/create_payment_session", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken,
+                },
+                body: JSON.stringify({ appointment_id: currentAppointmentId }),
+            })
+            .then(response => response.json())
+            .then(data => stripe.redirectToCheckout({ sessionId: data.sessionId }))
+            .catch(error => {
+                console.error("Error:", error);
+                showPaymentError(error.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-credit-card"></i> Make a payment now';
+            });
         });
-    }
-  }
 
-  // Function to check the review status
-  function checkReviewStatus(appointmentId) {
-    fetch(`/client/can_review/${appointmentId}`)
-      .then((r) => r.json())
-      .then((data) => {
-        const els = {
-            noReview: document.getElementById("noReviewMessage"),
-            existing: document.getElementById("existingReview"),
-            form: document.getElementById("reviewForm")
-        };
-        if (data.can_review) {
-          els.noReview.style.display = "block";
-          els.existing.style.display = "none";
-          els.form.style.display = "none";
-        } else if (data.review_exists) {
-          loadExistingReview(appointmentId);
-        } else {
-          els.noReview.style.display = "block";
-          els.existing.style.display = "none";
-          els.form.style.display = "none";
-        }
-      });
-  }
-
-  function loadExistingReview(appointmentId) {
-    fetch(`/client/get_review/${appointmentId}`).then(r=>r.json()).then(data => {
-        if(data.success){
-            document.getElementById("userRating").textContent = `${data.review.rating}/5`;
-            document.getElementById("userComment").textContent = data.review.comment || "";
-            document.querySelector(".rating-stars").innerHTML = generateRatingStars(data.review.rating);
-            document.getElementById("existingReview").style.display = "block";
-            document.getElementById("reviewForm").style.display = "none";
+        // Кнопки керування відгуками
+        document.getElementById("addReviewBtn").addEventListener("click", () => {
+            document.getElementById("reviewForm").style.display = "block";
             document.getElementById("noReviewMessage").style.display = "none";
-        }
-    });
-  }
-
-  // HTML generation for rating stars
-  function generateRatingStars(rating) {
-    let stars = "";
-    for (let i = 1; i <= 5; i++) stars += `<span class="rating-star ${i <= rating ? "filled" : ""}">★</span>`;
-    return stars;
-  }
-
-  document.getElementById("addReviewBtn").addEventListener("click", () => {
-    document.getElementById("reviewForm").style.display = "block";
-    document.getElementById("noReviewMessage").style.display = "none";
-  });
-  
-  document.getElementById("editReviewBtn").addEventListener("click", () => {
-    document.getElementById("reviewForm").style.display = "block";
-    document.getElementById("existingReview").style.display = "none";
-    fetch(`/client/get_review/${currentAppointmentId}`).then(r=>r.json()).then(data=>{
-        if(data.success) {
-            const rb = document.querySelector(`input[name="rating"][value="${data.review.rating}"]`);
-            if(rb) rb.checked = true;
-            document.getElementById("reviewComment").value = data.review.comment || "";
-        }
-    });
-  });
-
-  document.getElementById("cancelReviewBtn").addEventListener("click", () => {
-    document.getElementById("reviewForm").style.display = "none";
-    checkReviewStatus(currentAppointmentId);
-  });
-
-      // Loading existing data into the form
-      fetch(`/client/get_review/${currentAppointmentId}`)
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.success) {
-            document.querySelector(
-              `input[name="rating"][value="${data.review.rating}"]`
-            ).checked = true;
-            document.getElementById("reviewComment").value =
-              data.review.comment || "";
-          }
         });
-    });
 
-  document
-    .getElementById("cancelReviewBtn")
-    .addEventListener("click", function () {
-      document.getElementById("reviewForm").style.display = "none";
-      checkReviewStatus(currentAppointmentId);
-    });
+        document.getElementById("editReviewBtn").addEventListener("click", () => {
+            document.getElementById("reviewForm").style.display = "block";
+            document.getElementById("existingReview").style.display = "none";
+            
+            fetch(`/client/get_review/${currentAppointmentId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        const rb = document.querySelector(`input[name="rating"][value="${data.review.rating}"]`);
+                        if (rb) rb.checked = true;
+                        document.getElementById("reviewComment").value = data.review.comment || "";
+                    }
+                });
+        });
 
-  document
-    .getElementById("submitReviewBtn")
-    .addEventListener("click", function () {
-      const rating = document.querySelector(
-        'input[name="rating"]:checked'
-      )?.value;
-      const comment = document.getElementById("reviewComment").value.trim();
-      if(!rating) return alert("Please select a rating");
-      
-      const btn = this;
-      btn.disabled = true;
-      fetch("/client/leave_review", {
-          method: "POST", 
-          headers: {"Content-Type": "application/json", "X-CSRFToken": csrfToken},
-          body: JSON.stringify({appointment_id: currentAppointmentId, rating, comment})
-      }).then(r=>r.json()).then(data=>{
-          if(data.success) { alert("Thanks!"); checkReviewStatus(currentAppointmentId); }
-          else alert("Error: " + data.message);
-      }).finally(()=> btn.disabled=false);
-  });
+        document.getElementById("cancelReviewBtn").addEventListener("click", () => {
+            document.getElementById("reviewForm").style.display = "none";
+            checkReviewStatus(currentAppointmentId);
+        });
+
+        document.getElementById("submitReviewBtn").addEventListener("click", function () {
+            const rating = document.querySelector('input[name="rating"]:checked')?.value;
+            const comment = document.getElementById("reviewComment").value.trim();
+            if (!rating) return alert("Please select a rating");
+
+            const btn = this;
+            btn.disabled = true;
+            fetch("/client/leave_review", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+                body: JSON.stringify({ appointment_id: currentAppointmentId, rating, comment })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Thanks!");
+                    checkReviewStatus(currentAppointmentId);
+                } else {
+                    alert("Error: " + data.message);
+                }
+            })
+            .finally(() => btn.disabled = false);
+        });
+    }); 
+
+    function getStatusText(status) {
+        const statuses = {
+            scheduled: "Scheduled",
+            confirmed: "Approved",
+            completed: "Completed",
+            cancelled: "Cancelled",
+            confirmed_paid: "Paid and confirmed",
+        };
+        return statuses[status] || status;
+    }
+
+    function showPaymentError(message) {
+        const paymentStatus = document.getElementById("paymentStatus");
+        paymentStatus.style.display = "block";
+        paymentStatus.className = "alert alert-danger";
+        paymentStatus.textContent = "Payment error: " + message;
+    }
+
+    function cancelAppointment(appointmentId) {
+        if (confirm("Are you sure you want to cancel this appointment?")) {
+            fetch("/client/cancel_appointment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+                body: JSON.stringify({ appointment_id: appointmentId }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) location.reload();
+                else alert("Error: " + data.message);
+            });
+        }
+    }
+
+    function checkReviewStatus(appointmentId) {
+        fetch(`/client/can_review/${appointmentId}`)
+            .then(r => r.json())
+            .then(data => {
+                const els = {
+                    noReview: document.getElementById("noReviewMessage"),
+                    existing: document.getElementById("existingReview"),
+                    form: document.getElementById("reviewForm")
+                };
+                // Скидаємо видимість
+                els.noReview.style.display = "none";
+                els.existing.style.display = "none";
+                els.form.style.display = "none";
+
+                if (data.review_exists) {
+                    loadExistingReview(appointmentId);
+                } else if (data.can_review) {
+                    els.noReview.style.display = "block";
+                }
+            });
+    }
+
+    function loadExistingReview(appointmentId) {
+        fetch(`/client/get_review/${appointmentId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById("userRating").textContent = `${data.review.rating}/5`;
+                    document.getElementById("userComment").textContent = data.review.comment || "";
+                    document.querySelector(".rating-stars").innerHTML = generateRatingStars(data.review.rating);
+                    document.getElementById("existingReview").style.display = "block";
+                }
+            });
+    }
+
+    function generateRatingStars(rating) {
+        let stars = "";
+        for (let i = 1; i <= 5; i++) {
+            stars += `<span class="rating-star ${i <= rating ? "filled" : ""}" style="color: ${i <= rating ? '#ffc107' : '#ddd'}">★</span>`;
+        }
+        return stars;
+    }
 </script>
-
-<style>
-  #calendar {
-    max-width: 100%;
-    margin: 0 auto;
-    background-color: white;
-    padding: 10px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
-
-  /* Стилі для мобільних */
-  @media (max-width: 768px) {
-    /* Зменшуємо розмір шрифту заголовка, щоб влазив */
-    .fc-toolbar-title {
-        font-size: 1.1rem !important;
-    }
-    /* Робимо кнопки компактнішими */
-    .fc-button {
-        padding: 0.2rem 0.4rem !important;
-        font-size: 0.8rem !important;
-    }
-    /* Вирівнюємо шапку */
-    .fc-header-toolbar {
-        margin-bottom: 10px !important;
-        flex-wrap: wrap; /* Дозволяємо перенос, якщо дуже вузький екран */
-        gap: 5px;
-    }
-    /* Якщо місяць обраний, робимо клітинки трохи меншими за шрифтом */
-    .fc-daygrid-day-number {
-        font-size: 0.8rem;
-        padding: 2px !important;
-    }
-  }
-
-  .fc-event { cursor: pointer; }
-  .fc-event.scheduled { background-color: #ffc107; border-color: #ffc107; }
-  .fc-event.confirmed { background-color: #0d6efd; border-color: #0d6efd; }
-  .fc-event.confirmed_paid { background-color: #198754; border-color: #198754; }
-  .fc-event.completed { background-color: #6c757d; border-color: #6c757d; }
-  .fc-event.cancelled { background-color: #dc3545; border-color: #dc3545; text-decoration: line-through; }
-</style>
-{% endblock %}
