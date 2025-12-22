@@ -1,96 +1,93 @@
 {% extends "base.html" %} {% block content %}
-<div class="container mt-4 profile-page">
-    <a href="{{ url_for('nurse.dashboard') }}" class="btn btn-outline-secondary mb-3">
-      ← Back to dashboard
-    </a>
-     <!--<a href="javascript:history.back()" class="btn btn-outline-secondary mb-3">
-    ← Back
-  </a>-->
-  <h2 class="profile-title">Service provider profile</h2>
+<div class="client-profile-page">
+  <h2 class="client-profile-title">Service Provider Profile</h2>
 
-  <!-- Hamburger menu (can be for mobile)
-  <div class="profile-menu-icon">
-    <a href="{{ url_for('nurse.dashboard') }}">☰</a>
-  </div>
--->
-  <!-- Profile photo -->
-  {% if user.photo %}
+  {% with messages = get_flashed_messages(with_categories=true) %} 
+    {% if messages %} 
+      {% for category, message in messages %}
+      <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      {% endfor %} 
+    {% endif %} 
+  {% endwith %}
+
+  {% if profile_photo %}
   <img
-    src="{{ url_for('static', filename='uploads/profile_pictures/' ~ user.photo) }}"
+    src="{{ profile_photo }}"
+    class="client-avatar" 
     alt="Profile photo"
-    class="rounded-circle mb-3 profile-avatar"
+    style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%;" 
   />
   {% else %}
-  <p class="profile-placeholder-text">Profile photo not uploaded.</p>
+  <div class="client-no-photo">Profile photo not uploaded.</div>
   {% endif %}
 
-  <!-- Profile update form -->
-  <form method="POST" enctype="multipart/form-data" class="mb-4 profile-form">
+  <form method="POST" enctype="multipart/form-data" class="client-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
     <div class="mb-3">
-      <label for="full_name" class="form-label">Full name:</label>
+      <label class="form-label">Full name</label>
       <input
         type="text"
         name="full_name"
-        id="full_name"
         class="form-control"
         value="{{ user.full_name or '' }}"
       />
     </div>
 
     <div class="mb-3">
-      <label for="phone_number" class="form-label">Phone number:</label>
+      <label class="form-label">Phone number</label>
       <input
         type="text"
         name="phone_number"
-        id="phone_number"
         class="form-control"
         value="{{ user.phone_number or '' }}"
       />
     </div>
 
     <div class="mb-3">
-      <label for="date_birth" class="form-label">Birth date:</label>
+      <label class="form-label">Birth date</label>
       <input
         type="date"
         name="date_birth"
-        id="date_birth"
         class="form-control"
         value="{{ formatted_date }}"
       />
     </div>
 
     <div class="mb-3">
-      <label for="about_me" class="form-label">About me:</label>
-      <textarea name="about_me" id="about_me" class="form-control" rows="3">
+      <label class="form-label">About me</label>
+      <textarea name="about_me" class="form-control" rows="3">
 {{ user.about_me or '' }}</textarea
       >
     </div>
 
     <div class="mb-3">
-      <label for="address" class="form-label">Address:</label>
+      <label class="form-label">Address</label>
       <input
         type="text"
         name="address"
-        id="address"
         class="form-control"
         value="{{ user.address or '' }}"
       />
     </div>
 
     <div class="mb-3">
-      <label for="profile_picture" class="form-label">Profile photo:</label>
+      <label class="form-label">Profile photo:</label>
       <input
         type="file"
         name="profile_picture"
         id="profile_picture"
         class="form-control"
+        accept="image/*"
       />
+      <div class="form-text">JPG, PNG, and GIF are accepted (max 5MB)</div>
     </div>
 
     <div class="mb-3">
-      <label for="documents" class="form-label">Documents upload:</label>
+      <label class="form-label">Download documents</label>
       <input
         type="file"
         name="documents"
@@ -98,80 +95,100 @@
         multiple
         class="form-control"
       />
+      <div class="form-text">You can select multiple files (PDF, JPG, PNG)</div>
     </div>
     <div class="d-flex justify-content-center mt-3">
       <button type="submit" class="btn btn-primary">Update profile</button>
     </div>
 
-    <!-- <a href="{{ url_for('nurse.dashboard') }}" class="btn btn-secondary">
-      Back to dashboard
-    </a>-->
+    <button type="submit" class="btn btn-primary">Update profile</button>
+    <a href="{{ url_for('nurse.dashboard') }}" class="btn btn-secondary mt-2"
+      >Back to dashboard</a
+    >
   </form>
 
-  <hr />
-
-  <!-- Document list -->
   <h4 class="mt-4 mb-3" style="color: var(--green-700)">Your documents</h4>
-  {% if user_documents %}
-  <ul class="list-group profile-doc-list" id="documents-list">
-    {% for doc in user_documents %}
-    <li
-      class="list-group-item d-flex justify-content-between align-items-center"
-      data-filename="{{ doc }}"
-    >
-      <a
-        href="{{ url_for('static', filename='uploads/documents/' ~ doc) }}"
-        target="_blank"
-        >{{ doc }}</a
+
+  {% if documents_urls %} 
+    {% for filename, url in documents_urls.items() %}
+      <div
+        class="client-doc-item d-flex justify-content-between align-items-center"
+        data-filename="{{ filename }}"
       >
-      <button type="button" class="btn btn-sm btn-danger delete-doc-btn">
-        Delete
-      </button>
-    </li>
-    {% endfor %}
-  </ul>
+        <a href="{{ url }}" target="_blank">📄 {{ filename }}</a>
+        <button class="btn btn-sm btn-danger delete-doc-btn">Delete</button>
+      </div>
+    {% endfor %} 
   {% else %}
-  <p class="profile-placeholder-text">Documents not uploaded.</p>
+    <div class="alert alert-info">Documents not uploaded.</div>
   {% endif %}
 </div>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const docsList = document.getElementById("documents-list");
-    if (!docsList) return;
-
-    docsList.addEventListener("click", async (event) => {
-      if (event.target.classList.contains("delete-doc-btn")) {
-        const li = event.target.closest("li");
-        const filename = li.getAttribute("data-filename");
+    
+    document.addEventListener("click", async (event) => {
+      const deleteBtn = event.target.closest(".delete-doc-btn");
+      
+      if (deleteBtn) {
+        event.preventDefault();
+        
+        const docItem = deleteBtn.closest(".client-doc-item");
+        const filename = docItem.getAttribute("data-filename");
 
         if (!confirm(`Delete document "${filename}"?`)) return;
 
         try {
-          const formData = new FormData();
-          formData.append("filename", filename);
-
-          const response = await fetch(
-            '{{ url_for("nurse.delete_document") }}',
-            {
-              method: "POST",
-              body: formData,
-            }
-          );
+          // ЗВЕРНІТЬ УВАГУ: URL змінено на nurse.delete_document
+          const response = await fetch('{{ url_for("nurse.delete_document") }}', {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({ doc_name: filename }),
+          });
 
           const result = await response.json();
 
           if (result.success) {
-            li.remove();
-            alert(result.message);
+            docItem.style.transition = "all 0.3s";
+            docItem.style.opacity = "0";
+            setTimeout(() => {
+                docItem.remove();
+                const remainingDocs = document.querySelectorAll('.client-doc-item');
+                if (remainingDocs.length === 0) {
+                    location.reload();
+                }
+            }, 300);
           } else {
             alert("Error: " + result.message);
           }
         } catch (error) {
-          alert("Server error: " + error.message);
+          console.error(error);
+          alert("Server error.");
         }
       }
     });
+
+    // Validations
+    const profilePicInput = document.getElementById("profile_picture");
+    if (profilePicInput) {
+      profilePicInput.addEventListener("change", function () {
+        const file = this.files[0];
+        if (file) {
+          if (file.size > 5 * 1024 * 1024) {
+            alert("The file is too large. The maximum size is 5MB.");
+            this.value = "";
+          }
+          const validTypes = ["image/jpeg", "image/png", "image/gif"];
+          if (!validTypes.includes(file.type)) {
+            alert("Only JPG, PNG, and GIF files are allowed.");
+            this.value = "";
+          }
+        }
+      });
+    }
   });
 </script>
 {% endblock %}

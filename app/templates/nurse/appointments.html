@@ -48,22 +48,43 @@
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const calendarEl = document.getElementById("calendar");
-    const isMobile = window.innerWidth < 768;
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
+    function getResponsiveSettings() {
+      const isMobile = window.innerWidth < 768;
+      return {
+        view: isMobile ? "listWeek" : "dayGridMonth",
+        height: isMobile ? "75vh" : "auto",
+        header: {
+          left: "prev,next today",
+          center: "title",
+          right: isMobile ? "listWeek,dayGridMonth" : "dayGridMonth,timeGridWeek,timeGridDay",
+        }
+      };
+    }
+
+    const initialSettings = getResponsiveSettings();
+
     const calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: isMobile ? "listWeek" : "dayGridMonth",
-      height: isMobile ? '75vh' : 'auto',
-      headerToolbar: {
-        left: "prev,next today",
-        center: "title",
-        right: isMobile ? "dayGridMonth,listWeek" : "dayGridMonth,timeGridWeek,timeGridDay",
-      },
-      locale: "en",
+      initialView: initialSettings.view,
+      height: initialSettings.height,
+      headerToolbar: initialSettings.header,
+      locale: "en", 
       events: "/nurse/get_appointments",
       dayMaxEvents: true,
+      handleWindowResize: true, 
 
-      // Додаємо класи для кольорів подій залежно від статусу
+
+      windowResize: function(view) {
+        const newSettings = getResponsiveSettings();
+
+        calendar.changeView(newSettings.view);
+
+        calendar.setOption('headerToolbar', newSettings.header);
+        
+        calendar.setOption('height', newSettings.height);
+      },
+
       eventClassNames: function(arg) {
         return [arg.event.extendedProps.status];
       },
@@ -80,7 +101,6 @@
         const actionsContainer = document.getElementById("appointmentActions");
         actionsContainer.innerHTML = "";
 
-        // Логіка кнопок для медсестри
         if (props.status === "scheduled") {
           actionsContainer.innerHTML = `
             <button class="btn btn-success" onclick="updateStatus(${info.event.id}, 'confirmed')">Confirm</button>
@@ -93,7 +113,6 @@
         }
         
         actionsContainer.innerHTML += `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>`;
-
         const modal = new bootstrap.Modal(document.getElementById("appointmentDetailsModal"));
         modal.show();
       },
@@ -101,7 +120,6 @@
 
     calendar.render();
 
-    // Функція оновлення статусу (робимо її глобальною через window)
     window.updateStatus = function (appointmentId, status) {
       if (!confirm(`Change status to ${status}?`)) return;
 
@@ -119,7 +137,7 @@
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          calendar.refetchEvents(); // Оновлюємо календар без перезавантаження сторінки
+          calendar.refetchEvents();
           const modalElem = document.getElementById("appointmentDetailsModal");
           const modalInstance = bootstrap.Modal.getInstance(modalElem);
           if (modalInstance) modalInstance.hide();
@@ -153,16 +171,26 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
 
-  /* Стилі для різних статусів подій */
+  /* Status Colors */
   .fc-event.scheduled { background-color: #ffc107 !important; border-color: #ffc107 !important; color: #000 !important; }
   .fc-event.confirmed { background-color: #0d6efd !important; border-color: #0d6efd !important; }
   .fc-event.confirmed_paid { background-color: #198754 !important; border-color: #198754 !important; }
   .fc-event.completed { background-color: #6c757d !important; border-color: #6c757d !important; }
   .fc-event.cancelled { background-color: #dc3545 !important; border-color: #dc3545 !important; text-decoration: line-through; }
 
+  /* Mobile fixes */
   @media (max-width: 768px) {
-    .fc-toolbar-title { font-size: 1rem !important; }
-    .fc-header-toolbar { flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .fc-toolbar-title { font-size: 1.2rem !important; }
+    .fc-header-toolbar { 
+        flex-wrap: wrap; 
+        gap: 5px; 
+        justify-content: space-between; 
+        padding-bottom: 10px;
+    }
+    .fc-button {
+        font-size: 0.8rem !important;
+        padding: 0.25rem 0.5rem !important;
+    }
   }
 </style>
 {% endblock %}
