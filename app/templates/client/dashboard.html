@@ -249,13 +249,6 @@
               const popupContent = `
                   <b>${nurse.name}</b><br>
                   <div class="mt-2">
-<<<<<<< Updated upstream
-                      <button class="btn btn-sm btn-primary" onclick="openChat('${nurse.id}', '${nurse.name}')">
-                          <i class="fas fa-comment"></i> Chat
-                      </button>
-=======
-
->>>>>>> Stashed changes
                       <button class="btn btn-sm btn-success" onclick="openBookingModal('${nurse.id}', '${nurse.name}')">
                           <i class="fas fa-plus"></i> Appointment
                       </button>
@@ -299,7 +292,7 @@
       }, () => showStatus("Access to geolocation is denied", true));
   }
 
-  // --- Booking logic (modal window) ---
+
   function openBookingModal(nurseId, nurseName) {
       document.getElementById('bookingNurseName').textContent = nurseName;
       document.getElementById('nurseIdInput').value = nurseId;
@@ -309,7 +302,6 @@
 
       new bootstrap.Modal(document.getElementById('bookingModal')).show();
 
-      // Loading services
       fetch(`/client/get_nurse_services?nurse_id=${nurseId}`)
           .then(r => r.json())
           .then(services => {
