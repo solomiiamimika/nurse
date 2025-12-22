@@ -25,6 +25,17 @@
     <a href="{{ url_for('client.profile') }}" class="btn btn-info">
       <i class="fa-solid fa-circle-user"></i> Profile
     </a>
+    <form
+      action="{{url_for('auth.logout')}}"
+      method="post"
+      style="display: inline"
+    >
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <button type="submit" class="btn btn-info">
+        <i class="fas fa-sign-out-alt"></i> Exit
+      </button>
+    </form>
+
     <div
       id="status-message"
       class="mt-2 small"
