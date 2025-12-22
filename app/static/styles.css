@@ -70,7 +70,7 @@ h2{ text-align:center; font-size:28px; margin:0 0 20px; color:#2c3e50; }
   filter:brightness(.98);
 }
 
-/* ===================== WOLT STYLE SEARCH ===================== */
+/* ===================== SEARCHField ===================== */
 .top-search-bar{
   width:100%;
   display:flex;
@@ -111,7 +111,7 @@ h2{ text-align:center; font-size:28px; margin:0 0 20px; color:#2c3e50; }
   text-align:center;
 }
 
-/* ===================== PREMIUM CONTENT WRAPPER (map + list) ===================== */
+/* ===================== CONTENT WRAPPER (map + list) ===================== */
 .premium-box{
   background:#fff;
   border-radius:22px;
@@ -151,7 +151,7 @@ h2{ text-align:center; font-size:28px; margin:0 0 20px; color:#2c3e50; }
 
   
 
-/* ===================== BOOTSTRAP BUTTON OVERRIDES (keep your palette) ===================== */
+/* ===================== BOOTSTRAP BUTTON OVERRIDES (keep my palette) ===================== */
 .btn-primary{
   background:var(--green-700)!important;
   border:none!important;
@@ -183,7 +183,7 @@ h2{ text-align:center; font-size:28px; margin:0 0 20px; color:#2c3e50; }
   border-radius:var(--radius-sm)!important;
 }
 
-/* premium custom buttons (your existing ones) */
+/* custom buttons (my existing ones) */
 .btn-premium{
   background:var(--green-700);
   color:var(--text-light);
@@ -313,7 +313,7 @@ h2{ text-align:center; font-size:28px; margin:0 0 20px; color:#2c3e50; }
   color:var(--green-700);
 }
 
-/* ===================== NURSE SERVICES TABLE PAGE ===================== */
+/* =====================  SERVICES TABLE PAGE ===================== */
 .nurse-services{ padding:20px; background:#fafafa; }
 .back-btn{
   display:inline-flex;
