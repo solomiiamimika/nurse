@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from app.models import User, Message, db, Service, NurseService, Appointment, ClientSelfCreatedAppointment
 from datetime import datetime
 import json
+from app.supabase_storage import get_file_url,delete_from_supabase,upload_to_supabase,buckets,supabase
 import os
 from werkzeug.utils import secure_filename
 from math import radians, sin, cos, sqrt, atan2
@@ -41,9 +42,10 @@ def profile():
     if current_user.role != 'nurse':
         return redirect(url_for('auth.login'))
     
+    formatted_date = current_user.date_birth.strftime('%Y-%m-%d') if current_user.date_birth else ''
+    
     if request.method == 'POST':
         try:
-            # update main info
             current_user.full_name = request.form.get('full_name')
             current_user.phone_number = request.form.get('phone_number')
             current_user.about_me = request.form.get('about_me')
@@ -52,25 +54,35 @@ def profile():
             date_birth_str = request.form.get('date_birth')
             if date_birth_str:
                 current_user.date_birth = datetime.strptime(date_birth_str, '%Y-%m-%d').date()
-                
+            
             if 'profile_picture' in request.files:
                 file = request.files['profile_picture']
-                if file and allowed_file(file.filename):
-                    filename = secure_filename(f"nurse_{current_user.id}_{datetime.now().timestamp()}.{file.filename.rsplit('.', 1)[1].lower()}")
-                    file_path = os.path.join(PROFILE_PICTURES_FOLDER, filename)
-                    file.save(file_path)
-                    current_user.profile_picture = filename
-            
+                if file and file.filename != '' and allowed_file(file.filename):
+                    if current_user.photo:
+                        delete_from_supabase(current_user.photo, buckets['profile_pictures'])
+                    
+                    filename, file_url = upload_to_supabase(
+                        file, 
+                        buckets['profile_pictures'], 
+                        current_user.id, 
+                        'nurse_profile'
+                    )
+                    if filename:
+                        current_user.photo = filename
 
             if 'documents' in request.files:
                 documents = request.files.getlist('documents')
                 saved_docs = []
                 for doc in documents:
-                    if doc and allowed_file(doc.filename):
-                        filename = secure_filename(f"doc_{current_user.id}_{datetime.now().timestamp()}_{doc.filename}")
-                        file_path = os.path.join(DOCUMENTS_FOLDER, filename)
-                        doc.save(file_path)
-                        saved_docs.append(filename)
+                    if doc and doc.filename != '' and allowed_file(doc.filename):
+                        filename, file_url = upload_to_supabase(
+                            doc, 
+                            buckets['documents'], 
+                            current_user.id, 
+                            'nurse_doc'
+                        )
+                        if filename:
+                            saved_docs.append(filename)
                 
                 if saved_docs:
                     current_docs = json.loads(current_user.documents) if current_user.documents else []
@@ -82,42 +94,46 @@ def profile():
         except Exception as e:
             db.session.rollback()
             current_app.logger.error(f"Error updating profile: {str(e)}")
-            flash('Error updating profile', 'danger')
+            flash(f'Error updating profile: {str(e)}', 'danger')
         
         return redirect(url_for('nurse.profile'))
     
-    formatted_date = current_user.date_birth.strftime('%Y-%m-%d') if current_user.date_birth else ''
-    user_documents = json.loads(current_user.documents) if current_user.documents else []
-    
-    return render_template('nurse/profile.html', 
-                         formatted_date=formatted_date,
-                         user_documents=user_documents,
-                         user=current_user)
+    profile_photo = None
+    if current_user.photo:
+        profile_photo = get_file_url(current_user.photo, buckets['profile_pictures'])
+        
+    documents_urls = {}
+    if current_user.documents:
+        try:
+            documents_list = json.loads(current_user.documents)
+            for doc_name in documents_list:
+                documents_urls[doc_name] = get_file_url(doc_name, buckets['documents'])
+        except json.JSONDecodeError:
+            documents_urls = {}
 
+    return render_template('nurse/profile.html', 
+                           formatted_date=formatted_date,
+                           documents_urls=documents_urls, 
+                           profile_photo=profile_photo,   
+                           user=current_user)
 @nurse_bp.route('/delete_document', methods=['POST'])
 @login_required
 def delete_document():
-    if current_user.role != 'nurse':
-        return jsonify({'success': False, 'message': 'Access denied'}), 403
-    
     try:
-        doc_name = request.json.get('doc_name')
-        if not doc_name:
-            return jsonify({'success': False, 'message': 'Document name not specified'})
+        data = request.get_json() 
+        doc_name = data.get('doc_name')
 
-        doc_path = os.path.join(DOCUMENTS_FOLDER, doc_name)
-        if os.path.exists(doc_path):
-            os.remove(doc_path)
+        delete_from_supabase(doc_name, buckets['documents'])
         
-
         if current_user.documents:
-            documents = json.loads(current_user.documents)
-            if doc_name in documents:
-                documents.remove(doc_name)
-                current_user.documents = json.dumps(documents) if documents else None
+            docs = json.loads(current_user.documents)
+            if doc_name in docs:
+                docs.remove(doc_name)
+                current_user.documents = json.dumps(docs) if docs else None
                 db.session.commit()
+                return jsonify({'success': True})
         
-        return jsonify({'success': True})
+        return jsonify({'success': False, 'message': 'Doc not found'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 @nurse_bp.route('/appointments')

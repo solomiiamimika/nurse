@@ -17,17 +17,15 @@
 
   
 
-  <!-- PHOTO -->
-  {% if user.profile_picture %}
+{% if profile_photo %}
   <img
-    src="{{ url_for('static', filename='uploads/profile_pictures/' ~ user.profile_picture) }}"
+    src="{{ profile_photo }}"
     class="client-avatar"
     alt="Фото профілю"
   />
   {% else %}
-  <div class="client-no-photo">Profile photo not uploaded.</div>
+  <div class="client-no-photo">Profile photo is not uploaded.</div>
   {% endif %}
-
   <!-- FORM -->
   <form method="POST" enctype="multipart/form-data" class="client-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
@@ -109,98 +107,87 @@
     >
   </form>
 
-  <!-- DOCUMENT LIST -->
+  
   <h4 class="mt-4 mb-3" style="color: var(--green-700)">Your documents</h4>
 
-  {% if user_documents %} {% for doc in user_documents %}
-  <div
-    class="client-doc-item d-flex justify-content-between align-items-center"
-    data-filename="{{ doc }}"
-  >
-    <a
-      href="{{ url_for('static', filename='uploads/documents/' ~ doc) }}"
-      target="_blank"
-      >📄 {{ doc }}</a
-    >
-    <button class="btn btn-sm btn-danger delete-doc-btn">Delete</button>
-  </div>
-  {% endfor %} {% else %}
-  <div class="alert alert-info">Documents not uploaded.</div>
+  {% if documents_urls %} 
+    {% for filename, url in documents_urls.items() %}
+      <div
+        class="client-doc-item d-flex justify-content-between align-items-center"
+        data-filename="{{ filename }}"
+      >
+        <a
+          href="{{ url }}"
+          target="_blank"
+          >📄 {{ filename }}</a
+        >
+        <button class="btn btn-sm btn-danger delete-doc-btn">Delete</button>
+      </div>
+    {% endfor %} 
+  {% else %}
+    <div class="alert alert-info">Documents not uploaded.</div>
   {% endif %}
 </div>
 
-<<<<<<< Updated upstream
-<!-- add bibliothek for generating QR codes -->
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-=======
->>>>>>> Stashed changes
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const docsList = document.getElementById("documents-list");
-    if (!docsList) return;
 
-    docsList.addEventListener("click", async (event) => {
-      if (event.target.classList.contains("delete-doc-btn")) {
-        const li = event.target.closest("li");
-        const filename = li.getAttribute("data-filename");
+    document.addEventListener("click", async (event) => {
+      
+      const deleteBtn = event.target.closest(".delete-doc-btn");
+      
+      if (deleteBtn) {
+        event.preventDefault();
+        
+        const docItem = deleteBtn.closest(".client-doc-item");
+        const filename = docItem.getAttribute("data-filename");
+
 
         if (!confirm(`Delete document "${filename}"?`)) return;
 
         try {
-          const response = await fetch(
-            '{{ url_for("client.delete_document") }}',
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": "{{ csrf_token() }}",
-              },
-              body: JSON.stringify({ doc_name: filename }),
-            }
-          );
+          const response = await fetch('{{ url_for("client.delete_document") }}', {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": "{{ csrf_token() }}" 
+            },
+            body: JSON.stringify({ doc_name: filename }),
+          });
 
           const result = await response.json();
 
           if (result.success) {
-            li.remove();
-            // Reload the page if no documents remain.
-            if (docsList.children.length === 0) {
-              location.reload();
-            }
+            docItem.style.transition = "all 0.3s";
+            docItem.style.opacity = "0";
+            setTimeout(() => {
+                docItem.remove();
+                const remaining = document.querySelectorAll('.client-doc-item');
+                if (remaining.length === 0) location.reload();
+            }, 300);
           } else {
             alert("Error: " + result.message);
           }
         } catch (error) {
-          alert("Server error: " + error.message);
+          console.error("Query error:", error);
+          alert("Erorr with server.");
         }
       }
     });
 
-    // Additional photo validation
     const profilePicInput = document.getElementById("profile_picture");
     if (profilePicInput) {
       profilePicInput.addEventListener("change", function () {
         const file = this.files[0];
         if (file) {
-          //File size check (max. 5 MB)
           if (file.size > 5 * 1024 * 1024) {
-            alert("The file is too large. The maximum size is 5MB.");
-            this.value = "";
-          }
-
-          // check file type
-          const validTypes = ["image/jpeg", "image/png", "image/gif"];
-          if (!validTypes.includes(file.type)) {
-            alert("Only JPG, PNG, and GIF files are allowed.");
+            alert("File is too large, 5MB max.");
             this.value = "";
           }
         }
       });
     }
-
-    // Обробник для генерації QR-коду
-    
   });
 </script>
 {% endblock %}

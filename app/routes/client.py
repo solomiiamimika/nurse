@@ -63,7 +63,6 @@ def dashboard():
     return render_template('client/dashboard.html', nurses=nurses, search_query=search_query)
 
 
-
 @client_bp.route('/delete_document', methods=['POST'])
 @login_required
 def delete_document():
@@ -73,22 +72,31 @@ def delete_document():
     try:
         data = request.get_json()
         doc_name = data.get('doc_name')
+        
         if not doc_name:
             return jsonify({'success': False, 'message': 'Document name is not specified.'})
 
-        # Deleting from Supabase Storage
-        delete_from_supabase(doc_name, buckets['documents'])
+        try:
+            delete_from_supabase(doc_name, buckets['documents'])
+        except Exception as e:
+            print(f"Supabase Error {e}")
 
-        # Updating the database
         if current_user.documents:
             documents = json.loads(current_user.documents)
+            
             if doc_name in documents:
                 documents.remove(doc_name)
                 current_user.documents = json.dumps(documents) if documents else None
                 db.session.commit()
+                return jsonify({'success': True})
+            else:
+                return jsonify({'success': False, 'message': 'File not found in database record'})
         
-        return jsonify({'success': True})
+        return jsonify({'success': False, 'message': 'User has no documents'})
+
     except Exception as e:
+        print(f"CRITICAL ERROR: {str(e)}")
+        db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
@@ -167,7 +175,7 @@ def profile():
                 if file and file.filename != '' and allowed_file(file.filename):
                     # deleting old photo
                     if current_user.photo:
-                        delete_from_supabase(current_user.profile_picture, buckets['profile_pictures'])
+                        delete_from_supabase(current_user.photo, buckets['profile_pictures'])
                     
                     # Upload new photo
                     filename, file_url = upload_to_supabase(
