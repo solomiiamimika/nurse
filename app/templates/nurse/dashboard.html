@@ -2,7 +2,9 @@
 {% block content %}
 
 <div class="nurse-dashboard">
-  <h2>Service provider dashboard</h2>
+  <h2>Hi, {{ current_user.full_name if current_user.full_name else current_user.username}}!</h2>
+  
+  <h5 style="text-align: center">Service provider dashboard</h5>
 
   <div class="dashboard-options" style="margin-bottom: 20px">
 
@@ -165,7 +167,7 @@
       notification.style.right = '20px';
       notification.style.zIndex = '1000';
       notification.innerHTML = `
-          <strong>Нове повідомлення від ${messageData.sender_name}</strong>
+          <strong>New message from ${messageData.sender_name}</strong>
           <p>${messageData.text}</p>
           <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
       `;

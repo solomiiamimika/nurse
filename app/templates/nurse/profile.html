@@ -1,12 +1,18 @@
 {% extends "base.html" %} {% block content %}
 <div class="container mt-4 profile-page">
+    <a href="{{ url_for('nurse.dashboard') }}" class="btn btn-outline-secondary mb-3">
+      ← Back to dashboard
+    </a>
+     <!--<a href="javascript:history.back()" class="btn btn-outline-secondary mb-3">
+    ← Back
+  </a>-->
   <h2 class="profile-title">Service provider profile</h2>
 
-  <!-- Hamburger menu -->
+  <!-- Hamburger menu (can be for mobile)
   <div class="profile-menu-icon">
     <a href="{{ url_for('nurse.dashboard') }}">☰</a>
   </div>
-
+-->
   <!-- Profile photo -->
   {% if user.photo %}
   <img
@@ -93,17 +99,19 @@
         class="form-control"
       />
     </div>
+    <div class="d-flex justify-content-center mt-3">
+      <button type="submit" class="btn btn-primary">Update profile</button>
+    </div>
 
-    <button type="submit" class="btn btn-primary">Update profile</button>
-    <a href="{{ url_for('nurse.dashboard') }}" class="btn btn-secondary">
+    <!-- <a href="{{ url_for('nurse.dashboard') }}" class="btn btn-secondary">
       Back to dashboard
-    </a>
+    </a>-->
   </form>
 
   <hr />
 
   <!-- Document list -->
-  <h4 class="profile-subtitle">Your documents:</h4>
+  <h4 class="mt-4 mb-3" style="color: var(--green-700)">Your documents</h4>
   {% if user_documents %}
   <ul class="list-group profile-doc-list" id="documents-list">
     {% for doc in user_documents %}

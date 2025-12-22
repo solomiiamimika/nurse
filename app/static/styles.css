@@ -149,33 +149,7 @@ h2{ text-align:center; font-size:28px; margin:0 0 20px; color:#2c3e50; }
 }
 .request-item:hover{ transform:translateY(-2px); }
 
-/* ===================== CHAT ===================== */
-.chat-messages-container{
-  height:300px;
-  overflow-y:auto;
-  padding:12px;
-  border-radius:var(--radius-sm);
-  background:#f7f7f7;
-}
-.message{
-  max-width:80%;
-  margin-bottom:10px;
-  padding:10px 14px;
-  border-radius:var(--radius-sm);
-  font-size:14px;
-}
-.my-message{
-  background:var(--green-700);
-  color:var(--text-light);
-  margin-left:auto;
-  border-bottom-right-radius:0;
-}
-.their-message{
-  background:var(--pink-200);
-  color:var(--green-700);
-  margin-right:auto;
-  border-bottom-left-radius:0;
-}
+  
 
 /* ===================== BOOTSTRAP BUTTON OVERRIDES (keep your palette) ===================== */
 .btn-primary{
@@ -267,6 +241,7 @@ h2{ text-align:center; font-size:28px; margin:0 0 20px; color:#2c3e50; }
 }
 
 /* ===================== PROFILE PAGES (nurse + client) ===================== */
+
 .profile-page,
 .client-profile-page{
   max-width:650px;

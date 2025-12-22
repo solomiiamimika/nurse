@@ -1,5 +1,8 @@
 {% extends "base.html" %} {% block content %}
 <div class="client-profile-page">
+    <a href="{{ url_for('nurse.dashboard') }}" class="btn btn-outline-secondary mb-3">
+      ← Back to dashboard
+    </a>
 
 
   <h2 class="client-profile-title">Profile</h2>
@@ -102,11 +105,12 @@
       />
       <div class="form-text">You can select multiple files (PDF, JPG, PNG)</div>
     </div>
-
-    <button type="submit" class="btn btn-primary">Update</button>
-    <a href="{{ url_for('client.dashboard') }}" class="btn btn-secondary mt-2"
+    <div class="d-flex justify-content-center mt-3">
+      <button type="submit" class="btn btn-primary">Update profile</button>
+    </div>
+    <!--<a href="{{ url_for('client.dashboard') }}" class="btn btn-secondary mt-2"
       >Back</a
-    >
+    >-->
   </form>
 
   <!-- DOCUMENT LIST -->
@@ -125,15 +129,13 @@
     <button class="btn btn-sm btn-danger delete-doc-btn">Delete</button>
   </div>
   {% endfor %} {% else %}
-  <div class="alert alert-info">Documents not uploaded.</div>
+  <p class="profile-placeholder-text">Documents not uploaded.</p>
+  <!-- <div class="alert alert-info">Documents not uploaded.</div> -->
   {% endif %}
 </div>
 
-<<<<<<< Updated upstream
 <!-- add bibliothek for generating QR codes -->
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-=======
->>>>>>> Stashed changes
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"> </script>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -199,8 +201,7 @@
       });
     }
 
-    // Обробник для генерації QR-коду
-    
+
   });
 </script>
 {% endblock %}
