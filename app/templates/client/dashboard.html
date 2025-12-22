@@ -4,16 +4,10 @@
   <h5 style="text-align: center">client dashboard</h5>
 
   <div class="dashboard-options" style="margin-bottom: 20px">
-    <form
-      action="{{url_for('auth.logout')}}"
-      method="post"
-      style="display: inline"
-    >
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      <button type="submit" class="btn btn-info">
-        <i class="fas fa-sign-out-alt"></i> Exit
-      </button>
-    </form>
+
+    <a href="{{ url_for('client.profile') }}" class="btn btn-info">
+      <i class="fa-solid fa-circle-user"></i> Profile
+    </a>
 
     <a href="{{ url_for('client.appointments') }}" class="btn btn-info">
       <i class="fas fa-calendar"></i> Calendar (My appointments)
@@ -22,9 +16,7 @@
     <button id="location-btn" class="btn btn-info">
       <i class="fas fa-map-marker-alt"></i> Update my location
     </button>
-    <a href="{{ url_for('client.profile') }}" class="btn btn-info">
-      <i class="fa-solid fa-circle-user"></i> Profile
-    </a>
+
     <form
       action="{{url_for('auth.logout')}}"
       method="post"

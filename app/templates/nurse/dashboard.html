@@ -5,35 +5,36 @@
   <h2>Service provider dashboard</h2>
 
   <div class="dashboard-options" style="margin-bottom: 20px">
-    <form action="{{url_for('auth.logout')}}" method="post">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      <button type="submit" class="btn btn-info">
-        <i class="fas fa-sign-out-alt"></i> Exit
-      </button>
-    </form>
-    
+
+    <a href="{{ url_for('nurse.profile') }}" class="btn btn-info">
+      <i class="fas fa-user"></i> Profile
+    </a>
+
     <a href="{{ url_for('nurse.appointments') }}" class="btn btn-info">
       <i class="fas fa-calendar"></i> Appointments
     </a>
     
-    <button id="location-btn" class="btn btn-info">
-      <i class="fas fa-map-marker-alt"></i> Update my location
-    </button>
-    
     <a href="{{ url_for('nurse.manage_services') }}" class="btn btn-info">
       <i class="fas fa-concierge-bell"></i> My services
     </a>
-    
-    <a href="{{ url_for('nurse.profile') }}" class="btn btn-info">
-      <i class="fas fa-user"></i> Profile
-    </a>
-    
+
+    <button id="location-btn" class="btn btn-info">
+      <i class="fas fa-map-marker-alt"></i> Update my location
+    </button>
+
     <button
       id="toggle-online-btn"
       class="btn {{ 'btn-success' if current_user.online else 'btn-secondary' }}"
     >
       {{ 'Online' if current_user.online else 'Offline' }}
     </button>
+
+    <form action="{{url_for('auth.logout')}}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <button type="submit" class="btn btn-info">
+        <i class="fas fa-sign-out-alt"></i> Exit
+      </button>
+    </form>   
     
     <div id="status-message" class="mt-2 small" style="width: 100%;"></div>
   </div>
@@ -105,36 +106,7 @@
   </div>
 </div>
 
-<!-- Chat modal window -->
-<div class="modal fade" id="chatModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Chat with <span id="chatRecipientName"></span></h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
-      <div class="modal-body">
-        <div class="chat-messages-container" id="chatMessages"></div>
-        <div class="input-group mt-3">
-          <input
-            type="text"
-            class="form-control"
-            id="messageInput"
-            placeholder="Enter your message..."
-          />
-          <button class="btn btn-primary" type="button" id="sendMessageBtn">
-            <i class="fas fa-paper-plane"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+
 {% endblock %} {% block scripts %}
 <!-- Leaflet for map -->
 <link
