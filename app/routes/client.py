@@ -226,31 +226,6 @@ def profile():
     return render_template('client/profile.html',profile_photo = profile_photo,documents_urls=documents_urls,user = current_user)
 
 
-@client_bp.route('/get_chat_messages')
-@login_required
-def get_chat_messages():
-    if current_user.role != 'client':
-        return jsonify({'error': 'access denied'}), 403
-    
-    recipient_id = request.args.get('recipient_id')
-    if not recipient_id:
-        return jsonify({'error': 'Recipient not specified'}), 400
-    
-    messages = Message.query.filter(
-        ((Message.sender_id == current_user.id) & (Message.recipient_id == recipient_id)) |
-        ((Message.sender_id == recipient_id) & (Message.recipient_id == current_user.id))
-    ).order_by(Message.timestamp.asc()).all()
-    
-    messages_data = [{
-        'id': msg.id,
-        'sender_id': msg.sender_id,
-        'sender_name': msg.sender.user_name if msg.sender_id != current_user.id else 'You',
-        'text': msg.text,
-        'timestamp': msg.timestamp.isoformat()
-    } for msg in messages]
-    
-    return jsonify(messages_data)
-
 
 @client_bp.route('/appointments')
 @login_required
@@ -309,6 +284,7 @@ def get_appointments():
     except Exception as e:
         current_app.logger.error(f"error in get_appointments: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
+    
 def get_appointment_color(status):
     colors = {
         'scheduled': 'gray',
@@ -324,7 +300,6 @@ def calendar_appointment_color(Status):
         'nurse_confirmed':'green',
         'completed':'blue',
         'cancelled':'red'
-
     }
     return colors_dictionary.get(Status)
 
@@ -486,7 +461,6 @@ def create_appointment():
             end_time=end_time,
             notes=notes,
             status='scheduled',
-
         )
         
         db.session.add(new_appointment)
@@ -503,10 +477,7 @@ def create_appointment():
         current_app.logger.error(f"Error creating appointment: {str(e)}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
-            
-    
-
-    
+ 
 @client_bp.route('/create_apple_pay_session', methods=['POST'])
 @login_required
 def create_apple_pay_session():
@@ -539,7 +510,6 @@ def create_apple_pay_session():
                 'user_id': current_user.id
             }
         )
-
         return jsonify({'sessionId': session.id})
     
     except Exception as e:
@@ -634,9 +604,6 @@ def handle_successful_payment(session):
             db.session.commit()
     except Exception as e:
         current_app.logger.error(f"Webhook error: {str(e)}")
-
-
-
 
 
 @client_bp.route('/create_payment_session', methods=['POST'])
@@ -813,7 +780,6 @@ def client_self_create_appointment():
         db.session.add(appointment)
         db.session.commit()
         
-       
         #notify_nurses_about_new_appointment(appointment)
         
         return jsonify({
@@ -827,9 +793,6 @@ def client_self_create_appointment():
         db.session.rollback()
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
         
-
-
-
 
 @socketio.on('connect')
 def handle_connect():
@@ -846,108 +809,6 @@ def handle_join(data):
     if user_id:
         join_room(f"user_{user_id}")
         current_app.logger.info(f'User {user_id} joined the room')
-
-@socketio.on('send_message')
-def handle_send_message(data):
-    try:
-        print(f"Received data: {data}") 
-        
-        if not all(key in data for key in ['message_type', 'sender_id', 'recipient_id']):
-            raise ValueError(" Not enough data to send a message")
-            
-        file_data=None
-        if 'file' in data:
-            file=data['file']
-            file_name, file_URL=upload_to_supabase(file, buckets['message-media'], data['sender_id'], 'message')
-            if file_name:
-                file_data={
-                    'file_name': file_name,
-                    'URL': file_URL,
-                    'type': file.content_type
-                }
-            
-        message_text = data.get('text', '')
-        supabase_file_path = None
-        file_name = None
-        mime_type = None
-        file_size = None
-        
-        if data['message_type'] in ['image', 'video', 'audio'] and 'file_data' in data:
-            file_data = data['file_data']
-            file_name = data.get('file_name', 'file')
-            mime_type = data.get('mime_type', 'application/octet-stream')
-            
-
-            bucket_name = 'message-media'
-            
-            timestamp = datetime.now().timestamp()
-            extension = file_name.split('.')[-1] if '.' in file_name else ''
-            unique_filename = f"{data['message_type']}_{data['sender_id']}_{timestamp}.{extension}" if extension else f"{data['message_type']}_{data['sender_id']}_{timestamp}"
-            
-
-            if file_data.startswith('data:'):
-                file_data = file_data.split(',')[1]
-            
-            file_bytes = base64.b64decode(file_data)
-            file_size = len(file_bytes)
-            
-            result = supabase.storage.from_(bucket_name).upload(
-                file=file_bytes,
-                path=unique_filename,
-                file_options={"content-type": mime_type}
-            )
-            
-            if result:
-                supabase_file_path = unique_filename
-                file_name = file_name
-            else:
-                raise ValueError("Error uploading file to Supabase")
-        
-        message = Message(
-            sender_id=int(data['sender_id']),
-            recipient_id=int(data['recipient_id']),
-            text=message_text,
-            message_type=data['message_type'],
-            supabase_file_path=supabase_file_path,
-            file_name=file_name,
-            mime_type=mime_type,
-            file_size=file_size
-        )
-        
-        db.session.add(message)
-        db.session.commit()
-        
-        sender = User.query.get(message.sender_id)
-        sender_name = sender.user_name if sender else "Unknown"
-        
-        file_url = None
-        if supabase_file_path:
-            file_url = supabase.storage.from_(bucket_name).get_public_url(supabase_file_path)
-        
-        emit('new_message', {
-            'id': message.id,
-            'sender_id': message.sender_id,
-            'sender_name': sender_name,
-            'text': message.text,
-            'message_type': message.message_type,
-            'file_url': file_url,
-            'file_name': message.file_name,
-            'file_size': message.file_size,
-            'timestamp': message.timestamp.isoformat()
-        }, room=f"user_{message.recipient_id}")
-        
-        emit('message_sent', {
-            'id': message.id,
-            'status': 'delivered'
-        }, room=request.sid)
-        
-    except Exception as e:
-        print(f"Error: {str(e)}")
-        emit('error', {'message': str(e)}, room=request.sid)
-        db.session.rollback()
-
-
-
 
 
 
@@ -1013,11 +874,6 @@ def client_cancel_request(request_id):
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 
-
-
-
-
-
 @client_bp.route('/leave_review', methods=['POST'])
 @login_required
 def leave_review():
@@ -1061,12 +917,6 @@ def leave_review():
     db.session.commit()
 
     return jsonify({'success': True, 'message': 'Thank you for your review!'})
-
-
-
-
-
-
 
 
 
@@ -1130,42 +980,13 @@ def can_review_appointment(appointment_id):
         return jsonify({'can_review': False, 'review_exists': True})
     
     return jsonify({'can_review': True, 'review_exists': False})
+
 @client_bp.route("/services")
 @login_required
 def services():
     return render_template("client/services.html")
 
 
-# @client_bp.route('/generate_qr_data')
-# @login_required
-# def generate_qr_data():
-#     user=current_user
-#     list_of_documents=[]
-#     if user.documents: 
-#         documents=user.documents.split(',')
 
-#     QR_data={
-#         'id':user.id,
-#         'full_name':user.full_name or '',
-#         'documents':list_of_documents or '',
-#         'date_birth':user.date_birth.strftime('%Y-%m-%d') or '',
-#         'about_me':user.about_me or '',
-#         'photo':user.photo or '',
-#         'date':datetime.utcnow().isoformat()
-
-#     }    
-
-#     return jsonify(QR_data)
-
-
-
-
-@client_bp.route('/generate_qr_data')
-@login_required
-def generate_qr_data():
-    user=current_user
-    url = url_for("main.patient_info",user_id=user.id,_external = True)
-
-    return jsonify({'profile_url':url})
 
     
