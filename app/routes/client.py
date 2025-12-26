@@ -21,8 +21,8 @@ from datetime import datetime
 from app.supabase_storage import upload_to_supabase,supabase
 from flask_cors import cross_origin
 load_dotenv()
-stripe.api_key=os.getenv('STRIPE_SECRET_KEY')
 
+stripe.api_key=os.getenv('STRIPE_SECRET_KEY')
 stripe_public_key = os.getenv('STRIPE_PUBLIC_KEY')
 
 
@@ -30,7 +30,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'uploads')
 DOCUMENTS_FOLDER = os.path.join(UPLOAD_FOLDER, 'documents')
 PROFILE_PICTURES_FOLDER = os.path.join(UPLOAD_FOLDER, 'profile_pictures')
-
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(DOCUMENTS_FOLDER, exist_ok=True)
