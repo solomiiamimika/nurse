@@ -622,6 +622,8 @@ def create_payment_session():
             
         if appointment.status == 'confirmed_paid':
             return jsonify({'error': 'Appointment already paid'}), 400
+        
+        
 
         # Create Stripe Checkout session
         session = stripe.checkout.Session.create(

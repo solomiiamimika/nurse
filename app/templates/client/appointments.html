@@ -185,7 +185,7 @@
         const paymentSection = document.getElementById("paymentSection");
         const paymentStatus = document.getElementById("paymentStatus");
 
-        if (props.status === "scheduled" || props.status === "confirmed") {
+        if (props.status === "confirmed") {
           paymentSection.style.display = "block";
           paymentStatus.style.display = "none";
         } else {
@@ -194,6 +194,11 @@
             paymentStatus.style.display = "block";
             paymentStatus.className = "alert alert-success";
             paymentStatus.textContent = "Paid";
+          } else if (props.status === 'scheduled'){
+          paymentSection.style.display = "none";
+          paymentStatus.style.display = "block";
+          paymentStatus.className = "alert alert-info";
+          paymentStatus.textContent = 'Waiting for service provider to confirm.';
           }
         }
 
@@ -356,9 +361,10 @@
     const statuses = {
       scheduled: "Scheduled",
       confirmed: "Approved",
-      completed: "Completed",
-      cancelled: "Cancelled",
       confirmed_paid: "Paid and confirmed",
+      completed: "Completed",
+      cancelled: "Cancelled"
+      
     };
     return statuses[status] || status;
   }
@@ -445,46 +451,4 @@
   }
 </script>
 
-<style>
-  #calendar {
-    max-width: 100%;
-    margin: 0 auto;
-    background-color: white;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  }
-
-  .fc-event { cursor: pointer; }
-
-  /* Event Status Colors */
-  .fc-event.scheduled { background-color: #ffc107 !important; border-color: #ffc107 !important; color: #000 !important; }
-  .fc-event.confirmed { background-color: #0d6efd !important; border-color: #0d6efd !important; }
-  .fc-event.confirmed_paid { background-color: #198754 !important; border-color: #198754 !important; }
-  .fc-event.completed { background-color: #6c757d !important; border-color: #6c757d !important; }
-  .fc-event.cancelled { background-color: #dc3545 !important; border-color: #dc3545 !important; text-decoration: line-through; }
-
-  /* Rating Stars */
-  .rating-input { direction: rtl; display: inline-flex; }
-  .rating-input input { display: none; }
-  .rating-input label { font-size: 2rem; color: #ddd; cursor: pointer; transition: color 0.2s; }
-  .rating-input input:checked ~ label, .rating-input label:hover, .rating-input label:hover ~ label { color: #f5c518; }
-  .rating-stars { color: #ddd; font-size: 1.2rem; }
-  .rating-star.filled { color: #f5c518; }
-
-  /* Mobile Responsive Fixes */
-  @media (max-width: 768px) {
-    .fc-toolbar-title { font-size: 1.2rem !important; }
-    .fc-header-toolbar { 
-        flex-wrap: wrap; 
-        gap: 5px; 
-        justify-content: space-between; 
-        padding-bottom: 10px;
-    }
-    .fc-button {
-        font-size: 0.8rem !important;
-        padding: 0.25rem 0.5rem !important;
-    }
-  }
-</style>
 {% endblock %}
