@@ -191,8 +191,8 @@ class ClientSelfCreatedAppointment(db.Model):
     nurse_service_id = Column(Integer,ForeignKey('nurse_service.id'),nullable = True)
     service_name=Column(String, nullable=True)
     service_description =Column(Text, nullable=True)
-    latitude = Column(Float) #широта
-    longitude = Column(Float) #довгота
+    latitude = Column(Float) 
+    longitude = Column(Float) 
     created_appo = Column(DateTime, default=datetime.now)
     
     patient = relationship('User', foreign_keys=[patient_id])

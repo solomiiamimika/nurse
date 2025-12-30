@@ -337,6 +337,7 @@ def get_appointments():
         if start_date and end_date:
             try:
                 start = datetime.fromisoformat(start_date)
+                
                 end = datetime.fromisoformat(end_date)
                 query = query.filter(
                     Appointment.appointment_time >= start,
