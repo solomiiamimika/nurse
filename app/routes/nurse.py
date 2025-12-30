@@ -520,7 +520,6 @@ def nurse_stats():
 @nurse_bp.route('/nurse_get_requests', methods=['GET'])
 @login_required
 def nurse_get_requests():
-    """Fetch all requests for the nurse (for the map)"""
     if current_user.role != 'nurse':
         return jsonify({'success': False, 'message': 'Access denied'}), 403
     
@@ -528,44 +527,28 @@ def nurse_get_requests():
         nurse_lat = current_user.latitude
         nurse_lng = current_user.longitude
         
-        # Base request
-        query = ClientSelfCreatedAppointment.query.filter(
-            ClientSelfCreatedAppointment.status == 'pending'
-        )
-        
+        query = ClientSelfCreatedAppointment.query.filter_by(status='pending')
 
-        if nurse_lat and nurse_lng:
-            distance_formula = func.acos(
-                func.sin(func.radians(nurse_lat)) * func.sin(func.radians(ClientSelfCreatedAppointment.latitude)) +
-                func.cos(func.radians(nurse_lat)) * func.cos(func.radians(ClientSelfCreatedAppointment.latitude)) *
-                func.cos(func.radians(ClientSelfCreatedAppointment.longitude) - func.radians(nurse_lng))
-            ) * 6371  # Earth’s radius in km
-            
-            query = query.filter(distance_formula <= 50)  # 50 km radius
-        
         requests = query.all()
         
         result = []
         for req in requests:
             result.append({
                 'id': req.id,
-                'patient_name': req.patient.full_name,
+                'patient_name': req.patient.full_name if req.patient else "Client",
                 'service_name': req.service_name,
-                'service_description': req.service_description,
                 'appointment_start_time': req.appointment_start_time.isoformat(),
                 'latitude': req.latitude,
                 'longitude': req.longitude,
                 'notes': req.notes,
-                'payment': req.payment,
-                'created_appo': req.created_appo.isoformat(),
-                'patient_id': req.patient_id
+                'payment': req.payment
             })
         
         return jsonify({'success': True, 'requests': result}), 200
         
     except Exception as e:
-        current_app.logger.error(f"Error retrieving requests: {str(e)}")
-        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+        print(e)
+        return jsonify({'success': False, 'error': 'Server Error'}), 500
 
 @nurse_bp.route('/nurse_accept_request/<int:request_id>', methods=['POST'])
 @login_required
@@ -680,3 +663,5 @@ def calculate_distance(lat1, lng1, lat2, lng2):
     c = 2 * atan2(sqrt(a), sqrt(1-a))
     
     return R * c
+
+

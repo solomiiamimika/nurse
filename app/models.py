@@ -41,16 +41,16 @@ class User(db.Model, UserMixin):
     sent_messages = db.relationship('Message', 
                                   foreign_keys='Message.sender_id', 
                                   backref='sender', 
-                                  lazy=True)
+                                  lazy=True,cascade = 'all, delete-orphan')
     
     received_messages = db.relationship('Message', 
                                       foreign_keys='Message.recipient_id', 
                                       backref='recipient', 
-                                      lazy=True)
+                                      lazy=True,cascade = 'all, delete-orphan')
     
-    client_appointments = db.relationship('Appointment', foreign_keys='Appointment.client_id', backref='client', lazy=True)
-    nurse_appointments = db.relationship('Appointment', foreign_keys='Appointment.nurse_id', backref='nurse', lazy=True)
-    payments = db.relationship('Payment', backref='user', lazy=True)
+    client_appointments = db.relationship('Appointment', foreign_keys='Appointment.client_id', backref='client', lazy=True,cascade = 'all, delete-orphan')
+    nurse_appointments = db.relationship('Appointment', foreign_keys='Appointment.nurse_id', backref='nurse', lazy=True,cascade = 'all, delete-orphan')
+    payments = db.relationship('Payment', backref='user', lazy=True, cascade = 'all, delete-orphan')
     @property
     def password(self):
         raise AttributeError('password is not a readable attribute')

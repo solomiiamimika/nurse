@@ -1,152 +1,135 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %} 
+{% block content %}
 <div class="client-profile-page">
     <a href="{{ url_for('client.dashboard') }}" class="btn btn-outline-secondary mb-3">
       ← Back to dashboard
     </a>
 
-
   <h2 class="client-profile-title">Profile</h2>
 
-  <!-- FLASH MESSAGES -->
-  {% with messages = get_flashed_messages(with_categories=true) %} {% if
-  messages %} {% for category, message in messages %}
-  <div
-    class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show"
-  >
-    {{ message }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-  </div>
-  {% endfor %} {% endif %} {% endwith %}
+  {% with messages = get_flashed_messages(with_categories=true) %} 
+    {% if messages %} 
+      {% for category, message in messages %}
+      <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      {% endfor %} 
+    {% endif %} 
+  {% endwith %}
 
-  
-
-{% if profile_photo %}
-  <img
-    src="{{ profile_photo }}"
-    class="client-avatar"
-    alt="Фото профілю"
-  />
+  {% if profile_photo %}
+  <img src="{{ profile_photo }}" class="client-avatar" alt="Profile Photo" />
   {% else %}
   <div class="client-no-photo">Profile photo is not uploaded.</div>
   {% endif %}
-  <!-- FORM -->
+
   <form method="POST" enctype="multipart/form-data" class="client-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
     <div class="mb-3">
       <label class="form-label">Full name</label>
-      <input
-        type="text"
-        name="full_name"
-        class="form-control"
-        value="{{ user.full_name or '' }}"
-      />
+      <input type="text" name="full_name" class="form-control" value="{{ user.full_name or '' }}" />
     </div>
 
     <div class="mb-3">
       <label class="form-label">Phone number</label>
-      <input
-        type="text"
-        name="phone_number"
-        class="form-control"
-        value="{{ user.phone_number or '' }}"
-      />
+      <input type="text" name="phone_number" class="form-control" value="{{ user.phone_number or '' }}" />
     </div>
 
     <div class="mb-3">
       <label class="form-label">Birth date</label>
-      <input
-        type="date"
-        name="date_birth"
-        class="form-control"
-        value="{{ formatted_date }}"
-      />
+      <input type="date" name="date_birth" class="form-control" value="{{ formatted_date }}" />
     </div>
 
     <div class="mb-3">
       <label class="form-label">About me</label>
-      <textarea name="about_me" class="form-control" rows="3">
-{{ user.about_me or '' }}</textarea
-      >
+      <textarea name="about_me" class="form-control" rows="3">{{ user.about_me or '' }}</textarea>
     </div>
 
     <div class="mb-3">
-      <label class="form-label">Adress</label>
-      <input
-        type="text"
-        name="address"
-        class="form-control"
-        value="{{ user.address or '' }}"
-      />
+      <label class="form-label">Address</label>
+      <input type="text" name="address" class="form-control" value="{{ user.address or '' }}" />
     </div>
 
     <div class="mb-3">
       <label class="form-label">Profile photo:</label>
-      <input
-        type="file"
-        name="profile_picture"
-        id="profile_picture"
-        class="form-control"
-        accept="image/*"
-      />
+      <input type="file" name="profile_picture" id="profile_picture" class="form-control" accept="image/*" />
       <div class="form-text">JPG, PNG, and GIF are accepted (max 5MB)</div>
     </div>
 
     <div class="mb-3">
-      <label class="form-label">Download documents</label>
-      <input
-        type="file"
-        name="documents"
-        id="documents"
-        multiple
-        class="form-control"
-      />
+      <label class="form-label">Upload documents</label>
+      <input type="file" name="documents" id="documents" multiple class="form-control" />
       <div class="form-text">You can select multiple files (PDF, JPG, PNG)</div>
     </div>
+    
     <div class="d-flex justify-content-center mt-3">
       <button type="submit" class="btn btn-primary">Update profile</button>
     </div>
-    <!--<a href="{{ url_for('client.dashboard') }}" class="btn btn-secondary mt-2"
-      >Back</a
-    >-->
   </form>
 
-  
   <h4 class="mt-4 mb-3" style="color: var(--green-700)">Your documents</h4>
 
   {% if documents_urls %} 
     {% for filename, url in documents_urls.items() %}
-      <div
-        class="client-doc-item d-flex justify-content-between align-items-center"
-        data-filename="{{ filename }}"
-      >
-        <a
-          href="{{ url }}"
-          target="_blank"
-          >📄 {{ filename }}</a
-        >
+      <div class="client-doc-item d-flex justify-content-between align-items-center" data-filename="{{ filename }}">
+        <a href="{{ url }}" target="_blank">📄 {{ filename }}</a>
         <button class="btn btn-sm btn-danger delete-doc-btn">Delete</button>
       </div>
     {% endfor %} 
   {% else %}
     <div class="alert alert-info">Documents not uploaded.</div>
   {% endif %}
+
+  <hr class="my-5">
+  
+  <div class="card border-danger mb-5">
+    <div class="card-header bg-danger text-white">
+      <strong>Danger Zone</strong>
+    </div>
+    <div class="card-body">
+      <p class="card-text">Once you delete your account, there is no going back. Please be certain.</p>
+      <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+        Delete Account
+      </button>
+    </div>
+  </div>
+
 </div>
 
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-danger">Confirm Account Deletion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you absolutely sure you want to delete your account?<br><br>
+        <strong>This action cannot be undone.</strong> All your data, including documents and photos, will be permanently removed.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        
+        <form action="{{ url_for('auth.delete_account') }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-danger">Yes, Delete My Account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-
+    // Existing code for documents...
     document.addEventListener("click", async (event) => {
-      
       const deleteBtn = event.target.closest(".delete-doc-btn");
-      
       if (deleteBtn) {
         event.preventDefault();
-        
         const docItem = deleteBtn.closest(".client-doc-item");
         const filename = docItem.getAttribute("data-filename");
-
 
         if (!confirm(`Delete document "${filename}"?`)) return;
 
@@ -175,11 +158,12 @@
           }
         } catch (error) {
           console.error("Query error:", error);
-          alert("Erorr with server.");
+          alert("Error with server.");
         }
       }
     });
 
+    // Existing code for profile picture size check...
     const profilePicInput = document.getElementById("profile_picture");
     if (profilePicInput) {
       profilePicInput.addEventListener("change", function () {

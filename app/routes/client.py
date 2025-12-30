@@ -775,7 +775,7 @@ def client_self_create_appointment():
             service_name=data.get('service_name', ''),
             service_description=data.get('service_description', ''),
             payment=data.get('payment', 0),
-            created_at=datetime.now()
+            created_appo=datetime.now()
         )
         
         db.session.add(appointment)
