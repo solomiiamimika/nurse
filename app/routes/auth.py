@@ -1,11 +1,11 @@
 from flask import render_template, redirect, url_for, flash, request, abort
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_user, logout_user, current_user,login_required
 from app.extensions import db, bcrypt
-from app.models import User
+from app.models import User,Review,Appointment,Message,Payment,ClientSelfCreatedAppointment
 from . import auth_bp
 from app.extensions import google_blueprint
-
-
+from app.supabase_storage import delete_from_supabase
+import json
 @auth_bp.route('/register', methods=['GET','POST'])
 def register():
     if current_user.is_authenticated:
@@ -134,3 +134,68 @@ def logout():
     
     logout_user()
     return redirect(url_for('auth.login'))  
+
+
+@auth_bp.route('/delete_account', methods=['POST'])
+@login_required
+def delete_account():
+    try:
+        user_id = current_user.id
+        
+        # 1. Delete Supabase Files (Photo)
+        if current_user.photo:
+            try:
+                delete_from_supabase(current_user.photo, 'profile_pictures')
+            except Exception as e:
+                print(f"Supabase photo error: {e}")
+
+        # 2. Delete Supabase Files (Documents)
+        if current_user.documents:
+            try:
+                documents = json.loads(current_user.documents)
+                for i in documents:
+                    delete_from_supabase(i, 'documents')
+            except Exception as e:
+                print(f"Supabase doc error: {e}")
+
+        # 3. MANUALLY DELETE RELATED DATABASE RECORDS
+        # We use .delete() directly on the query
+        
+        # A. Delete Reviews (written by user OR written about user)
+        Review.query.filter(
+            (Review.patient_id == user_id) | (Review.doctor_id == user_id)
+        ).delete(synchronize_session=False)
+
+        # B. Delete Appointments (as client OR as nurse)
+        Appointment.query.filter(
+            (Appointment.client_id == user_id) | (Appointment.nurse_id == user_id)
+        ).delete(synchronize_session=False)
+
+        # C. Delete Self-Created Requests
+        ClientSelfCreatedAppointment.query.filter(
+            (ClientSelfCreatedAppointment.patient_id == user_id) | (ClientSelfCreatedAppointment.doctor_id == user_id)
+        ).delete(synchronize_session=False)
+
+        # D. Delete Messages (sent OR received)
+        Message.query.filter(
+            (Message.sender_id == user_id) | (Message.recipient_id == user_id)
+        ).delete(synchronize_session=False)
+        
+        # E. Delete Payments
+        Payment.query.filter_by(user_id=user_id).delete(synchronize_session=False)
+
+        # 4. Finally, Delete the User
+        db.session.delete(current_user)
+        db.session.commit()
+        
+        # 5. Logout
+        logout_user()
+        
+        flash('Your account has been successfully deleted.', 'success')
+        return redirect(url_for('auth.register')) # or main.index
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Delete Error: {e}")
+        flash(f'Error deleting account: {str(e)}', 'danger')
+        return redirect(url_for('client.profile'))

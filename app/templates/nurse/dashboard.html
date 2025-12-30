@@ -3,102 +3,55 @@
 
 <div class="nurse-dashboard">
   <h2>Hi, {{ current_user.full_name if current_user.full_name else current_user.username}}!</h2>
-  
   <h5 style="text-align: center">Service provider dashboard</h5>
 
   <div class="dashboard-options" style="margin-bottom: 20px">
-
-    <a href="{{ url_for('nurse.profile') }}" class="btn btn-info">
-      <i class="fas fa-user"></i> Profile
-    </a>
-
-    <a href="{{ url_for('nurse.appointments') }}" class="btn btn-info">
-      <i class="fas fa-calendar"></i> Appointments
-    </a>
-    
-    <a href="{{ url_for('nurse.manage_services') }}" class="btn btn-info">
-      <i class="fas fa-concierge-bell"></i> My services
-    </a>
-
-    <button id="location-btn" class="btn btn-info">
-      <i class="fas fa-map-marker-alt"></i> Update my location
-    </button>
-
-    <button
-      id="toggle-online-btn"
-      class="btn {{ 'btn-success' if current_user.online else 'btn-secondary' }}"
-    >
+    <a href="{{ url_for('nurse.profile') }}" class="btn btn-info"><i class="fas fa-user"></i> Profile</a>
+    <a href="{{ url_for('nurse.appointments') }}" class="btn btn-info"><i class="fas fa-calendar"></i> Appointments</a>
+    <a href="{{ url_for('nurse.manage_services') }}" class="btn btn-info"><i class="fas fa-concierge-bell"></i> My services</a>
+    <button id="location-btn" class="btn btn-info"><i class="fas fa-map-marker-alt"></i> Update location</button>
+    <button id="toggle-online-btn" class="btn {{ 'btn-success' if current_user.online else 'btn-secondary' }}">
       {{ 'Online' if current_user.online else 'Offline' }}
     </button>
-
-    <form action="{{url_for('auth.logout')}}" method="post">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      <button type="submit" class="btn btn-info">
-        <i class="fas fa-sign-out-alt"></i> Exit
-      </button>
-    </form>   
-    
+    <form action="{{url_for('auth.logout')}}" method="post" style="display:inline">
+       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+       <button class="btn btn-info"><i class="fas fa-sign-out-alt"></i> Exit</button>
+    </form>
     <div id="status-message" class="mt-2 small" style="width: 100%;"></div>
   </div>
 </div> 
+
 <div class="premium-box mt-4">
-  <div class="row g-4"> <div class="col-md-8">
+  <div class="row g-4"> 
+    <div class="col-md-8">
       <h5 class="premium-title">Client and Service Request Map</h5>
       <div id="combinedMap" style="height: 500px; width: 100%"></div>
     </div>
 
     <div class="col-md-4">
       <h5 class="premium-title">Available requests</h5>
-      
       <div style="height: 500px; overflow-y: auto; padding-right: 10px">
         <div id="requestsList">
-          <div class="text-center mt-5">
-            <div class="spinner-border text-secondary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
+          <div class="text-center mt-5"><div class="spinner-border text-secondary"></div></div>
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- Modal window details request -->
-<div
-  class="modal fade"
-  id="requestDetailsModal"
-  tabindex="-1"
-  aria-hidden="true"
->
+<div class="modal fade" id="requestDetailsModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Request details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <div class="mb-3">
-          <strong>Client:</strong> <span id="detailPatientName"></span>
-        </div>
-        <div class="mb-3">
-          <strong>Service:</strong> <span id="detailServiceName"></span>
-        </div>
-        <div class="mb-3">
-          <strong>Service overview:</strong>
-          <span id="detailServiceDescription"></span>
-        </div>
-        <div class="mb-3">
-          <strong>Preferred time:</strong> <span id="detailDateTime"></span>
-        </div>
-        <div class="mb-3">
-          <strong>Notes:</strong>
-          <div id="detailNotes"></div>
-        </div>
-        <div class="mb-3">
-          <strong>Suggested payment:</strong>
-          <span id="detailPayment"></span> Eur
-        </div>
+        <div class="mb-3"><strong>Client:</strong> <span id="detailPatientName"></span></div>
+        <div class="mb-3"><strong>Service:</strong> <span id="detailServiceName"></span></div>
+        <div class="mb-3"><strong>Time:</strong> <span id="detailDateTime"></span></div>
+        <div class="mb-3"><strong>Notes:</strong> <div id="detailNotes"></div></div>
+        <div class="mb-3"><strong>Suggested payment:</strong> <span id="detailPayment"></span> Eur</div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -108,113 +61,25 @@
   </div>
 </div>
 
+{% endblock %} 
 
-{% endblock %} {% block scripts %}
-<!-- Leaflet for map -->
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-/>
+{% block scripts %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
 
 <script>
   let map;
   let userMarker;
-  let clientsLayer = L.layerGroup();
-  let requestMarkers = [];
-  let socket;
-  let currentChatRecipient = null;
+  let requestMarkersLayer = L.layerGroup();
   let currentRequestId = null;
   const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-  // Status functions 
+
   function showStatus(message, isError = false) {
       const statusEl = document.getElementById('status-message');
-      if(statusEl) {
-        statusEl.textContent = message;
-        statusEl.style.color = isError ? 'red' : 'green';
-      }
-      console.log(message);
+      if(statusEl) { statusEl.textContent = message; statusEl.style.color = isError ? 'red' : 'green'; }
   }
 
-  // Socket function
-  function initSocket() {
-      socket = io();
-      socket.on('connect', () => {
-          console.log('Connected to Socket.IO server');
-          socket.emit('join', { user_id: '{{ current_user.id }}' });
-      });
-      socket.on('new_message', (data) => {
-          if (currentChatRecipient && currentChatRecipient.id === data.sender_id) {
-              addMessageToChat(data, false);
-          } else {
-              showNewMessageNotification(data);
-          }
-      });
-      socket.on('message_sent', (data) => {
-          console.log('Message delivered:', data);
-      });
-      socket.on('error', (data) => {
-          showStatus(data.message, true);
-      });
-  }
-
-  function showNewMessageNotification(messageData) {
-      const notification = document.createElement('div');
-      notification.className = 'alert alert-info alert-dismissible fade show';
-      notification.style.position = 'fixed';
-      notification.style.bottom = '20px';
-      notification.style.right = '20px';
-      notification.style.zIndex = '1000';
-      notification.innerHTML = `
-          <strong>New message from ${messageData.sender_name}</strong>
-          <p>${messageData.text}</p>
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      `;
-      document.body.appendChild(notification);
-      setTimeout(() => { notification.remove(); }, 5000);
-  }
-
-  function openChatWithClient(client) {
-      currentChatRecipient = client;
-      document.getElementById('chatRecipientName').textContent = client.name;
-      fetch(`{{ url_for('nurse.get_chat_messages') }}?recipient_id=${client.id}`, {
-          method: 'GET',
-          headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': csrfToken
-          }
-      })
-      .then(response => response.json())
-      .then(messages => {
-          const chatContainer = document.getElementById('chatMessages');
-          chatContainer.innerHTML = '';
-          messages.forEach(msg => {
-              addMessageToChat(msg, msg.sender_id === '{{ current_user.id }}');
-          });
-          chatContainer.scrollTop = chatContainer.scrollHeight;
-      });
-      const chatModal = new bootstrap.Modal(document.getElementById('chatModal'));
-      chatModal.show();
-  }
-
-  function addMessageToChat(messageData, isMyMessage) {
-      const chatContainer = document.getElementById('chatMessages');
-      const messageElement = document.createElement('div');
-      messageElement.className = `message ${isMyMessage ? 'my-message' : 'their-message'}`;
-      const time = new Date(messageData.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      messageElement.innerHTML = `
-          <div class="message-content">
-              ${!isMyMessage ? `<div class="sender-name">${messageData.sender_name}</div>` : ''}
-              <div class="message-text">${messageData.text}</div>
-              <div class="message-time">${time}</div>
-          </div>
-      `;
-      chatContainer.appendChild(messageElement);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-  }
-
-  // Map initialization... 
   function initMap() {
       try {
           showStatus("Map initialization...");
@@ -222,86 +87,25 @@
           const nurseLng = {{ current_user.longitude if current_user.longitude is not none else 30.5234}};
 
           map = L.map('combinedMap').setView([nurseLat, nurseLng], 12);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              attribution: '© OpenStreetMap contributors'
-          }).addTo(map);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-          clientsLayer.addTo(map);
+          requestMarkersLayer.addTo(map);
 
-          // Nurse marker
           if (nurseLat && nurseLng) {
               userMarker = L.marker([nurseLat, nurseLng], {
                   icon: L.divIcon({
                       className: 'nurse-marker',
-                      html: '<div style="background-color: purple; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>',
-                      iconSize: [20, 20]
-                  }),
-                  title: 'Your location'
+                      html: '<div style="background-color: purple; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white;"></div>'
+                  })
               }).addTo(map).bindPopup('Your location');
           }
-
-          loadClientsLocations();
+          
           loadRequests();
           showStatus("");
-
-      } catch (error) {
-          showStatus("Map initialization error: " + error.message, true);
-          console.error(error);
-      }
+      } catch (error) { showStatus("Map error: " + error.message, true); }
   }
 
-  // Client functions
-  async function loadClientsLocations() {
-      try {
-          // showStatus("Loading clients..."); // Можна прибрати щоб не спамило
-          clientsLayer.clearLayers();
 
-          const response = await fetch('{{ url_for("nurse.get_clients_locations") }}', {
-              method: 'GET',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRFToken': csrfToken
-              }
-          });
-
-          if (!response.ok) throw new Error(`HTTP Error! Status: ${response.status}`);
-          const clients = await response.json();
-
-          clients.forEach(client => {
-              const marker = L.marker([client.lat, client.lng], {
-                  icon: L.divIcon({
-                      className: 'client-marker',
-                      html: '<div style="background-color: blue; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white;"></div>',
-                      iconSize: [20, 20]
-                  })
-              }).addTo(clientsLayer);
-
-              const popupContent = `
-                  <b>${client.name}</b>
- 
-              `;
-
-              marker.bindPopup(popupContent);
-              marker.on('popupopen', function() {
-                  const popup = marker.getPopup();
-                  const btn = popup.getElement().querySelector('.start-chat-btn');
-                  if (btn) {
-                      btn.addEventListener('click', (e) => {
-                          openChatWithClient({
-                              id: client.id,
-                              name: client.name
-                          });
-                      });
-                  }
-              });
-          });
-
-      } catch (error) {
-          console.error("Error loading clients:", error);
-      }
-  }
-
-  // Functions for requests
   function loadRequests() {
       fetch('/nurse/nurse_get_requests')
           .then(response => response.json())
@@ -310,15 +114,10 @@
                   displayRequests(data.requests);
                   updateRequestMarkers(data.requests);
               } else {
-                  document.getElementById('requestsList').innerHTML =
-                      '<div class="alert alert-danger">Error loading requests</div>';
+                  document.getElementById('requestsList').innerHTML = '<div class="alert alert-danger">Error loading requests</div>';
               }
           })
-          .catch(error => {
-              console.error('Error:', error);
-              document.getElementById('requestsList').innerHTML =
-                  '<div class="alert alert-danger">Error connection</div>';
-          });
+          .catch(error => console.error('Error:', error));
   }
 
   function displayRequests(requests) {
@@ -327,231 +126,84 @@
           container.innerHTML = '<div class="alert alert-info text-center">No requests available</div>';
           return;
       }
-
       let html = '';
       requests.forEach(request => {
           const time = new Date(request.appointment_start_time).toLocaleString('uk-UA');
           html += `
-              <div class="card mb-3 nurse-item" data-id="${request.id}"> <div class="card-body">
-                      <h6 class="card-title" style="color: var(--green-700); font-weight: bold;">${request.service_name || 'Service'}</h6>
+              <div class="card mb-3 nurse-item"> 
+                  <div class="card-body">
+                      <h6 class="card-title" style="color: var(--green-700); font-weight: bold;">${request.service_name}</h6>
                       <p class="card-text mb-1"><small><i class="fas fa-user"></i> ${request.patient_name || 'Unknown'}</small></p>
                       <p class="card-text mb-1"><small><i class="fas fa-clock"></i> ${time}</small></p>
-                      <p class="card-text"><small><i class="fas fa-map-marker-alt"></i> ${calculateDistance(request).toFixed(1)} км</small></p>
-                      <button class="btn-premium view-request-btn" data-id="${request.id}">Details</button>
+                      <button class="btn-premium view-request-btn" onclick='showRequestDetails(${JSON.stringify(request)})'>Details</button>
                   </div>
-              </div>
-          `;
+              </div>`;
       });
-
       container.innerHTML = html;
-      document.querySelectorAll('.view-request-btn').forEach(btn => {
-          btn.addEventListener('click', function() {
-              const requestId = this.getAttribute('data-id');
-              showRequestDetails(requestId, requests);
-          });
-      });
   }
 
   function updateRequestMarkers(requests) {
-      requestMarkers.forEach(marker => map.removeLayer(marker));
-      requestMarkers = [];
-
+      requestMarkersLayer.clearLayers();
       requests.forEach(request => {
           if (request.latitude && request.longitude) {
               const marker = L.marker([request.latitude, request.longitude], {
                   icon: L.divIcon({
                       className: 'request-marker',
-                      html: '<div style="background-color: #d13a3a; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white;"></div>',
-                      iconSize: [20, 20]
+                      html: '<div style="background-color: #d13a3a; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white; box-shadow: 0 0 5px red;"></div>'
                   })
-              }).addTo(map).bindPopup(`
-                  <strong>${request.service_name || 'Service request'}</strong><br>
-                  ${request.patient_name || 'Client'}<br>
-                  <button onclick="showRequestDetails(${request.id})" class="btn btn-sm btn-primary mt-1">Details</button>
-              `);
-              requestMarkers.push(marker);
+              });
+              
+              marker.on('click', () => showRequestDetails(request));
+              marker.addTo(requestMarkersLayer);
           }
       });
   }
 
-  function showRequestDetails(requestId, requests = null) {
-      // Якщо викликаємо з попапу карти, requests може не бути
-      if (!requests) {
-          // Тут можна було б зробити fetch конкретного запиту, але спростимо
-           fetch('/nurse/nurse_get_requests')
-            .then(r => r.json())
-            .then(data => {
-                if(data.success) showRequestDetails(requestId, data.requests);
-            });
-          return;
-      }
-
-      // Якщо масиви вже є, шукаємо в ньому (type conversion == для id)
-      const request = requests.find(r => r.id == requestId);
-      if (!request) return;
-
+  window.showRequestDetails = function(request) {
+      currentRequestId = request.id;
       document.getElementById('detailPatientName').textContent = request.patient_name || 'Unknown';
       document.getElementById('detailServiceName').textContent = request.service_name || 'Service';
-      document.getElementById('detailServiceDescription').textContent = request.service_description || 'No description';
       document.getElementById('detailDateTime').textContent = new Date(request.appointment_start_time).toLocaleString('uk-UA');
       document.getElementById('detailNotes').textContent = request.notes || 'No notes';
       document.getElementById('detailPayment').textContent = request.payment || '0';
-
-      currentRequestId = requestId;
-      const modal = new bootstrap.Modal(document.getElementById('requestDetailsModal'));
-      modal.show();
+      new bootstrap.Modal(document.getElementById('requestDetailsModal')).show();
   }
 
-  function acceptRequest(requestId) {
-      fetch(`/nurse/nurse_accept_request/${requestId}`, {
+  document.getElementById('acceptRequestBtn').addEventListener('click', function() {
+      if (!currentRequestId) return;
+      fetch(`/nurse/nurse_accept_request/${currentRequestId}`, {
           method: 'POST',
           headers: {'X-CSRFToken': csrfToken}
       })
-      .then(response => response.json())
+      .then(r => r.json())
       .then(data => {
           if (data.success) {
               alert('Request successfully accepted');
               bootstrap.Modal.getInstance(document.getElementById('requestDetailsModal')).hide();
               loadRequests();
-          } else {
-              alert('Error: ' + data.message);
-          }
-      })
-      .catch(error => {
-          console.error('Error:', error);
-          alert('An error occurred');
+          } else { alert('Error: ' + data.message); }
       });
-  }
+  });
 
-  function calculateDistance(request) {
-      const nurseLat = {{ current_user.latitude | default(50.4501) }};
-      const nurseLng = {{ current_user.longitude | default(30.5234) }};
+  document.getElementById('location-btn').addEventListener('click', () => {
+       navigator.geolocation.getCurrentPosition(pos => {
+           fetch('{{ url_for("nurse.update_location") }}', {
+               method: 'POST',
+               headers: {'Content-Type': 'application/json','X-CSRFToken': csrfToken},
+               body: JSON.stringify({latitude: pos.coords.latitude, longitude: pos.coords.longitude})
+           }).then(r=>r.json()).then(res=>{ if(res.success) location.reload(); });
+       });
+  });
 
-      if (!nurseLat || !nurseLng || !request.latitude || !request.longitude) return 0;
+  document.getElementById('toggle-online-btn').addEventListener('click', () => {
+       fetch('{{ url_for("nurse.toggle_online") }}', {
+           method: 'POST', headers: {'X-CSRFToken': csrfToken}
+       }).then(r=>r.json()).then(res=>{ if(res.success) location.reload(); });
+  });
 
-      const R = 6371;
-      const dLat = (request.latitude - nurseLat) * Math.PI / 180;
-      const dLng = (request.longitude - nurseLng) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(nurseLat * Math.PI / 180) * Math.cos(request.latitude * Math.PI / 180) *
-                Math.sin(dLng/2) * Math.sin(dLng/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      return R * c;
-  }
-
-  // Geolocation functions
-  async function updateLocation() {
-      try {
-          showStatus("Determining your location...");
-          if (!navigator.geolocation) throw new Error("Your browser does not support geolocation");
-
-          const position = await new Promise((resolve, reject) => {
-              navigator.geolocation.getCurrentPosition(resolve, reject, {
-                  enableHighAccuracy: true,
-                  timeout: 20000
-              });
-          });
-
-          const {latitude, longitude} = position.coords;
-          if (userMarker) map.removeLayer(userMarker);
-
-          userMarker = L.marker([latitude, longitude], {
-              icon: L.divIcon({
-                  className: 'nurse-marker',
-                  html: '<div style="background-color: purple; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white;"></div>',
-                  iconSize: [20, 20]
-              }),
-              title: 'Your location'
-          }).addTo(map);
-
-          map.setView([latitude, longitude], 12);
-
-          const response = await fetch('{{ url_for("nurse.update_location") }}', {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json','X-CSRFToken': csrfToken},
-              body: JSON.stringify({latitude: latitude, longitude: longitude})
-          });
-
-          if (!response.ok) throw new Error("Update error");
-          const result = await response.json();
-          if (!result.success) throw new Error(result.message || "Update error");
-
-          showStatus("Location successfully updated");
-
-      } catch (error) {
-          showStatus("Error: " + error.message, true);
-          console.error(error);
-      }
-  }
-
-  async function toggleOnlineStatus() {
-      try {
-          const response = await fetch('{{ url_for("nurse.toggle_online") }}', {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json','X-CSRFToken': csrfToken}
-          });
-
-          if (!response.ok) throw new Error("Server error");
-          const result = await response.json();
-          if (!result.success) throw new Error("Status change error");
-
-          const btn = document.getElementById('toggle-online-btn');
-          if (result.online) {
-              btn.classList.remove('btn-secondary');
-              btn.classList.add('btn-success');
-              btn.textContent = 'Online';
-          } else {
-              btn.classList.remove('btn-success');
-              btn.classList.add('btn-secondary');
-              btn.textContent = 'Offline';
-          }
-
-          showStatus("Status successfully updated: " + (result.online ? "online" : "offline"));
-
-      } catch (error) {
-          showStatus("Error: " + error.message, true);
-          console.error(error);
-      }
-  }
-
-  // Initialization
   document.addEventListener('DOMContentLoaded', () => {
-      initSocket();
       initMap();
-
-      document.getElementById('location-btn').addEventListener('click', updateLocation);
-      document.getElementById('toggle-online-btn').addEventListener('click', toggleOnlineStatus);
-      document.getElementById('acceptRequestBtn').addEventListener('click', function() {
-          if (!currentRequestId) return;
-          acceptRequest(currentRequestId);
-      });
-
-      setInterval(loadClientsLocations, 30000);
       setInterval(loadRequests, 60000);
-
-      document.getElementById('sendMessageBtn').addEventListener('click', () => {
-          const messageText = document.getElementById('messageInput').value.trim();
-          if (messageText && currentChatRecipient) {
-              socket.emit('send_message', {
-                  text: messageText,
-                  sender_id: '{{ current_user.id }}',
-                  recipient_id: currentChatRecipient.id
-              });
-              addMessageToChat({
-                  sender_id: '{{ current_user.id }}',
-                  sender_name: 'Ви',
-                  text: messageText,
-                  timestamp: new Date().toISOString()
-              }, true);
-              document.getElementById('messageInput').value = '';
-          }
-      });
-
-      document.getElementById('messageInput').addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-              document.getElementById('sendMessageBtn').click();
-          }
-      });
   });
 </script>
 {% endblock %}
