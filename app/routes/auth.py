@@ -1,11 +1,13 @@
-from flask import render_template, redirect, url_for, flash, request, abort
+from flask import render_template, redirect, url_for, flash, request, abort, Blueprint
 from flask_login import login_user, logout_user, current_user,login_required
 from app.extensions import db, bcrypt
 from app.models import User,Review,Appointment,Message,Payment,ClientSelfCreatedAppointment
-from . import auth_bp
+
 from app.extensions import google_blueprint
 from app.supabase_storage import delete_from_supabase
 import json
+auth_bp = Blueprint('auth', __name__, template_folder='templates/auth')
+
 @auth_bp.route('/register', methods=['GET','POST'])
 def register():
     if current_user.is_authenticated:
