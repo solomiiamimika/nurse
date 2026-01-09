@@ -1,140 +1,180 @@
 {% extends "base.html" %} 
 {% block content %}
-<div class="client-dashboard">
-  <h2>Hi, {{ current_user.full_name if current_user.full_name else current_user.username}}!</h2>
-<h5 style="text-align: center">client dashboard</h5>
 
-  <div class="dashboard-options" style="margin-bottom: 20px">
+<div class="ambient-background"></div>
 
-    <a href="{{ url_for('client.profile') }}" class="btn btn-info">
-      <i class="fa-solid fa-circle-user"></i> Profile
-    </a>
-
-    <a href="{{ url_for('client.appointments') }}" class="btn btn-info">
-      <i class="fas fa-calendar"></i> Calendar (My appointments)
-    </a>
-
-    <button id="location-btn" class="btn btn-info">
-      <i class="fas fa-map-marker-alt"></i> Update my location
-    </button>
-    
-    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#createRequestModal">
-      <i class="fas fa-bullhorn"></i> Create Request
-    </button>
-
-    <form action="{{url_for('auth.logout')}}" method="post" style="display: inline">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      <button type="submit" class="btn btn-info">
-        <i class="fas fa-sign-out-alt"></i> Exit
-      </button>
-    </form>
-
-    <div id="status-message" class="mt-2 small" style="display: inline-block; margin-left: 10px"></div>
+<div class="greeting-header">
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <h2>Hi, {{ current_user.full_name if current_user.full_name else current_user.username}}!</h2>
+    <div class="hero-subtitle">Find the perfect service for your needs</div>
   </div>
-
-  <form class="top-search-bar" method="GET" action="{{ request.path }}">
-    <input type="text" name="q" value="{{ search_query|default('') }}" placeholder="Enter the provider’s name or the service name..." class="search-input"/>
-    <button type="submit" class="search-btn"><i class="fas fa-search"></i> Find</button>
-  </form>
 </div>
 
-<div class="premium-box mt-4">
-  <div class="row g-4">
-    <div class="col-md-8">
-      <h5 class="premium-title">Nearby services map</h5>
-      <div id="nursesMap" style="height: 480px; width: 100%"></div>
+<div class="sticky-toolbar">
+  <div class="toolbar-container">
+    
+    <form class="top-search-bar" method="GET" action="{{ request.path }}">
+      <input type="text" name="q" value="{{ search_query|default('') }}" placeholder="What service are you looking for?" class="search-input"/>
+      <button type="submit" class="search-btn">Search</button>
+    </form>
+
+    <div class="dashboard-options">
+      <a href="{{ url_for('client.profile') }}" class="btn">
+        <i class="fa-solid fa-circle-user"></i> Profile
+      </a>
+
+      <a href="{{ url_for('client.appointments') }}" class="btn">
+        <i class="fas fa-calendar"></i> My Appointments
+      </a>
+
+      <button id="location-btn" class="btn">
+        <i class="fas fa-map-marker-alt"></i> Update Location
+      </button>
+      
+      <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#createRequestModal">
+        <i class="fas fa-plus"></i> Post a Request
+      </button>
+
+      <form action="{{url_for('auth.logout')}}" method="post" style="display: inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <button type="submit" class="btn">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </form>
     </div>
 
-    <div class="col-md-4">
-      <h5 class="premium-title">Search results</h5>
-      <div style="height: 480px; overflow-y: auto; padding-right: 10px">
-        
-        {% if nurses %} 
-            {% for nurse in nurses %}
-            <div class="card mb-3 nurse-item">
-            <div class="card-body">
-                <h6>{{ nurse.full_name or nurse.user_name }}</h6>
-                {% if nurse.online %} <span class="badge badge-online">Online</span>
-                {% else %} <span class="badge badge-offline">Offline</span> {% endif %}
-                <p class="small text-muted mt-2"><i class="fas fa-map-marker-alt"></i> {{ nurse.address or 'Location not found' }}</p>
-                <button class="btn-premium-secondary mt-2" onclick="openBookingModal('{{ nurse.id }}','{{ nurse.full_name }}')">Book now</button>
+    <div id="status-message" style="text-align: center; font-size: 0.9rem;"></div>
+  </div>
+</div>
+
+<div class="client-dashboard">
+  <div class="row g-4">
+      
+      <div class="col-lg-8 col-md-7">
+        <div class="content-card map-card-wrapper">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h5 class="premium-title mb-0">Available Services Nearby</h5>
+                  <span class="text-muted small">Based on your location</span>
             </div>
+            
+            <div id="nursesMap" style="height: 600px; width: 100%; background: #e0e0e0; border-radius: 8px;"></div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-5">
+        
+        <div class="mb-4">
+            <h6 class="text-uppercase text-muted small fw-bold mb-3" style="letter-spacing: 1px;">My Active Requests</h6>
+            <div id="myRequestsList">
+                </div>
+        </div>
+
+        <hr style="opacity: 0.1; margin: 20px 0;">
+
+        <h5 class="premium-title">Found Providers</h5>
+        <div class="providers-scroll-area">
+          
+          {% if nurses %} 
+            {% for nurse in nurses %}
+            <div class="card nurse-item" onclick="openBookingModal('{{ nurse.id }}','{{ nurse.full_name }}')">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="mb-1 fw-bold">{{ nurse.full_name or nurse.user_name }}</h6>
+                        <div class="small text-muted mb-2">
+                             <i class="fas fa-map-marker-alt text-muted"></i> {{ nurse.address or 'No address' }}
+                        </div>
+                    </div>
+                    {% if nurse.online %} 
+                        <span class="badge badge-online">Online</span>
+                    {% else %} 
+                        <span class="badge badge-offline">Offline</span> 
+                    {% endif %}
+                </div>
+                
+                <button class="btn-premium-secondary">
+                    View & Book
+                </button>
+              </div>
             </div>
             {% endfor %} 
-        {% else %}
-            <div class="alert alert-warning">No services found.</div>
-        {% endif %}
+          {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-search fa-2x mb-3" style="color:#ddd"></i>
+                <p>No services found in this area.</p>
+            </div>
+          {% endif %}
 
-        <hr>
-        <h5 class="premium-title text-warning">My Active Requests</h5>
-        <div id="myRequestsList">
-             </div>
-
+        </div>
       </div>
-    </div>
   </div>
 </div>
 
 <div class="modal fade" id="bookingModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header bg-info text-white">
-        <h5 class="modal-title">Appointment with: <span id="bookingNurseName"></span></h5>
+      <div class="modal-header">
+        <h5 class="modal-title">Book Service</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
+        <p class="text-muted mb-3">Provider: <strong id="bookingNurseName" class="text-dark"></strong></p>
         <form id="bookingForm">
           <input type="hidden" id="nurseIdInput" name="nurse_id" />
           <div class="mb-3">
-            <label for="serviceSelect" class="form-label">Choose your service</label>
+            <label for="serviceSelect" class="form-label text-muted small fw-bold">SELECT SERVICE</label>
             <select class="form-select" id="serviceSelect" required></select>
           </div>
           <div class="mb-3">
-            <label for="appointmentDate" class="form-label">Date and time</label>
+            <label for="appointmentDate" class="form-label text-muted small fw-bold">DATE & TIME</label>
             <input type="datetime-local" class="form-control" id="appointmentDate" required />
           </div>
           <div class="mb-3">
-            <label for="appointmentNotes" class="form-label">Comment</label>
-            <textarea class="form-control" id="appointmentNotes" rows="2"></textarea>
+            <label for="appointmentNotes" class="form-label text-muted small fw-bold">REQUIREMENTS</label>
+            <textarea class="form-control" id="appointmentNotes" rows="3" placeholder="Describe what you need..."></textarea>
           </div>
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-success" id="submitBookingBtn">Confirm</button>
+        <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" id="submitBookingBtn">Confirm Booking</button>
       </div>
     </div>
   </div>
 </div>
 
 <div class="modal fade" id="createRequestModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
-        <div class="modal-header bg-warning">
-          <h5 class="modal-title">Create Open Request</h5>
+        <div class="modal-header">
+          <h5 class="modal-title">Post a Request</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
+          <p class="text-muted small mb-4">Let providers know what you need and they will contact you.</p>
           <form id="createRequestForm">
               <div class="mb-3">
-                  <label>Service Name</label>
-                  <input type="text" class="form-control" id="reqServiceName" required placeholder="e.g. Injection">
+                  <label class="form-label fw-bold small text-muted">SERVICE NEEDED</label>
+                  <input type="text" class="form-control" id="reqServiceName" required placeholder="e.g. Home Injection">
+              </div>
+              <div class="row">
+                  <div class="col-6 mb-3">
+                      <label class="form-label fw-bold small text-muted">BUDGET (EUR)</label>
+                      <input type="number" class="form-control" id="reqPayment" required>
+                  </div>
+                  <div class="col-6 mb-3">
+                      <label class="form-label fw-bold small text-muted">WHEN?</label>
+                      <input type="datetime-local" class="form-control" id="reqTime" required>
+                  </div>
               </div>
               <div class="mb-3">
-                  <label>Price Offer (EUR)</label>
-                  <input type="number" class="form-control" id="reqPayment" required>
-              </div>
-              <div class="mb-3">
-                  <label>Date/Time</label>
-                  <input type="datetime-local" class="form-control" id="reqTime" required>
-              </div>
-              <div class="mb-3">
-                  <label>Notes</label>
-                  <textarea class="form-control" id="reqNotes"></textarea>
+                  <label class="form-label fw-bold small text-muted">DESCRIPTION</label>
+                  <textarea class="form-control" id="reqNotes" rows="3"></textarea>
               </div>
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-warning" id="submitRequestBtn">Publish</button>
+          <button type="button" class="btn btn-success w-100" id="submitRequestBtn">Publish Request</button>
         </div>
       </div>
     </div>
@@ -151,16 +191,17 @@
   let map;
   let userMarker;
   let nursesLayer = L.layerGroup();
-  const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+  const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+  const csrfToken = csrfMeta ? csrfMeta.content : '';
 
-  // --- Status function ---
   function showStatus(message, isError = false) {
       const statusEl = document.getElementById('status-message');
-      statusEl.textContent = message;
-      statusEl.style.color = isError ? 'red' : 'green';
+      if(statusEl) {
+        statusEl.textContent = message;
+        statusEl.style.color = isError ? '#dc3545' : '#198754';
+      }
   }
 
-  // --- Map initialization ---
   function initMap() {
       try {
           const userLat = {{ current_user.latitude if current_user.latitude else 'null' }};
@@ -176,7 +217,7 @@
               userMarker = L.marker([userLat, userLng], {
                   icon: L.divIcon({
                       className: 'my-marker',
-                      html: '<div style="background-color: blue; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white;"></div>'
+                      html: '<div style="background-color: #0d6efd; border-radius: 50%; width: 16px; height: 16px; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>'
                   })
               }).addTo(map).bindPopup('Your location');
           }
@@ -184,7 +225,6 @@
       } catch (error) { console.error("Map error:", error); }
   }
 
-  // --- Load nurses ---
   async function loadNursesLocations() {
       try {
           nursesLayer.clearLayers();
@@ -194,33 +234,35 @@
               const marker = L.marker([nurse.lat, nurse.lng], {
                   icon: L.divIcon({
                       className: 'nurse-marker',
-                      html: `<div style="background-color: ${nurse.online ? '#198754' : 'gray'}; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white;"></div>`
+                      html: `<div style="background-color: ${nurse.online ? '#1dbf73' : '#b5b6ba'}; border-radius: 50%; width: 16px; height: 16px; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`
                   })
               }).addTo(nursesLayer);
-              marker.bindPopup(`<b>${nurse.name}</b><br><button class="btn btn-sm btn-success mt-2" onclick="openBookingModal('${nurse.id}', '${nurse.name}')">Appointment</button>`);
+              marker.bindPopup(`<b>${nurse.name}</b><br><button class="btn btn-sm btn-success mt-2" onclick="openBookingModal('${nurse.id}', '${nurse.name}')" style="background:#1dbf73; border:none;">Book Service</button>`);
           });
       } catch (error) { console.error("Error loading services:", error); }
   }
 
-  // --- Load My Active Requests ---
   function loadMyRequests() {
       fetch('/client/client_get_requests')
         .then(r => r.json())
         .then(data => {
             const container = document.getElementById('myRequestsList');
             if(!data.success || data.requests.length === 0) {
-                container.innerHTML = '<small class="text-muted">No active requests.</small>';
+                container.innerHTML = '<div class="text-center p-3 text-muted" style="border: 1px dashed #ccc; border-radius: 4px; background: rgba(255,255,255,0.6);"><small>No active requests</small></div>';
                 return;
             }
             let html = '';
             data.requests.forEach(req => {
                 if(req.status === 'pending') {
                     html += `
-                    <div class="card mb-2 border-warning">
+                    <div class="card mb-2" style="border-left: 4px solid #ffc107;">
                         <div class="card-body p-2">
-                            <strong>${req.service_name}</strong> <span class="badge bg-warning text-dark">Pending</span><br>
-                            <small>${new Date(req.appointment_start_time).toLocaleString()}</small><br>
-                            <button onclick="cancelRequest(${req.id})" class="btn btn-sm btn-outline-danger mt-1">Cancel</button>
+                            <div class="d-flex justify-content-between">
+                                <strong>${req.service_name}</strong> 
+                                <span class="badge bg-warning text-dark" style="height:fit-content">Pending</span>
+                            </div>
+                            <small class="text-muted">${new Date(req.appointment_start_time).toLocaleString()}</small><br>
+                            <button onclick="cancelRequest(${req.id})" class="btn btn-sm text-danger p-0 mt-1" style="font-size:12px">Cancel Request</button>
                         </div>
                     </div>`;
                 }
@@ -229,9 +271,8 @@
         });
   }
 
-  // --- Submit Request ---
   document.getElementById('submitRequestBtn').addEventListener('click', function() {
-      if(!userMarker) { alert("Please update location first"); return; }
+      if(!userMarker) { alert("Please update location first using the button in the menu."); return; }
       const latLng = userMarker.getLatLng();
       
       const data = {
@@ -251,30 +292,28 @@
           if(res.success) {
               bootstrap.Modal.getInstance(document.getElementById('createRequestModal')).hide();
               loadMyRequests();
-              alert("Request created!");
+              alert("Request published successfully!");
           } else { alert(res.message); }
       });
   });
 
-  // --- Cancel Request ---
   window.cancelRequest = function(id) {
-      if(confirm("Cancel?")) {
+      if(confirm("Are you sure you want to cancel this request?")) {
           fetch(`/client/client_cancel_request/${id}`, {method:'POST', headers:{'X-CSRFToken': csrfToken}})
             .then(r=>r.json()).then(res=>{ if(res.success) loadMyRequests(); });
       }
   };
 
-  // --- Update Location ---
   async function updateLocation() {
       if (!navigator.geolocation) return alert("Geolocation not supported");
-      showStatus("Determining...");
+      showStatus("Locating...");
       navigator.geolocation.getCurrentPosition(async (position) => {
           const {latitude, longitude} = position.coords;
           if (userMarker) map.removeLayer(userMarker);
           userMarker = L.marker([latitude, longitude], {
               icon: L.divIcon({
                   className: 'my-marker',
-                  html: '<div style="background-color: blue; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white;"></div>'
+                   html: '<div style="background-color: #0d6efd; border-radius: 50%; width: 16px; height: 16px; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>'
               })
           }).addTo(map);
           map.setView([latitude, longitude], 12);
@@ -284,21 +323,24 @@
               headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
               body: JSON.stringify({latitude, longitude})
           });
-          showStatus("Updated");
+          showStatus("Location updated");
       });
   }
 
-  // --- Booking Modal ---
   window.openBookingModal = function(nurseId, nurseName) {
       document.getElementById('bookingNurseName').textContent = nurseName;
       document.getElementById('nurseIdInput').value = nurseId;
       const select = document.getElementById('serviceSelect');
-      select.innerHTML = '<option>Loading...</option>';
+      select.innerHTML = '<option>Loading services...</option>';
       new bootstrap.Modal(document.getElementById('bookingModal')).show();
       fetch(`/client/get_nurse_services?nurse_id=${nurseId}`)
           .then(r => r.json())
           .then(services => {
               select.innerHTML = '';
+              if(services.length === 0) {
+                 select.innerHTML = '<option disabled>No services available</option>';
+                 return;
+              }
               services.forEach(s => {
                   const opt = document.createElement('option');
                   opt.value = s.id;
@@ -308,7 +350,6 @@
           });
   }
 
-  // --- Submit Booking 
   document.getElementById('submitBookingBtn').addEventListener('click', function() {
       const nurseId = document.getElementById('nurseIdInput').value;
       const serviceId = document.getElementById('serviceSelect').value;
@@ -322,7 +363,7 @@
       })
       .then(r => r.json())
       .then(data => {
-          if(data.success) { alert("Appointment created!"); location.reload(); } 
+          if(data.success) { alert("Appointment confirmed!"); location.reload(); } 
           else { alert("Error: " + data.message); }
       });
   });

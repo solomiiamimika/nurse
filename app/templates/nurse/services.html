@@ -1,143 +1,172 @@
 {% extends "base.html" %} 
 {% block content %}
-<div class="nurse-services">
-   <a href="javascript:history.back()" class="btn btn-outline-secondary mb-3">
-    ← Back
-  </a>
-  <h2>Service Management</h2>
 
-  <!-- Standard Services Section -->
-  <div class="standard-services mb-5">
-    <h4>Standart services</h4>
-    <div class="table-responsive">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Prise</th>
-            <th>Duration</th>
-            <th>Service</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for service in standard_services %}
-          <tr>
-            <td>{{ service.name }}</td>
-            <td>{{ service.description }}</td>
-            <td>{{ service.base_price }} Euro</td>
-            <td>{{ service.base_duration }} min</td>
-            <td>
-              {% set nurse_service = nurse_services|selectattr("service_id", "equalto", service.id)|first %} 
-              {% if nurse_service %}
-              <button
-                class="btn btn-sm btn-info edit-service-btn"
-                data-service-id="{{ service.id }}"
-                data-price="{{ nurse_service.price }}"
-                data-duration="{{ nurse_service.duration }}"
-                data-description="{{ nurse_service.description }}"
-                data-available="{{ nurse_service.is_available }}"
-              >
-                <i class="fas fa-edit"></i> Change
-              </button>
-              <button
-                class="btn btn-sm btn-danger remove-service-btn"
-                data-service-id="{{ service.id }}"
-              >
-                <i class="fas fa-trash"></i> Delete
-              </button>
-              {% else %}
-              <button
-                class="btn btn-sm btn-success add-service-btn"
-                data-service-id="{{ service.id }}"
-                data-name="{{ service.name }}"
-              >
-                <i class="fas fa-plus"></i> Add
-              </button>
-              
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
+<div class="ambient-background"></div>
 
-  <!-- Custom Services Section -->
-  <div class="custom-services">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h4>My services</h4>
-      <button class="btn btn-primary" id="addCustomServiceBtn">
-        <i class="fas fa-plus"></i> Add my service
+<div class="main-wrapper" style="padding-top: 40px; padding-bottom: 60px;">
+  
+  <div class="custom-container">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+          <h2 style="margin-bottom: 5px; font-weight: 700; color: #1f2937;">Service Management</h2>
+          <span class="text-muted">Configure the services you offer to clients</span>
+      </div>
+      <a href="{{ url_for('nurse.dashboard') }}" class="btn-tool">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+      </a>
     </div>
-    <div class="table-responsive">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Price</th>
-            <th>Duration</th>
-            <th>Status</th>
-            <th>Service</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for service in nurse_services if not service.service_id %}
-          <tr>
-            <td>{{ service.name }}</td>
-            <td>{{ service.description }}</td>
-            <td>{{ service.price }} Euro</td>
-            <td>{{ service.duration }} min</td>
-            <td>
-              {% if service.is_available %}
-                <span class="badge bg-success">Available</span>
-              {% else %}
-                <span class="badge bg-secondary">Unavailable</span>
-              {% endif %}
-            </td>
-            <td>
-              <button
-                class="btn btn-sm btn-info edit-service-btn"
-                data-service-id="{{ service.id }}"
-                data-price="{{ service.price }}"
-                data-duration="{{ service.duration }}"
-                data-description="{{ service.description }}"
-                data-available="{{ service.is_available }}"
-                data-name="{{ service.name }}"
-                data-custom="true"
-              >
-                <i class="fas fa-edit"></i> Change
-              </button>
-              <button
-                class="btn btn-sm btn-danger remove-service-btn"
-                data-service-id="{{ service.id }}"
-                data-custom="true"
-              >
-                <i class="fas fa-trash"></i> Delete
-              </button>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+
+    <div class="content-card mb-4">
+      <div class="d-flex align-items-center mb-3 border-bottom pb-2">
+         <div class="icon-square me-2 bg-primary bg-opacity-10 text-primary">
+            <i class="fas fa-list"></i>
+         </div>
+         <h5 class="fw-bold mb-0">Standard Platform Services</h5>
+      </div>
+      
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 20%">Name</th>
+              <th style="width: 30%">Description</th>
+              <th>Base Price</th>
+              <th>Duration</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for service in standard_services %}
+            <tr>
+              <td class="fw-bold text-dark">{{ service.name }}</td>
+              <td class="text-muted small">{{ service.description }}</td>
+              <td>{{ service.base_price }} €</td>
+              <td>{{ service.base_duration }} min</td>
+              <td class="text-end">
+                {% set nurse_service = nurse_services|selectattr("service_id", "equalto", service.id)|first %} 
+                {% if nurse_service %}
+                <div class="btn-group">
+                    <button
+                        class="btn btn-sm btn-outline-primary edit-service-btn"
+                        data-service-id="{{ service.id }}"
+                        data-price="{{ nurse_service.price }}"
+                        data-duration="{{ nurse_service.duration }}"
+                        data-description="{{ nurse_service.description }}"
+                        data-available="{{ nurse_service.is_available }}"
+                        title="Edit details"
+                    >
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button
+                        class="btn btn-sm btn-outline-danger remove-service-btn"
+                        data-service-id="{{ service.id }}"
+                        title="Remove from my list"
+                    >
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                {% else %}
+                <button
+                    class="btn btn-sm btn-success add-service-btn fw-bold"
+                    data-service-id="{{ service.id }}"
+                    data-name="{{ service.name }}"
+                >
+                    <i class="fas fa-plus"></i> Add to My List
+                </button>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
+
+    <div class="content-card">
+      <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+         <div class="d-flex align-items-center">
+             <div class="icon-square me-2 bg-success bg-opacity-10 text-success">
+                <i class="fas fa-magic"></i>
+             </div>
+             <h5 class="fw-bold mb-0">My Custom Services</h5>
+         </div>
+         <button class="btn btn-primary btn-sm fw-bold" id="addCustomServiceBtn">
+           <i class="fas fa-plus"></i> Create New Service
+         </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 20%">Name</th>
+              <th style="width: 30%">Description</th>
+              <th>Price</th>
+              <th>Duration</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for service in nurse_services if not service.service_id %}
+            <tr>
+              <td class="fw-bold text-dark">{{ service.name }}</td>
+              <td class="text-muted small">{{ service.description }}</td>
+              <td>{{ service.price }} €</td>
+              <td>{{ service.duration }} min</td>
+              <td>
+                {% if service.is_available %}
+                  <span class="badge bg-success bg-opacity-10 text-success border border-success">Available</span>
+                {% else %}
+                  <span class="badge bg-secondary bg-opacity-10 text-secondary border">Hidden</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <div class="btn-group">
+                    <button
+                    class="btn btn-sm btn-outline-primary edit-service-btn"
+                    data-service-id="{{ service.id }}"
+                    data-price="{{ service.price }}"
+                    data-duration="{{ service.duration }}"
+                    data-description="{{ service.description }}"
+                    data-available="{{ service.is_available }}"
+                    data-name="{{ service.name }}"
+                    data-custom="true"
+                    >
+                    <i class="fas fa-edit"></i>
+                    </button>
+                    <button
+                    class="btn btn-sm btn-outline-danger remove-service-btn"
+                    data-service-id="{{ service.id }}"
+                    data-custom="true"
+                    >
+                    <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center py-4 text-muted">
+                    You haven't created any custom services yet.
+                </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 </div>
 
-<!-- Service Modal -->
 <div class="modal fade" id="serviceModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="serviceModalTitle">Add service </h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
+        <h5 class="modal-title fw-bold" id="serviceModalTitle">Add Service</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form id="serviceForm" method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -146,102 +175,111 @@
         <input type="hidden" name="is_custom" id="formIsCustom" value="false" />
 
         <div class="modal-body">
-          <div class="mb-3" id="customNameField">
-            <label for="name" class="form-label">Service name</label>
-            <input
-              type="text"
-              class="form-control"
-              id="name"
-              name="name"
-              required
-            />
+          <div class="mb-3" id="customNameField" style="display:none;">
+            <label for="name" class="form-label fw-bold small text-muted">SERVICE NAME</label>
+            <input type="text" class="form-control" id="name" name="name" required />
           </div>
+          
+          <div class="row">
+              <div class="col-6 mb-3">
+                <label for="price" class="form-label fw-bold small text-muted">PRICE (EUR)</label>
+                <input type="number" step="0.01" class="form-control" id="price" name="price" required />
+              </div>
+              <div class="col-6 mb-3">
+                <label for="duration" class="form-label fw-bold small text-muted">DURATION (MIN)</label>
+                <input type="number" class="form-control" id="duration" name="duration" required />
+              </div>
+          </div>
+
           <div class="mb-3">
-            <label for="price" class="form-label">Price(Eur)</label>
-            <input
-              type="number"
-              step="0.01"
-              class="form-control"
-              id="price"
-              name="price"
-              required
-            />
+            <label for="description" class="form-label fw-bold small text-muted">DESCRIPTION</label>
+            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Optional details..."></textarea>
           </div>
-          <div class="mb-3">
-            <label for="duration" class="form-label">Duration (min)</label>
-            <input
-              type="number"
-              class="form-control"
-              id="duration"
-              name="duration"
-              required
-            />
-          </div>
-          <div class="mb-3">
-            <label for="description" class="form-label">Description (not necessarily)</label>
-            <textarea
-              class="form-control"
-              id="description"
-              name="description"
-              rows="3"
-            ></textarea>
-          </div>
-          <div class="mb-3 form-check">
-            <input
-              type="checkbox"
-              class="form-check-input"
-              id="is_available"
-              name="is_available"
-              checked
-            />
-            <label class="form-check-label" for="is_available"
-              >Available for booking</label
-            >
+          
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="is_available" name="is_available" checked>
+            <label class="form-check-label" for="is_available">Available for booking immediately</label>
           </div>
         </div>
         <div class="modal-footer">
-          <button
-            type="button"
-            class="btn btn-secondary"
-            data-bs-dismiss="modal"
-          >
-            Cancel
-          </button>
-          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4">Save Changes</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Deletion confirmation</h5>
+        <h5 class="modal-title fw-bold text-danger">Confirm Deletion</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        Are you sure you want to delete this service?
+        <p>Are you sure you want to remove this service from your list?</p>
+        <p class="small text-muted mb-0">This action cannot be undone instantly.</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+        <button type="button" class="btn btn-danger fw-bold" id="confirmDeleteBtn">Delete Service</button>
       </div>
     </div>
   </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
+<style>
+    .custom-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    .content-card {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .icon-square {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-tool {
+        background: white;
+        border: 1px solid #e5e7eb;
+        color: #4b5563;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    .btn-tool:hover {
+        background: #f9fafb;
+        color: #111827;
+        border-color: #d1d5db;
+    }
+</style>
+
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     // Handle Add Custom Service Button
     document.getElementById('addCustomServiceBtn').addEventListener('click', function() {
       document.getElementById('formAction').value = 'add_custom';
       document.getElementById('formIsCustom').value = 'true';
-      document.getElementById('serviceModalTitle').textContent = 'Add my service';
+      document.getElementById('serviceModalTitle').textContent = 'Create New Custom Service';
       document.getElementById('customNameField').style.display = 'block';
       
       // Reset form
@@ -265,7 +303,7 @@
         document.getElementById('formAction').value = 'add';
         document.getElementById('formIsCustom').value = 'false';
         document.getElementById('formServiceId').value = serviceId;
-        document.getElementById('serviceModalTitle').textContent = `Додати послугу: ${serviceName}`;
+        document.getElementById('serviceModalTitle').textContent = `Add Service: ${serviceName}`;
         document.getElementById('customNameField').style.display = 'none';
         
         // Reset form
@@ -292,7 +330,7 @@
         document.getElementById('formAction').value = 'update';
         document.getElementById('formIsCustom').value = isCustom ? 'true' : 'false';
         document.getElementById('formServiceId').value = serviceId;
-        document.getElementById('serviceModalTitle').textContent = 'Редагувати послугу';
+        document.getElementById('serviceModalTitle').textContent = 'Edit Service Details';
         
         if (isCustom) {
           const name = this.getAttribute('data-name');
@@ -332,6 +370,13 @@
         form.method = 'POST';
         form.action = '';
         
+        // Add CSRF Token
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = "{{ csrf_token() }}";
+        form.appendChild(csrfInput);
+
         const serviceIdInput = document.createElement('input');
         serviceIdInput.type = 'hidden';
         serviceIdInput.name = 'service_id';

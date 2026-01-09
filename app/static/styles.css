@@ -1,404 +1,256 @@
-/* ===================== THEME (one place) ===================== */
-:root{
-  --green-700:#3f4a36;
-  --pink-200:#f2d3d8;
-  --text-light:#fff;
-
-  --radius:18px;
-  --radius-sm:14px;
-  --shadow:0 10px 25px rgba(0,0,0,.08);
-  --shadow-strong:0 8px 28px rgba(0,0,0,.12);
-  --blur-bg:rgba(255,255,255,.65);
+/* ===================== THEME ===================== */
+:root {
+  --primary-green: #1dbf73;
+  --primary-hover: #19a463;
+  --text-dark: #404145;
+  --text-gray: #62646a;
+  --bg-body: #f7f7f7;
+  --bg-white: #ffffff;
+  --border-color: #e4e5e7;
+  --radius: 8px;
+  --shadow-card: 0 0.14px 2.29266px rgba(0, 0, 0, 0.032), 0 0.37px 4.42626px rgba(0, 0, 0, 0.048), 0 3px 7px rgba(0, 0, 0, 0.09);
+  --shadow-hover: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 /* ===================== BASE ===================== */
-body{
-  font-family:'Segoe UI',sans-serif;
-  margin:0;
-  padding:0;
-  background-image:url('2025-06-24 19.49.17.jpg');
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;
-  position:relative;
-}
-body::before{
-  content:'';
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.4);
-  z-index:-1;
+body {
+  font-family: "Macan", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background-color: var(--bg-body);
+  color: var(--text-dark);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
 }
 
-h2{ text-align:center; font-size:28px; margin:0 0 20px; color:#2c3e50; }
-
-/* ===================== DASHBOARDS (client + nurse same style) ===================== */
-.client-dashboard,
-.nurse-dashboard{
-  max-width:1200px;
-  margin:0 auto;
-  padding:20px;
-  border-radius:var(--radius-sm);
+h2, h5, h6 {
+  color: var(--text-dark);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
 }
 
-.dashboard-options{
-  display:flex;
-  flex-wrap:wrap;
-  gap:12px;
-  justify-content:center;
-  align-items:center;
-  margin-bottom:20px;
+a { text-decoration: none; color: inherit; }
+
+/* ===================== 1. "ЖИВИЙ" ФОН ===================== */
+.ambient-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    /* М'які зелені плями на фоні */
+    background: 
+        radial-gradient(circle at 10% 20%, rgba(29, 191, 115, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 60%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
+    pointer-events: none;
 }
 
-/* buttons inside dashboard options (both <button> and bootstrap .btn) */
-.dashboard-options :is(button,.btn,form button){
-  border:none;
-  border-radius:999px;
-  padding:10px 18px;
-  font-weight:600;
-  cursor:pointer;
-  box-shadow:var(--shadow);
-  transition:.2s ease;
+/* ===================== 2. HEADER SECTION (SCROLLS AWAY) ===================== */
+.greeting-header {
+  padding: 30px 20px 10px;
+  text-align: center;
+  background: transparent; /* Щоб було видно фон */
 }
 
-/* “pill” look like your client dashboard */
-.dashboard-options :is(button,.btn,form button){
-  background:var(--pink-200);
-  color:var(--green-700);
-}
-.dashboard-options :is(button,.btn,form button):hover{
-  filter:brightness(.98);
+.greeting-header h2 {
+  font-size: 32px;
+  margin-bottom: 5px;
 }
 
-/* ===================== SEARCHField ===================== */
-.top-search-bar{
-  width:100%;
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  margin:5px 0 20px;
-}
-.search-input{
-  width:70%;
-  max-width:600px;
-  padding:14px 22px;
-  border-radius:999px;
-  border:1px solid #e5e5e5;
-  background:#fff;
-  box-shadow:0 4px 10px rgba(0,0,0,.12);
-  font-size:16px;
-}
-.search-btn{
-  padding:14px 24px;
-  border-radius:999px;
-  border:1px solid #e5e5e5;
-  background:#fff;
-  box-shadow:0 4px 10px rgba(0,0,0,.12);
-  font-weight:600;
-  font-size:16px;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  gap:6px;
-}
-.search-btn:hover{ background:#f8f8f8; }
-
-#status-message{
-  margin-top:8px;
-  font-size:14px;
-  color:rgb(133,121,222);
-  min-height:20px;
-  text-align:center;
+.hero-subtitle {
+  color: var(--text-gray);
+  margin-bottom: 10px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
 }
 
-/* ===================== CONTENT WRAPPER (map + list) ===================== */
-.premium-box{
-  background:#fff;
-  border-radius:22px;
-  padding:20px;
-  box-shadow:0 4px 30px rgba(0,0,0,.08);
-}
-.premium-title{
-  color:var(--green-700);
-  font-weight:700;
-  margin:0 0 15px;
-}
+/* ===================== 3. STICKY TOOLBAR (STICKS TO TOP) ===================== */
+.sticky-toolbar {
+    position: sticky;       /* Липне до верху */
+    top: 0;
+    z-index: 1000;          /* Поверх карти */
+    
+    padding: 15px 0;
+    margin-bottom: 25px;
 
-/* map containers used in different pages */
-#map-container,
-#combinedMap{
-  height:500px;
-  border-radius:var(--radius-sm);
-  overflow:hidden;
-  box-shadow:0 5px 20px rgba(0,0,0,.15);
+    /* Ефект скла */
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    
+    transition: all 0.3s ease;
 }
 
-/* markers */
-.nurse-marker,.client-marker{ z-index:1000; }
-
-/* ===================== REQUEST / LIST ITEMS ===================== */
-.request-item,
-.nurse-item{
-  border-radius:18px;
-  border:1px solid #ddd;
-  box-shadow:var(--shadow);
-  padding:12px;
-  transition:.2s ease;
-  cursor:pointer;
-  background:#fff;
-}
-.request-item:hover{ transform:translateY(-2px); }
-
-  
-
-/* ===================== BOOTSTRAP BUTTON OVERRIDES (keep my palette) ===================== */
-.btn-primary{
-  background:var(--green-700)!important;
-  border:none!important;
-  color:var(--text-light)!important;
-  border-radius:var(--radius-sm)!important;
-}
-.btn-primary:hover{ background:#2f3929!important; }
-
-.btn-success{
-  background:var(--green-700)!important;
-  border:none!important;
-  color:var(--text-light)!important;
-  border-radius:var(--radius-sm)!important;
-}
-.btn-success:hover{ background:#2f3929!important; }
-
-.btn-info{
-  background:var(--pink-200)!important;
-  border:none!important;
-  color:var(--green-700)!important;
-  border-radius:var(--radius-sm)!important;
-}
-.btn-info:hover{ background:#e3bfc6!important; }
-
-.btn-danger{
-  background:#b84a4a!important;
-  border:none!important;
-  color:#fff!important;
-  border-radius:var(--radius-sm)!important;
-}
-
-/* custom buttons (my existing ones) */
-.btn-premium{
-  background:var(--green-700);
-  color:var(--text-light);
-  border-radius:12px;
-  padding:12px 18px;
-  border:none;
-  width:100%;
-  font-weight:600;
-  transition:.2s ease;
-}
-.btn-premium:hover{ background:#2f3828; }
-
-.btn-premium-secondary{
-  background:#6e757c;
-  color:#fff;
-  border-radius:12px;
-  padding:12px 18px;
-  border:none;
-  width:100%;
-  font-weight:600;
-}
-.btn-premium-secondary:hover{ background:#5a6167; }
-
-/* badges */
-.badge.bg-success,
-.badge-online{ background:var(--green-700)!important; }
-.badge.bg-secondary,
-.badge-offline{ background:#999!important; }
-
-/* ===================== CARDS / MODALS ===================== */
-.card{
-  border-radius:var(--radius-sm);
-  box-shadow:var(--shadow);
-  border:none;
-  overflow:hidden;
-}
-.card-header{
-  background:var(--pink-200);
-  color:var(--green-700);
-  font-weight:600;
-  font-size:18px;
-}
-.card-body{ background:#fff; }
-
-.modal-content{
-  border-radius:var(--radius-sm);
-  box-shadow:var(--shadow);
-  border:none;
-}
-.modal-header{
-  background:var(--pink-200);
-  border-radius:var(--radius-sm) var(--radius-sm) 0 0;
-  border-bottom:none;
-  color:var(--green-700);
-}
-
-/* ===================== PROFILE PAGES (nurse + client) ===================== */
-
-.profile-page,
-.client-profile-page{
-  max-width:650px;
-  margin:40px auto;
-  padding:24px;
-  border-radius:var(--radius);
-  backdrop-filter:blur(16px);
-  background:var(--blur-bg);
-  box-shadow:var(--shadow-strong);
-}
-
-.profile-title,
-.client-profile-title{
-  text-align:center;
-  font-size:30px;
-  font-weight:700;
-  color:var(--green-700);
-  margin:0 0 20px;
-}
-
-.profile-menu-icon a,
-.client-menu-icon a{
-  position:fixed;
-  top:20px;
-  right:20px;
-  background:var(--green-700);
-  color:#fff;
-  padding:12px 16px;
-  border-radius:50%;
-  font-size:22px;
-  box-shadow:var(--shadow-strong);
-  text-decoration:none;
-  z-index:9999;
-}
-
-.profile-avatar,
-.client-avatar{
-  width:150px;
-  height:150px;
-  object-fit:cover;
-  display:block;
-  margin:0 auto 18px;
-  border-radius:50%;
-  box-shadow:0 0 0 5px var(--pink-200), var(--shadow-strong);
-}
-
-.profile-form,
-.client-form{
-  background:rgba(255,255,255,.85);
-  padding:22px;
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  margin-bottom:20px;
-}
-
-.profile-page .form-control,
-.client-profile-page .form-control{
-  border:none;
-  padding:14px 16px;
-  border-radius:var(--radius);
-  background:#f3f3f3;
-  box-shadow:inset 0 0 0 1px #ddd;
-  font-size:15px;
-}
-
-.profile-page .form-label,
-.client-profile-page .form-label{
-  font-weight:600;
-  color:var(--green-700);
-}
-
-/* =====================  SERVICES TABLE PAGE ===================== */
-.nurse-services{ padding:20px; background:#fafafa; }
-.back-btn{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  font-size:15px;
-  padding:10px 16px;
-  border-radius:var(--radius-sm);
-  background:var(--green-700);
-  color:var(--text-light);
-  text-decoration:none;
-  box-shadow:var(--shadow);
-}
-.back-btn:hover{ background:#2f3929; }
-
-.table-responsive{
-  border-radius:var(--radius-sm);
-  overflow:hidden;
-  background:#fff;
-  box-shadow:var(--shadow);
-}
-.table th{
-  background:var(--pink-200);
-  color:var(--green-700);
-  font-weight:600;
-}
-
-/* ===================== RESPONSIVE ===================== */
-@media (max-width:768px){
-  .dashboard-options{ flex-direction:column; align-items:stretch; }
-  .dashboard-options :is(button,.btn,form button){ width:100%; }
-}
-@media (max-width:576px){
-  .client-dashboard,.nurse-dashboard{ padding:10px; }
-  #map-container,#combinedMap{ height:350px!important; }
-  .chat-messages-container{ height:250px; }
-
-  table{ display:block; overflow-x:auto; white-space:nowrap; }
-  .profile-page,.client-profile-page{ margin:20px 10px; padding:18px; }
-  .profile-title,.client-profile-title{ font-size:24px; }
-  .profile-avatar,.client-avatar{ width:120px; height:120px; }
-}
-
-
-
-
-
-
-#calendar {
-    max-width: 100%;
+.toolbar-container {
+    max-width: 1200px;
     margin: 0 auto;
-    background-color: white;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Search Bar styling inside toolbar */
+.top-search-bar {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  height: 44px; /* Трохи менше для компактності */
+}
+
+.search-input {
+  flex-grow: 1;
+  padding: 10px 16px;
+  font-size: 15px;
+  border: 1px solid #b5b6ba;
+  border-right: none;
+  border-radius: 4px 0 0 4px;
+  outline: none;
+  background: white;
+}
+.search-input:focus { border-color: var(--text-dark); }
+
+.search-btn {
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  padding: 0 20px;
+  font-weight: 700;
+  font-size: 15px;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.search-btn:hover { background: var(--primary-hover); }
+
+/* Buttons styling inside toolbar */
+.dashboard-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.dashboard-options :is(button, .btn, form button) {
+  background: white;
+  color: var(--text-gray);
+  border: 1px solid #d4d5d8;
+  border-radius: 4px;
+  padding: 6px 14px;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.dashboard-options :is(button, .btn, form button):hover {
+  border-color: var(--text-dark);
+  color: var(--text-dark);
+  background: #fcfcfc;
+}
+
+/* Buttons specific styles */
+.dashboard-options .btn-warning {
+  background: var(--text-dark) !important;
+  color: white !important;
+  border-color: var(--text-dark) !important;
+}
+
+#location-btn {
+  color: var(--primary-green) !important;
+  border-color: var(--primary-green) !important;
+}
+
+/* ===================== MAIN CONTENT ===================== */
+.client-dashboard {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px 50px 20px;
+}
+
+/* Wrapper for map to give it a card look */
+.content-card {
+    background: white;
     padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  }
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-card);
+}
 
-  .fc-event { cursor: pointer; }
+/* Map specific */
+#nursesMap {
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
 
-  /* Event Status Colors */
-  .fc-event.scheduled { background-color: #ffc107 !important; border-color: #ffc107 !important; color: #000 !important; }
-  .fc-event.confirmed { background-color: #0d6efd !important; border-color: #0d6efd !important; }
-  .fc-event.confirmed_paid { background-color: #198754 !important; border-color: #198754 !important; }
-  .fc-event.completed { background-color: #6c757d !important; border-color: #6c757d !important; }
-  .fc-event.cancelled { background-color: #dc3545 !important; border-color: #dc3545 !important; text-decoration: line-through; }
+/* ===================== SIDEBAR LISTS ===================== */
+.providers-scroll-area {
+    height: 480px; 
+    overflow-y: auto; 
+    padding-right: 5px;
+}
 
-  /* Rating Stars */
-  .rating-input { direction: rtl; display: inline-flex; }
-  .rating-input input { display: none; }
-  .rating-input label { font-size: 2rem; color: #ddd; cursor: pointer; transition: color 0.2s; }
-  .rating-input input:checked ~ label, .rating-input label:hover, .rating-input label:hover ~ label { color: #f5c518; }
-  .rating-stars { color: #ddd; font-size: 1.2rem; }
-  .rating-star.filled { color: #f5c518; }
+.nurse-item, .request-item {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  transition: box-shadow 0.2s ease, transform 0.2s;
+  cursor: pointer;
+  overflow: hidden;
+}
 
-  /* Mobile Responsive Fixes */
-  @media (max-width: 768px) {
-    .fc-toolbar-title { font-size: 1.2rem !important; }
-    .fc-header-toolbar { 
-        flex-wrap: wrap; 
-        gap: 5px; 
-        justify-content: space-between; 
-        padding-bottom: 10px;
-    }
-    .fc-button {
-        font-size: 0.8rem !important;
-        padding: 0.25rem 0.5rem !important;
-    }
-  }
+.nurse-item:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+  border-color: #ccc;
+}
+
+.nurse-item .card-body {
+  padding: 14px;
+}
+
+.badge-online { background-color: #e8f7f0 !important; color: var(--primary-green) !important; }
+.badge-offline { background-color: #f5f5f5 !important; color: #b5b6ba !important; }
+
+.btn-premium-secondary {
+  background: white;
+  color: var(--text-gray);
+  border: 1px solid #ccc;
+  width: 100%;
+  padding: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 4px;
+  margin-top: 10px;
+  transition: 0.2s;
+}
+.btn-premium-secondary:hover {
+  border-color: var(--primary-green);
+  color: var(--primary-green);
+  background-color: #f0fdf4;
+}
+
+/* My Requests Style */
+#myRequestsList .card {
+  border-left: 4px solid #ffc107;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  background: white;
+}
+
+/* ===================== SCROLLBAR & RESPONSIVE ===================== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+@media (max-width: 768px) {
+  .sticky-toolbar { padding: 10px 0; top: 0; }
+  .top-search-bar { flex-direction: row; margin-bottom: 10px;}
+  .dashboard-options { overflow-x: auto; white-space: nowrap; justify-content: flex-start; padding-bottom: 5px; width: 100%; }
+}

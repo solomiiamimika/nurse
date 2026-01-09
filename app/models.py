@@ -90,6 +90,12 @@ class Service(db.Model):
     nurse_services = relationship('NurseService',backref='base_service',lazy=True)
 
     
+    
+    
+    
+    
+    
+    
 class NurseService(db.Model):
     __tablename__ = 'nurse_service'
     id= Column(Integer, primary_key=True)
@@ -102,6 +108,12 @@ class NurseService(db.Model):
     description = Column(Text)
     
     appointments = relationship('Appointment', backref='nurse_service', lazy=True)
+
+
+
+
+
+
 
 
 class Appointment(db.Model):

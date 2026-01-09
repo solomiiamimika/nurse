@@ -1,61 +1,117 @@
 {% extends "base.html" %} 
 {% block content %}
 
-<div class="nurse-dashboard">
-  <h2>Hi, {{ current_user.full_name if current_user.full_name else current_user.username}}!</h2>
-  <h5 style="text-align: center">Service provider dashboard</h5>
+<div class="ambient-background"></div>
 
-  <div class="dashboard-options" style="margin-bottom: 20px">
-    <a href="{{ url_for('nurse.profile') }}" class="btn btn-info"><i class="fas fa-user"></i> Profile</a>
-    <a href="{{ url_for('nurse.appointments') }}" class="btn btn-info"><i class="fas fa-calendar"></i> Appointments</a>
-    <a href="{{ url_for('nurse.manage_services') }}" class="btn btn-info"><i class="fas fa-concierge-bell"></i> My services</a>
-    <button id="location-btn" class="btn btn-info"><i class="fas fa-map-marker-alt"></i> Update location</button>
-    <button id="toggle-online-btn" class="btn {{ 'btn-success' if current_user.online else 'btn-secondary' }}">
-      {{ 'Online' if current_user.online else 'Offline' }}
-    </button>
-    <form action="{{url_for('auth.logout')}}" method="post" style="display:inline">
-       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-       <button class="btn btn-info"><i class="fas fa-sign-out-alt"></i> Exit</button>
-    </form>
-    <div id="status-message" class="mt-2 small" style="width: 100%;"></div>
-  </div>
-</div> 
-
-<div class="premium-box mt-4">
-  <div class="row g-4"> 
-    <div class="col-md-8">
-      <h5 class="premium-title">Client and Service Request Map</h5>
-      <div id="combinedMap" style="height: 500px; width: 100%"></div>
-    </div>
-
-    <div class="col-md-4">
-      <h5 class="premium-title">Available requests</h5>
-      <div style="height: 500px; overflow-y: auto; padding-right: 10px">
-        <div id="requestsList">
-          <div class="text-center mt-5"><div class="spinner-border text-secondary"></div></div>
+<div class="main-wrapper">
+    
+    <div class="greeting-section">
+        <div class="custom-container text-center"> <h2>Hi, {{ current_user.full_name if current_user.full_name else current_user.username}}!</h2>
+            <div class="hero-subtitle">Manage your requests and availability</div>
         </div>
-      </div>
     </div>
-  </div>
+
+    <div class="sticky-toolbar-wrapper">
+        <div class="custom-container">
+            <div class="toolbar-inner d-flex justify-content-center align-items-center flex-wrap gap-2">
+                
+                <a href="{{ url_for('nurse.profile') }}" class="btn-tool">
+                    <i class="fas fa-user-md"></i> Profile
+                </a>
+                <a href="{{ url_for('nurse.appointments') }}" class="btn-tool">
+                    <i class="fas fa-calendar-check"></i> Appointments
+                </a>
+                <a href="{{ url_for('nurse.manage_services') }}" class="btn-tool">
+                    <i class="fas fa-list-ul"></i> My Services
+                </a>
+                
+                <button id="location-btn" class="btn-tool text-primary">
+                    <i class="fas fa-map-marker-alt"></i> Update Location
+                </button>
+
+                <button id="toggle-online-btn" class="btn-tool {{ 'status-online' if current_user.online else 'status-offline' }}">
+                    <span class="status-indicator"></span>
+                    <span id="status-text">{{ 'You are Online' if current_user.online else 'You are Offline' }}</span>
+                </button>
+
+                <form action="{{url_for('auth.logout')}}" method="post" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn-icon text-danger" title="Exit">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </form>
+            </div>
+            
+            <div id="status-message" class="text-center mt-2 small fw-bold"></div>
+        </div>
+    </div>
+
+    <div class="custom-container pb-5">
+        <div class="row g-4"> 
+            
+            <div class="col-lg-8">
+                <div class="content-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0 fw-bold text-dark">Client Map</h5>
+                        <span class="badge bg-light text-dark border">Real-time</span>
+                    </div>
+                    <div id="combinedMap" style="height: 600px; width: 100%; border-radius: 8px; border: 1px solid #e5e7eb;"></div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="h-100 d-flex flex-column">
+                    <h5 class="fw-bold text-muted small text-uppercase mb-3 ps-1">Available Requests</h5>
+                    
+                    <div class="requests-scroll-area">
+                        <div id="requestsList">
+                            <div class="text-center mt-5">
+                                <div class="spinner-border text-secondary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="modal fade" id="requestDetailsModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Request details</h5>
+        <h5 class="modal-title fw-bold">Request Details</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <div class="mb-3"><strong>Client:</strong> <span id="detailPatientName"></span></div>
-        <div class="mb-3"><strong>Service:</strong> <span id="detailServiceName"></span></div>
-        <div class="mb-3"><strong>Time:</strong> <span id="detailDateTime"></span></div>
-        <div class="mb-3"><strong>Notes:</strong> <div id="detailNotes"></div></div>
-        <div class="mb-3"><strong>Suggested payment:</strong> <span id="detailPayment"></span> Eur</div>
+        <div class="p-3 bg-light rounded mb-3 border">
+            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                <strong class="text-muted small">CLIENT</strong> 
+                <span id="detailPatientName" class="fw-bold text-dark"></span>
+            </div>
+            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                <strong class="text-muted small">SERVICE</strong> 
+                <span id="detailServiceName" class="fw-bold text-success"></span>
+            </div>
+            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                <strong class="text-muted small">TIME</strong> 
+                <span id="detailDateTime"></span>
+            </div>
+            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                <strong class="text-muted small">PAYMENT</strong> 
+                <span class="fw-bold"><span id="detailPayment"></span> EUR</span>
+            </div>
+            <div class="mb-0">
+                <strong class="text-muted small d-block">NOTES</strong> 
+                <div id="detailNotes" class="fst-italic text-secondary mt-1"></div>
+            </div>
+        </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" id="acceptRequestBtn">Accept request</button>
+        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success fw-bold px-4" id="acceptRequestBtn">Accept Request</button>
       </div>
     </div>
   </div>
@@ -68,6 +124,130 @@
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
 
+<style>
+    /* Єдиний контейнер для ширини */
+    .custom-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding-left: 20px;
+        padding-right: 20px;
+        width: 100%;
+    }
+
+    /* Стилі меню */
+    .sticky-toolbar-wrapper {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        padding: 15px 0;
+        background: rgba(248, 250, 252, 0.95); /* Більш непрозорий */
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+        margin-bottom: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03); /* Легка тінь */
+    }
+    
+    .toolbar-inner {
+        width: 100%;
+    }
+
+    .btn-tool {
+        background: white;
+        border: 1px solid #e5e7eb;
+        color: #4b5563;
+        padding: 10px 18px; /* Трохи більші кнопки */
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        white-space: nowrap; /* Щоб текст не падав */
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .btn-tool:hover {
+        background: #f9fafb;
+        color: #111827;
+        border-color: #d1d5db;
+        transform: translateY(-1px);
+    }
+
+    .btn-icon {
+        background: white;
+        border: 1px solid #e5e7eb;
+        padding: 10px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .btn-icon:hover { background: #fee2e2; border-color: #fca5a5; transform: translateY(-1px); }
+
+    /* Header */
+    .greeting-section {
+        padding: 40px 0 20px;
+    }
+    .greeting-section h2 {
+        font-weight: 800;
+        color: #1f2937;
+    }
+
+    /* Інше */
+    .status-online { background: #ecfdf5; border-color: #6ee7b7; color: #059669; }
+    .status-offline { background: #f3f4f6; border-color: #d1d5db; color: #6b7280; }
+    .status-indicator {
+        width: 8px; height: 8px; border-radius: 50%; background-color: currentColor; display: inline-block;
+    }
+
+    .content-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .requests-scroll-area {
+        height: 600px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+    .nurse-item {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        transition: all 0.2s;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    .nurse-item::before {
+        content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #3b82f6;
+    }
+    .nurse-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        border-color: #bfdbfe;
+    }
+    .view-request-btn {
+        width: 100%;
+        margin-top: 10px;
+        padding: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #3b82f6;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        border-radius: 6px;
+        transition: 0.2s;
+    }
+    .view-request-btn:hover { background: #3b82f6; color: white; }
+</style>
+
 <script>
   let map;
   let userMarker;
@@ -77,17 +257,22 @@
 
   function showStatus(message, isError = false) {
       const statusEl = document.getElementById('status-message');
-      if(statusEl) { statusEl.textContent = message; statusEl.style.color = isError ? 'red' : 'green'; }
+      if(statusEl) { 
+          statusEl.textContent = message; 
+          statusEl.style.color = isError ? '#dc2626' : '#16a34a'; 
+          if(message) setTimeout(() => statusEl.textContent = '', 3000);
+      }
   }
 
   function initMap() {
       try {
-          showStatus("Map initialization...");
           const nurseLat = {{ current_user.latitude if current_user.latitude is not none else 50.4501 }};
           const nurseLng = {{ current_user.longitude if current_user.longitude is not none else 30.5234}};
 
           map = L.map('combinedMap').setView([nurseLat, nurseLng], 12);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; OpenStreetMap contributors'
+          }).addTo(map);
 
           requestMarkersLayer.addTo(map);
 
@@ -95,13 +280,12 @@
               userMarker = L.marker([nurseLat, nurseLng], {
                   icon: L.divIcon({
                       className: 'nurse-marker',
-                      html: '<div style="background-color: purple; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white;"></div>'
+                      html: '<div style="background-color: #8b5cf6; border-radius: 50%; width: 24px; height: 24px; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>'
                   })
-              }).addTo(map).bindPopup('Your location');
+              }).addTo(map).bindPopup('<b>You are here</b>');
           }
           
           loadRequests();
-          showStatus("");
       } catch (error) { showStatus("Map error: " + error.message, true); }
   }
 
@@ -114,7 +298,7 @@
                   displayRequests(data.requests);
                   updateRequestMarkers(data.requests);
               } else {
-                  document.getElementById('requestsList').innerHTML = '<div class="alert alert-danger">Error loading requests</div>';
+                  document.getElementById('requestsList').innerHTML = '<div class="alert alert-danger py-2 small">Error loading requests</div>';
               }
           })
           .catch(error => console.error('Error:', error));
@@ -123,20 +307,32 @@
   function displayRequests(requests) {
       const container = document.getElementById('requestsList');
       if (requests.length === 0) {
-          container.innerHTML = '<div class="alert alert-info text-center">No requests available</div>';
+          container.innerHTML = `
+            <div class="text-center py-5 border rounded bg-light">
+                <i class="fas fa-clipboard-check fa-2x text-muted mb-2"></i>
+                <p class="text-muted small mb-0">No pending requests found nearby.</p>
+            </div>`;
           return;
       }
       let html = '';
       requests.forEach(request => {
-          const time = new Date(request.appointment_start_time).toLocaleString('uk-UA');
+          const time = new Date(request.appointment_start_time).toLocaleString('uk-UA', { 
+              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+          });
+          
           html += `
-              <div class="card mb-3 nurse-item"> 
-                  <div class="card-body">
-                      <h6 class="card-title" style="color: var(--green-700); font-weight: bold;">${request.service_name}</h6>
-                      <p class="card-text mb-1"><small><i class="fas fa-user"></i> ${request.patient_name || 'Unknown'}</small></p>
-                      <p class="card-text mb-1"><small><i class="fas fa-clock"></i> ${time}</small></p>
-                      <button class="btn-premium view-request-btn" onclick='showRequestDetails(${JSON.stringify(request)})'>Details</button>
+              <div class="nurse-item p-3" onclick='showRequestDetails(${JSON.stringify(request)})'> 
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                      <h6 class="fw-bold text-dark mb-0">${request.service_name}</h6>
+                      <span class="badge bg-success bg-opacity-10 text-success">${request.payment} €</span>
                   </div>
+                  <div class="small text-muted mb-1">
+                    <i class="fas fa-user me-1"></i> ${request.patient_name || 'Client'}
+                  </div>
+                  <div class="small text-muted mb-2">
+                    <i class="fas fa-clock me-1"></i> ${time}
+                  </div>
+                  <button class="view-request-btn">View Details</button>
               </div>`;
       });
       container.innerHTML = html;
@@ -149,7 +345,7 @@
               const marker = L.marker([request.latitude, request.longitude], {
                   icon: L.divIcon({
                       className: 'request-marker',
-                      html: '<div style="background-color: #d13a3a; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white; box-shadow: 0 0 5px red;"></div>'
+                      html: '<div style="background-color: #ef4444; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);"></div>'
                   })
               });
               
@@ -164,13 +360,18 @@
       document.getElementById('detailPatientName').textContent = request.patient_name || 'Unknown';
       document.getElementById('detailServiceName').textContent = request.service_name || 'Service';
       document.getElementById('detailDateTime').textContent = new Date(request.appointment_start_time).toLocaleString('uk-UA');
-      document.getElementById('detailNotes').textContent = request.notes || 'No notes';
+      document.getElementById('detailNotes').textContent = request.notes || 'No notes provided';
       document.getElementById('detailPayment').textContent = request.payment || '0';
       new bootstrap.Modal(document.getElementById('requestDetailsModal')).show();
   }
 
   document.getElementById('acceptRequestBtn').addEventListener('click', function() {
       if (!currentRequestId) return;
+      
+      const btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Processing...';
+
       fetch(`/nurse/nurse_accept_request/${currentRequestId}`, {
           method: 'POST',
           headers: {'X-CSRFToken': csrfToken}
@@ -178,20 +379,43 @@
       .then(r => r.json())
       .then(data => {
           if (data.success) {
-              alert('Request successfully accepted');
               bootstrap.Modal.getInstance(document.getElementById('requestDetailsModal')).hide();
               loadRequests();
-          } else { alert('Error: ' + data.message); }
+              showStatus("Request accepted successfully!");
+          } else { 
+              alert('Error: ' + data.message); 
+          }
+      })
+      .finally(() => {
+          btn.disabled = false;
+          btn.textContent = 'Accept Request';
       });
   });
 
   document.getElementById('location-btn').addEventListener('click', () => {
+       if (!navigator.geolocation) return alert("Geolocation is not supported.");
+       
+       const btn = document.getElementById('location-btn');
+       const originalText = btn.innerHTML;
+       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+       
        navigator.geolocation.getCurrentPosition(pos => {
            fetch('{{ url_for("nurse.update_location") }}', {
                method: 'POST',
                headers: {'Content-Type': 'application/json','X-CSRFToken': csrfToken},
                body: JSON.stringify({latitude: pos.coords.latitude, longitude: pos.coords.longitude})
-           }).then(r=>r.json()).then(res=>{ if(res.success) location.reload(); });
+           }).then(r=>r.json()).then(res=>{ 
+               if(res.success) {
+                   location.reload();
+               } else {
+                   btn.innerHTML = originalText;
+                   alert("Failed to update location");
+               }
+           });
+       }, err => {
+           console.error(err);
+           btn.innerHTML = originalText;
+           alert("Could not access location.");
        });
   });
 

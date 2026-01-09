@@ -1,16 +1,26 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %} 
+{% block content %}
 
-<div class="client-appointments">
-  <h2>My appointments</h2>
+<div class="ambient-background"></div>
 
-  <a href="{{ url_for('client.dashboard') }}" class="btn btn-info mb-3 rounded-3">
-    ← Back to dashboard
-  </a>
+<div class="client-dashboard" style="padding-top: 40px;">
   
-  <div id="calendar"></div>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 style="margin-bottom: 5px;">My Appointments</h2>
+        <span class="text-muted">Manage your schedule and payments</span>
+    </div>
+    <a href="{{ url_for('client.dashboard') }}" class="btn-tool">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <div class="content-card">
+      <div id="calendar"></div>
+  </div>
 
   <div class="modal fade" id="newAppointmentModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">New appointment</h5>
@@ -24,103 +34,99 @@
   </div>
 
   <div class="modal fade" id="appointmentDetailsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Appointment details</h5>
+          <h5 class="modal-title">Appointment Details</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <div class="mb-3">
-            <strong>Service:</strong> <span id="detailServiceName"></span>
-          </div>
-          <div class="mb-3">
-            <strong>Date and time:</strong> <span id="detailDateTime"></span>
-          </div>
-          <div class="mb-3">
-            <strong>Status:</strong> <span id="detailStatus"></span>
-          </div>
-          <div class="mb-3">
-            <strong>Notes:</strong> <span id="detailNotes"></span>
-          </div>
-          <div class="mb-3">
-            <strong>Amount:</strong> <span id="detailAmount"></span> UAH
+          
+          <div class="p-3 bg-light rounded mb-3 border">
+              <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                <strong class="text-muted small">SERVICE</strong> 
+                <span id="detailServiceName" class="fw-bold text-dark"></span>
+              </div>
+              <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                <strong class="text-muted small">DATE & TIME</strong> 
+                <span id="detailDateTime"></span>
+              </div>
+              <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                <strong class="text-muted small">STATUS</strong> 
+                <span id="detailStatus" class="fw-bold"></span>
+              </div>
+              <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                <strong class="text-muted small">AMOUNT</strong> 
+                <span><span id="detailAmount" class="fw-bold"></span> UAH</span>
+              </div>
+              <div class="mb-0">
+                <strong class="text-muted small d-block">NOTES</strong> 
+                <span id="detailNotes" class="fst-italic text-secondary"></span>
+              </div>
           </div>
           
           <div id="paymentSection" class="mb-3" style="display: none">
-            <button id="payNowBtn" class="btn btn-success w-100">
+            <button id="payNowBtn" class="btn btn-success w-100 fw-bold py-2">
               <i class="fas fa-credit-card"></i> Make a payment now
             </button>
           </div>
           
           <div id="paymentStatus" class="alert" style="display: none"></div>
+          
           <div id="appointmentActions" class="d-flex gap-2 mt-3"></div>
         </div>
 
-        <hr />
-        
-        <div id="reviewSection" class="px-3 pb-3">
-          <h6>Your review</h6>
-          <div id="existingReview" style="display: none">
-            <div class="mb-2">
-              <strong>Your rating:</strong>
-              <span id="userRating"></span>
-              <div class="rating-stars"></div>
-            </div>
-            <div class="mb-2">
-              <strong>Comment:</strong>
-              <p id="userComment" class="mt-1"></p>
-            </div>
-            <button id="editReviewBtn" class="btn btn-sm btn-outline-primary">
-              <i class="fas fa-edit"></i> Edit your review
-            </button>
-          </div>
+        <div class="modal-footer d-block bg-light" style="border-radius: 0 0 8px 8px;">
+            <h6 class="text-uppercase text-muted small fw-bold mb-3">Your Review</h6>
+            
+            <div id="reviewSection">
+                <div id="existingReview" style="display: none" class="bg-white p-3 rounded border">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-muted small">RATING</span>
+                        <div>
+                            <span id="userRating" class="fw-bold me-2"></span>
+                            <span class="rating-stars text-warning"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <p id="userComment" class="mt-1 text-dark fst-italic mb-0"></p>
+                    </div>
+                    <button id="editReviewBtn" class="btn btn-sm btn-outline-secondary w-100">
+                        <i class="fas fa-edit"></i> Edit Review
+                    </button>
+                </div>
 
-          <div id="reviewForm" style="display: none">
-            <div class="mb-3">
-              <label class="form-label">Service rating</label>
-              <div class="rating-input">
-                {% for i in range(5, 0, -1) %}
-                <input type="radio" id="star{{i}}" name="rating" value="{{i}}" />
-                <label for="star{{i}}" title="{{i}} зірок">☆</label>
-                {% endfor %}
-              </div>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Comment</label>
-              <textarea
-                class="form-control"
-                id="reviewComment"
-                rows="3"
-                placeholder="Place your feedback about service..."
-              ></textarea>
-            </div>
-            <div class="d-flex gap-2">
-              <button id="submitReviewBtn" class="btn btn-success">
-                <i class="fas fa-paper-plane"></i> Sent feedback
-              </button>
-              <button id="cancelReviewBtn" class="btn btn-secondary">
-                Cancel
-              </button>
-            </div>
-          </div>
+                <div id="reviewForm" style="display: none">
+                    <div class="mb-3 text-center">
+                        <div class="rating-input display-6 text-warning">
+                            {% for i in range(5, 0, -1) %}
+                            <input type="radio" id="star{{i}}" name="rating" value="{{i}}" style="display:none;" />
+                            <label for="star{{i}}" title="{{i}} stars" style="cursor:pointer; margin: 0 2px;">★</label>
+                            {% endfor %}
+                        </div>
+                        <small class="text-muted">Tap a star to rate</small>
+                    </div>
+                    <div class="mb-3">
+                        <textarea class="form-control" id="reviewComment" rows="3" placeholder="Share your experience..."></textarea>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button id="submitReviewBtn" class="btn btn-success flex-grow-1">Send</button>
+                        <button id="cancelReviewBtn" class="btn btn-light border">Cancel</button>
+                    </div>
+                </div>
 
-          <div id="noReviewMessage" style="display: none">
-            <p class="text-muted">No review has been submitted for this entry yet.</p>
-            <button id="addReviewBtn" class="btn btn-outline-primary btn-sm">
-              <i class="fas fa-plus"></i> Add a review
-            </button>
-          </div>
-        </div>
-        
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            Close
-          </button>
+                <div id="noReviewMessage" style="display: none" class="text-center">
+                    <p class="text-muted small mb-2">You haven't left a review yet.</p>
+                    <button id="addReviewBtn" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-star"></i> Write a Review
+                    </button>
+                </div>
+            </div>
         </div>
       </div>
     </div>
   </div>
+
 </div>
 
 {% endblock %} 
@@ -131,6 +137,70 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/uk.min.js"></script>
 <script src="https://js.stripe.com/v3/"></script>
 
+<style>
+    .fc-toolbar-title {
+        font-size: 1.25rem !important;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+    .fc-button-primary {
+        background-color: white !important;
+        color: var(--text-gray) !important;
+        border: 1px solid #d4d5d8 !important;
+        font-weight: 600 !important;
+        text-transform: capitalize;
+        box-shadow: none !important;
+    }
+    .fc-button-primary:hover, .fc-button-primary.fc-button-active {
+        background-color: #fcfcfc !important;
+        color: var(--text-dark) !important;
+        border-color: var(--text-dark) !important;
+    }
+    .fc-daygrid-day-number {
+        color: var(--text-dark);
+        font-weight: 500;
+        text-decoration: none;
+    }
+    .fc-col-header-cell-cushion {
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        text-decoration: none;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .fc-event {
+        border: none !important;
+        padding: 2px 4px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: transform 0.1s;
+    }
+    .fc-event:hover {
+        transform: scale(1.02);
+    }
+    .confirmed { background-color: #d1fae5 !important; border-left: 3px solid #10b981 !important; color: #065f46 !important; }
+    .confirmed_paid { background-color: #dcfce7 !important; border-left: 3px solid #22c55e !important; color: #14532d !important; }
+    .scheduled { background-color: #fffbeb !important; border-left: 3px solid #f59e0b !important; color: #92400e !important; }
+    .cancelled { background-color: #fef2f2 !important; border-left: 3px solid #ef4444 !important; color: #991b1b !important; }
+    .completed { background-color: #f3f4f6 !important; border-left: 3px solid #6b7280 !important; color: #374151 !important; }
+
+    .rating-input {
+        direction: rtl; 
+        display: inline-flex;
+    }
+    .rating-input input:checked ~ label,
+    .rating-input label:hover,
+    .rating-input label:hover ~ label {
+        color: #ffc107;
+    }
+    .rating-input label {
+        color: #ddd;
+        transition: color 0.2s;
+    }
+</style>
+
 <script>
   let currentAppointmentId = null;
   const stripe = Stripe("{{ stripe_public_key }}");
@@ -139,7 +209,6 @@
   document.addEventListener("DOMContentLoaded", function () {
     const calendarEl = document.getElementById("calendar");
     
-    // --- 1. ЛОГІКА АДАПТИВНОСТІ (Responsive logic) ---
     function getResponsiveSettings() {
       const isMobile = window.innerWidth < 768;
       return {
@@ -160,10 +229,10 @@
       height: initialSettings.height,
       headerToolbar: initialSettings.header,
       locale: "en",
+      themeSystem: 'standard',
       events: "/client/get_appointments",
       handleWindowResize: true,
       
-      // --- 2. ОБРОБНИК ЗМІНИ РОЗМІРУ ВІКНА ---
       windowResize: function(view) {
         const newSettings = getResponsiveSettings();
         calendar.changeView(newSettings.view);
@@ -177,11 +246,17 @@
 
         document.getElementById("detailServiceName").textContent = props.service_name;
         document.getElementById("detailDateTime").textContent = info.event.start.toLocaleString("uk-UA");
-        document.getElementById("detailStatus").textContent = getStatusText(props.status);
+        
+        const statusEl = document.getElementById("detailStatus");
+        statusEl.textContent = getStatusText(props.status);
+        statusEl.className = "fw-bold"; 
+        if(props.status === 'confirmed' || props.status === 'confirmed_paid') statusEl.classList.add('text-success');
+        else if(props.status === 'scheduled') statusEl.classList.add('text-warning');
+        else if(props.status === 'cancelled') statusEl.classList.add('text-danger');
+
         document.getElementById("detailNotes").textContent = props.notes || "No notes provided";
         document.getElementById("detailAmount").textContent = props.amount || "0.00";
 
-        // Payment logic
         const paymentSection = document.getElementById("paymentSection");
         const paymentStatus = document.getElementById("paymentStatus");
 
@@ -193,22 +268,23 @@
           if (props.status === "confirmed_paid") {
             paymentStatus.style.display = "block";
             paymentStatus.className = "alert alert-success";
-            paymentStatus.textContent = "Paid";
+            paymentStatus.innerHTML = '<i class="fas fa-check-circle"></i> Paid';
           } else if (props.status === 'scheduled'){
-          paymentSection.style.display = "none";
-          paymentStatus.style.display = "block";
-          paymentStatus.className = "alert alert-info";
-          paymentStatus.textContent = 'Waiting for service provider to confirm.';
+            paymentSection.style.display = "none";
+            paymentStatus.style.display = "block";
+            paymentStatus.className = "alert alert-info";
+            paymentStatus.innerHTML = '<i class="fas fa-clock"></i> Waiting for confirmation.';
+          } else {
+            paymentStatus.style.display = "none";
           }
         }
 
-        // Action buttons
         const actionsContainer = document.getElementById("appointmentActions");
         actionsContainer.innerHTML = "";
 
         if (props.status === "scheduled") {
           actionsContainer.innerHTML = `
-            <button class="btn btn-danger w-100" onclick="cancelAppointment(${info.event.id})">
+            <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(${info.event.id})">
               Cancel appointment
             </button>
           `;
@@ -220,7 +296,6 @@
         modal.show();
       },
       
-      // Стилізація подій
       eventClassNames: function(arg) {
         return [arg.event.extendedProps.status];
       }
@@ -228,7 +303,6 @@
 
     calendar.render();
 
-    // --- 3. Payment Handler ---
     const payBtn = document.getElementById("payNowBtn");
     if(payBtn) {
         payBtn.addEventListener("click", function () {
@@ -271,7 +345,6 @@
         });
     }
 
-    // --- 4. Review Buttons Handlers ---
     const addReviewBtn = document.getElementById("addReviewBtn");
     if(addReviewBtn) {
         addReviewBtn.addEventListener("click", function () {
@@ -350,13 +423,12 @@
             })
             .finally(() => {
               btn.disabled = false;
-              btn.innerHTML = '<i class="fas fa-paper-plane"></i> Sent feedback';
+              btn.innerHTML = 'Send';
             });
         });
     }
   });
 
-  // --- Helper Functions ---
   function getStatusText(status) {
     const statuses = {
       scheduled: "Scheduled",
@@ -364,7 +436,6 @@
       confirmed_paid: "Paid and confirmed",
       completed: "Completed",
       cancelled: "Cancelled"
-      
     };
     return statuses[status] || status;
   }
@@ -405,7 +476,6 @@
         const reviewForm = document.getElementById("reviewForm");
         const noReviewMessage = document.getElementById("noReviewMessage");
 
-        // Reset default state
         existingReview.style.display = "none";
         reviewForm.style.display = "none";
         noReviewMessage.style.display = "none";
@@ -415,8 +485,6 @@
         } else if (data.review_exists) {
           loadExistingReview(appointmentId);
         } else {
-           // Якщо не можна залишити відгук і його немає (наприклад, статус не completed)
-           // можна або нічого не показувати, або показати повідомлення
            noReviewMessage.style.display = "block"; 
            noReviewMessage.querySelector('p').textContent = "Review available after completion.";
            document.getElementById("addReviewBtn").style.display = "none";

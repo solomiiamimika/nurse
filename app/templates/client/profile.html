@@ -1,129 +1,248 @@
 {% extends "base.html" %} 
 {% block content %}
-<div class="client-profile-page">
-    <a href="{{ url_for('client.dashboard') }}" class="btn btn-outline-secondary mb-3">
-      ← Back to dashboard
+
+<div class="ambient-background"></div>
+
+<div class="client-dashboard" style="padding-top: 40px; padding-bottom: 60px;">
+
+  <div class="d-flex justify-content-between align-items-center mb-4" style="max-width: 800px; margin: 0 auto;">
+    <div>
+        <h2 style="margin-bottom: 5px;">Profile Settings</h2>
+        <span class="text-muted">Update your personal information</span>
+    </div>
+    <a href="{{ url_for('client.dashboard') }}" class="btn-tool">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
     </a>
+  </div>
 
-  <h2 class="client-profile-title">Profile</h2>
+  <div style="max-width: 800px; margin: 0 auto;">
+    {% with messages = get_flashed_messages(with_categories=true) %} 
+        {% if messages %} 
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %} 
+        {% endif %} 
+    {% endwith %}
+  </div>
 
-  {% with messages = get_flashed_messages(with_categories=true) %} 
-    {% if messages %} 
-      {% for category, message in messages %}
-      <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      </div>
-      {% endfor %} 
-    {% endif %} 
-  {% endwith %}
-
-  {% if profile_photo %}
-  <img src="{{ profile_photo }}" class="client-avatar" alt="Profile Photo" />
-  {% else %}
-  <div class="client-no-photo">Profile photo is not uploaded.</div>
-  {% endif %}
-
-  <form method="POST" enctype="multipart/form-data" class="client-form">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-
-    <div class="mb-3">
-      <label class="form-label">Full name</label>
-      <input type="text" name="full_name" class="form-control" value="{{ user.full_name or '' }}" />
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">Phone number</label>
-      <input type="text" name="phone_number" class="form-control" value="{{ user.phone_number or '' }}" />
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">Birth date</label>
-      <input type="date" name="date_birth" class="form-control" value="{{ formatted_date }}" />
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">About me</label>
-      <textarea name="about_me" class="form-control" rows="3">{{ user.about_me or '' }}</textarea>
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">Address</label>
-      <input type="text" name="address" class="form-control" value="{{ user.address or '' }}" />
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">Profile photo:</label>
-      <input type="file" name="profile_picture" id="profile_picture" class="form-control" accept="image/*" />
-      <div class="form-text">JPG, PNG, and GIF are accepted (max 5MB)</div>
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">Upload documents</label>
-      <input type="file" name="documents" id="documents" multiple class="form-control" />
-      <div class="form-text">You can select multiple files (PDF, JPG, PNG)</div>
-    </div>
+  <div class="content-card" style="max-width: 800px; margin: 0 auto;">
     
-    <div class="d-flex justify-content-center mt-3">
-      <button type="submit" class="btn btn-primary">Update profile</button>
-    </div>
-  </form>
+    <form method="POST" enctype="multipart/form-data" class="client-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
-  <h4 class="mt-4 mb-3" style="color: var(--green-700)">Your documents</h4>
-
-  {% if documents_urls %} 
-    {% for filename, url in documents_urls.items() %}
-      <div class="client-doc-item d-flex justify-content-between align-items-center" data-filename="{{ filename }}">
-        <a href="{{ url }}" target="_blank">📄 {{ filename }}</a>
-        <button class="btn btn-sm btn-danger delete-doc-btn">Delete</button>
+      <div class="text-center mb-5">
+        <div class="profile-img-container mb-3">
+            {% if profile_photo %}
+            <img src="{{ profile_photo }}" class="client-avatar shadow-sm" alt="Profile Photo" />
+            {% else %}
+            <div class="client-no-photo shadow-sm">
+                <i class="fas fa-user fa-3x text-muted"></i>
+            </div>
+            {% endif %}
+            
+            <label for="profile_picture" class="edit-photo-btn">
+                <i class="fas fa-camera"></i>
+            </label>
+        </div>
+        <input type="file" name="profile_picture" id="profile_picture" class="d-none" accept="image/*" />
+        <div class="text-muted small">Allowed: JPG, PNG, GIF (Max 5MB)</div>
       </div>
-    {% endfor %} 
-  {% else %}
-    <div class="alert alert-info">Documents not uploaded.</div>
-  {% endif %}
 
-  <hr class="my-5">
-  
-  <div class="card border-danger mb-5">
-    <div class="card-header bg-danger text-white">
-      <strong>Danger Zone</strong>
+      <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">FULL NAME</label>
+            <input type="text" name="full_name" class="form-control" value="{{ user.full_name or '' }}" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">PHONE NUMBER</label>
+            <input type="text" name="phone_number" class="form-control" value="{{ user.phone_number or '' }}" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">BIRTH DATE</label>
+            <input type="date" name="date_birth" class="form-control" value="{{ formatted_date }}" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">ADDRESS</label>
+            <input type="text" name="address" class="form-control" value="{{ user.address or '' }}" />
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-bold small text-muted">ABOUT ME</label>
+            <textarea name="about_me" class="form-control" rows="3">{{ user.about_me or '' }}</textarea>
+          </div>
+
+          <div class="col-12 mt-4">
+            <label class="form-label fw-bold small text-muted">UPLOAD NEW DOCUMENTS</label>
+            <div class="input-group">
+                <input type="file" name="documents" id="documents" multiple class="form-control" />
+                <span class="input-group-text text-muted"><i class="fas fa-file-upload"></i></span>
+            </div>
+            <div class="form-text">You can select multiple files (PDF, JPG, PNG)</div>
+          </div>
+      </div>
+      
+      <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+        <button type="submit" class="btn btn-success px-4 fw-bold">Update Profile</button>
+      </div>
+    </form>
+
+    <div class="mt-5">
+        <h5 class="mb-3">Your Documents</h5>
+        
+        {% if documents_urls %} 
+        <div class="documents-grid">
+            {% for filename, url in documents_urls.items() %}
+            <div class="client-doc-item" data-filename="{{ filename }}">
+                <div class="d-flex align-items-center overflow-hidden">
+                    <div class="doc-icon me-3">
+                        <i class="fas fa-file-alt text-primary"></i>
+                    </div>
+                    <a href="{{ url }}" target="_blank" class="text-truncate text-dark text-decoration-none fw-bold" style="max-width: 200px;">
+                        {{ filename }}
+                    </a>
+                </div>
+                <button class="btn btn-sm btn-light text-danger delete-doc-btn border" title="Delete">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+            {% endfor %} 
+        </div>
+        {% else %}
+        <div class="p-4 text-center bg-light rounded border border-dashed">
+            <i class="fas fa-folder-open fa-2x text-muted mb-2"></i>
+            <p class="text-muted mb-0">No documents uploaded yet.</p>
+        </div>
+        {% endif %}
     </div>
-    <div class="card-body">
-      <p class="card-text">Once you delete your account, there is no going back. Please be certain.</p>
-      <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
-        Delete Account
-      </button>
-    </div>
+
+  </div>
+
+  <div class="mt-5" style="max-width: 800px; margin: 0 auto;">
+      <div class="accordion" id="dangerZoneAccordion">
+          <div class="accordion-item border-danger">
+              <h2 class="accordion-header">
+                  <button class="accordion-button collapsed bg-white text-danger fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDanger">
+                      <i class="fas fa-exclamation-triangle me-2"></i> Danger Zone
+                  </button>
+              </h2>
+              <div id="collapseDanger" class="accordion-collapse collapse" data-bs-parent="#dangerZoneAccordion">
+                  <div class="accordion-body">
+                      <p class="small text-muted">Once you delete your account, there is no going back. Please be certain.</p>
+                      <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                          Delete Account
+                      </button>
+                  </div>
+              </div>
+          </div>
+      </div>
   </div>
 
 </div>
 
 <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title text-danger">Confirm Account Deletion</h5>
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title text-danger fw-bold">Delete Account?</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        Are you absolutely sure you want to delete your account?<br><br>
-        <strong>This action cannot be undone.</strong> All your data, including documents and photos, will be permanently removed.
+        <p class="mb-0">Are you absolutely sure? This action <strong>cannot be undone</strong>. All your data, photos, and history will be permanently erased.</p>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
         <form action="{{ url_for('auth.delete_account') }}" method="POST">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="btn btn-danger">Yes, Delete My Account</button>
+          <button type="submit" class="btn btn-danger">Yes, Delete Everything</button>
         </form>
       </div>
     </div>
   </div>
 </div>
 
+<style>
+    /* Аватар */
+    .profile-img-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+    }
+    .client-avatar, .client-no-photo {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid white;
+    }
+    .client-no-photo {
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .edit-photo-btn {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: var(--primary-green, #1dbf73);
+        color: white;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border: 2px solid white;
+        transition: transform 0.2s;
+    }
+    .edit-photo-btn:hover {
+        transform: scale(1.1);
+    }
+
+    /* Документи */
+    .documents-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+    }
+    .client-doc-item {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 10px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s;
+    }
+    .client-doc-item:hover {
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border-color: #cbd5e1;
+    }
+    .doc-icon {
+        width: 32px;
+        height: 32px;
+        background: #e0f2fe;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+</style>
+
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    // Existing code for documents...
+    // Delete Document Logic
     document.addEventListener("click", async (event) => {
       const deleteBtn = event.target.closest(".delete-doc-btn");
       if (deleteBtn) {
@@ -148,6 +267,7 @@
           if (result.success) {
             docItem.style.transition = "all 0.3s";
             docItem.style.opacity = "0";
+            docItem.style.transform = "scale(0.9)";
             setTimeout(() => {
                 docItem.remove();
                 const remaining = document.querySelectorAll('.client-doc-item');
@@ -163,7 +283,7 @@
       }
     });
 
-    // Existing code for profile picture size check...
+    // Profile Picture Preview/Check
     const profilePicInput = document.getElementById("profile_picture");
     if (profilePicInput) {
       profilePicInput.addEventListener("change", function () {
@@ -172,6 +292,18 @@
           if (file.size > 5 * 1024 * 1024) {
             alert("File is too large, 5MB max.");
             this.value = "";
+          } else {
+             // Optional: Instant preview logic if desired
+             const reader = new FileReader();
+             reader.onload = function(e) {
+                 const img = document.querySelector('.client-avatar');
+                 const noPhoto = document.querySelector('.client-no-photo');
+                 if(img) img.src = e.target.result;
+                 if(noPhoto) {
+                     noPhoto.innerHTML = `<img src="${e.target.result}" class="client-avatar" style="border:none; width:100%; height:100%">`;
+                 }
+             }
+             reader.readAsDataURL(file);
           }
         }
       });

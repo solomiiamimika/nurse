@@ -557,31 +557,57 @@ def nurse_accept_request(request_id):
         return jsonify({'success': False, 'message': 'Access denied'}), 403
     
     try:
-        request = ClientSelfCreatedAppointment.query.get(request_id)
+        req = ClientSelfCreatedAppointment.query.get(request_id) # змінив назву змінної request на req, щоб не плутати з flask.request
         
-        if not request:
+        if not req:
             return jsonify({'success': False, 'message': 'Request not found'}), 404
         
-        if request.status != 'pending':
+        if req.status != 'pending':
             return jsonify({'success': False, 'message': 'Request already processed'}), 400
         
-        request.status = 'accepted'
-        request.doctor_id = current_user.id
+        req.status = 'accepted'
+        req.doctor_id = current_user.id
         
+    
+        service_id_to_use = req.nurse_service_id
+
+        if not service_id_to_use:
+
+            duration_minutes = 60 
+            if req.end_time and req.appointment_start_time:
+                diff = req.end_time - req.appointment_start_time
+                duration_minutes = int(diff.total_seconds() / 60)
+
+        
+            new_custom_service = NurseService(
+                name=req.service_name if req.service_name else "Individual Request",
+                nurse_id=current_user.id,
+                price=req.payment if req.payment else 0.0,
+                duration=duration_minutes,
+                description=f"Auto-generated from client request #{req.id}. {req.service_description or ''}",
+                is_available=False 
+            )
+            
+            db.session.add(new_custom_service)
+            db.session.flush()
+            
+            service_id_to_use = new_custom_service.id
+            
+         
+            req.nurse_service_id = service_id_to_use
+
         appointment = Appointment(
-            client_id=request.patient_id,
+            client_id=req.patient_id,
             nurse_id=current_user.id,
-            nurse_service_id=request.nurse_service_id,
-            appointment_time=request.appointment_start_time,
-            end_time=request.end_time,
+            nurse_service_id=service_id_to_use, 
+            appointment_time=req.appointment_start_time,
+            end_time=req.end_time,
             status='scheduled',
-            notes=request.notes
+            notes=req.notes
         )
         
         db.session.add(appointment)
         db.session.commit()
-        
-        # TODO: Send notification to client
         
         return jsonify({
             'success': True, 
@@ -593,7 +619,6 @@ def nurse_accept_request(request_id):
         current_app.logger.error(f"Error accepting request: {str(e)}")
         db.session.rollback()
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
-
 @nurse_bp.route('/nurse_get_accepted_requests', methods=['GET'])
 @login_required
 def nurse_get_accepted_requests():
