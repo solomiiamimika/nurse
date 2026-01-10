@@ -186,7 +186,7 @@
       headerToolbar: initialSettings.header,
       locale: "en", 
       themeSystem: 'standard',
-      events: "/nurse/get_appointments",
+      events: "{{ url_for('nurse.get_appointments') }}",
       dayMaxEvents: true,
       handleWindowResize: true, 
 
