@@ -1,22 +1,223 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Human</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='auth.css') }}"
-    />
-  </head>
-  <body>
-    <div class="overlay-content">
-      <h1 class="brand">Human</h1>
-      <h2 class="welcome">Welcome to the Service Portal</h2>
+{# templates/home.html #}
+{% extends "base.html" %}
+{% block content %}
 
-      <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login</a>
-      <a href="{{ url_for('auth.register') }}" class="btn btn-secondary"
-        >Register</a
-      >
+<div class="ambient-background"></div>
+
+<!-- Hero / Header -->
+<div class="greeting-header">
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <h2 class="mb-1">Welcome to Human</h2>
+        <div class="hero-subtitle">Find the perfect service for your needs</div>
+      </div>
+
+      <!-- Primary CTAs -->
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('auth.login') }}" class="btn">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </a>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-warning">
+          <i class="fas fa-user-plus"></i> Register
+        </a>
+      </div>
     </div>
-  </body>
-</html>
+  </div>
+</div>
+
+<!-- Sticky toolbar (search + CTAs only, no personal actions) -->
+<div class="sticky-toolbar">
+  <div class="toolbar-container">
+
+    <form class="top-search-bar" method="GET" action="{{ request.path }}">
+      <input
+        type="text"
+        name="q"
+        value="{{ search_query|default('') }}"
+        placeholder="What service are you looking for?"
+        class="search-input"
+      />
+      <button type="submit" class="search-btn">Search</button>
+    </form>
+
+    <div class="dashboard-options">
+      <a href="{{ url_for('auth.login') }}" class="btn">
+        <i class="fas fa-unlock"></i> Login
+      </a>
+      <a href="{{ url_for('auth.register') }}" class="btn btn-warning">
+        <i class="fas fa-user-plus"></i> Register
+      </a>
+    </div>
+
+    <div id="status-message" style="text-align: center; font-size: 0.9rem;"></div>
+  </div>
+</div>
+
+<!-- Main layout, same structure as dashboard -->
+<div class="client-dashboard">
+  <div class="row g-4">
+
+    <!-- Left: “Map-like” discovery card (static for landing) -->
+    <div class="col-lg-8 col-md-7">
+      <div class="content-card map-card-wrapper">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="premium-title mb-0">Explore Services Nearby</h5>
+          <span class="text-muted small">Browse providers and offerings</span>
+        </div>
+
+        <!-- Static map placeholder -->
+        <div
+          style="
+            height: 600px;
+            width: 100%;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(13,110,253,0.10), rgba(29,191,115,0.10));
+            border: 1px solid rgba(0,0,0,0.06);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            position:relative;
+            overflow:hidden;
+          "
+        >
+          <div style="text-align:center; max-width: 420px; padding: 24px;">
+            <div style="font-size: 42px; opacity: 0.25; margin-bottom: 10px;">
+              <i class="fas fa-map-marked-alt"></i>
+            </div>
+            <h5 class="mb-2">See providers on the map</h5>
+            <p class="text-muted mb-3" style="font-size: 0.95rem;">
+              Login to use your location, view nearby providers, and book services in a few clicks.
+            </p>
+            <div class="d-flex justify-content-center gap-2">
+              <a href="{{ url_for('auth.login') }}" class="btn btn-success">
+                <i class="fas fa-sign-in-alt"></i> Login to Explore
+              </a>
+              <a href="{{ url_for('auth.register') }}" class="btn btn-light text-muted">
+                Create account
+              </a>
+            </div>
+          </div>
+
+          <!-- Decorative “pins” -->
+          <div style="position:absolute; left:18%; top:28%; width:12px; height:12px; border-radius:50%; background:#1dbf73; border:3px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.18);"></div>
+          <div style="position:absolute; left:55%; top:45%; width:12px; height:12px; border-radius:50%; background:#0d6efd; border:3px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.18);"></div>
+          <div style="position:absolute; left:72%; top:32%; width:12px; height:12px; border-radius:50%; background:#b5b6ba; border:3px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.18);"></div>
+          <div style="position:absolute; left:38%; top:62%; width:12px; height:12px; border-radius:50%; background:#1dbf73; border:3px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.18);"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: cards list (static previews) -->
+    <div class="col-lg-4 col-md-5">
+
+      <div class="mb-4">
+        <h6 class="text-uppercase text-muted small fw-bold mb-3" style="letter-spacing: 1px;">
+          How it works
+        </h6>
+
+        <div class="card mb-2" style="border-left: 4px solid #0d6efd;">
+          <div class="card-body p-3">
+            <div class="d-flex align-items-start gap-2">
+              <i class="fas fa-search text-muted mt-1"></i>
+              <div>
+                <strong>1) Search</strong>
+                <div class="text-muted small">Find the service you need in seconds.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-2" style="border-left: 4px solid #1dbf73;">
+          <div class="card-body p-3">
+            <div class="d-flex align-items-start gap-2">
+              <i class="fas fa-calendar-check text-muted mt-1"></i>
+              <div>
+                <strong>2) Book</strong>
+                <div class="text-muted small">Choose a provider and pick a time.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-2" style="border-left: 4px solid #ffc107;">
+          <div class="card-body p-3">
+            <div class="d-flex align-items-start gap-2">
+              <i class="fas fa-bolt text-muted mt-1"></i>
+              <div>
+                <strong>3) Get it done</strong>
+                <div class="text-muted small">Providers arrive prepared and on time.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr style="opacity: 0.1; margin: 20px 0;">
+
+      <h5 class="premium-title">Popular Providers</h5>
+      <div class="providers-scroll-area">
+
+        <!-- Static preview cards; replace with real data later if you want -->
+        <div class="card nurse-item" onclick="window.location='{{ url_for('auth.login') }}'" style="cursor:pointer;">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h6 class="mb-1 fw-bold">Home Nurse Visit</h6>
+                <div class="small text-muted mb-2">
+                  <i class="fas fa-map-marker-alt text-muted"></i> In your area (login to view)
+                </div>
+              </div>
+              <span class="badge badge-online">Available</span>
+            </div>
+            <button class="btn-premium-secondary">View &amp; Book</button>
+          </div>
+        </div>
+
+        <div class="card nurse-item" onclick="window.location='{{ url_for('auth.login') }}'" style="cursor:pointer;">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h6 class="mb-1 fw-bold">Physio at Home</h6>
+                <div class="small text-muted mb-2">
+                  <i class="fas fa-map-marker-alt text-muted"></i> Nearby providers (login to view)
+                </div>
+              </div>
+              <span class="badge badge-offline">Preview</span>
+            </div>
+            <button class="btn-premium-secondary">View &amp; Book</button>
+          </div>
+        </div>
+
+        <div class="text-center py-4 text-muted">
+          <i class="fas fa-lock fa-2x mb-3" style="color:#ddd"></i>
+          <p class="mb-2">Login to unlock full provider list and map.</p>
+          <a href="{{ url_for('auth.login') }}" class="btn btn-success">
+            <i class="fas fa-sign-in-alt"></i> Login
+          </a>
+          <a href="{{ url_for('auth.register') }}" class="btn btn-light text-muted ms-2">
+            Register
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- Optional: keep Botpress on landing (remove if you don't want it here) -->
+<script src="https://cdn.botpress.cloud/webchat/v3.5/inject.js"></script>
+<script src="https://files.bpcontent.cloud/2026/01/10/13/20260110130650-79OB48AX.js" defer></script>
+
+<script>
+  // lightweight landing behavior
+  document.addEventListener('DOMContentLoaded', () => {
+    const status = document.getElementById('status-message');
+    if (status) status.textContent = '';
+  });
+</script>
+{% endblock %}

@@ -989,5 +989,16 @@ def services():
 
 
 
-
+@client_bp.route("/provider/<int:provider_id>")
+@login_required
+def provider_detail(provider_id):
+    provider = User.query.filter_by(id=provider_id, role='nurse').first_or_404()
+    reviews = Review.query.filter_by(doctor_id=provider.id).order_by(
+        Review.created_at.desc()
+    ).all()
+    servises= NurseService.query.filter_by(nurse_id=provider.id,is_available=True).all()
+    photo = None
+    if provider.photo:
+        photo = get_file_url(provider.photo,buckets['profile_pictures'])
+    return render_template("client/provider_detail.html", provider=provider, reviews=reviews, services=servises, photo=photo)
     
