@@ -37,7 +37,10 @@ class User(db.Model, UserMixin):
     created_at = Column(DateTime, default=datetime.now)
     online= Column(Boolean)
     
-
+    reviews_received = db.relationship('Review', 
+                                     foreign_keys='Review.doctor_id', 
+                                     backref='nurse_profile', 
+                                     lazy=True)
     sent_messages = db.relationship('Message', 
                                   foreign_keys='Message.sender_id', 
                                   backref='sender', 
@@ -51,6 +54,21 @@ class User(db.Model, UserMixin):
     client_appointments = db.relationship('Appointment', foreign_keys='Appointment.client_id', backref='client', lazy=True,cascade = 'all, delete-orphan')
     nurse_appointments = db.relationship('Appointment', foreign_keys='Appointment.nurse_id', backref='nurse', lazy=True,cascade = 'all, delete-orphan')
     payments = db.relationship('Payment', backref='user', lazy=True, cascade = 'all, delete-orphan')
+    
+    
+    @property
+    def average_rating(self):
+        if not self.reviews_received:
+            return 0.0
+        
+
+        total = sum(r.rating for r in self.reviews_received)
+        
+
+        return round(total / len(self.reviews_received), 1)
+    @property
+    def review_count(self):
+        return len(self.reviews_received)
     @property
     def password(self):
         raise AttributeError('password is not a readable attribute')

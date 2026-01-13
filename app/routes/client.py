@@ -1000,5 +1000,5 @@ def provider_detail(provider_id):
     photo = None
     if provider.photo:
         photo = get_file_url(provider.photo,buckets['profile_pictures'])
-    return render_template("client/provider_detail.html", provider=provider, reviews=reviews, services=servises, photo=photo)
+    return render_template("client/provider_public_profile.html", provider=provider, reviews=reviews, services=servises, photo=photo)
     

@@ -1,0 +1,286 @@
+{% extends "base.html" %} 
+{% block content %}
+
+<div class="ambient-background"></div>
+
+<div class="main-wrapper" style="padding-top: 40px; padding-bottom: 60px;">
+  <div class="custom-container">
+    
+    <a href="{{ url_for('client.dashboard') }}" class="btn-tool mb-4" style="width: auto; display: inline-flex;">
+        <i class="fas fa-arrow-left"></i> Back to Search
+    </a>
+
+    <div class="row g-4">
+        
+        <div class="col-lg-8">
+            
+            <div class="content-card mb-4">
+                <div class="d-flex flex-column flex-md-row gap-4 align-items-center align-items-md-start">
+                    <div class="position-relative">
+                        {% if photo %}
+                            <img src="{{ photo }}" class="provider-avatar-lg shadow-sm">
+                        {% else %}
+                            <div class="provider-avatar-lg shadow-sm bg-light d-flex align-items-center justify-content-center text-muted">
+                                <i class="fas fa-user-nurse fa-3x"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <span class="status-badge {{ 'online' if provider.online else 'offline' }}">
+                            {{ 'Online' if provider.online else 'Offline' }}
+                        </span>
+                    </div>
+
+                    <div class="flex-grow-1 text-center text-md-start">
+                        <h2 class="fw-bold mb-1">{{ provider.full_name or provider.user_name }}</h2>
+                        <div class="text-muted mb-3">
+                            <i class="fas fa-map-marker-alt me-1"></i> {{ provider.address or 'No address provided' }}
+                        </div>
+                        
+                        <div class="d-flex justify-content-center justify-content-md-start gap-3 mb-4">
+                            <div class="stat-item">
+                                <span class="fw-bold text-dark">{{ provider.average_rating | round(1)}}</span>
+                                <span class="text-warning"><i class="fas fa-star"></i></span>
+                                <span class="text-muted small">Rating </span>
+                            </div>
+                            <div class="stat-item border-start ps-3">
+                                <span class="fw-bold text-dark">{{ reviews|length }}</span>
+                                <span class="text-muted small">Reviews</span>
+                            </div>
+                            <div class="stat-item border-start ps-3">
+                                <span class="fw-bold text-dark">Verified</span>
+                                <span class="text-success small"><i class="fas fa-check-circle"></i> Identity</span>
+                            </div>
+                        </div>
+
+                        <div class="about-section">
+                            <h5 class="fw-bold small text-muted">ABOUT ME</h5>
+                            <p class="text-dark">
+                                {{ provider.about_me or 'This provider has not added a description yet.' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h4 class="fw-bold mb-4">Reviews ({{ reviews|length }})</h4>
+                
+                {% if reviews %}
+                    <div class="reviews-list">
+                        {% for review in reviews %}
+                        <div class="review-item border-bottom pb-4 mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="review-avatar">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">{{ review.patient.user_name }}</h6>
+                                        <span class="text-muted small">{{ review.created_at.strftime('%d %b %Y') }}</span>
+                                    </div>
+                                </div>
+                                <div class="text-warning">
+                                    {% for i in range(review.rating) %}★{% endfor %}
+                                    <span class="text-muted small">({{ review.rating }})</span>
+                                </div>
+                            </div>
+                            <p class="text-secondary mb-0">"{{ review.comment }}"</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 bg-light rounded border border-dashed">
+                        <i class="far fa-comment-dots fa-2x text-muted mb-2"></i>
+                        <p class="text-muted mb-0">No reviews yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <div class="col-lg-4">
+            <div class="sticky-sidebar">
+                <h5 class="fw-bold mb-3">Available Services</h5>
+                
+                {% if services %}
+                    <div class="services-list d-flex flex-column gap-3">
+                        {% for service in services %}
+                        <div class="service-card-select">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold mb-0 text-dark">{{ service.name }}</h6>
+                                <span class="price-tag">{{ service.price }} €</span>
+                            </div>
+                            <p class="small text-muted mb-3 line-clamp-2">
+                                {{ service.description or 'Standard service procedure' }}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="small text-muted"><i class="far fa-clock me-1"></i> {{ service.duration }} min</span>
+                                <button class="btn btn-sm btn-success fw-bold" onclick="openBookingModal('{{ provider.id }}', '{{ provider.full_name }}', '{{ service.id }}')">
+                                    Book Now
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning small">
+                        This provider has no active services at the moment.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Book Service</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-3">Provider: <strong id="bookingNurseName" class="text-dark"></strong></p>
+        <form id="bookingForm">
+          <input type="hidden" id="nurseIdInput" name="nurse_id" />
+          
+          <div class="mb-3">
+            <label for="serviceSelect" class="form-label text-muted small fw-bold">SERVICE</label>
+            <select class="form-select" id="serviceSelect" required></select>
+          </div>
+          
+          <div class="mb-3">
+            <label for="appointmentDate" class="form-label text-muted small fw-bold">DATE & TIME</label>
+            <input type="datetime-local" class="form-control" id="appointmentDate" required />
+          </div>
+          <div class="mb-3">
+            <label for="appointmentNotes" class="form-label text-muted small fw-bold">REQUIREMENTS</label>
+            <textarea class="form-control" id="appointmentNotes" rows="3" placeholder="Describe what you need..."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" id="submitBookingBtn">Confirm Booking</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<style>
+    .custom-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    
+    .content-card {
+        background: white; padding: 30px; border-radius: 12px;
+        border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    /* Avatar */
+    .provider-avatar-lg {
+        width: 120px; height: 120px; border-radius: 50%;
+        object-fit: cover; border: 4px solid white;
+    }
+    
+    /* Online status badge absolute to avatar */
+    .status-badge {
+        position: absolute; bottom: 5px; right: 5px;
+        padding: 4px 10px; border-radius: 20px;
+        font-size: 0.75rem; font-weight: 700;
+        border: 2px solid white;
+    }
+    .status-badge.online { background: #10b981; color: white; }
+    .status-badge.offline { background: #9ca3af; color: white; }
+
+    /* Sticky Sidebar */
+    .sticky-sidebar {
+        position: sticky; top: 100px; /* Adjust based on navbar height */
+    }
+
+    /* Service Cards in sidebar */
+    .service-card-select {
+        background: white; padding: 15px; border-radius: 8px;
+        border: 1px solid #e5e7eb; transition: all 0.2s;
+    }
+    .service-card-select:hover {
+        border-color: var(--primary-green); box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .price-tag {
+        font-weight: 700; font-size: 1.1rem; color: #1f2937;
+    }
+
+    /* Reviews */
+    .review-avatar {
+        width: 40px; height: 40px; background: #f3f4f6;
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        color: #9ca3af;
+    }
+</style>
+
+<script>
+    const csrfToken = "{{ csrf_token() }}";
+
+    // Логіка відкриття модалки (трохи модифікована, щоб приймати serviceId)
+    window.openBookingModal = function(nurseId, nurseName, preselectedServiceId = null) {
+        document.getElementById('bookingNurseName').textContent = nurseName;
+        document.getElementById('nurseIdInput').value = nurseId;
+        
+        const select = document.getElementById('serviceSelect');
+        select.innerHTML = '<option>Loading services...</option>';
+        
+        const modal = new bootstrap.Modal(document.getElementById('bookingModal'));
+        modal.show();
+
+        fetch(`/client/get_nurse_services?nurse_id=${nurseId}`)
+            .then(r => r.json())
+            .then(services => {
+                select.innerHTML = '';
+                if(services.length === 0) {
+                    select.innerHTML = '<option disabled>No services available</option>';
+                    return;
+                }
+                services.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = `${s.name} - ${s.price} EUR`;
+                    if(preselectedServiceId && s.id == preselectedServiceId) {
+                        opt.selected = true;
+                    }
+                    select.appendChild(opt);
+                });
+            });
+    }
+
+    // Логіка відправки форми (така ж, як на дашборді)
+    document.getElementById('submitBookingBtn').addEventListener('click', function() {
+        const nurseId = document.getElementById('nurseIdInput').value;
+        const serviceId = document.getElementById('serviceSelect').value;
+        const dateTime = document.getElementById('appointmentDate').value;
+        const notes = document.getElementById('appointmentNotes').value;
+
+        if(!dateTime || !serviceId) { alert("Please fill in date and service"); return; }
+
+        const btn = this;
+        btn.disabled = true;
+        btn.innerText = "Processing...";
+
+        fetch('/client/create_appointment', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+            body: JSON.stringify({nurse_id: nurseId, service_id: serviceId, date_time: dateTime, notes: notes})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.success) { 
+                alert("Appointment confirmed!"); 
+                window.location.href = "{{ url_for('client.appointments') }}";
+            } 
+            else { alert("Error: " + data.message); btn.disabled = false; btn.innerText = "Confirm Booking"; }
+        });
+    });
+</script>
+{% endblock %}

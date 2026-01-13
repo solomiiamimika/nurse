@@ -92,9 +92,15 @@
                     {% endif %}
                 </div>
                 
-                <button class="btn-premium-secondary">
-                    View & Book
-                </button>
+               <div class="d-flex gap-2 mt-2">
+                  <a href="{{ url_for('client.provider_detail', provider_id=nurse.id) }}" class="btn btn-outline-secondary flex-grow-1" style="font-size: 0.9rem; font-weight: 600;">
+                      View Profile
+                  </a>
+                  
+                  <button onclick="openBookingModal('{{ nurse.id }}','{{ nurse.full_name }}')" class="btn btn-success flex-grow-1" style="font-size: 0.9rem; font-weight: 600;">
+                      Book
+                  </button>
+              </div>
               </div>
             </div>
             {% endfor %} 
