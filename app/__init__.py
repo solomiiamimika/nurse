@@ -1,6 +1,6 @@
-from flask import Flask
+from flask import Flask, app, session, request
 from wtforms.csrf.core import CSRF
-from .extensions import db, bcrypt, login_manager, migrate, google_blueprint
+from .extensions import db, bcrypt, login_manager, migrate, google_blueprint, babel
 from app.models import User, Message, Service, Appointment, Payment, MedicalRecord, Prescription, Review
 from app.routes import auth_bp, main_bp, client_bp, nurse_bp
 from flask_wtf.csrf import CSRFProtect
@@ -21,8 +21,13 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['GOOGLE_OAUTH_CLIENT_ID'] = os.getenv ('GOOGLE_OAUTH_CLIENT_ID')
     app.config['GOOGLE_OAUTH_CLIENT_SECRET'] = os.getenv ('GOOGLE_OAUTH_CLIENT_SECRET')
+    app.config['BABEL_DEFAULT_LOCALE'] = 'en'
+    app.config['BABEL_SUPPORTED_LOCALES'] = ['de', 'uk', 'pl', 'cz-CN']
     csrf=CSRFProtect()
-
+    
+    app.config["BABEL_TRANSLATION_DIRECTORIES"] = os.path.join(
+        os.path.dirname(__file__), "..", "translations"
+    )
 #banking
     app.config['STRIPE_PUBLIC_KEY']= os.getenv ('STRIPE_PUBLIC_KEY')
     app.config['STRIPE_SECRET_KEY']= os.getenv ('STRIPE_SECRET_KEY')
@@ -35,6 +40,14 @@ def create_app():
     migrate.init_app(app, db)
     csrf.init_app(app)
     socketio.init_app(app)
+
+    def get_locale():
+        print('current_language', session['lang'])
+        if 'lang' in session:
+            return session['lang']
+        return request.accept_languages.best_match(['en', 'uk'])
+
+    babel.init_app(app, locale_selector=get_locale)
 
     # Registering blueprints
     from app.routes.auth import auth_bp
@@ -63,7 +76,7 @@ def create_app():
         db.create_all()
 
     return app
-
+    
 
 
 

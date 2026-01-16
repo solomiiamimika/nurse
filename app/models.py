@@ -146,17 +146,41 @@ class Appointment(db.Model):
     notes = Column(Text)
     payment = relationship('Payment', backref='appointment', uselist=False)
 
-class Payment (db.Model):
-    __tablename__='payment'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey ('user.id'), nullable=False)
-    appointment_id = Column(Integer, ForeignKey('appointment.id'), nullable=False)
-    amount = Column(Float, nullable=False)
-    payment_date = Column(DateTime, default=datetime.now)
-    status = Column (String(20), default='pending') # pending, completed, failed    
-    transaction_id = Column(String(50))
-    payment_method = Column(String(50))
     
+
+class Payment(db.Model):
+    __tablename__ = 'payment'
+
+    id = Column(Integer, primary_key=True)
+
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    appointment_id = Column(Integer, ForeignKey('appointment.id'), nullable=False)
+
+    # Legacy / display (краще з часом перейти на amount_cents)
+    amount = Column(Float, nullable=False)
+
+    # Stripe-friendly money fields
+    amount_cents = Column(Integer, nullable=False)                 # напр. 5000 = 50.00 EUR
+    currency = Column(String(3), nullable=False, default='eur')    # 'eur', 'usd', ...
+
+    # Platform fee (твоя комісія)
+    platform_fee_cents = Column(Integer, nullable=False, default=0)
+
+    payment_date = Column(DateTime, default=datetime.now)
+
+    # pending, completed/paid, failed, canceled, refunded, paid_out (можеш розширити)
+    status = Column(String(20), default='pending')
+
+    # Stripe identifiers
+    stripe_payment_intent_id = Column(String(64), index=True)
+    stripe_charge_id = Column(String(64), index=True)
+    stripe_transfer_id = Column(String(64), index=True)
+    transfer_group = Column(String(64), index=True)
+
+    # залишаю твоє, але краще використовувати stripe_payment_intent_id
+    transaction_id = Column(String(50), index=True)
+
+    payment_method = Column(String(50))
 
             
 

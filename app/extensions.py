@@ -5,6 +5,11 @@ from flask_migrate import Migrate
 from flask_dance.contrib.google import make_google_blueprint
 import os
 from flask_socketio import SocketIO
+from flask_babel import Babel
+
+babel = Babel()
+
+
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 login_manager = LoginManager()
@@ -44,5 +49,5 @@ google_blueprint = make_google_blueprint(
 
 
 login_manager.login_view = 'auth.login'
-login_manager.login_message = 'Будь ласка, увійдіть для доступу до цієї сторінки.'
+login_manager.login_message = ("Будь ласка, увійдіть для доступу до цієї сторінки.")
 login_manager.login_message_category = 'danger'

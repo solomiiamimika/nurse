@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>My Cool App</title>
+    <title>{{ _("My Cool App") }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
       rel="stylesheet"
@@ -27,6 +27,10 @@
   </head>
 
   <body>
+    <div class="change_language"> </div>
+      <a href="{{ url_for('auth.set_language', lang_code='en') }}">English</a>
+      <a href="{{ url_for('auth.set_language', lang_code='uk') }}">Українська</a>
+    </div>
     {% with messages = get_flashed_messages(with_categories=true) %} {% if
     messages %}
     <ul class="flashes">

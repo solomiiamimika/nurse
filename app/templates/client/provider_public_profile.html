@@ -7,7 +7,7 @@
   <div class="custom-container">
     
     <a href="{{ url_for('client.dashboard') }}" class="btn-tool mb-4" style="width: auto; display: inline-flex;">
-        <i class="fas fa-arrow-left"></i> Back to Search
+        <i class="fas fa-arrow-left"></i> {{ _("Back to Search") }}
     </a>
 
     <div class="row g-4">
@@ -26,36 +26,36 @@
                         {% endif %}
                         
                         <span class="status-badge {{ 'online' if provider.online else 'offline' }}">
-                            {{ 'Online' if provider.online else 'Offline' }}
+                            {{ _("Online") if provider.online else _("Offline") }}
                         </span>
                     </div>
 
                     <div class="flex-grow-1 text-center text-md-start">
                         <h2 class="fw-bold mb-1">{{ provider.full_name or provider.user_name }}</h2>
                         <div class="text-muted mb-3">
-                            <i class="fas fa-map-marker-alt me-1"></i> {{ provider.address or 'No address provided' }}
+                            <i class="fas fa-map-marker-alt me-1"></i> {{ provider.address or _('No address provided') }}
                         </div>
                         
                         <div class="d-flex justify-content-center justify-content-md-start gap-3 mb-4">
                             <div class="stat-item">
                                 <span class="fw-bold text-dark">{{ provider.average_rating | round(1)}}</span>
                                 <span class="text-warning"><i class="fas fa-star"></i></span>
-                                <span class="text-muted small">Rating </span>
+                                <span class="text-muted small">{{ _("Rating") }} </span>
                             </div>
                             <div class="stat-item border-start ps-3">
                                 <span class="fw-bold text-dark">{{ reviews|length }}</span>
-                                <span class="text-muted small">Reviews</span>
+                                <span class="text-muted small">{{ _("Reviews") }}</span>
                             </div>
                             <div class="stat-item border-start ps-3">
-                                <span class="fw-bold text-dark">Verified</span>
-                                <span class="text-success small"><i class="fas fa-check-circle"></i> Identity</span>
+                                <span class="fw-bold text-dark">{{ _("Verified") }}</span>
+                                <span class="text-success small"><i class="fas fa-check-circle"></i> {{ _("Identity") }}</span>
                             </div>
                         </div>
 
                         <div class="about-section">
-                            <h5 class="fw-bold small text-muted">ABOUT ME</h5>
+                            <h5 class="fw-bold small text-muted">{{ _("ABOUT ME") }}</h5>
                             <p class="text-dark">
-                                {{ provider.about_me or 'This provider has not added a description yet.' }}
+                                {{ provider.about_me or _('This provider has not added a description yet.') }}
                             </p>
                         </div>
                     </div>
@@ -63,7 +63,7 @@
             </div>
 
             <div class="content-card">
-                <h4 class="fw-bold mb-4">Reviews ({{ reviews|length }})</h4>
+                <h4 class="fw-bold mb-4">{{ _("Reviews") }} ({{ reviews|length }})</h4>
                 
                 {% if reviews %}
                     <div class="reviews-list">
@@ -91,7 +91,7 @@
                 {% else %}
                     <div class="text-center py-5 bg-light rounded border border-dashed">
                         <i class="far fa-comment-dots fa-2x text-muted mb-2"></i>
-                        <p class="text-muted mb-0">No reviews yet.</p>
+                        <p class="text-muted mb-0">{{ _("No reviews yet.") }}</p>
                     </div>
                 {% endif %}
             </div>
@@ -100,7 +100,7 @@
 
         <div class="col-lg-4">
             <div class="sticky-sidebar">
-                <h5 class="fw-bold mb-3">Available Services</h5>
+                <h5 class="fw-bold mb-3">{{ _("Available Services") }}</h5>
                 
                 {% if services %}
                     <div class="services-list d-flex flex-column gap-3">
@@ -111,12 +111,12 @@
                                 <span class="price-tag">{{ service.price }} €</span>
                             </div>
                             <p class="small text-muted mb-3 line-clamp-2">
-                                {{ service.description or 'Standard service procedure' }}
+                                {{ service.description or _('Standard service procedure') }}
                             </p>
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="small text-muted"><i class="far fa-clock me-1"></i> {{ service.duration }} min</span>
+                                <span class="small text-muted"><i class="far fa-clock me-1"></i> {{ service.duration }} {{ _("min") }}</span>
                                 <button class="btn btn-sm btn-success fw-bold" onclick="openBookingModal('{{ provider.id }}', '{{ provider.full_name }}', '{{ service.id }}')">
-                                    Book Now
+                                    {{ _("Book Now") }}
                                 </button>
                             </div>
                         </div>
@@ -124,7 +124,7 @@
                     </div>
                 {% else %}
                     <div class="alert alert-warning small">
-                        This provider has no active services at the moment.
+                        {{ _("This provider has no active services at the moment.") }}
                     </div>
                 {% endif %}
             </div>
@@ -138,32 +138,32 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Book Service</h5>
+        <h5 class="modal-title">{{ _("Book Service") }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <p class="text-muted mb-3">Provider: <strong id="bookingNurseName" class="text-dark"></strong></p>
+        <p class="text-muted mb-3">{{ _("Provider:") }} <strong id="bookingNurseName" class="text-dark"></strong></p>
         <form id="bookingForm">
           <input type="hidden" id="nurseIdInput" name="nurse_id" />
           
           <div class="mb-3">
-            <label for="serviceSelect" class="form-label text-muted small fw-bold">SERVICE</label>
+            <label for="serviceSelect" class="form-label text-muted small fw-bold">{{ _("SERVICE") }}</label>
             <select class="form-select" id="serviceSelect" required></select>
           </div>
           
           <div class="mb-3">
-            <label for="appointmentDate" class="form-label text-muted small fw-bold">DATE & TIME</label>
+            <label for="appointmentDate" class="form-label text-muted small fw-bold">{{ _("DATE & TIME") }}</label>
             <input type="datetime-local" class="form-control" id="appointmentDate" required />
           </div>
           <div class="mb-3">
-            <label for="appointmentNotes" class="form-label text-muted small fw-bold">REQUIREMENTS</label>
-            <textarea class="form-control" id="appointmentNotes" rows="3" placeholder="Describe what you need..."></textarea>
+            <label for="appointmentNotes" class="form-label text-muted small fw-bold">{{ _("REQUIREMENTS") }}</label>
+            <textarea class="form-control" id="appointmentNotes" rows="3" placeholder="{{ _('Describe what you need...') }}"></textarea>
           </div>
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-success" id="submitBookingBtn">Confirm Booking</button>
+        <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">{{ _("Cancel") }}</button>
+        <button type="button" class="btn btn-success" id="submitBookingBtn">{{ _("Confirm Booking") }}</button>
       </div>
     </div>
   </div>
@@ -230,7 +230,7 @@
         document.getElementById('nurseIdInput').value = nurseId;
         
         const select = document.getElementById('serviceSelect');
-        select.innerHTML = '<option>Loading services...</option>';
+        select.innerHTML = '<option>{{ _("Loading services...") }}</option>';
         
         const modal = new bootstrap.Modal(document.getElementById('bookingModal'));
         modal.show();
@@ -240,7 +240,7 @@
             .then(services => {
                 select.innerHTML = '';
                 if(services.length === 0) {
-                    select.innerHTML = '<option disabled>No services available</option>';
+                    select.innerHTML = '<option disabled>{{ _("No services available") }}</option>';
                     return;
                 }
                 services.forEach(s => {
@@ -262,11 +262,11 @@
         const dateTime = document.getElementById('appointmentDate').value;
         const notes = document.getElementById('appointmentNotes').value;
 
-        if(!dateTime || !serviceId) { alert("Please fill in date and service"); return; }
+        if(!dateTime || !serviceId) { alert("{{ _('Please fill in date and service') }}"); return; }
 
         const btn = this;
         btn.disabled = true;
-        btn.innerText = "Processing...";
+        btn.innerText = "{{ _('Processing...') }}";
 
         fetch('/client/create_appointment', {
             method: 'POST',
@@ -276,10 +276,10 @@
         .then(r => r.json())
         .then(data => {
             if(data.success) { 
-                alert("Appointment confirmed!"); 
+                alert("{{ _('Appointment confirmed!') }}"); 
                 window.location.href = "{{ url_for('client.appointments') }}";
             } 
-            else { alert("Error: " + data.message); btn.disabled = false; btn.innerText = "Confirm Booking"; }
+            else { alert("{{ _('Error:') }} " + data.message); btn.disabled = false; btn.innerText = "{{ _('Confirm Booking') }}"; }
         });
     });
 </script>

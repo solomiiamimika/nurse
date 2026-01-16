@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta charset="UTF-8" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>Register</title>
+    <title>{{ _("Register") }}</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='auth.css') }}"
@@ -14,7 +14,7 @@
   <body>
     <div class="overlay-content">
       <div class="auth-container">
-        <h1>Register</h1>
+        <h1>{{ _("Register") }}</h1>
 
         {% with messages = get_flashed_messages(with_categories=true) %} {% if
         messages %}
@@ -28,47 +28,47 @@
         <form method="POST">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
-          <input type="text" name="username" placeholder="Username" required />
+          <input type="text" name="username" placeholder="{{ _('Username') }}" required />
           <input
             type="text"
             name="full_name"
-            placeholder="Full name"
+            placeholder="{{ _('Full name') }}"
             required
           />
-          <input type="email" name="email" placeholder="Email" required />
+          <input type="email" name="email" placeholder="{{ _('Email') }}" required />
           <input
             type="password"
             name="password"
-            placeholder="Password (min. 6 characters)"
+            placeholder="{{ _('Password (min. 6 characters)') }}"
             required
           />
           <input
             type="password"
             name="confirm_password"
-            placeholder="Confirm Password"
+            placeholder="{{ _('Confirm Password') }}"
             required
           />
 
           <select name="role" required>
-            <option value="client">Client</option>
-            <option value="nurse">Service provider</option>
+            <option value="client">{{ _("Client") }}</option>
+            <option value="nurse">{{ _("Service provider") }}</option>
           </select>
 
-          <button type="submit" class="btn-primary">Register</button>
+          <button type="submit" class="btn-primary">{{ _("Register") }}</button>
         </form>
 
-        <p style="text-align: center; margin-top: 14px">Or register with:</p>
+        <p style="text-align: center; margin-top: 14px">{{ _("Or register with:") }}</p>
 
         <a href="{{ url_for('google.login') }}" class="google-btn">
-          Register with Google
+          {{ _("Register with Google") }}
         </a>
 
         <p style="text-align: center; margin-top: 18px">
-          Already have an account?
+          {{ _("Already have an account?") }}
         </p>
 
         <a href="{{ url_for('auth.login') }}" class="btn-secondary"
-          >Login here</a
+          >{{ _("Login here") }}</a
         >
       </div>
     </div>

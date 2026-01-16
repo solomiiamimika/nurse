@@ -9,17 +9,17 @@
   <div style="max-width: 1200px; margin: 0 auto;">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
       <div>
-        <h2 class="mb-1">Welcome to Human</h2>
-        <div class="hero-subtitle">Find the perfect service for your needs</div>
+        <h2 class="mb-1">{{ _("Welcome to Human") }}</h2>
+        <div class="hero-subtitle">{{ _("Find the perfect service for your needs") }}</div>
       </div>
 
       <!-- Primary CTAs -->
       <div class="d-flex gap-2">
         <a href="{{ url_for('auth.login') }}" class="btn">
-          <i class="fas fa-sign-in-alt"></i> Login
+          <i class="fas fa-sign-in-alt"></i> {{ _("Login") }}
         </a>
         <a href="{{ url_for('auth.register') }}" class="btn btn-warning">
-          <i class="fas fa-user-plus"></i> Register
+          <i class="fas fa-user-plus"></i> {{ _("Register") }}
         </a>
       </div>
     </div>
@@ -35,18 +35,18 @@
         type="text"
         name="q"
         value="{{ search_query|default('') }}"
-        placeholder="What service are you looking for?"
+        placeholder="{{ _('What service are you looking for?') }}"
         class="search-input"
       />
-      <button type="submit" class="search-btn">Search</button>
+      <button type="submit" class="search-btn">{{ _("Search") }}</button>
     </form>
 
     <div class="dashboard-options">
       <a href="{{ url_for('auth.login') }}" class="btn">
-        <i class="fas fa-unlock"></i> Login
+        <i class="fas fa-unlock"></i> {{ _("Login") }}
       </a>
       <a href="{{ url_for('auth.register') }}" class="btn btn-warning">
-        <i class="fas fa-user-plus"></i> Register
+        <i class="fas fa-user-plus"></i> {{ _("Register") }}
       </a>
     </div>
 
@@ -62,8 +62,8 @@
     <div class="col-lg-8 col-md-7">
       <div class="content-card map-card-wrapper">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="premium-title mb-0">Explore Services Nearby</h5>
-          <span class="text-muted small">Browse providers and offerings</span>
+          <h5 class="premium-title mb-0">{{ _("Explore Services Nearby") }}</h5>
+          <span class="text-muted small">{{ _("Browse providers and offerings") }}</span>
         </div>
 
         <!-- Static map placeholder -->
@@ -85,16 +85,16 @@
             <div style="font-size: 42px; opacity: 0.25; margin-bottom: 10px;">
               <i class="fas fa-map-marked-alt"></i>
             </div>
-            <h5 class="mb-2">See providers on the map</h5>
+            <h5 class="mb-2">{{ _("See providers on the map") }}</h5>
             <p class="text-muted mb-3" style="font-size: 0.95rem;">
-              Login to use your location, view nearby providers, and book services in a few clicks.
+              {{ _("Login to use your location, view nearby providers, and book services in a few clicks.") }}
             </p>
             <div class="d-flex justify-content-center gap-2">
               <a href="{{ url_for('auth.login') }}" class="btn btn-success">
-                <i class="fas fa-sign-in-alt"></i> Login to Explore
+                <i class="fas fa-sign-in-alt"></i> {{ _("Login to Explore") }}
               </a>
               <a href="{{ url_for('auth.register') }}" class="btn btn-light text-muted">
-                Create account
+                {{ _("Create account") }}
               </a>
             </div>
           </div>
@@ -113,7 +113,7 @@
 
       <div class="mb-4">
         <h6 class="text-uppercase text-muted small fw-bold mb-3" style="letter-spacing: 1px;">
-          How it works
+          {{ _("How it works") }}
         </h6>
 
         <div class="card mb-2" style="border-left: 4px solid #0d6efd;">
@@ -121,8 +121,8 @@
             <div class="d-flex align-items-start gap-2">
               <i class="fas fa-search text-muted mt-1"></i>
               <div>
-                <strong>1) Search</strong>
-                <div class="text-muted small">Find the service you need in seconds.</div>
+                <strong>{{ _("1) Search") }}</strong>
+                <div class="text-muted small">{{ _("Find the service you need in seconds.") }}</div>
               </div>
             </div>
           </div>
@@ -133,8 +133,8 @@
             <div class="d-flex align-items-start gap-2">
               <i class="fas fa-calendar-check text-muted mt-1"></i>
               <div>
-                <strong>2) Book</strong>
-                <div class="text-muted small">Choose a provider and pick a time.</div>
+                <strong>{{ _("2) Book") }}</strong>
+                <div class="text-muted small">{{ _("Choose a provider and pick a time.") }}</div>
               </div>
             </div>
           </div>
@@ -145,8 +145,8 @@
             <div class="d-flex align-items-start gap-2">
               <i class="fas fa-bolt text-muted mt-1"></i>
               <div>
-                <strong>3) Get it done</strong>
-                <div class="text-muted small">Providers arrive prepared and on time.</div>
+                <strong>{{ _("3) Get it done") }}</strong>
+                <div class="text-muted small">{{ _("Providers arrive prepared and on time.") }}</div>
               </div>
             </div>
           </div>
@@ -155,7 +155,7 @@
 
       <hr style="opacity: 0.1; margin: 20px 0;">
 
-      <h5 class="premium-title">Popular Providers</h5>
+      <h5 class="premium-title">{{ _("Popular Providers") }}</h5>
       <div class="providers-scroll-area">
 
         <!-- Static preview cards; replace with real data later if you want -->
@@ -163,14 +163,14 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
               <div>
-                <h6 class="mb-1 fw-bold">Home Nurse Visit</h6>
+                <h6 class="mb-1 fw-bold">{{ _("Home Nurse Visit") }}</h6>
                 <div class="small text-muted mb-2">
-                  <i class="fas fa-map-marker-alt text-muted"></i> In your area (login to view)
+                  <i class="fas fa-map-marker-alt text-muted"></i> {{ _("In your area (login to view)") }}
                 </div>
               </div>
-              <span class="badge badge-online">Available</span>
+              <span class="badge badge-online">{{ _("Available") }}</span>
             </div>
-            <button class="btn-premium-secondary">View &amp; Book</button>
+            <button class="btn-premium-secondary">{{ _("View & Book") }}</button>
           </div>
         </div>
 
@@ -178,25 +178,25 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
               <div>
-                <h6 class="mb-1 fw-bold">Physio at Home</h6>
+                <h6 class="mb-1 fw-bold">{{ _("Physio at Home") }}</h6>
                 <div class="small text-muted mb-2">
-                  <i class="fas fa-map-marker-alt text-muted"></i> Nearby providers (login to view)
+                  <i class="fas fa-map-marker-alt text-muted"></i> {{ _("Nearby providers (login to view)") }}
                 </div>
               </div>
-              <span class="badge badge-offline">Preview</span>
+              <span class="badge badge-offline">{{ _("Preview") }}</span>
             </div>
-            <button class="btn-premium-secondary">View &amp; Book</button>
+            <button class="btn-premium-secondary">{{ _("View & Book") }}</button>
           </div>
         </div>
 
         <div class="text-center py-4 text-muted">
           <i class="fas fa-lock fa-2x mb-3" style="color:#ddd"></i>
-          <p class="mb-2">Login to unlock full provider list and map.</p>
+          <p class="mb-2">{{ _("Login to unlock full provider list and map.") }}</p>
           <a href="{{ url_for('auth.login') }}" class="btn btn-success">
-            <i class="fas fa-sign-in-alt"></i> Login
+            <i class="fas fa-sign-in-alt"></i> {{ _("Login") }}
           </a>
           <a href="{{ url_for('auth.register') }}" class="btn btn-light text-muted ms-2">
-            Register
+            {{ _("Register") }}
           </a>
         </div>
 

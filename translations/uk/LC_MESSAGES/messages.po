@@ -1,0 +1,746 @@
+
+
+# Ukrainian translations for PROJECT. 
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-01-16 09:07+0100\n"
+"PO-Revision-Date: 2026-01-16 09:09+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: uk\n"
+"Language-Team: uk <LL@li.org>\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: app/extensions.py:52
+msgid "Будь ласка, увійдіть для доступу до цієї сторінки."
+msgstr "Будь ласка, увійдіть, щоб отримати доступ до цієї сторінки."
+
+#: app/templates/base.html:6
+msgid "My Cool App"
+msgstr "Мій класний застосунок"
+
+#: app/templates/home.html:12
+msgid "Welcome to Human"
+msgstr "Ласкаво просимо до Human"
+
+#: app/templates/client/dashboard.html:9 app/templates/home.html:13
+msgid "Find the perfect service for your needs"
+msgstr "Знайдіть ідеальну послугу для ваших потреб"
+
+#: app/templates/auth/login.html:7 app/templates/auth/login.html:17
+#: app/templates/auth/login.html:45 app/templates/home.html:19
+#: app/templates/home.html:46 app/templates/home.html:196
+msgid "Login"
+msgstr "Увійти"
+
+#: app/templates/auth/login.html:53 app/templates/auth/register.html:7
+#: app/templates/auth/register.html:17 app/templates/auth/register.html:57
+#: app/templates/home.html:22 app/templates/home.html:49
+#: app/templates/home.html:199
+msgid "Register"
+msgstr "Зареєструватися"
+
+#: app/templates/client/dashboard.html:17 app/templates/home.html:38
+msgid "What service are you looking for?"
+msgstr "Яку послугу ви шукаєте?"
+
+#: app/templates/client/dashboard.html:18 app/templates/home.html:41
+msgid "Search"
+msgstr "Пошук"
+
+#: app/templates/home.html:65
+msgid "Explore Services Nearby"
+msgstr "Переглянути послуги поруч"
+
+#: app/templates/home.html:66
+msgid "Browse providers and offerings"
+msgstr "Переглядайте виконавців і пропозиції"
+
+#: app/templates/home.html:88
+msgid "See providers on the map"
+msgstr "Переглянути виконавців на мапі"
+
+#: app/templates/home.html:90
+msgid ""
+"Login to use your location, view nearby providers, and book services in a"
+" few clicks."
+msgstr ""
+"Увійдіть, щоб використовувати вашу геолокацію, переглядати виконавців поруч "
+"і бронювати послуги в кілька кліків."
+
+#: app/templates/home.html:94
+msgid "Login to Explore"
+msgstr "Увійти, щоб переглядати"
+
+#: app/templates/home.html:97
+msgid "Create account"
+msgstr "Створити акаунт"
+
+#: app/templates/home.html:116
+msgid "How it works"
+msgstr "Як це працює"
+
+#: app/templates/home.html:124
+msgid "1) Search"
+msgstr "1) Пошук"
+
+#: app/templates/home.html:125
+msgid "Find the service you need in seconds."
+msgstr "Знайдіть потрібну послугу за кілька секунд."
+
+#: app/templates/home.html:136
+msgid "2) Book"
+msgstr "2) Забронюйте"
+
+#: app/templates/home.html:137
+msgid "Choose a provider and pick a time."
+msgstr "Оберіть виконавця та зручний час."
+
+#: app/templates/home.html:148
+msgid "3) Get it done"
+msgstr "3) Отримайте результат"
+
+#: app/templates/home.html:149
+msgid "Providers arrive prepared and on time."
+msgstr "Виконавці приїжджають підготовленими та вчасно."
+
+#: app/templates/home.html:158
+msgid "Popular Providers"
+msgstr "Популярні виконавці"
+
+#: app/templates/home.html:166
+msgid "Home Nurse Visit"
+msgstr "Візит медсестри додому"
+
+#: app/templates/home.html:168
+msgid "In your area (login to view)"
+msgstr "У вашому районі (увійдіть, щоб переглянути)"
+
+#: app/templates/home.html:171
+msgid "Available"
+msgstr "Доступно"
+
+#: app/templates/home.html:173 app/templates/home.html:188
+msgid "View & Book"
+msgstr "Переглянути та забронювати"
+
+#: app/templates/home.html:181
+msgid "Physio at Home"
+msgstr "Фізіотерапія вдома"
+
+#: app/templates/home.html:183
+msgid "Nearby providers (login to view)"
+msgstr "Виконавці поруч (увійдіть, щоб переглянути)"
+
+#: app/templates/home.html:186
+msgid "Preview"
+msgstr "Попередній перегляд"
+
+#: app/templates/home.html:194
+msgid "Login to unlock full provider list and map."
+msgstr "Увійдіть, щоб відкрити повний список виконавців і мапу."
+
+#: app/templates/payment_form.html:2
+msgid "Payment for:"
+msgstr "Оплата за:"
+
+#: app/templates/payment_form.html:3
+msgid "Amount:"
+msgstr "Сума:"
+
+#: app/templates/payment_form.html:6 app/templates/payment_form.html:42
+#: app/templates/payment_form.html:49
+msgid "Pay Now"
+msgstr "Оплатити зараз"
+
+#: app/templates/client/appointments.html:313
+#: app/templates/client/provider_public_profile.html:269
+#: app/templates/payment_form.html:18
+msgid "Processing..."
+msgstr "Обробка..."
+
+#: app/templates/payment_form.html:32
+msgid "Network response was not ok"
+msgstr "Відповідь мережі була некоректною"
+
+#: app/templates/payment_form.html:50
+msgid "Payment failed:"
+msgstr "Платіж не вдався:"
+
+#: app/templates/auth/login.html:34
+msgid "Email or Username"
+msgstr "Email або ім’я користувача"
+
+#: app/templates/auth/login.html:41
+msgid "Password"
+msgstr "Пароль"
+
+#: app/templates/auth/login.html:49
+msgid "Don't have an account?"
+msgstr "Немає акаунта?"
+
+#: app/templates/auth/register.html:31
+msgid "Username"
+msgstr "Ім’я користувача"
+
+#: app/templates/auth/register.html:35
+msgid "Full name"
+msgstr "Повне ім’я"
+
+#: app/templates/auth/register.html:38
+msgid "Email"
+msgstr "Email"
+
+#: app/templates/auth/register.html:42
+msgid "Password (min. 6 characters)"
+msgstr "Пароль (мін. 6 символів)"
+
+#: app/templates/auth/register.html:48
+msgid "Confirm Password"
+msgstr "Підтвердіть пароль"
+
+#: app/templates/auth/register.html:53
+msgid "Client"
+msgstr "Клієнт"
+
+#: app/templates/auth/register.html:54
+msgid "Service provider"
+msgstr "Виконавець послуг"
+
+#: app/templates/auth/register.html:60
+msgid "Or register with:"
+msgstr "Або зареєструйтеся через:"
+
+#: app/templates/auth/register.html:63
+msgid "Register with Google"
+msgstr "Зареєструватися через Google"
+
+#: app/templates/auth/register.html:67
+msgid "Already have an account?"
+msgstr "Вже маєте акаунт?"
+
+#: app/templates/auth/register.html:71
+msgid "Login here"
+msgstr "Увійти тут"
+
+#: app/templates/client/appointments.html:10
+#: app/templates/client/dashboard.html:27
+msgid "My Appointments"
+msgstr "Мої записи"
+
+#: app/templates/client/appointments.html:11
+msgid "Manage your schedule and payments"
+msgstr "Керуйте розкладом і платежами"
+
+#: app/templates/client/appointments.html:14
+#: app/templates/client/profile.html:14
+msgid "Back to Dashboard"
+msgstr "Назад до панелі"
+
+#: app/templates/client/appointments.html:26
+msgid "New appointment"
+msgstr "Новий запис"
+
+#: app/templates/client/appointments.html:27
+#: app/templates/client/appointments.html:41
+#: app/templates/client/profile.html:24 app/templates/client/profile.html:153
+msgid "Close"
+msgstr "Закрити"
+
+#: app/templates/client/appointments.html:40
+msgid "Appointment Details"
+msgstr "Деталі запису"
+
+#: app/templates/client/appointments.html:47
+#: app/templates/client/provider_public_profile.html:150
+msgid "SERVICE"
+msgstr "ПОСЛУГА"
+
+#: app/templates/client/appointments.html:51
+#: app/templates/client/dashboard.html:135
+#: app/templates/client/provider_public_profile.html:155
+msgid "DATE & TIME"
+msgstr "ДАТА Й ЧАС"
+
+#: app/templates/client/appointments.html:55
+msgid "STATUS"
+msgstr "СТАТУС"
+
+#: app/templates/client/appointments.html:59
+msgid "AMOUNT"
+msgstr "СУМА"
+
+#: app/templates/client/appointments.html:63
+msgid "NOTES"
+msgstr "НОТАТКИ"
+
+#: app/templates/client/appointments.html:70
+#: app/templates/client/appointments.html:336
+#: app/templates/client/appointments.html:343
+msgid "Make a payment now"
+msgstr "Оплатити зараз"
+
+#: app/templates/client/appointments.html:80
+msgid "Your Review"
+msgstr "Ваш відгук"
+
+#: app/templates/client/appointments.html:85
+msgid "RATING"
+msgstr "ОЦІНКА"
+
+#: app/templates/client/appointments.html:95
+msgid "Edit Review"
+msgstr "Редагувати відгук"
+
+#: app/templates/client/appointments.html:104
+msgid "stars"
+msgstr "зірок"
+
+#: app/templates/client/appointments.html:107
+msgid "Tap a star to rate"
+msgstr "Натисніть на зірку, щоб оцінити"
+
+#: app/templates/client/appointments.html:110
+msgid "Share your experience..."
+msgstr "Поділіться враженнями..."
+
+#: app/templates/client/appointments.html:113
+#: app/templates/client/appointments.html:426
+msgid "Send"
+msgstr "Надіслати"
+
+#: app/templates/client/appointments.html:114
+#: app/templates/client/dashboard.html:145
+#: app/templates/client/profile.html:159
+#: app/templates/client/provider_public_profile.html:165
+msgid "Cancel"
+msgstr "Скасувати"
+
+#: app/templates/client/appointments.html:119
+msgid "You haven't left a review yet."
+msgstr "Ви ще не залишили відгук."
+
+#: app/templates/client/appointments.html:121
+msgid "Write a Review"
+msgstr "Написати відгук"
+
+#: app/templates/client/appointments.html:257
+msgid "No notes provided"
+msgstr "Нотаток немає"
+
+#: app/templates/client/appointments.html:271
+msgid "Paid"
+msgstr "Оплачено"
+
+#: app/templates/client/appointments.html:276
+msgid "Waiting for confirmation."
+msgstr "Очікує підтвердження."
+
+#: app/templates/client/appointments.html:288
+msgid "Cancel appointment"
+msgstr "Скасувати запис"
+
+#: app/templates/client/appointments.html:326
+msgid "Network error"
+msgstr "Помилка мережі"
+
+#: app/templates/client/appointments.html:391
+msgid "Please select a rating"
+msgstr "Будь ласка, оберіть оцінку"
+
+#: app/templates/client/appointments.html:397
+msgid "Sending..."
+msgstr "Надсилання..."
+
+#: app/templates/client/appointments.html:414
+msgid "Thank you for your feedback!"
+msgstr "Дякуємо за ваш відгук!"
+
+#: app/templates/client/appointments.html:417
+#: app/templates/client/appointments.html:465
+#: app/templates/client/dashboard.html:377
+#: app/templates/client/profile.html:277
+#: app/templates/client/provider_public_profile.html:282
+msgid "Error:"
+msgstr "Помилка:"
+
+#: app/templates/client/appointments.html:422
+msgid "An error occurred"
+msgstr "Сталася помилка"
+
+#: app/templates/client/appointments.html:434
+msgid "Scheduled"
+msgstr "Заплановано"
+
+#: app/templates/client/appointments.html:435
+msgid "Approved"
+msgstr "Підтверджено"
+
+#: app/templates/client/appointments.html:436
+msgid "Paid and confirmed"
+msgstr "Оплачено та підтверджено"
+
+#: app/templates/client/appointments.html:437
+msgid "Completed"
+msgstr "Завершено"
+
+#: app/templates/client/appointments.html:438
+msgid "Cancelled"
+msgstr "Скасовано"
+
+#: app/templates/client/appointments.html:447
+msgid "Payment error:"
+msgstr "Помилка оплати:"
+
+#: app/templates/client/appointments.html:451
+msgid "Are you sure you want to cancel this appointment?"
+msgstr "Ви впевнені, що хочете скасувати цей запис?"
+
+#: app/templates/client/appointments.html:489
+msgid "Review available after completion."
+msgstr "Відгук буде доступний після завершення."
+
+#: app/templates/client/appointments.html:501
+msgid "Without comment"
+msgstr "Без коментаря"
+
+#: app/templates/client/dashboard.html:8
+msgid "Hi"
+msgstr "Привіт"
+
+#: app/templates/client/dashboard.html:23
+msgid "Profile"
+msgstr "Профіль"
+
+#: app/templates/client/dashboard.html:31
+msgid "Update Location"
+msgstr "Оновити локацію"
+
+#: app/templates/client/dashboard.html:35
+#: app/templates/client/dashboard.html:156
+msgid "Post a Request"
+msgstr "Опублікувати запит"
+
+#: app/templates/client/dashboard.html:56
+msgid "Available Services Nearby"
+msgstr "Доступні послуги поруч"
+
+#: app/templates/client/dashboard.html:57
+msgid "Based on your location"
+msgstr "На основі вашої локації"
+
+#: app/templates/client/dashboard.html:67
+msgid "My Active Requests"
+msgstr "Мої активні запити"
+
+#: app/templates/client/dashboard.html:74
+msgid "Found Providers"
+msgstr "Знайдені виконавці"
+
+#: app/templates/client/dashboard.html:85
+msgid "No address"
+msgstr "Адреси немає"
+
+#: app/templates/client/dashboard.html:89
+#: app/templates/client/provider_public_profile.html:29
+msgid "Online"
+msgstr "Онлайн"
+
+#: app/templates/client/dashboard.html:91
+#: app/templates/client/provider_public_profile.html:29
+msgid "Offline"
+msgstr "Офлайн"
+
+#: app/templates/client/dashboard.html:97
+msgid "View Profile"
+msgstr "Переглянути профіль"
+
+#: app/templates/client/dashboard.html:101
+msgid "Book"
+msgstr "Забронювати"
+
+#: app/templates/client/dashboard.html:110
+msgid "No services found in this area."
+msgstr "У цій місцевості послуг не знайдено."
+
+#: app/templates/client/dashboard.html:123
+#: app/templates/client/dashboard.html:250
+#: app/templates/client/provider_public_profile.html:141
+msgid "Book Service"
+msgstr "Забронювати послугу"
+
+#: app/templates/client/dashboard.html:127
+#: app/templates/client/provider_public_profile.html:145
+msgid "Provider:"
+msgstr "Виконавець:"
+
+#: app/templates/client/dashboard.html:131
+msgid "SELECT SERVICE"
+msgstr "ОБЕРІТЬ ПОСЛУГУ"
+
+#: app/templates/client/dashboard.html:139
+#: app/templates/client/provider_public_profile.html:159
+msgid "REQUIREMENTS"
+msgstr "ВИМОГИ"
+
+#: app/templates/client/dashboard.html:140
+#: app/templates/client/provider_public_profile.html:160
+msgid "Describe what you need..."
+msgstr "Опишіть, що вам потрібно..."
+
+#: app/templates/client/dashboard.html:146
+#: app/templates/client/provider_public_profile.html:166
+#: app/templates/client/provider_public_profile.html:282
+msgid "Confirm Booking"
+msgstr "Підтвердити бронювання"
+
+#: app/templates/client/dashboard.html:160
+msgid "Let providers know what you need and they will contact you."
+msgstr "Повідомте виконавцям, що вам потрібно, і вони з вами зв’яжуться."
+
+#: app/templates/client/dashboard.html:163
+msgid "SERVICE NEEDED"
+msgstr "ПОТРІБНА ПОСЛУГА"
+
+#: app/templates/client/dashboard.html:164
+msgid "e.g. Home Injection"
+msgstr "напр. Ін’єкція вдома"
+
+#: app/templates/client/dashboard.html:168
+msgid "BUDGET (EUR)"
+msgstr "БЮДЖЕТ (EUR)"
+
+#: app/templates/client/dashboard.html:172
+msgid "WHEN?"
+msgstr "КОЛИ?"
+
+#: app/templates/client/dashboard.html:177
+msgid "DESCRIPTION"
+msgstr "ОПИС"
+
+#: app/templates/client/dashboard.html:183
+msgid "Publish Request"
+msgstr "Опублікувати запит"
+
+#: app/templates/client/dashboard.html:232
+msgid "Your location"
+msgstr "Ваша локація"
+
+#: app/templates/client/dashboard.html:261
+msgid "No active requests"
+msgstr "Немає активних запитів"
+
+#: app/templates/client/dashboard.html:272
+msgid "Pending"
+msgstr "Очікує"
+
+#: app/templates/client/dashboard.html:275
+msgid "Cancel Request"
+msgstr "Скасувати запит"
+
+#: app/templates/client/dashboard.html:285
+msgid "Please update location first using the button in the menu."
+msgstr "Будь ласка, спочатку оновіть локацію кнопкою в меню."
+
+#: app/templates/client/dashboard.html:305
+msgid "Request published successfully!"
+msgstr "Запит успішно опубліковано!"
+
+#: app/templates/client/dashboard.html:311
+msgid "Are you sure you want to cancel this request?"
+msgstr "Ви впевнені, що хочете скасувати цей запит?"
+
+#: app/templates/client/dashboard.html:318
+msgid "Geolocation not supported"
+msgstr "Геолокація не підтримується"
+
+#: app/templates/client/dashboard.html:319
+msgid "Locating..."
+msgstr "Визначаємо локацію..."
+
+#: app/templates/client/dashboard.html:336
+msgid "Location updated"
+msgstr "Локацію оновлено"
+
+#: app/templates/client/dashboard.html:344
+#: app/templates/client/provider_public_profile.html:233
+msgid "Loading services..."
+msgstr "Завантаження послуг..."
+
+#: app/templates/client/dashboard.html:351
+#: app/templates/client/provider_public_profile.html:243
+msgid "No services available"
+msgstr "Немає доступних послуг"
+
+#: app/templates/client/dashboard.html:376
+#: app/templates/client/provider_public_profile.html:279
+msgid "Appointment confirmed!"
+msgstr "Запис підтверджено!"
+
+#: app/templates/client/profile.html:10
+msgid "Profile Settings"
+msgstr "Налаштування профілю"
+
+#: app/templates/client/profile.html:11
+msgid "Update your personal information"
+msgstr "Оновіть вашу особисту інформацію"
+
+#: app/templates/client/profile.html:39
+msgid "Profile Photo"
+msgstr "Фото профілю"
+
+#: app/templates/client/profile.html:51
+msgid "Allowed: JPG, PNG, GIF (Max 5MB)"
+msgstr "Дозволено: JPG, PNG, GIF (макс. 5 МБ)"
+
+#: app/templates/client/profile.html:56
+msgid "FULL NAME"
+msgstr "ПОВНЕ ІМ’Я"
+
+#: app/templates/client/profile.html:61
+msgid "PHONE NUMBER"
+msgstr "НОМЕР ТЕЛЕФОНУ"
+
+#: app/templates/client/profile.html:66
+msgid "BIRTH DATE"
+msgstr "ДАТА НАРОДЖЕННЯ"
+
+#: app/templates/client/profile.html:71
+msgid "ADDRESS"
+msgstr "АДРЕСА"
+
+#: app/templates/client/profile.html:76
+#: app/templates/client/provider_public_profile.html:56
+msgid "ABOUT ME"
+msgstr "ПРО МЕНЕ"
+
+#: app/templates/client/profile.html:81
+msgid "UPLOAD NEW DOCUMENTS"
+msgstr "ЗАВАНТАЖИТИ НОВІ ДОКУМЕНТИ"
+
+#: app/templates/client/profile.html:86
+msgid "You can select multiple files (PDF, JPG, PNG)"
+msgstr "Ви можете обрати кілька файлів (PDF, JPG, PNG)"
+
+#: app/templates/client/profile.html:91
+msgid "Update Profile"
+msgstr "Оновити профіль"
+
+#: app/templates/client/profile.html:96
+msgid "Your Documents"
+msgstr "Ваші документи"
+
+#: app/templates/client/profile.html:110
+msgid "Delete"
+msgstr "Видалити"
+
+#: app/templates/client/profile.html:119
+msgid "No documents uploaded yet."
+msgstr "Документи ще не завантажені."
+
+#: app/templates/client/profile.html:131
+msgid "Danger Zone"
+msgstr "Небезпечна зона"
+
+#: app/templates/client/profile.html:136
+msgid "Once you delete your account, there is no going back. Please be certain."
+msgstr "Після видалення акаунта повернути його буде неможливо. Будь ласка, переконайтеся."
+
+#: app/templates/client/profile.html:138
+msgid "Delete Account"
+msgstr "Видалити акаунт"
+
+#: app/templates/client/profile.html:152
+msgid "Delete Account?"
+msgstr "Видалити акаунт?"
+
+#: app/templates/client/profile.html:156
+msgid ""
+"Are you absolutely sure? This action cannot be undone. All your data, "
+"photos, and history will be permanently erased."
+msgstr ""
+"Ви впевнені? Цю дію неможливо скасувати. Усі ваші дані, фото та історія "
+"будуть видалені назавжди."
+
+#: app/templates/client/profile.html:162
+msgid "Yes, Delete Everything"
+msgstr "Так, видалити все"
+
+#: app/templates/client/profile.html:253
+msgid "Delete document"
+msgstr "Видалити документ"
+
+#: app/templates/client/profile.html:281
+msgid "Error with server."
+msgstr "Помилка сервера."
+
+#: app/templates/client/profile.html:293
+msgid "File is too large, 5MB max."
+msgstr "Файл завеликий, максимум 5 МБ."
+
+#: app/templates/client/provider_public_profile.html:10
+msgid "Back to Search"
+msgstr "Назад до пошуку"
+
+#: app/templates/client/provider_public_profile.html:36
+msgid "No address provided"
+msgstr "Адресу не вказано"
+
+#: app/templates/client/provider_public_profile.html:43
+msgid "Rating"
+msgstr "Рейтинг"
+
+#: app/templates/client/provider_public_profile.html:47
+#: app/templates/client/provider_public_profile.html:66
+msgid "Reviews"
+msgstr "Відгуки"
+
+#: app/templates/client/provider_public_profile.html:50
+msgid "Verified"
+msgstr "Перевірено"
+
+#: app/templates/client/provider_public_profile.html:51
+msgid "Identity"
+msgstr "Особу підтверджено"
+
+#: app/templates/client/provider_public_profile.html:58
+msgid "This provider has not added a description yet."
+msgstr "Цей виконавець ще не додав опис."
+
+#: app/templates/client/provider_public_profile.html:94
+msgid "No reviews yet."
+msgstr "Поки що немає відгуків."
+
+#: app/templates/client/provider_public_profile.html:103
+msgid "Available Services"
+msgstr "Доступні послуги"
+
+#: app/templates/client/provider_public_profile.html:114
+msgid "Standard service procedure"
+msgstr "Стандартна процедура"
+
+#: app/templates/client/provider_public_profile.html:117
+msgid "min"
+msgstr "хв"
+
+#: app/templates/client/provider_public_profile.html:119
+msgid "Book Now"
+msgstr "Забронювати зараз"
+
+#: app/templates/client/provider_public_profile.html:127
+msgid "This provider has no active services at the moment."
+msgstr "Наразі в цього виконавця немає активних послуг."
+
+#: app/templates/client/provider_public_profile.html:265
+msgid "Please fill in date and service"
+msgstr "Будь ласка, вкажіть дату та послугу"

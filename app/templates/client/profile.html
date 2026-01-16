@@ -7,11 +7,11 @@
 
   <div class="d-flex justify-content-between align-items-center mb-4" style="max-width: 800px; margin: 0 auto;">
     <div>
-        <h2 style="margin-bottom: 5px;">Profile Settings</h2>
-        <span class="text-muted">Update your personal information</span>
+        <h2 style="margin-bottom: 5px;">{{ _("Profile Settings") }}</h2>
+        <span class="text-muted">{{ _("Update your personal information") }}</span>
     </div>
     <a href="{{ url_for('client.dashboard') }}" class="btn-tool">
-      <i class="fas fa-arrow-left"></i> Back to Dashboard
+      <i class="fas fa-arrow-left"></i> {{ _("Back to Dashboard") }}
     </a>
   </div>
 
@@ -21,7 +21,7 @@
         {% for category, message in messages %}
         <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
             {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ _('Close') }}"></button>
         </div>
         {% endfor %} 
         {% endif %} 
@@ -36,7 +36,7 @@
       <div class="text-center mb-5">
         <div class="profile-img-container mb-3">
             {% if profile_photo %}
-            <img src="{{ profile_photo }}" class="client-avatar shadow-sm" alt="Profile Photo" />
+            <img src="{{ profile_photo }}" class="client-avatar shadow-sm" alt="{{ _('Profile Photo') }}" />
             {% else %}
             <div class="client-no-photo shadow-sm">
                 <i class="fas fa-user fa-3x text-muted"></i>
@@ -48,52 +48,52 @@
             </label>
         </div>
         <input type="file" name="profile_picture" id="profile_picture" class="d-none" accept="image/*" />
-        <div class="text-muted small">Allowed: JPG, PNG, GIF (Max 5MB)</div>
+        <div class="text-muted small">{{ _("Allowed: JPG, PNG, GIF (Max 5MB)") }}</div>
       </div>
 
       <div class="row g-3">
           <div class="col-md-6">
-            <label class="form-label fw-bold small text-muted">FULL NAME</label>
+            <label class="form-label fw-bold small text-muted">{{ _("FULL NAME") }}</label>
             <input type="text" name="full_name" class="form-control" value="{{ user.full_name or '' }}" />
           </div>
 
           <div class="col-md-6">
-            <label class="form-label fw-bold small text-muted">PHONE NUMBER</label>
+            <label class="form-label fw-bold small text-muted">{{ _("PHONE NUMBER") }}</label>
             <input type="text" name="phone_number" class="form-control" value="{{ user.phone_number or '' }}" />
           </div>
 
           <div class="col-md-6">
-            <label class="form-label fw-bold small text-muted">BIRTH DATE</label>
+            <label class="form-label fw-bold small text-muted">{{ _("BIRTH DATE") }}</label>
             <input type="date" name="date_birth" class="form-control" value="{{ formatted_date }}" />
           </div>
 
           <div class="col-md-6">
-            <label class="form-label fw-bold small text-muted">ADDRESS</label>
+            <label class="form-label fw-bold small text-muted">{{ _("ADDRESS") }}</label>
             <input type="text" name="address" class="form-control" value="{{ user.address or '' }}" />
           </div>
 
           <div class="col-12">
-            <label class="form-label fw-bold small text-muted">ABOUT ME</label>
+            <label class="form-label fw-bold small text-muted">{{ _("ABOUT ME") }}</label>
             <textarea name="about_me" class="form-control" rows="3">{{ user.about_me or '' }}</textarea>
           </div>
 
           <div class="col-12 mt-4">
-            <label class="form-label fw-bold small text-muted">UPLOAD NEW DOCUMENTS</label>
+            <label class="form-label fw-bold small text-muted">{{ _("UPLOAD NEW DOCUMENTS") }}</label>
             <div class="input-group">
                 <input type="file" name="documents" id="documents" multiple class="form-control" />
                 <span class="input-group-text text-muted"><i class="fas fa-file-upload"></i></span>
             </div>
-            <div class="form-text">You can select multiple files (PDF, JPG, PNG)</div>
+            <div class="form-text">{{ _("You can select multiple files (PDF, JPG, PNG)") }}</div>
           </div>
       </div>
       
       <div class="d-flex justify-content-end mt-4 pt-3 border-top">
-        <button type="submit" class="btn btn-success px-4 fw-bold">Update Profile</button>
+        <button type="submit" class="btn btn-success px-4 fw-bold">{{ _("Update Profile") }}</button>
       </div>
     </form>
 
     <div class="mt-5">
-        <h5 class="mb-3">Your Documents</h5>
+        <h5 class="mb-3">{{ _("Your Documents") }}</h5>
         
         {% if documents_urls %} 
         <div class="documents-grid">
@@ -107,7 +107,7 @@
                         {{ filename }}
                     </a>
                 </div>
-                <button class="btn btn-sm btn-light text-danger delete-doc-btn border" title="Delete">
+                <button class="btn btn-sm btn-light text-danger delete-doc-btn border" title="{{ _('Delete') }}">
                     <i class="fas fa-trash-alt"></i>
                 </button>
             </div>
@@ -116,7 +116,7 @@
         {% else %}
         <div class="p-4 text-center bg-light rounded border border-dashed">
             <i class="fas fa-folder-open fa-2x text-muted mb-2"></i>
-            <p class="text-muted mb-0">No documents uploaded yet.</p>
+            <p class="text-muted mb-0">{{ _("No documents uploaded yet.") }}</p>
         </div>
         {% endif %}
     </div>
@@ -128,14 +128,14 @@
           <div class="accordion-item border-danger">
               <h2 class="accordion-header">
                   <button class="accordion-button collapsed bg-white text-danger fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDanger">
-                      <i class="fas fa-exclamation-triangle me-2"></i> Danger Zone
+                      <i class="fas fa-exclamation-triangle me-2"></i> {{ _("Danger Zone") }}
                   </button>
               </h2>
               <div id="collapseDanger" class="accordion-collapse collapse" data-bs-parent="#dangerZoneAccordion">
                   <div class="accordion-body">
-                      <p class="small text-muted">Once you delete your account, there is no going back. Please be certain.</p>
+                      <p class="small text-muted">{{ _("Once you delete your account, there is no going back. Please be certain.") }}</p>
                       <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
-                          Delete Account
+                          {{ _("Delete Account") }}
                       </button>
                   </div>
               </div>
@@ -149,17 +149,17 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title text-danger fw-bold">Delete Account?</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title text-danger fw-bold">{{ _("Delete Account?") }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Close') }}"></button>
       </div>
       <div class="modal-body">
-        <p class="mb-0">Are you absolutely sure? This action <strong>cannot be undone</strong>. All your data, photos, and history will be permanently erased.</p>
+        <p class="mb-0">{{ _("Are you absolutely sure? This action cannot be undone. All your data, photos, and history will be permanently erased.") }}</p>
       </div>
       <div class="modal-footer border-0 pt-0">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ _("Cancel") }}</button>
         <form action="{{ url_for('auth.delete_account') }}" method="POST">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="btn btn-danger">Yes, Delete Everything</button>
+          <button type="submit" class="btn btn-danger">{{ _("Yes, Delete Everything") }}</button>
         </form>
       </div>
     </div>
@@ -250,7 +250,7 @@
         const docItem = deleteBtn.closest(".client-doc-item");
         const filename = docItem.getAttribute("data-filename");
 
-        if (!confirm(`Delete document "${filename}"?`)) return;
+        if (!confirm(`{{ _("Delete document") }} "${filename}"?`)) return;
 
         try {
           const response = await fetch('{{ url_for("client.delete_document") }}', {
@@ -274,11 +274,11 @@
                 if (remaining.length === 0) location.reload();
             }, 300);
           } else {
-            alert("Error: " + result.message);
+            alert("{{ _('Error:') }} " + result.message);
           }
         } catch (error) {
           console.error("Query error:", error);
-          alert("Error with server.");
+          alert("{{ _('Error with server.') }}");
         }
       }
     });
@@ -290,7 +290,7 @@
         const file = this.files[0];
         if (file) {
           if (file.size > 5 * 1024 * 1024) {
-            alert("File is too large, 5MB max.");
+            alert("{{ _('File is too large, 5MB max.') }}");
             this.value = "";
           } else {
              // Optional: Instant preview logic if desired

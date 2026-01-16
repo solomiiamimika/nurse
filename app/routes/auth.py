@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, request, abort, Blueprint
+from flask import render_template, redirect, url_for, flash, request, abort, Blueprint, session
 from flask_login import login_user, logout_user, current_user,login_required
 from app.extensions import db, bcrypt
 from app.models import User,Review,Appointment,Message,Payment,ClientSelfCreatedAppointment
@@ -201,3 +201,9 @@ def delete_account():
         print(f"Delete Error: {e}")
         flash(f'Error deleting account: {str(e)}', 'danger')
         return redirect(url_for('client.profile'))
+    
+@auth_bp.route('/set_language/<lang_code>')    
+def set_language(lang_code):
+        print(f"Setting language to: {lang_code}")
+        session['lang'] = lang_code
+        return redirect(request.referrer or url_for('main.index'))

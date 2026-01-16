@@ -1,9 +1,9 @@
 <div class="payment-container">
-    <h4>Payment for: {{ appointment.nurse_service.name }}</h4>
-    <p>Amount: {{ "%.2f"|format(appointment.nurse_service.price) }} UAH</p>
+    <h4>{{ _("Payment for:") }} {{ appointment.nurse_service.name }}</h4>
+    <p>{{ _("Amount:") }} {{ "%.2f"|format(appointment.nurse_service.price) }} UAH</p>
     
     <button id="pay-button" class="btn btn-primary">
-        <i class="fas fa-credit-card"></i> Pay Now
+        <i class="fas fa-credit-card"></i> {{ _("Pay Now") }}
     </button>
 </div>
 
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     payButton.addEventListener('click', function() {
         payButton.disabled = true;
-        payButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        payButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ _("Processing...") }}';
         
         fetch('/client/create_payment_session', {
             method: 'POST',
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error('{{ _("Network response was not ok") }}');
             }
             return response.json();
         })
@@ -39,15 +39,15 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(result => {
             if (result.error) {
                 payButton.disabled = false;
-                payButton.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now';
+                payButton.innerHTML = '<i class="fas fa-credit-card"></i> {{ _("Pay Now") }}';
                 alert(result.error.message);
             }
         })
         .catch(error => {
             console.error('Error:', error);
             payButton.disabled = false;
-            payButton.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now';
-            alert('Payment failed: ' + error.message);
+            payButton.innerHTML = '<i class="fas fa-credit-card"></i> {{ _("Pay Now") }}';
+            alert('{{ _("Payment failed:") }} ' + error.message);
         });
     });
 });

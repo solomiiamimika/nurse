@@ -582,81 +582,102 @@ def handle_successful_payment(session):
     try:
         appointment_id = session['metadata'].get('appointment_id')
         user_id = session['metadata'].get('user_id')
-        
-        if appointment_id and user_id:
-            payment = Payment(
-                user_id=user_id,
-                appointment_id=appointment_id,
-                amount=float(session['amount_total']) / 100,
-                payment_date=datetime.now(),
-                status='completed',
-                transaction_id=session['payment_intent'],
-                payment_method=session['payment_method_types'][0]
-            )
-            
-            db.session.add(payment)
-            
-            appointment = Appointment.query.get(appointment_id)
-            if appointment:
-                appointment.status = 'confirmed_paid'
-            
-            db.session.commit()
+        payment_intent_id = session.get('payment_intent')
+
+        if not (appointment_id and user_id and payment_intent_id):
+            return
+
+        # 1) анти-дубль: якщо вже є платіж з таким PI — нічого не робимо
+        existing = Payment.query.filter_by(transaction_id=payment_intent_id).first()
+        if existing:
+            return
+
+        # 2) витягнути PI щоб взяти transfer_group + latest_charge (корисно)
+        pi = stripe.PaymentIntent.retrieve(payment_intent_id)
+
+        amount_cents = int(session['amount_total'])
+        currency = session['currency']
+
+        payment = Payment(
+            user_id=int(user_id),
+            appointment_id=int(appointment_id),
+            amount=float(amount_cents) / 100,  # тимчасово, краще мати amount_cents в моделі
+            payment_date=datetime.utcnow(),
+            status='completed',
+            transaction_id=payment_intent_id,
+            payment_method=(session['payment_method_types'][0] if session.get('payment_method_types') else 'card'),
+        )
+
+        # якщо додаси ці поля в модель:
+        payment.amount_cents = amount_cents
+        payment.currency = currency
+        payment.stripe_payment_intent_id = payment_intent_id
+        payment.stripe_charge_id = pi.get("latest_charge")
+        payment.transfer_group = pi.get("transfer_group")
+
+        db.session.add(payment)
+
+        appointment = Appointment.query.get(int(appointment_id))
+        if appointment:
+            appointment.status = 'confirmed_paid'
+
+        db.session.commit()
+
     except Exception as e:
         current_app.logger.error(f"Webhook error: {str(e)}")
+        db.session.rollback()
+
 
 
 @client_bp.route('/create_payment_session', methods=['POST'])
 @login_required
 def create_payment_session():
-    try:
-        data = request.get_json()
-        appointment_id = data.get('appointment_id')
-        
-        if not appointment_id:
-            return jsonify({'error': 'Appointment ID is required'}), 400
-            
-        appointment = Appointment.query.get_or_404(appointment_id)
-        
-        if appointment.client_id != current_user.id:
-            return jsonify({'error': 'Unauthorized'}), 403
-            
-        if appointment.status == 'confirmed_paid':
-            return jsonify({'error': 'Appointment already paid'}), 400
-        
-        
+    data = request.get_json()
+    appointment_id = data.get('appointment_id')
+    appointment = Appointment.query.get_or_404(appointment_id)
 
-        # Create Stripe Checkout session
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price_data': {
-                    'currency': 'eur',
-                    'product_data': {
-                        'name': appointment.nurse_service.name,
-                    },
-                    'unit_amount': int(appointment.nurse_service.price * 100),  # Convert to cents
-                },
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=url_for('client.payment_success', appointment_id=appointment_id, _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=url_for('client.payment_cancel', _external=True),
-            customer_email=current_user.email,
-            metadata={
-                'appointment_id': appointment_id,
-                'user_id': current_user.id
+    if appointment.client_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    if appointment.status == 'confirmed_paid':
+        return jsonify({'error': 'Appointment already paid'}), 400
+
+    amount_cents = int(round(appointment.nurse_service.price * 100))
+    transfer_group = f"appt_{appointment_id}"
+
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],  # Apple Pay включиться як wallet для card
+        line_items=[{
+            'price_data': {
+                'currency': 'eur',
+                'product_data': {'name': appointment.nurse_service.name},
+                'unit_amount': amount_cents,
+            },
+            'quantity': 1,
+        }],
+        mode='payment',
+        success_url=url_for('client.payment_success', appointment_id=appointment_id, _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url=url_for('client.payment_cancel', _external=True),
+        customer_email=current_user.email,
+
+        # ВАЖЛИВО: це піде в PaymentIntent
+        payment_intent_data={
+            "transfer_group": transfer_group,
+            "metadata": {
+                "appointment_id": str(appointment_id),
+                "user_id": str(current_user.id),
             }
-        )
+        },
 
-        return jsonify({'sessionId': session.id})
-        
-    except stripe.error.StripeError as e:
-        current_app.logger.error(f"Stripe error in create_payment_session: {str(e)}")
-        return jsonify({'error': 'Payment service error'}), 500
-    except Exception as e:
-        current_app.logger.error(f"Error in create_payment_session: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500
+        metadata={
+            'appointment_id': appointment_id,
+            'user_id': current_user.id
+        }
+    )
 
+    return jsonify({'sessionId': session.id})
+
+   
 
 
 @client_bp.route('/payment_cancel')
@@ -699,6 +720,46 @@ def payment_cancel():
     
     flash('Payment canceled. You can try again.', 'warning')
     return redirect(url_for('client.appointments'))
+
+
+@client_bp.route('/appointments/<int:appointment_id>/payout', methods=['POST'])
+@login_required
+def payout_after_completion(appointment_id):
+    appt = Appointment.query.get_or_404(appointment_id)
+
+    # тут має бути перевірка прав: admin/провайдер/твоя логіка
+    if appt.status != "completed":
+        return jsonify({"error": "Appointment not completed"}), 400
+
+    payment = Payment.query.filter_by(appointment_id=appointment_id, status="completed").first()
+    if not payment:
+        return jsonify({"error": "No paid payment found"}), 400
+
+    provider = User.query.get_or_404(appt.nurse_id)  # адаптуй під свою модель
+    if not provider.stripe_account_id:
+        return jsonify({"error": "Provider not connected to Stripe"}), 400
+
+    amount_cents = int(round(payment.amount * 100))
+    platform_fee_cents = int(round(amount_cents * 0.10))# приклад: 10% твоя комісія
+    payout_cents = amount_cents - platform_fee_cents
+
+    transfer_group = f"appt_{appointment_id}"
+
+    tr = stripe.Transfer.create(
+        amount=payout_cents,
+        currency="eur",
+        destination=provider.stripe_account_id,  # acct_...
+        transfer_group=transfer_group,
+        metadata={"appointment_id": str(appointment_id), "payment_intent": payment.transaction_id},
+        idempotency_key=f"tr_{appointment_id}",
+    )
+
+    # payment.stripe_transfer_id = tr.id  (якщо додаси поле)
+    # payment.status = "paid_out"
+    # db.session.commit()
+
+    return jsonify({"transferId": tr.id})
+
 
 
 
