@@ -42,7 +42,6 @@ def create_app():
     socketio.init_app(app)
 
     def get_locale():
-        print('current_language', session['lang'])
         if 'lang' in session:
             return session['lang']
         return request.accept_languages.best_match(['en', 'uk'])

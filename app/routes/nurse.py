@@ -388,33 +388,30 @@ def calendar_appointment_color(Status):
 @nurse_bp.route('/update_appointment_status', methods=['POST'])
 @login_required
 def update_appointment_status():
-    if current_user.role != 'nurse':
-        return jsonify({'success': False, 'message': 'Access denied'}), 403
+    data = request.get_json()
+    appointment_id = data.get('appointment_id')
+    new_status = data.get('status')
+    
+    appointment = Appointment.query.get_or_404(appointment_id)
+    if appointment.nurse_id != current_user.id:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
 
-    try:
-        data = request.get_json()
-        appointment_id = data.get('appointment_id')
-        status = data.get('status')
-
-        if not appointment_id or not status:
-            return jsonify({'success': False, 'message': 'You must specify the record and the status.'}), 400
-
-        appointment = Appointment.query.filter_by(
-            id=appointment_id,
-            nurse_id=current_user.id
-        ).first()
-
-        if not appointment:
-            return jsonify({'success': False, 'message': 'Appointment not found'}), 404
-
-        appointment.status = status
+    # Logic: Nurse Marks Job as Done
+    if new_status == 'work_submitted':
+        if appointment.status != 'confirmed_paid':
+            return jsonify({'success': False, 'message': 'Cannot submit work for unpaid appointment'}), 400
+        
+        appointment.status = 'work_submitted'
         db.session.commit()
-
+        return jsonify({'success': True, 'message': 'Work submitted! Waiting for client approval.'})
+    
+    # Logic: Nurse Accepts/Declines
+    elif new_status in ['confirmed', 'cancelled']:
+        appointment.status = new_status
+        db.session.commit()
         return jsonify({'success': True})
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f"Error updating appointment status: {str(e)}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+
+    return jsonify({'success': False, 'message': 'Invalid status update for Nurse'}), 400
 
 
 

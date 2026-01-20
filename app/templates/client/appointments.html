@@ -73,7 +73,7 @@
           
           <div id="paymentStatus" class="alert" style="display: none"></div>
           
-          <div id="appointmentActions" class="d-flex gap-2 mt-3"></div>
+          <div id="appointmentActions" class="d-flex flex-column gap-2 mt-3"></div>
         </div>
 
         <div class="modal-footer d-block bg-light" style="border-radius: 0 0 8px 8px;">
@@ -185,6 +185,7 @@
     .scheduled { background-color: #fffbeb !important; border-left: 3px solid #f59e0b !important; color: #92400e !important; }
     .cancelled { background-color: #fef2f2 !important; border-left: 3px solid #ef4444 !important; color: #991b1b !important; }
     .completed { background-color: #f3f4f6 !important; border-left: 3px solid #6b7280 !important; color: #374151 !important; }
+    .work_submitted { background-color: #e0f2fe !important; border-left: 3px solid #0ea5e9 !important; color: #0369a1 !important; }
 
     .rating-input {
         direction: rtl; 
@@ -244,54 +245,80 @@
         currentAppointmentId = info.event.id;
         const props = info.event.extendedProps;
 
+        // 1. Set Basic Info
         document.getElementById("detailServiceName").textContent = props.service_name;
         document.getElementById("detailDateTime").textContent = info.event.start.toLocaleString("uk-UA");
         
+        // 2. Set Status Text & Color
         const statusEl = document.getElementById("detailStatus");
         statusEl.textContent = getStatusText(props.status);
         statusEl.className = "fw-bold"; 
+        
+        // Basic coloring logic
         if(props.status === 'confirmed' || props.status === 'confirmed_paid') statusEl.classList.add('text-success');
         else if(props.status === 'scheduled') statusEl.classList.add('text-warning');
         else if(props.status === 'cancelled') statusEl.classList.add('text-danger');
+        else if(props.status === 'work_submitted') statusEl.classList.add('text-primary');
 
         document.getElementById("detailNotes").textContent = props.notes || "{{ _('No notes provided') }}";
         document.getElementById("detailAmount").textContent = props.amount || "0.00";
 
+        // 3. Reset Dynamic Sections
         const paymentSection = document.getElementById("paymentSection");
         const paymentStatus = document.getElementById("paymentStatus");
-
-        if (props.status === "confirmed") {
-          paymentSection.style.display = "block";
-          paymentStatus.style.display = "none";
-        } else {
-          paymentSection.style.display = "none";
-          if (props.status === "confirmed_paid") {
-            paymentStatus.style.display = "block";
-            paymentStatus.className = "alert alert-success";
-            paymentStatus.innerHTML = '<i class="fas fa-check-circle"></i> {{ _("Paid") }}';
-          } else if (props.status === 'scheduled'){
-            paymentSection.style.display = "none";
-            paymentStatus.style.display = "block";
-            paymentStatus.className = "alert alert-info";
-            paymentStatus.innerHTML = '<i class="fas fa-clock"></i> {{ _("Waiting for confirmation.") }}';
-          } else {
-            paymentStatus.style.display = "none";
-          }
-        }
-
         const actionsContainer = document.getElementById("appointmentActions");
+
+        paymentSection.style.display = "none";
+        paymentStatus.style.display = "none";
         actionsContainer.innerHTML = "";
 
+        // 4. Handle Specific Status States
+        
         if (props.status === "scheduled") {
-          actionsContainer.innerHTML = `
-            <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(${info.event.id})">
-              {{ _("Cancel appointment") }}
-            </button>
-          `;
+            // State: Waiting for Nurse
+            paymentStatus.style.display = "block";
+            paymentStatus.className = "alert alert-info";
+            paymentStatus.innerHTML = '<i class="fas fa-clock"></i> {{ _("Waiting for nurse approval.") }}';
+            
+            actionsContainer.innerHTML = `
+                <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(${info.event.id})">
+                    {{ _("Cancel appointment") }}
+                </button>
+            `;
+        } 
+        else if (props.status === "confirmed") {
+            // State: Approved, Need to Pay
+            paymentSection.style.display = "block"; 
+            
+            actionsContainer.innerHTML = `
+                <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(${info.event.id})">
+                    {{ _("Cancel appointment") }}
+                </button>
+            `;
+        } 
+        else if (props.status === "confirmed_paid") {
+            // State: Paid, Waiting for Work
+            paymentStatus.style.display = "block";
+            paymentStatus.className = "alert alert-success";
+            paymentStatus.innerHTML = '<i class="fas fa-shield-alt"></i> {{ _("Payment held securely. Waiting for nurse.") }}';
         }
-        
-        checkReviewStatus(currentAppointmentId);
-        
+        else if (props.status === "work_submitted") {
+            // State: Work Done, Need Approval
+            actionsContainer.innerHTML = `
+                <div class="alert alert-warning w-100 text-center">
+                    <i class="fas fa-check-circle"></i> <strong>{{ _("Job Done?") }}</strong><br>
+                    {{ _("The nurse has marked this job as finished.") }}
+                </div>
+                <button class="btn btn-success fw-bold w-100 py-2" onclick="approveAndPay(${info.event.id})">
+                    <i class="fas fa-hand-holding-usd"></i> {{ _("Approve & Release Payment") }}
+                </button>
+            `;
+        }
+        else if (props.status === "completed") {
+             // State: Finished, Show Reviews
+             checkReviewStatus(currentAppointmentId);
+        }
+
         const modal = new bootstrap.Modal(document.getElementById("appointmentDetailsModal"));
         modal.show();
       },
@@ -303,6 +330,7 @@
 
     calendar.render();
 
+    // --- PAYMENT HANDLER ---
     const payBtn = document.getElementById("payNowBtn");
     if(payBtn) {
         payBtn.addEventListener("click", function () {
@@ -345,6 +373,7 @@
         });
     }
 
+    // --- REVIEW HANDLERS ---
     const addReviewBtn = document.getElementById("addReviewBtn");
     if(addReviewBtn) {
         addReviewBtn.addEventListener("click", function () {
@@ -429,11 +458,14 @@
     }
   });
 
+  // --- HELPER FUNCTIONS ---
+
   function getStatusText(status) {
     const statuses = {
       scheduled: "{{ _('Scheduled') }}",
-      confirmed: "{{ _('Approved') }}",
-      confirmed_paid: "{{ _('Paid and confirmed') }}",
+      confirmed: "{{ _('Approved (Unpaid)') }}",
+      confirmed_paid: "{{ _('Paid & Confirmed') }}",
+      work_submitted: "{{ _('Work Submitted (Action Required)') }}",
       completed: "{{ _('Completed') }}",
       cancelled: "{{ _('Cancelled') }}"
     };
@@ -485,6 +517,7 @@
         } else if (data.review_exists) {
           loadExistingReview(appointmentId);
         } else {
+           // If completed but logic says no review yet (shouldn't happen often)
            noReviewMessage.style.display = "block"; 
            noReviewMessage.querySelector('p').textContent = "{{ _('Review available after completion.') }}";
            document.getElementById("addReviewBtn").style.display = "none";
@@ -517,6 +550,30 @@
     }
     return stars;
   }
+
+  // --- NEW: APPROVE AND PAY FUNCTION ---
+  window.approveAndPay = function(appointmentId) {
+    if (!confirm("{{ _('Are you sure? This will release the funds to the nurse.') }}")) return;
+
+    fetch("/client/complete_appointment", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify({ appointment_id: appointmentId }),
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(data.success) {
+            alert("{{ _('Payment Released! Thank you.') }}");
+            location.reload();
+        } else {
+            alert("{{ _('Error:') }} " + data.message);
+        }
+    })
+    .catch(err => console.error("Error:", err));
+  };
 </script>
 
 {% endblock %}
