@@ -32,7 +32,7 @@ class User(db.Model, UserMixin):
     date_birth = Column(Date)
     about_me = Column(String)
     address = Column(String)
-    
+    stripe_account_id = Column(String)
 
     created_at = Column(DateTime, default=datetime.now)
     online= Column(Boolean)

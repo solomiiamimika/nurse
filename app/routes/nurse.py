@@ -8,7 +8,7 @@ import os
 from werkzeug.utils import secure_filename
 from math import radians, sin, cos, sqrt, atan2
 nurse_bp = Blueprint('nurse', __name__)
-
+import stripe
 from app.extensions import socketio, db
 from flask import current_app, request
 from flask_socketio import join_room, leave_room, emit
@@ -688,5 +688,34 @@ def calculate_distance(lat1, lng1, lat2, lng2):
     c = 2 * atan2(sqrt(a), sqrt(1-a))
     
     return R * c
+
+@nurse_bp.route('/connect_stripe', methods=['GET'])
+@login_required
+def connect_stripe():
+    try:
+        country = request.args.get('country', 'DE')
+        account = stripe.Account.create(
+            type='express',
+            country=country,
+            email=current_user.email,
+            capabilities={
+                'card_payments': {'requested': True},
+                'transfers': {'requested': True},
+            },
+        )
+        current_user.stripe_account_id = account.id
+        db.session.commit()
+        account_link = stripe.AccountLink.create(
+            account=account.id,
+            refresh_url=url_for('nurse.connect_stripe', _external=True),
+            return_url=url_for('nurse.dashboard', _external=True),
+            type='account_onboarding',
+        )
+        return redirect(account_link.url)
+    except Exception as e:
+        current_app.logger.error(f"Stripe connection error: {str(e)}")
+        flash('Error connecting to Stripe', 'danger')
+        return redirect(url_for('nurse.dashboard'))
+    
 
 

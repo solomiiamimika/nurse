@@ -547,7 +547,7 @@ def payment_success(appointment_id):
         else:
             flash('Payment information is missing', 'warning')
     
-    except stripe.error.StripeError as e:
+    except stripe.StripeError as e:
         current_app.logger.error(f"Stripe verification error: {str(e)}")
         flash('Error during payment verification', 'danger')
     except Exception as e:
@@ -568,7 +568,7 @@ def stripe_webhook():
         )
     except ValueError as e:
         return jsonify({'error': 'Invalid payload'}), 400
-    except stripe.error.SignatureVerificationError as e:
+    except stripe.SignatureVerificationError as e:
         return jsonify({'error': 'Invalid signature'}), 400
 
     # Handling a successful payment event
@@ -712,7 +712,7 @@ def payment_cancel():
         db.session.add(payment_record)
         db.session.commit()
         
-    except stripe.error.StripeError as e:
+    except stripe.StripeError as e:
         current_app.logger.error(f"Stripe error in payment_cancel: {str(e)}")
     except Exception as e:
         current_app.logger.error(f"Error in payment_cancel: {str(e)}")

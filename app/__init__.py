@@ -24,7 +24,7 @@ def create_app():
     app.config['BABEL_DEFAULT_LOCALE'] = 'en'
     app.config['BABEL_SUPPORTED_LOCALES'] = ['de', 'uk', 'pl', 'cz-CN']
     csrf=CSRFProtect()
-    
+
     app.config["BABEL_TRANSLATION_DIRECTORIES"] = os.path.join(
         os.path.dirname(__file__), "..", "translations"
     )
@@ -42,9 +42,9 @@ def create_app():
     socketio.init_app(app)
 
     def get_locale():
-        print('current_language', session['lang'])
+    
         if 'lang' in session:
-            return session['lang']
+            return session.get('lang', 'en')
         return request.accept_languages.best_match(['en', 'uk'])
 
     babel.init_app(app, locale_selector=get_locale)
