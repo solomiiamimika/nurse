@@ -686,7 +686,7 @@ def calculate_distance(lat1, lng1, lat2, lng2):
     
     return R * c
 
-@nurse_bp.route('/connect_stripe', methods=['GET'])
+@nurse_bp.route('/connect_stripe', methods=['GET','POST'])
 @login_required
 def connect_stripe():
     try:

@@ -45,9 +45,23 @@
                     <i class="fas fa-camera"></i>
                 </label>
             </div>
+
             <input type="file" name="profile_picture" id="profile_picture" class="d-none" accept="image/*" />
             <div class="text-muted small">Allowed: JPG, PNG, GIF (Max 5MB)</div>
         </div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
 
         <div class="row g-3">
             <div class="col-md-6">
@@ -122,6 +136,47 @@
     </div>
   </div>
 </div>
+
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Payout Settings</h5>
+                
+                {% if current_user.stripe_account_id %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> 
+                        Payout Account Connected
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Connect your bank account to receive payments.
+                    </div>
+                    
+                    <form action="{{ url_for('nurse.connect_stripe') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Select your country:</label>
+                            <select name="country" class="form-select" required>
+                                <option value="UA">Ukraine (UA)</option>
+                                <option value="US">United States (US)</option>
+                                <option value="PL">Poland (PL)</option>
+                                <option value="DE">Germany (DE)</option>
+                                <option value="GB">United Kingdom (GB)</option>
+                                <option value="FR">France (FR)</option>
+                                <option value="ES">Spain (ES)</option>
+                                <option value="IT">Italy (IT)</option>
+                                </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fab fa-stripe-s"></i> Connect with Stripe
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
 
 {% endblock %}
 
