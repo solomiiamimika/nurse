@@ -211,8 +211,8 @@
         const statusEl = document.getElementById("detailStatus");
         statusEl.textContent = getStatusText(props.status);
         
-        // Colorize status text in modal
-        statusEl.className = "fw-bold"; // reset
+        // Colorize status text
+        statusEl.className = "fw-bold"; 
         if(props.status === 'confirmed' || props.status === 'confirmed_paid') statusEl.classList.add('text-success');
         else if(props.status === 'scheduled') statusEl.classList.add('text-warning');
         else if(props.status === 'cancelled') statusEl.classList.add('text-danger');
@@ -222,27 +222,56 @@
         const actionsContainer = document.getElementById("appointmentActions");
         actionsContainer.innerHTML = "";
 
+        // --- LOGIC START ---
+
+        // 1. New Request: Accept or Decline
         if (props.status === "scheduled") {
           actionsContainer.innerHTML = `
             <button class="btn btn-success fw-bold text-white" onclick="updateStatus(${info.event.id}, 'confirmed')">
-                <i class="fas fa-check"></i> Confirm
+                <i class="fas fa-check"></i> Accept Request
             </button>
             <button class="btn btn-outline-danger fw-bold" onclick="updateStatus(${info.event.id}, 'cancelled')">
                 <i class="fas fa-times"></i> Decline
             </button>
           `;
-        } else if (props.status === "confirmed" || props.status === "confirmed_paid") {
+        } 
+        // 2. Accepted, but Client hasn't paid yet
+        else if (props.status === "confirmed") {
+            actionsContainer.innerHTML = `
+            <div class="alert alert-warning w-100 text-center mb-0">
+                <i class="fas fa-clock"></i> Waiting for client payment.<br>
+                <small>You can submit work only after payment.</small>
+            </div>
+            `;
+        }
+        // 3. Paid: Allow Nurse to "Submit Work"
+        else if (props.status === "confirmed_paid") {
           actionsContainer.innerHTML = `
-            <button class="btn btn-primary fw-bold" onclick="updateStatus(${info.event.id}, 'completed')">
-                <i class="fas fa-check-double"></i> Mark as Done
-            </button>
-            <button class="btn btn-outline-danger fw-bold" onclick="updateStatus(${info.event.id}, 'cancelled')">
-                Cancel
+            <div class="alert alert-info w-100 text-center mb-2 small">
+                <i class="fas fa-shield-alt"></i> Payment Secured. Safe to work.
+            </div>
+            <button class="btn btn-primary fw-bold w-100" onclick="updateStatus(${info.event.id}, 'work_submitted')">
+                <i class="fas fa-check"></i> I have finished the work
             </button>
           `;
         }
+        // 4. Submitted: Waiting for Client Approval
+        else if (props.status === "work_submitted") {
+            actionsContainer.innerHTML = `
+            <div class="alert alert-secondary w-100 text-center mb-0">
+                <i class="fas fa-hourglass-half"></i> Work Submitted.<br>
+                <small>Funds will be released when client approves.</small>
+            </div>
+            `;
+        }
         
-        actionsContainer.innerHTML += `<button type="button" class="btn btn-light border" data-bs-dismiss="modal">Close</button>`;
+        // Add Close button if not a simple view
+        if (actionsContainer.innerHTML !== "") {
+            actionsContainer.innerHTML += `<button type="button" class="btn btn-light border mt-2 w-100" data-bs-dismiss="modal">Close</button>`;
+        } else {
+            actionsContainer.innerHTML = `<button type="button" class="btn btn-light border" data-bs-dismiss="modal">Close</button>`;
+        }
+
         const modal = new bootstrap.Modal(document.getElementById("appointmentDetailsModal"));
         modal.show();
       },
@@ -251,7 +280,10 @@
     calendar.render();
 
     window.updateStatus = function (appointmentId, status) {
-      if (!confirm(`Change status to ${status}?`)) return;
+      let confirmMsg = `Change status to ${status}?`;
+      if(status === 'work_submitted') confirmMsg = "Are you sure you have finished the work? The client will be notified to approve.";
+      
+      if (!confirm(confirmMsg)) return;
 
       fetch("/nurse/update_appointment_status", {
         method: "POST",
@@ -280,15 +312,15 @@
 
     function getStatusText(status) {
       const statuses = {
-        scheduled: "Pending",
-        confirmed: "Confirmed",
-        completed: "Completed",
+        scheduled: "Pending Request",
+        confirmed: "Accepted (Unpaid)",
+        confirmed_paid: "Paid - Ready to Start",
+        work_submitted: "Work Submitted (Pending Approval)",
+        completed: "Completed & Paid",
         cancelled: "Cancelled",
-        confirmed_paid: "Paid & Confirmed",
       };
       return statuses[status] || status;
     }
   });
 </script>
-
-{% endblock %}
+{%endblock%}
