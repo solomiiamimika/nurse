@@ -715,4 +715,24 @@ def connect_stripe():
         return redirect(url_for('nurse.dashboard'))
     
 
-
+@nurse_bp.route('/finances')
+@login_required
+def provider_finances_management():
+    if current_user.role != 'nurse':
+        return redirect(url_for('auth.login'))
+    if not current_user.stripe_account_id:
+        flash('Please connect your Stripe account first.', 'warning')
+        return redirect(url_for('nurse.connect_stripe'))
+    try:
+        stripe_account = stripe.Account.retrieve(current_user.stripe_account_id)
+        balance = stripe.Balance.retrieve(stripe_account=stripe_account.id)
+        payouts = stripe.Payout.list(stripe_account=stripe_account.id)
+        transactions = stripe.BalanceTransaction.list(stripe_account=stripe_account.id)
+        return render_template('nurse/finances.html',
+                               balance=balance,
+                               payouts=payouts,
+                               transactions=transactions)
+    except Exception as e:
+        current_app.logger.error(f"Error retrieving finances: {str(e)}")
+        flash('Error retrieving financial data from Stripe', 'danger')
+        return redirect(url_for('nurse.dashboard'))

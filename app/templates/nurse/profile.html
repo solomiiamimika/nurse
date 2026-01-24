@@ -173,8 +173,12 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="fab fa-stripe-s"></i> Connect with Stripe
                         </button>
+                        
                     </form>
                 {% endif %}
+                <a href="{{ url_for('nurse.provider_finances_management') }}" class="btn btn-secondary mt-3">
+                    <i class="fas fa-wallet"></i> Manage Payouts
+                </a>
             </div>
         </div>
 

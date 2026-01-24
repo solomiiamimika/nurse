@@ -523,42 +523,17 @@ def payment_success(appointment_id):
     
     try:
         if session_id:
+            # Verify the payment with Stripe
             session = stripe.checkout.Session.retrieve(session_id)
             
             if session.payment_status == 'paid' and session.metadata.get('appointment_id') == str(appointment_id):
-                
-                # 1. Get IDs safely
-                pi_obj = stripe.PaymentIntent.retrieve(session.payment_intent)
-                transaction_id = pi_obj.id
-                charge_id = pi_obj.latest_charge # Now we have the Charge ID!
-
-                # 2. Get Financials from metadata (saved in previous step)
-                platform_fee_cents = int(session.metadata.get('platform_fee_cents', 0))
-                amount_cents = session.amount_total
-                currency = session.currency
-
-                # 3. Create Payment Record
                 payment = Payment(
                     user_id=current_user.id,
                     appointment_id=appointment_id,
-                    
-                    # Money Fields
-                    amount=float(amount_cents) / 100,
-                    amount_cents=amount_cents,
-                    platform_fee_cents=platform_fee_cents, # Now saved!
-                    currency=currency,
-                    
+                    amount=float(session.amount_total) / 100,
                     payment_date=datetime.utcnow(),
-                    status='completed', # This means "Customer paid Platform", not "Nurse got paid"
-                    
-                    # Stripe IDs
-                    transaction_id=transaction_id,
-                    stripe_payment_intent_id=transaction_id, # Fill this too
-                    stripe_charge_id=charge_id,              # Fill this too
-                    transfer_group=pi_obj.transfer_group,    # Important for the future transfer
-                    
-                    # stripe_transfer_id is intentionally NULL (we haven't paid the nurse yet)
-                    
+                    status='completed',
+                    transaction_id=session.payment_intent,
                     payment_method=session.payment_method_types[0] if session.payment_method_types else 'card'
                 )
                 
@@ -566,7 +541,7 @@ def payment_success(appointment_id):
                 appointment.status = 'confirmed_paid'
                 db.session.commit()
 
-                flash('Payment successful! Funds are held safely.', 'success')
+                flash('Payment successful!', 'success')
             else:
                 flash('Payment not confirmed', 'warning')
         else:
@@ -575,10 +550,8 @@ def payment_success(appointment_id):
     except stripe.StripeError as e:
         current_app.logger.error(f"Stripe verification error: {str(e)}")
         flash('Error during payment verification', 'danger')
-        
     except Exception as e:
         current_app.logger.error(f"Error in payment_success: {str(e)}")
-        db.session.rollback()
         flash('Server error', 'danger')
 
     return redirect(url_for('client.appointments'))
@@ -595,7 +568,7 @@ def stripe_webhook():
         )
     except ValueError as e:
         return jsonify({'error': 'Invalid payload'}), 400
-    except stripe.SignatureVerificationError as e:
+    except stripe.error.SignatureVerificationError as e:
         return jsonify({'error': 'Invalid signature'}), 400
 
     # Handling a successful payment event
@@ -656,59 +629,53 @@ def handle_successful_payment(session):
 
 
 
-@client_bp.route('/create_payment_session', methods=['POST'])
-@login_required
-def create_payment_session():
-    data = request.get_json()
-    appointment_id = data.get('appointment_id')
-    appointment = Appointment.query.get_or_404(appointment_id)
+# @client_bp.route('/create_payment_session', methods=['POST'])
+# @login_required
+# def create_payment_session():
+#     data = request.get_json()
+#     appointment_id = data.get('appointment_id')
+#     appointment = Appointment.query.get_or_404(appointment_id)
 
-    if appointment.client_id != current_user.id:
-        return jsonify({'error': 'Unauthorized'}), 403
+#     if appointment.client_id != current_user.id:
+#         return jsonify({'error': 'Unauthorized'}), 403
 
-    # --- 1. CALCULATE FEES ---
-    # Example: 10% platform fee. Adjust this logic as needed!
-    nurse_price_cents = int(round(appointment.nurse_service.price * 100))
-    platform_fee_cents = int(round(nurse_price_cents * 0.10)) # 10% fee
-    
-    # Total amount the customer pays
-    total_amount_cents = nurse_price_cents + platform_fee_cents
+#     if appointment.status == 'confirmed_paid':
+#         return jsonify({'error': 'Appointment already paid'}), 400
 
-    transfer_group = f"appt_{appointment_id}"
+#     amount_cents = int(round(appointment.nurse_service.price * 100))
+#     transfer_group = f"appt_{appointment_id}"
 
-    session = stripe.checkout.Session.create(
-        payment_method_types=['card'],
-        line_items=[{
-            'price_data': {
-                'currency': 'eur',
-                # Show the customer the Full Service Name
-                'product_data': {
-                    'name': f"{appointment.nurse_service.name} (incl. Service Fee)",
-                },
-                'unit_amount': total_amount_cents, # Charging the TOTAL (Nurse + Fee)
-            },
-            'quantity': 1,
-        }],
-        mode='payment',
-        success_url=url_for('client.payment_success', appointment_id=appointment_id, _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
-        cancel_url=url_for('client.payment_cancel', _external=True),
-        customer_email=current_user.email,
+#     session = stripe.checkout.Session.create(
+#         payment_method_types=['card'],  # Apple Pay включиться як wallet для card
+#         line_items=[{
+#             'price_data': {
+#                 'currency': 'eur',
+#                 'product_data': {'name': appointment.nurse_service.name},
+#                 'unit_amount': amount_cents,
+#             },
+#             'quantity': 1,
+#         }],
+#         mode='payment',
+#         success_url=url_for('client.payment_success', appointment_id=appointment_id, _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+#         cancel_url=url_for('client.payment_cancel', _external=True),
+#         customer_email=current_user.email,
 
-        payment_intent_data={
-            "transfer_group": transfer_group, # Vital for linking the future payout
-            # We do NOT use 'transfer_data' here because we want to HOLD funds first.
-        },
+#         # ВАЖЛИВО: це піде в PaymentIntent
+#         payment_intent_data={
+#             "transfer_group": transfer_group,
+#             "metadata": {
+#                 "appointment_id": str(appointment_id),
+#                 "user_id": str(current_user.id),
+#             }
+#         },
 
-        metadata={
-            'appointment_id': appointment_id,
-            'user_id': current_user.id,
-            # Store the financial breakdown for later use
-            'nurse_base_cents': nurse_price_cents,
-            'platform_fee_cents': platform_fee_cents
-        }
-    )
+#         metadata={
+#             'appointment_id': appointment_id,
+#             'user_id': current_user.id
+#         }
+#     )
 
-    return jsonify({'sessionId': session.id})
+#     return jsonify({'sessionId': session.id})
 
    
 
@@ -745,7 +712,7 @@ def payment_cancel():
         db.session.add(payment_record)
         db.session.commit()
         
-    except stripe.StripeError as e:
+    except stripe.error.StripeError as e:
         current_app.logger.error(f"Stripe error in payment_cancel: {str(e)}")
     except Exception as e:
         current_app.logger.error(f"Error in payment_cancel: {str(e)}")
@@ -1095,12 +1062,64 @@ def provider_detail(provider_id):
     if provider.photo:
         photo = get_file_url(provider.photo,buckets['profile_pictures'])
     return render_template("client/provider_public_profile.html", provider=provider, reviews=reviews, services=servises, photo=photo)
+    
 
 
+# @client_bp.route('/complete_appointment', methods=['POST'])
+# @login_required
+# def complete_appointment():
+#     data = request.get_json()
+#     appointment_id = data.get('appointment_id')
+    
+#     appointment = Appointment.query.get_or_404(appointment_id)
+    
+#     if appointment.client_id != current_user.id:
+#         return jsonify({'success': False, 'message': 'Unauthorized'}), 403
 
+#     if appointment.status != 'work_submitted':
+#         return jsonify({'success': False, 'message': 'Nurse has not submitted the work yet.'}), 400
 
+#     try:
+#         # Шукаємо запис про оплату в БД
+#         payment = Payment.query.filter_by(appointment_id=appointment.id, status='completed').first()
+#         if not payment:
+#             return jsonify({'success': False, 'message': 'Payment record not found'}), 400
 
-@client_bp.route('/complete_appointment', methods=['POST'])
+#         nurse = User.query.get(appointment.nurse_id)
+#         if not nurse.stripe_account_id:
+#              return jsonify({'success': False, 'message': 'Nurse has not connected Stripe'}), 400
+
+#         # --- ВИПЛАТА З УРАХУВАННЯМ КОМІСІЇ ---
+#         # Вираховуємо суму для медсестри: Загальна сума - Ваша комісія 10%
+#         # (Дані беруться з вашої моделі Payment, куди ви мали записати platform_fee_cents при успішній оплаті)
+#         amount_to_nurse_cents = int(payment.amount_cents) - int(payment.platform_fee_cents)
+
+#         transfer = stripe.Transfer.create(
+#             amount=amount_to_nurse_cents, # Провайдер отримує менше
+#             currency=payment.currency,
+#             destination=nurse.stripe_account_id,
+#             transfer_group=payment.transfer_group,
+#             metadata={
+#                 "appointment_id": appointment.id,
+#                 "type": "payout",
+#                 "original_total": payment.amount_cents,
+#                 "platform_took": payment.platform_fee_cents
+#             }
+#         )
+
+#         # Оновлюємо статус в БД
+#         payment.stripe_transfer_id = transfer.id
+#         payment.status = 'payout_sent'
+#         appointment.status = 'completed'
+#         db.session.commit()
+        
+#         return jsonify({'success': True, 'message': 'Appointment completed and payment released!'})
+
+#     except stripe.StripeError as e:
+#         current_app.logger.error(f"Stripe Transfer Error: {str(e)}")
+#         return jsonify({'success': False, 'message': str(e)}), 500
+    
+@client_bp.route('/complete_appointment', methods=['POST'])  
 @login_required
 def complete_appointment():
     data = request.get_json()
@@ -1108,43 +1127,44 @@ def complete_appointment():
     
     appointment = Appointment.query.get_or_404(appointment_id)
     
-    # 1. Security Check
     if appointment.client_id != current_user.id:
         return jsonify({'success': False, 'message': 'Unauthorized'}), 403
 
-    # 2. Status Check (Must be submitted by nurse first)
     if appointment.status != 'work_submitted':
         return jsonify({'success': False, 'message': 'Nurse has not submitted the work yet.'}), 400
 
     try:
-        # 3. Find the Payment
+        # Шукаємо запис про оплату в БД
         payment = Payment.query.filter_by(appointment_id=appointment.id, status='completed').first()
         if not payment:
             return jsonify({'success': False, 'message': 'Payment record not found'}), 400
 
-        # 4. Stripe Transfer (Release Funds)
         nurse = User.query.get(appointment.nurse_id)
         if not nurse.stripe_account_id:
              return jsonify({'success': False, 'message': 'Nurse has not connected Stripe'}), 400
 
-        # Calculate Net Amount (Total - Platform Fee)
+        # --- ВИПЛАТА З УРАХУВАННЯМ КОМІСІЇ ---
+        # Вираховуємо суму для медсестри: Загальна сума - Ваша комісія 10%
+        # (Дані беруться з вашої моделі Payment, куди ви мали записати platform_fee_cents при успішній оплаті)
         amount_to_nurse_cents = int(payment.amount_cents) - int(payment.platform_fee_cents)
 
         transfer = stripe.Transfer.create(
-            amount=amount_to_nurse_cents,
+            amount=amount_to_nurse_cents, # Провайдер отримує менше
             currency=payment.currency,
             destination=nurse.stripe_account_id,
             transfer_group=payment.transfer_group,
             metadata={
                 "appointment_id": appointment.id,
-                "type": "payout"
+                "type": "payout",
+                "original_total": payment.amount_cents,
+                "platform_took": payment.platform_fee_cents
             }
         )
 
-        # 5. Update DB
+        # Оновлюємо статус в БД
         payment.stripe_transfer_id = transfer.id
         payment.status = 'payout_sent'
-        appointment.status = 'completed' # Final Status
+        appointment.status = 'completed'
         db.session.commit()
         
         return jsonify({'success': True, 'message': 'Appointment completed and payment released!'})
