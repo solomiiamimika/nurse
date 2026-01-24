@@ -677,7 +677,59 @@ def handle_successful_payment(session):
 
 #     return jsonify({'sessionId': session.id})
 
-   
+@client_bp.route('/create_payment_session', methods=['POST'])
+@login_required
+def create_payment_session():
+    data = request.get_json()
+    appointment_id = data.get('appointment_id')
+    appointment = Appointment.query.get_or_404(appointment_id)
+
+    if appointment.client_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    # --- НОВА ЛОГІКА ОБРАХУНКУ ---
+    # Повна ціна, яку вказав провайдер (наприклад, 100.00 EUR)
+    total_amount_cents = int(round(appointment.nurse_service.price * 100))
+    
+    # Комісія платформи (10% від повної ціни = 10.00 EUR)
+    platform_fee_cents = int(round(total_amount_cents * 0.10)) 
+    
+    # Сума, яка залишиться для переказу медсестрі (90.00 EUR)
+    nurse_net_amount_cents = total_amount_cents - platform_fee_cents
+
+    transfer_group = f"appt_{appointment_id}"
+
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=[{
+            'price_data': {
+                'currency': 'eur',
+                'product_data': {
+                    'name': f"{appointment.nurse_service.name}", # Клієнт бачить просто назву послуги
+                },
+                'unit_amount': total_amount_cents, # Клієнт платить ПОВНУ суму
+            },
+            'quantity': 1,
+        }],
+        mode='payment',
+        success_url=url_for('client.payment_success', appointment_id=appointment_id, _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url=url_for('client.payment_cancel', _external=True),
+        customer_email=current_user.email,
+
+        payment_intent_data={
+            "transfer_group": transfer_group,
+        },
+
+        metadata={
+            'appointment_id': appointment_id,
+            'user_id': current_user.id,
+            'total_amount_cents': total_amount_cents,
+            'platform_fee_cents': platform_fee_cents,
+            'nurse_net_amount_cents': nurse_net_amount_cents # Зберігаємо для виплати
+        }
+    )
+
+    return jsonify({'sessionId': session.id})
 
 
 @client_bp.route('/payment_cancel')
