@@ -5,72 +5,268 @@
     <meta charset="UTF-8" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>{{ _("Register") }}</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='auth.css') }}"
-    />
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+        :root {
+            --primary-green: #3f4a36;
+            --primary-hover: #19a463;
+            --text-dark: #404145;
+            --bg-pink: #fff0f3;
+        }
+
+        body {
+            font-family: "Macan", system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-pink);
+            background-image: linear-gradient(180deg, #fff0f3 0%, #ffffff 100%);
+            height: 100vh; /* Фіксована висота екрану */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow: hidden; /* Прибираємо скрол сторінки */
+        }
+
+        /* Background Pattern */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .auth-card {
+            background: white;
+            width: 100%;
+            max-width: 700px; /* Ширша картка для 2 колонок */
+            padding: 30px 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(63, 74, 54, 0.08);
+            border: 1px solid rgba(0,0,0,0.02);
+            position: relative;
+        }
+
+        h2 {
+            color: var(--text-dark);
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 1.8rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+        }
+
+        /* Grid Layout for inputs */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        /* Input Styling */
+        .input-group-custom {
+            position: relative;
+            margin-bottom: 0; /* Margin is handled by grid gap */
+        }
+
+        .input-group-custom i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            z-index: 2;
+            font-size: 1rem;
+            pointer-events: none;
+        }
+
+        .styled-input {
+            width: 100%;
+            height: 48px;
+            padding: 0 15px 0 45px !important; /* Force padding-left so text doesn't overlap icon */
+            background: #f8f9fa;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .styled-input:focus {
+            background: white;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(63, 74, 54, 0.1);
+        }
+
+        .styled-input::placeholder {
+            color: #adb5bd;
+        }
+
+        /* Select styling fix */
+        select.styled-input {
+            appearance: none;
+            cursor: pointer;
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            background-color: var(--primary-green);
+            color: white;
+            height: 48px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(63, 74, 54, 0.2);
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #ced4da;
+            margin: 20px 0 15px 0;
+            font-size: 0.85rem;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .divider span { padding: 0 10px; }
+
+        /* Google Button */
+        .google-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            background: white;
+            color: var(--text-dark);
+            border: 1px solid #e9ecef;
+            height: 48px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: 0.2s;
+        }
+        .google-btn:hover { background: #f8f9fa; border-color: #dee2e6; color: black; }
+
+        .login-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .login-link a {
+            color: var(--primary-green);
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .login-link a:hover { text-decoration: underline; }
+
+        /* Mobile adaptation */
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; gap: 10px; }
+            .full-width { grid-column: span 1; }
+            .auth-card { padding: 20px; max-height: 95vh; overflow-y: auto; }
+            body { align-items: flex-start; padding-top: 10px; }
+        }
+    </style>
   </head>
 
   <body>
-    <div class="overlay-content">
-      <div class="auth-container">
-        <h1>{{ _("Register") }}</h1>
+      <div class="auth-card">
+        <h2>{{ _("Join Human") }}</h2>
+        <p class="subtitle">{{ _("Create an account to book services or find work.") }}</p>
 
-        {% with messages = get_flashed_messages(with_categories=true) %} {% if
-        messages %}
-        <div class="alert-area">
+        {% with messages = get_flashed_messages(with_categories=true) %} 
+        {% if messages %}
           {% for category, message in messages %}
-          <div class="alert alert-{{ category }}">{{ message }}</div>
+          <div class="alert alert-{{ category }} py-2 mb-3" style="font-size: 0.9rem;">{{ message }}</div>
           {% endfor %}
-        </div>
-        {% endif %} {% endwith %}
+        {% endif %} 
+        {% endwith %}
 
         <form method="POST">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
-          <input type="text" name="username" placeholder="{{ _('Username') }}" required />
-          <input
-            type="text"
-            name="full_name"
-            placeholder="{{ _('Full name') }}"
-            required
-          />
-          <input type="email" name="email" placeholder="{{ _('Email') }}" required />
-          <input
-            type="password"
-            name="password"
-            placeholder="{{ _('Password (min. 6 characters)') }}"
-            required
-          />
-          <input
-            type="password"
-            name="confirm_password"
-            placeholder="{{ _('Confirm Password') }}"
-            required
-          />
+          <div class="form-grid">
+              <div class="input-group-custom">
+                  <i class="fas fa-user"></i>
+                  <input type="text" name="username" class="styled-input" placeholder="{{ _('Username') }}" required />
+              </div>
 
-          <select name="role" required>
-            <option value="client">{{ _("Client") }}</option>
-            <option value="nurse">{{ _("Service provider") }}</option>
-          </select>
+              <div class="input-group-custom">
+                <i class="fas fa-id-card"></i>
+                <input type="text" name="full_name" class="styled-input" placeholder="{{ _('Full Name') }}" required />
+              </div>
 
-          <button type="submit" class="btn-primary">{{ _("Register") }}</button>
+              <div class="input-group-custom full-width">
+                <i class="fas fa-envelope"></i>
+                <input type="email" name="email" class="styled-input" placeholder="{{ _('Email Address') }}" required />
+              </div>
+
+              <div class="input-group-custom full-width">
+                <i class="fas fa-user-tag"></i>
+                <select name="role" class="styled-input" required>
+                    <option value="client">{{ _("I want to find care (Client)") }}</option>
+                    <option value="nurse">{{ _("I want to offer services (Provider)") }}</option>
+                </select>
+                <i class="fas fa-chevron-down" style="left: auto; right: 15px;"></i>
+              </div>
+
+              <div class="input-group-custom">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="password" class="styled-input" placeholder="{{ _('Password') }}" required />
+              </div>
+
+              <div class="input-group-custom">
+                <i class="fas fa-check-circle"></i>
+                <input type="password" name="confirm_password" class="styled-input" placeholder="{{ _('Confirm') }}" required />
+              </div>
+          </div>
+
+          <button type="submit" class="btn-submit">{{ _("Create Account") }}</button>
         </form>
 
-        <p style="text-align: center; margin-top: 14px">{{ _("Or register with:") }}</p>
+        <div class="divider"><span>{{ _("or") }}</span></div>
 
         <a href="{{ url_for('google.login') }}" class="google-btn">
-          {{ _("Register with Google") }}
+          <img src="https://www.svgrepo.com/show/475656/google-color.svg" width="20" height="20" alt="G">
+          {{ _("Continue with Google") }}
         </a>
 
-        <p style="text-align: center; margin-top: 18px">
-          {{ _("Already have an account?") }}
-        </p>
-
-        <a href="{{ url_for('auth.login') }}" class="btn-secondary"
-          >{{ _("Login here") }}</a
-        >
+        <div class="login-link">
+          {{ _("Already have an account?") }} <a href="{{ url_for('auth.login') }}">{{ _("Log in") }}</a>
+        </div>
       </div>
-    </div>
   </body>
 </html>

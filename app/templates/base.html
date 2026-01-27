@@ -5,47 +5,123 @@
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>{{ _("My Cool App") }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='styles.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+    <style>
+        /* Стилізація перемикача мови */
+        .language-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 2000; /* Поверх всього, навіть поверх хедерів */
+        }
+
+        .lang-pill {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px); /* Ефект скла */
+            padding: 8px 16px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .lang-pill:hover {
+            background: #ffffff;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .lang-icon {
+            color: #62646a; /* Сірий колір для іконки */
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        .lang-link {
+            text-decoration: none;
+            color: #62646a;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 0 4px;
+            transition: color 0.2s ease;
+            font-family: system-ui, -apple-system, sans-serif;
+            text-transform: uppercase;
+        }
+
+        .lang-link:hover {
+            color: #3f4a36; /* Твій основний зелений */
+        }
+
+        .lang-divider {
+            color: #e4e5e7;
+            margin: 0 6px;
+            font-size: 12px;
+        }
+
+        /* Стиль для активної мови (опціонально, можна додати логіку в Jinja) */
+        .lang-link.active {
+            color: #3f4a36;
+            font-weight: 800;
+        }
+
+        /* Стиль повідомлень (flashes) */
+        .flashes-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1050;
+            min-width: 300px;
+        }
+        
+        .alert {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 8px;
+        }
+    </style>
   </head>
 
   <body>
-    <div class="change_language"> </div>
-      <a href="{{ url_for('auth.set_language', lang_code='en') }}">English</a>
-      <a href="{{ url_for('auth.set_language', lang_code='uk') }}">Українська</a>
+    <div class="language-switcher">
+        <div class="lang-pill">
+            <i class="fas fa-globe lang-icon"></i>
+            <a href="{{ url_for('auth.set_language', lang_code='en') }}" class="lang-link">EN</a>
+            <span class="lang-divider">|</span>
+            <a href="{{ url_for('auth.set_language', lang_code='uk') }}" class="lang-link">UA</a>
+        </div>
     </div>
-    {% with messages = get_flashed_messages(with_categories=true) %} {% if
-    messages %}
-    <ul class="flashes">
+
+    {% with messages = get_flashed_messages(with_categories=true) %} 
+    {% if messages %}
+    <div class="flashes-container">
       {% for category, message in messages %}
-      <li class="alert alert-{{ category }}">{{ message }}</li>
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
       {% endfor %}
-    </ul>
-    {% endif %} {% endwith %} {% block content %}{% endblock %}
+    </div>
+    {% endif %} 
+    {% endwith %} 
+    
+    {% block content %}{% endblock %}
 
-   
     <script>
-
+        // Тут можна додати скрипти
     </script>
 
     {% block scripts %}{% endblock %}
+    
+    <div class="top-glass-bg"></div>
   </body>
-  <div class="top-glass-bg"></div>
 </html>
