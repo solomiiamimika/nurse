@@ -76,7 +76,7 @@
           
           {% if nurses %} 
             {% for nurse in nurses %}
-            <div class="card nurse-item" onclick="openBookingModal('{{ nurse.id }}','{{ nurse.full_name }}')">
+            <div class="card nurse-item" onclick="calculateRoute({{nurse.latitude or 'null'}},{{nurse.longitude or 'null'}},'{{nurse.user_name}}')">
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
@@ -189,18 +189,27 @@
 {% endblock %} 
 
 {% block scripts %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
 
-<!--Bot ai-->
 <script src="https://cdn.botpress.cloud/webchat/v3.5/inject.js"></script>
 <script src="https://files.bpcontent.cloud/2026/01/10/13/20260110130650-79OB48AX.js" defer></script>
     
+<style>
+    /* Ховаємо текстову панель маршруту, лишаємо тільки лінію */
+    .leaflet-routing-container { display: none !important; }
+</style>
+
 <script>
   let map;
   let userMarker;
   let nursesLayer = L.layerGroup();
+  let routingControl = null; // Змінна для зберігання поточного маршруту
+
   const csrfMeta = document.querySelector('meta[name="csrf-token"]');
   const csrfToken = csrfMeta ? csrfMeta.content : '';
 
@@ -209,37 +218,98 @@
       if(statusEl) {
         statusEl.textContent = message;
         statusEl.style.color = isError ? '#dc3545' : '#198754';
+        statusEl.style.fontWeight = 'bold';
       }
   }
 
   function initMap() {
       try {
+          // Беремо координати з бекенду або дефолтні (Київ)
           const userLat = {{ current_user.latitude if current_user.latitude else 'null' }};
           const userLng = {{ current_user.longitude if current_user.longitude else 'null' }};
           const mapCenterLat = userLat !== null ? userLat : 50.4501;
           const mapCenterLng = userLng !== null ? userLng : 30.5234;
 
           map = L.map('nursesMap').setView([mapCenterLat, mapCenterLng], 12);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+          
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+              attribution: '&copy; OpenStreetMap contributors'
+          }).addTo(map);
+          
           nursesLayer.addTo(map);
 
           if (userLat !== null && userLng !== null) {
-              userMarker = L.marker([userLat, userLng], {
-                  icon: L.divIcon({
-                      className: 'my-marker',
-                      html: '<div style="background-color: #0d6efd; border-radius: 50%; width: 16px; height: 16px; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>'
-                  })
-              }).addTo(map).bindPopup('{{ _("Your location") }}');
+              createUserMarker(userLat, userLng);
           }
+          
           loadNursesLocations();
       } catch (error) { console.error("Map error:", error); }
   }
+
+  function createUserMarker(lat, lng) {
+      if (userMarker) map.removeLayer(userMarker);
+      
+      userMarker = L.marker([lat, lng], {
+          icon: L.divIcon({
+              className: 'my-marker',
+              html: '<div style="background-color: #0d6efd; border-radius: 50%; width: 20px; height: 20px; border: 3px solid white; box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.3);"></div>',
+              iconSize: [20, 20]
+          })
+      }).addTo(map).bindPopup('<b>{{ _("You are here") }}</b>');
+  }
+
+  // --- ЛОГІКА МАРШРУТІВ ---
+  window.calculateRoute = function(destLat, destLng, providerName) {
+      if (!userMarker) {
+          alert("{{ _('Please update your location first so we can build a route.') }}");
+          return;
+      }
+
+      // 1. Видаляємо старий маршрут, якщо є
+      if (routingControl) {
+          map.removeControl(routingControl);
+      }
+
+      const userLatLng = userMarker.getLatLng();
+      showStatus(`{{ _('Calculating route to') }} ${providerName}...`);
+
+      // 2. Створюємо новий маршрут
+      routingControl = L.Routing.control({
+          waypoints: [
+              L.latLng(userLatLng.lat, userLatLng.lng),
+              L.latLng(destLat, destLng)
+          ],
+          routeWhileDragging: false,
+          draggableWaypoints: false,
+          addWaypoints: false,
+          // Не створюємо нові маркери (бо у нас вже є маркери юзера і провайдера)
+          createMarker: function() { return null; },
+          lineOptions: {
+              styles: [{color: '#0d6efd', opacity: 0.7, weight: 5}]
+          },
+          show: false // Ховаємо текстову інструкцію
+      })
+      .on('routesfound', function(e) {
+          const routes = e.routes;
+          const summary = routes[0].summary;
+          const distance = (summary.totalDistance / 1000).toFixed(1) + " km";
+          const time = Math.round(summary.totalTime / 60) + " min";
+          
+          // Показуємо результат зверху сторінки
+          showStatus(`${providerName}: ${distance}, ~${time} drive`);
+      })
+      .on('routingerror', function() {
+          showStatus("{{ _('Could not calculate route.') }}", true);
+      })
+      .addTo(map);
+  };
 
   async function loadNursesLocations() {
       try {
           nursesLayer.clearLayers();
           const response = await fetch('{{ url_for("client.get_nurses_locations") }}');
           const nurses = await response.json();
+          
           nurses.forEach(nurse => {
               const marker = L.marker([nurse.lat, nurse.lng], {
                   icon: L.divIcon({
@@ -247,11 +317,31 @@
                       html: `<div style="background-color: ${nurse.online ? '#1dbf73' : '#b5b6ba'}; border-radius: 50%; width: 16px; height: 16px; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`
                   })
               }).addTo(nursesLayer);
-              marker.bindPopup(`<b>${nurse.name}</b><br><button class="btn btn-sm btn-success mt-2" onclick="openBookingModal('${nurse.id}', '${nurse.name}')" style="background:#1dbf73; border:none;">{{ _("Book Service") }}</button>`);
+
+              // Додаємо кнопку маршруту в Popup
+              const popupContent = `
+                  <div class="text-center">
+                      <h6 class="fw-bold mb-1">${nurse.name}</h6>
+                      <div class="d-flex gap-2 justify-content-center mt-2">
+                          <button class="btn btn-sm btn-outline-primary" 
+                                  onclick="calculateRoute(${nurse.lat}, ${nurse.lng}, '${nurse.name}')" 
+                                  title="{{ _('Show Route') }}">
+                              <i class="fas fa-route"></i>
+                          </button>
+                          <button class="btn btn-sm btn-success" 
+                                  onclick="openBookingModal('${nurse.id}', '${nurse.name}')">
+                              {{ _("Book") }}
+                          </button>
+                      </div>
+                  </div>
+              `;
+              marker.bindPopup(popupContent);
           });
       } catch (error) { console.error("Error loading services:", error); }
   }
 
+  // --- ІНШІ ФУНКЦІЇ (Request, Update Location, Booking) ---
+  
   function loadMyRequests() {
       fetch('/client/client_get_requests')
         .then(r => r.json())
@@ -319,14 +409,8 @@
       showStatus("{{ _('Locating...') }}");
       navigator.geolocation.getCurrentPosition(async (position) => {
           const {latitude, longitude} = position.coords;
-          if (userMarker) map.removeLayer(userMarker);
-          userMarker = L.marker([latitude, longitude], {
-              icon: L.divIcon({
-                  className: 'my-marker',
-                   html: '<div style="background-color: #0d6efd; border-radius: 50%; width: 16px; height: 16px; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>'
-              })
-          }).addTo(map);
-          map.setView([latitude, longitude], 12);
+          createUserMarker(latitude, longitude);
+          map.setView([latitude, longitude], 13);
           
           await fetch('{{ url_for("client.update_location") }}', {
               method: 'POST',
@@ -334,6 +418,8 @@
               body: JSON.stringify({latitude, longitude})
           });
           showStatus("{{ _('Location updated') }}");
+      }, (err) => {
+          showStatus("{{ _('Error getting location') }}", true);
       });
   }
 

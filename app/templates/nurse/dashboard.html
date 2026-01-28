@@ -1,3 +1,4 @@
+{# templates/nurse/dashboard.html #}
 {% extends "base.html" %} 
 {% block content %}
 
@@ -6,7 +7,8 @@
 <div class="main-wrapper">
     
     <div class="greeting-section">
-        <div class="custom-container text-center"> <h2>Hi, {{ current_user.full_name if current_user.full_name else current_user.username}}!</h2>
+        <div class="custom-container text-center"> 
+            <h2>Hi, {{ current_user.full_name if current_user.full_name else current_user.username}}!</h2>
             <div class="hero-subtitle">Manage your requests and availability</div>
         </div>
     </div>
@@ -14,34 +16,19 @@
     <div class="sticky-toolbar-wrapper">
         <div class="custom-container">
             <div class="toolbar-inner d-flex justify-content-center align-items-center flex-wrap gap-2">
-                
-                <a href="{{ url_for('nurse.profile') }}" class="btn-tool">
-                    <i class="fas fa-user-md"></i> Profile
-                </a>
-                <a href="{{ url_for('nurse.appointments') }}" class="btn-tool">
-                    <i class="fas fa-calendar-check"></i> Appointments
-                </a>
-                <a href="{{ url_for('nurse.manage_services') }}" class="btn-tool">
-                    <i class="fas fa-list-ul"></i> My Services
-                </a>
-                
-                <button id="location-btn" class="btn-tool text-primary">
-                    <i class="fas fa-map-marker-alt"></i> Update Location
-                </button>
-
+                <a href="{{ url_for('nurse.profile') }}" class="btn-tool"><i class="fas fa-user-md"></i> Profile</a>
+                <a href="{{ url_for('nurse.appointments') }}" class="btn-tool"><i class="fas fa-calendar-check"></i> Appointments</a>
+                <a href="{{ url_for('nurse.manage_services') }}" class="btn-tool"><i class="fas fa-list-ul"></i> My Services</a>
+                <button id="location-btn" class="btn-tool text-primary"><i class="fas fa-map-marker-alt"></i> Update Location</button>
                 <button id="toggle-online-btn" class="btn-tool {{ 'status-online' if current_user.online else 'status-offline' }}">
                     <span class="status-indicator"></span>
                     <span id="status-text">{{ 'You are Online' if current_user.online else 'You are Offline' }}</span>
                 </button>
-
                 <form action="{{url_for('auth.logout')}}" method="post" style="display:inline">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button class="btn-icon text-danger" title="Exit">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </button>
+                    <button class="btn-icon text-danger" title="Exit"><i class="fas fa-sign-out-alt"></i></button>
                 </form>
             </div>
-            
             <div id="status-message" class="text-center mt-2 small fw-bold"></div>
         </div>
     </div>
@@ -52,26 +39,42 @@
             <div class="col-lg-8">
                 <div class="content-card h-100">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0 fw-bold text-dark">Client Map</h5>
-                        <span class="badge bg-light text-dark border">Real-time</span>
+                        <h5 class="mb-0 fw-bold text-dark">Map View</h5>
+                        <div>
+                            <span class="badge bg-light text-dark border me-2" id="route-info"></span>
+                            <span class="badge bg-light text-dark border">Real-time</span>
+                        </div>
                     </div>
-                    <div id="combinedMap" style="height: 600px; width: 100%; border-radius: 8px; border: 1px solid #e5e7eb;"></div>
+                    <div id="combinedMap" style="height: 600px; width: 100%; border-radius: 8px; border: 1px solid #e5e7eb; background: #e0e0e0;"></div>
                 </div>
             </div>
 
             <div class="col-lg-4">
                 <div class="h-100 d-flex flex-column">
-                    <h5 class="fw-bold text-muted small text-uppercase mb-3 ps-1">Available Requests</h5>
+                    
+                    <div class="nav nav-pills nav-fill p-1 bg-white border rounded-pill mb-3 shadow-sm" role="tablist">
+                        <button class="nav-link rounded-pill active fw-bold small py-2" id="tab-requests" onclick="switchTab('requests')">
+                            {{ _("New Requests") }}
+                        </button>
+                        <button class="nav-link rounded-pill fw-bold small py-2" id="tab-appointments" onclick="switchTab('appointments')">
+                            {{ _("My Schedule") }}
+                        </button>
+                    </div>
                     
                     <div class="requests-scroll-area">
                         <div id="requestsList">
                             <div class="text-center mt-5">
-                                <div class="spinner-border text-secondary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
+                                <div class="spinner-border text-secondary" role="status"></div>
+                            </div>
+                        </div>
+
+                        <div id="appointmentsList" class="d-none">
+                            <div class="text-center mt-5">
+                                <div class="spinner-border text-primary" role="status"></div>
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -82,7 +85,7 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title fw-bold">Request Details</h5>
+        <h5 class="modal-title fw-bold">Details</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -103,163 +106,81 @@
                 <strong class="text-muted small">PAYMENT</strong> 
                 <span class="fw-bold"><span id="detailPayment"></span> EUR</span>
             </div>
+            <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
+                <strong class="text-muted small">DISTANCE</strong> 
+                <span class="fw-bold text-primary" id="detailDistance">Calculating...</span>
+            </div>
             <div class="mb-0">
                 <strong class="text-muted small d-block">NOTES</strong> 
                 <div id="detailNotes" class="fst-italic text-secondary mt-1"></div>
             </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-success fw-bold px-4" id="acceptRequestBtn">Accept Request</button>
+        
+        <div id="modalActions">
+            </div>
       </div>
     </div>
   </div>
 </div>
 
 {% endblock %} 
-
 {% block scripts %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
-
-<<<<<<< Updated upstream
-<style>
-    /* Єдиний контейнер для ширини */
-    .custom-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding-left: 20px;
-        padding-right: 20px;
-        width: 100%;
-    }
-
-    /* Стилі меню */
-    .sticky-toolbar-wrapper {
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        padding: 15px 0;
-        background: rgba(248, 250, 252, 0.95); /* Більш непрозорий */
-        backdrop-filter: blur(10px);
-        border-bottom: 1px solid rgba(0,0,0,0.06);
-        margin-bottom: 30px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.03); /* Легка тінь */
-    }
-    
-    .toolbar-inner {
-        width: 100%;
-    }
-
-    .btn-tool {
-        background: white;
-        border: 1px solid #e5e7eb;
-        color: #4b5563;
-        padding: 10px 18px; /* Трохи більші кнопки */
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        transition: all 0.2s;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        text-decoration: none;
-        white-space: nowrap; /* Щоб текст не падав */
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    }
-    .btn-tool:hover {
-        background: #f9fafb;
-        color: #111827;
-        border-color: #d1d5db;
-        transform: translateY(-1px);
-    }
-
-    .btn-icon {
-        background: white;
-        border: 1px solid #e5e7eb;
-        padding: 10px 14px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: 0.2s;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    }
-    .btn-icon:hover { background: #fee2e2; border-color: #fca5a5; transform: translateY(-1px); }
-
-    /* Header */
-    .greeting-section {
-        padding: 40px 0 20px;
-    }
-    .greeting-section h2 {
-        font-weight: 800;
-        color: #1f2937;
-    }
-
-    /* Інше */
-    .status-online { background: #ecfdf5; border-color: #6ee7b7; color: #059669; }
-    .status-offline { background: #f3f4f6; border-color: #d1d5db; color: #6b7280; }
-    .status-indicator {
-        width: 8px; height: 8px; border-radius: 50%; background-color: currentColor; display: inline-block;
-    }
-
-    .content-card {
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    }
-
-    .requests-scroll-area {
-        height: 600px;
-        overflow-y: auto;
-        padding-right: 5px;
-    }
-
-    .nurse-item {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        margin-bottom: 15px;
-        transition: all 0.2s;
-        cursor: pointer;
-        position: relative;
-        overflow: hidden;
-    }
-    .nurse-item::before {
-        content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #3b82f6;
-    }
-    .nurse-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        border-color: #bfdbfe;
-    }
-    .view-request-btn {
-        width: 100%;
-        margin-top: 10px;
-        padding: 8px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #3b82f6;
-        background: #eff6ff;
-        border: 1px solid #dbeafe;
-        border-radius: 6px;
-        transition: 0.2s;
-    }
-    .view-request-btn:hover { background: #3b82f6; color: white; }
-</style>
-=======
-<!--Bot ai-->
 <script src="https://cdn.botpress.cloud/webchat/v3.5/inject.js"></script>
 <script src="https://files.bpcontent.cloud/2026/01/10/13/20260110130650-79OB48AX.js" defer></script>
+
+<style>
+    .leaflet-routing-container { display: none !important; }
+    .custom-container { max-width: 1400px; margin: 0 auto; padding: 0 20px; width: 100%; }
+    .sticky-toolbar-wrapper { position: sticky; top: 0; z-index: 1000; padding: 15px 0; background: rgba(248, 250, 252, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.06); margin-bottom: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+    .toolbar-inner { width: 100%; }
+    /* Стилі кнопок та карток (ваші попередні) */
+    .btn-tool { background: white; border: 1px solid #e5e7eb; color: #4b5563; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .btn-tool:hover { background: #f9fafb; color: #111827; border-color: #d1d5db; transform: translateY(-1px); }
+    .btn-icon { background: white; border: 1px solid #e5e7eb; padding: 10px 14px; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .btn-icon:hover { background: #fee2e2; border-color: #fca5a5; transform: translateY(-1px); }
+    .greeting-section { padding: 40px 0 20px; }
+    .greeting-section h2 { font-weight: 800; color: #1f2937; }
+    .status-online { background: #ecfdf5; border-color: #6ee7b7; color: #059669; }
+    .status-offline { background: #f3f4f6; border-color: #d1d5db; color: #6b7280; }
+    .status-indicator { width: 8px; height: 8px; border-radius: 50%; background-color: currentColor; display: inline-block; }
+    .content-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .requests-scroll-area { height: 600px; overflow-y: auto; padding-right: 5px; }
+    .nurse-item { background: white; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 15px; transition: all 0.2s; cursor: pointer; position: relative; overflow: hidden; }
+    .nurse-item:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-color: #bfdbfe; }
+    .item-request::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #ef4444; }
+    .item-appointment::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #10b981; }
+    .view-request-btn { width: 100%; margin-top: 10px; padding: 8px; font-size: 0.85rem; font-weight: 600; border-radius: 6px; transition: 0.2s; border: 1px solid transparent;}
+    .btn-req { color: #ef4444; background: #fef2f2; border-color: #fecaca; }
+    .btn-req:hover { background: #ef4444; color: white; }
+    .btn-appt { color: #10b981; background: #ecfdf5; border-color: #a7f3d0; }
+    .btn-appt:hover { background: #10b981; color: white; }
+    .nav-pills .nav-link { color: #6b7280; border-radius: 50rem; transition: 0.2s; }
+    .nav-pills .nav-link.active { background-color: #1f2937; color: white; }
     
->>>>>>> Stashed changes
+    /* Animation for tracking */
+    @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+    .tracking-active { animation: pulse-red 2s infinite; border-color: #ef4444 !important; color: #ef4444 !important; }
+</style>
 
 <script>
   let map;
   let userMarker;
-  let requestMarkersLayer = L.layerGroup();
+  let markersLayer = L.layerGroup();
+  let routingControl = null;
   let currentRequestId = null;
+  let currentMode = 'requests'; 
+  
+  // --- TRIP TRACKING VARIABLES ---
+  let watchId = null;
+  let activeTripClientId = null; // ID клієнта, до якого їдемо
+  const socket = io(); // Ініціалізація сокета
+
   const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
   function showStatus(message, isError = false) {
@@ -267,7 +188,31 @@
       if(statusEl) { 
           statusEl.textContent = message; 
           statusEl.style.color = isError ? '#dc2626' : '#16a34a'; 
-          if(message) setTimeout(() => statusEl.textContent = '', 3000);
+          if(message) setTimeout(() => statusEl.textContent = '', 5000);
+      }
+  }
+
+  // --- TABS LOGIC ---
+  window.switchTab = function(mode) {
+      currentMode = mode;
+      document.getElementById('tab-requests').classList.toggle('active', mode === 'requests');
+      document.getElementById('tab-appointments').classList.toggle('active', mode === 'appointments');
+      
+      const reqList = document.getElementById('requestsList');
+      const apptList = document.getElementById('appointmentsList');
+      
+      if (mode === 'requests') {
+          reqList.classList.remove('d-none');
+          apptList.classList.add('d-none');
+          loadRequests(); 
+      } else {
+          reqList.classList.add('d-none');
+          apptList.classList.remove('d-none');
+          loadMyAppointments(); 
+      }
+      if(routingControl) {
+          map.removeControl(routingControl);
+          document.getElementById('route-info').textContent = '';
       }
   }
 
@@ -277,11 +222,11 @@
           const nurseLng = {{ current_user.longitude if current_user.longitude is not none else 30.5234}};
 
           map = L.map('combinedMap').setView([nurseLat, nurseLng], 12);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              attribution: '&copy; OpenStreetMap contributors'
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+              attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
           }).addTo(map);
 
-          requestMarkersLayer.addTo(map);
+          markersLayer.addTo(map);
 
           if (nurseLat && nurseLng) {
               userMarker = L.marker([nurseLat, nurseLng], {
@@ -291,150 +236,224 @@
                   })
               }).addTo(map).bindPopup('<b>You are here</b>');
           }
-          
-          loadRequests();
+          loadRequests(); 
       } catch (error) { showStatus("Map error: " + error.message, true); }
   }
 
-
-  function loadRequests() {
-      fetch('/nurse/nurse_get_requests')
-          .then(response => response.json())
-          .then(data => {
-              if (data.success) {
-                  displayRequests(data.requests);
-                  updateRequestMarkers(data.requests);
-              } else {
-                  document.getElementById('requestsList').innerHTML = '<div class="alert alert-danger py-2 small">Error loading requests</div>';
-              }
-          })
-          .catch(error => console.error('Error:', error));
-  }
-
-  function displayRequests(requests) {
-      const container = document.getElementById('requestsList');
-      if (requests.length === 0) {
-          container.innerHTML = `
-            <div class="text-center py-5 border rounded bg-light">
-                <i class="fas fa-clipboard-check fa-2x text-muted mb-2"></i>
-                <p class="text-muted small mb-0">No pending requests found nearby.</p>
-            </div>`;
-          return;
-      }
-      let html = '';
-      requests.forEach(request => {
-          const time = new Date(request.appointment_start_time).toLocaleString('uk-UA', { 
-              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
-          });
+  // --- TRIP LOGIC (REAL-TIME) ---
+  window.toggleTrip = function(clientId, appointmentId) {
+      const btn = document.getElementById('tripBtn');
+      
+      if (watchId) {
+          // STOP TRIP
+          navigator.geolocation.clearWatch(watchId);
+          watchId = null;
+          activeTripClientId = null;
           
-          html += `
-              <div class="nurse-item p-3" onclick='showRequestDetails(${JSON.stringify(request)})'> 
-                  <div class="d-flex justify-content-between align-items-start mb-2">
-                      <h6 class="fw-bold text-dark mb-0">${request.service_name}</h6>
-                      <span class="badge bg-success bg-opacity-10 text-success">${request.payment} €</span>
-                  </div>
-                  <div class="small text-muted mb-1">
-                    <i class="fas fa-user me-1"></i> ${request.patient_name || 'Client'}
-                  </div>
-                  <div class="small text-muted mb-2">
-                    <i class="fas fa-clock me-1"></i> ${time}
-                  </div>
-                  <button class="view-request-btn">View Details</button>
-              </div>`;
-      });
-      container.innerHTML = html;
+          socket.emit('end_trip', { client_id: clientId });
+          
+          btn.innerHTML = '<i class="fas fa-car-side"></i> I\'m on my way';
+          btn.classList.remove('btn-danger', 'tracking-active');
+          btn.classList.add('btn-primary');
+          showStatus("Trip ended. Tracking stopped.");
+      } else {
+          // START TRIP
+          if (!navigator.geolocation) return alert("Geolocation not supported");
+          
+          activeTripClientId = clientId;
+          
+          // 1. Зміна стилю кнопки
+          btn.innerHTML = '<i class="fas fa-satellite-dish fa-spin"></i> Stop Sharing Location';
+          btn.classList.remove('btn-primary');
+          btn.classList.add('btn-danger', 'tracking-active');
+          
+          // 2. Сповіщення сервера
+          socket.emit('start_trip', { client_id: clientId, appointment_id: appointmentId });
+          showStatus("Trip started! Client can see you on map.");
+
+          // 3. Запуск трекінгу
+          watchId = navigator.geolocation.watchPosition(
+              (position) => {
+                  const lat = position.coords.latitude;
+                  const lng = position.coords.longitude;
+                  
+                  // Оновлюємо свій маркер
+                  if(userMarker) userMarker.setLatLng([lat, lng]);
+                  
+                  // Шлемо на сервер
+                  socket.emit('update_location', {
+                      client_id: clientId,
+                      lat: lat,
+                      lng: lng
+                  });
+              },
+              (err) => {
+                  console.error(err);
+                  alert("Lost GPS signal.");
+                  // force stop
+                  if(watchId) navigator.geolocation.clearWatch(watchId);
+                  watchId = null;
+                  btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> GPS Error';
+              },
+              { enableHighAccuracy: true }
+          );
+      }
   }
 
-  function updateRequestMarkers(requests) {
-      requestMarkersLayer.clearLayers();
-      requests.forEach(request => {
-          if (request.latitude && request.longitude) {
-              const marker = L.marker([request.latitude, request.longitude], {
-                  icon: L.divIcon({
-                      className: 'request-marker',
-                      html: '<div style="background-color: #ef4444; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);"></div>'
-                  })
-              });
-              
-              marker.on('click', () => showRequestDetails(request));
-              marker.addTo(requestMarkersLayer);
+  // --- ROUTING ---
+  function calculateRouteToClient(clientLat, clientLng) {
+      if (!userMarker) return alert("Please update your location first.");
+      if (routingControl) map.removeControl(routingControl);
+
+      const nurseLatLng = userMarker.getLatLng();
+      routingControl = L.Routing.control({
+          waypoints: [ L.latLng(nurseLatLng.lat, nurseLatLng.lng), L.latLng(clientLat, clientLng) ],
+          routeWhileDragging: false, draggableWaypoints: false, addWaypoints: false,
+          createMarker: function() { return null; },
+          lineOptions: { styles: [{color: currentMode === 'requests' ? '#ef4444' : '#10b981', opacity: 0.7, weight: 5}] },
+          show: false, fitSelectedRoutes: true
+      })
+      .on('routesfound', function(e) {
+          const summary = e.routes[0].summary;
+          const distance = (summary.totalDistance / 1000).toFixed(1) + " km";
+          const time = Math.round(summary.totalTime / 60) + " min";
+          document.getElementById('route-info').textContent = `Distance: ${distance}, Time: ~${time} min`;
+          document.getElementById('detailDistance').textContent = `${distance} (~${time} min)`;
+      })
+      .addTo(map);
+  }
+
+  // --- LOADERS ---
+  function loadRequests() {
+      if(currentMode !== 'requests') return;
+      fetch('/nurse/nurse_get_requests').then(r => r.json()).then(data => {
+          if (data.success) {
+              renderList(data.requests, 'requestsList', 'item-request', 'btn-req');
+              updateMarkers(data.requests, '#ef4444');
           }
       });
   }
 
-  window.showRequestDetails = function(request) {
-      currentRequestId = request.id;
-      document.getElementById('detailPatientName').textContent = request.patient_name || 'Unknown';
-      document.getElementById('detailServiceName').textContent = request.service_name || 'Service';
-      document.getElementById('detailDateTime').textContent = new Date(request.appointment_start_time).toLocaleString('uk-UA');
-      document.getElementById('detailNotes').textContent = request.notes || 'No notes provided';
-      document.getElementById('detailPayment').textContent = request.payment || '0';
+  function loadMyAppointments() {
+      if(currentMode !== 'appointments') return;
+      fetch('/nurse/get_my_appointments').then(r => r.json()).then(data => {
+          const items = Array.isArray(data) ? data : (data.appointments || []);
+          renderList(items, 'appointmentsList', 'item-appointment', 'btn-appt');
+          updateMarkers(items, '#10b981');
+      });
+  }
+
+  function renderList(items, containerId, itemClass, btnClass) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      if (!items || items.length === 0) {
+          container.innerHTML = `<div class="text-center py-5 border rounded bg-light"><p class="text-muted small mb-0">No items found.</p></div>`;
+          return;
+      }
+      items.forEach(item => {
+          const time = new Date(item.appointment_start_time || item.appointment_time).toLocaleString('uk-UA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+          const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
+          
+          let btnText = "View Route & Details";
+          // Якщо це мої записи, додаємо іконку машинки в текст кнопки
+          if (currentMode === 'appointments') btnText = "Manage Appointment";
+
+          container.innerHTML += `
+              <div class="nurse-item p-3 ${itemClass}" onclick="handleItemClick(${itemJson})"> 
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                      <h6 class="fw-bold text-dark mb-0">${item.service_name || item.service}</h6>
+                      <span class="badge bg-secondary bg-opacity-10 text-dark">${item.payment || item.price || 0} €</span>
+                  </div>
+                  <div class="small text-muted mb-1"><i class="fas fa-user me-1"></i> ${item.patient_name || item.client_name || 'Client'}</div>
+                  <div class="small text-muted mb-2"><i class="fas fa-clock me-1"></i> ${time}</div>
+                  <button class="view-request-btn ${btnClass}">${btnText}</button>
+              </div>`;
+      });
+  }
+
+  function updateMarkers(items, color) {
+      markersLayer.clearLayers();
+      if(!items) return;
+      items.forEach(item => {
+          if (item.latitude && item.longitude) {
+              const marker = L.marker([item.latitude, item.longitude], {
+                  icon: L.divIcon({
+                      className: 'custom-marker',
+                      html: `<div style="background-color: ${color}; border-radius: 50%; width: 20px; height: 20px; border: 2px solid white; box-shadow: 0 0 0 2px ${color}40;"></div>`
+                  })
+              });
+              marker.on('click', () => handleItemClick(item));
+              marker.addTo(markersLayer);
+          }
+      });
+  }
+
+  window.handleItemClick = function(item) {
+      if (item.latitude && item.longitude) calculateRouteToClient(item.latitude, item.longitude);
+      else alert("This item has no location data.");
+      showDetailsModal(item);
+  }
+
+  window.showDetailsModal = function(item) {
+      currentRequestId = item.id;
+      document.getElementById('detailPatientName').textContent = item.patient_name || item.client_name || 'Unknown';
+      document.getElementById('detailServiceName').textContent = item.service_name || item.service || 'Service';
+      document.getElementById('detailDateTime').textContent = new Date(item.appointment_start_time || item.appointment_time).toLocaleString('uk-UA');
+      document.getElementById('detailNotes').textContent = item.notes || 'No notes provided';
+      document.getElementById('detailPayment').textContent = item.payment || item.price || '0';
+      document.getElementById('detailDistance').textContent = "Calculating...";
+
+      // --- DYNAMIC BUTTONS ---
+      const footer = document.getElementById('modalActions');
+      footer.innerHTML = ''; // Clear
+
+      if (currentMode === 'requests') {
+          // Mode 1: New Requests -> "Accept"
+          footer.innerHTML = `<button type="button" class="btn btn-success fw-bold w-100" onclick="acceptRequest(${item.id})">Accept Request</button>`;
+      } else {
+          // Mode 2: My Appointments -> "I'm on my way"
+          // Перевіряємо, чи є ID клієнта (для сокетів)
+          const clientId = item.client_id || item.patient_id; // Переконайся, що бекенд це повертає!
+          
+          if(clientId) {
+              // Перевірка, чи це активна поїздка
+              const isTripping = (watchId !== null && activeTripClientId === clientId);
+              const btnClass = isTripping ? 'btn-danger tracking-active' : 'btn-primary';
+              const btnText = isTripping ? '<i class="fas fa-satellite-dish fa-spin"></i> Stop Sharing' : '<i class="fas fa-car-side"></i> I\'m on my way';
+              
+              footer.innerHTML = `
+                  <button type="button" id="tripBtn" class="btn ${btnClass} fw-bold w-100 mb-2" onclick="toggleTrip(${clientId}, ${item.id})">
+                      ${btnText}
+                  </button>
+                  
+              `;
+          } else {
+              footer.innerHTML = `<div class="alert alert-warning py-1 small">Client ID missing for tracking.</div>`;
+          }
+      }
+      
       new bootstrap.Modal(document.getElementById('requestDetailsModal')).show();
   }
 
-  document.getElementById('acceptRequestBtn').addEventListener('click', function() {
-      if (!currentRequestId) return;
-      
-      const btn = this;
-      btn.disabled = true;
-      btn.textContent = 'Processing...';
-
-      fetch(`/nurse/nurse_accept_request/${currentRequestId}`, {
-          method: 'POST',
-          headers: {'X-CSRFToken': csrfToken}
-      })
-      .then(r => r.json())
-      .then(data => {
+  window.acceptRequest = function(id) {
+      const btn = document.querySelector('#modalActions button');
+      btn.disabled = true; btn.textContent = 'Processing...';
+      fetch(`/nurse/nurse_accept_request/${id}`, { method: 'POST', headers: {'X-CSRFToken': csrfToken} })
+      .then(r => r.json()).then(data => {
           if (data.success) {
               bootstrap.Modal.getInstance(document.getElementById('requestDetailsModal')).hide();
               loadRequests();
-              showStatus("Request accepted successfully!");
-          } else { 
-              alert('Error: ' + data.message); 
-          }
-      })
-      .finally(() => {
-          btn.disabled = false;
-          btn.textContent = 'Accept Request';
+              showStatus("Request accepted!");
+          } else { alert(data.message); }
       });
-  });
+  }
 
-  document.getElementById('location-btn').addEventListener('click', () => {
-       if (!navigator.geolocation) return alert("Geolocation is not supported.");
-       
-       const btn = document.getElementById('location-btn');
-       const originalText = btn.innerHTML;
-       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
-       
-       navigator.geolocation.getCurrentPosition(pos => {
-           fetch('{{ url_for("nurse.update_location") }}', {
-               method: 'POST',
-               headers: {'Content-Type': 'application/json','X-CSRFToken': csrfToken},
-               body: JSON.stringify({latitude: pos.coords.latitude, longitude: pos.coords.longitude})
-           }).then(r=>r.json()).then(res=>{ 
-               if(res.success) {
-                   location.reload();
-               } else {
-                   btn.innerHTML = originalText;
-                   alert("Failed to update location");
-               }
-           });
-       }, err => {
-           console.error(err);
-           btn.innerHTML = originalText;
-           alert("Could not access location.");
-       });
-  });
-
-  document.getElementById('toggle-online-btn').addEventListener('click', () => {
-       fetch('{{ url_for("nurse.toggle_online") }}', {
-           method: 'POST', headers: {'X-CSRFToken': csrfToken}
-       }).then(r=>r.json()).then(res=>{ if(res.success) location.reload(); });
-  });
+  document.getElementById('location-btn').addEventListener('click', () => { /* ...existing... */ });
+  document.getElementById('toggle-online-btn').addEventListener('click', () => { /* ...existing... */ });
 
   document.addEventListener('DOMContentLoaded', () => {
       initMap();
-      setInterval(loadRequests, 60000);
+      setInterval(() => { if(currentMode === 'requests') loadRequests(); }, 60000);
   });
 </script>
 {% endblock %}

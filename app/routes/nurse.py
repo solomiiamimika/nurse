@@ -321,7 +321,63 @@ def manage_services():
     return render_template('nurse/services.html',
                          standard_services=standard_services,
                          nurse_services=nurse_services)
-                         
+
+
+
+
+@nurse_bp.route('/get_my_appointments')
+@login_required
+def get_my_appointments():
+    if current_user.role != 'nurse':
+        return jsonify({'error': 'Access denied'}), 403
+    
+    try:
+        # Беремо тільки майбутні та підтверджені записи
+        # Можна додати status='confirmed' або 'paid', залежно від вашої логіки
+        appointments = Appointment.query.filter(
+            Appointment.nurse_id == current_user.id,
+            Appointment.appointment_time >= datetime.utcnow(),
+            Appointment.status.in_(['confirmed', 'confirmed_paid', 'scheduled']) # Додайте ваші статуси
+        ).order_by(Appointment.appointment_time.asc()).all()
+
+        result = []
+        for app in appointments:
+            # Отримуємо назву сервісу та ціну
+            service_name = app.nurse_service.name if app.nurse_service else "Service"
+            price = app.nurse_service.price if app.nurse_service else 0
+            
+            result.append({
+                'id': app.id,
+                'service_name': service_name,
+                'patient_name': app.client.full_name or app.client.user_name,
+                'appointment_start_time': app.appointment_time.isoformat(),
+                'payment': price,
+                'notes': app.notes,
+                # ВАЖЛИВО: Координати клієнта для карти
+                'latitude': app.client.latitude,
+                'longitude': app.client.longitude,
+                'type': 'appointment' ,
+                'client_id':app.client.id
+            })
+
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"Error in get_my_appointments: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+
+
+
+
+
+
+
+
+
+
+
+
 @nurse_bp.route('/get_appointments')
 @login_required
 def get_appointments():
@@ -736,3 +792,33 @@ def provider_finances_management():
         current_app.logger.error(f"Error retrieving finances: {str(e)}")
         flash('Error retrieving financial data from Stripe', 'danger')
         return redirect(url_for('nurse.dashboard'))
+    
+    
+    
+@socketio.on('start_trip')
+def handle_start_trip(data):
+    # data = {'appointment_id': 123, 'client_id': 45}
+    client_id = data.get('client_id')
+    print(f"Nurse {current_user.id} started trip to Client {client_id}")
+    
+    # Відправляємо клієнту сигнал, що медсестра виїхала
+    emit('trip_started', {
+        'message': f"{current_user.full_name} is on the way!",
+        'nurse_id': current_user.id
+    }, room=f"user_{client_id}") # Переконайтесь, що клієнт приєднався до кімнати "user_ID"
+
+@socketio.on('update_location')
+def handle_location_update(data):
+    # data = {'client_id': 45, 'lat': 50.0, 'lng': 30.0}
+    client_id = data.get('client_id')
+    
+    # Пересилаємо точні координати клієнту
+    emit('nurse_location_update', {
+        'lat': data['lat'],
+        'lng': data['lng']
+    }, room=f"user_{client_id}")
+
+@socketio.on('end_trip')
+def handle_end_trip(data):
+    client_id = data.get('client_id')
+    emit('trip_ended', {'message': "Arrived!"}, room=f"user_{client_id}")
