@@ -4,286 +4,233 @@
 {% block content %}
 
 <style>
-    /* --- THEME OVERRIDES FOR LANDING --- */
+    /* --- 1. GLOBAL THEME --- */
     body {
-        background-color: #fff0f3; 
+        background-color: #fff0f3;
         background-image: linear-gradient(180deg, #fff0f3 0%, #ffffff 100%);
         background-attachment: fixed;
-    }
-
-    .landing-wrapper {
         overflow-x: hidden;
     }
 
-    /* --- HERO SECTION --- */
+    /* --- 2. TOP NAV (FIXED OVERLAP) --- */
+    .top-nav-overlay {
+        position: absolute;
+        /* Опустили нижче (85px), щоб не перекривати перемикач мови в хедері */
+        top: 85px; 
+        right: 5%; /* Відступ справа у відсотках, щоб не прилипало */
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        z-index: 90; /* Трохи менше, ніж хедер (якщо він є) */
+    }
+
+    .nav-link-custom {
+        font-weight: 700;
+        color: var(--text-dark);
+        text-decoration: none;
+        font-size: 1rem;
+        position: relative;
+        transition: 0.3s;
+        white-space: nowrap;
+    }
+    .nav-link-custom::after {
+        content: ''; position: absolute; width: 0; height: 2px; bottom: -4px; left: 0; background-color: var(--primary-green); transition: width 0.3s;
+    }
+    .nav-link-custom:hover::after { width: 100%; }
+
+    .btn-nav-custom {
+        background: #111;
+        color: white;
+        padding: 10px 24px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+    .btn-nav-custom:hover { background: #000; transform: translateY(-3px) scale(1.02); box-shadow: 0 10px 25px rgba(0,0,0,0.2); color: white; }
+
+    /* --- 3. HERO SECTION --- */
     .hero-section {
         position: relative;
-        padding: 60px 20px 80px;
+        /* Збільшили відступ зверху, щоб кнопки не налізали на заголовок */
+        padding: 140px 20px 80px; 
         min-height: 85vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
-        background-blend-mode: multiply;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M22 18 V42 M38 18 V42 M22 30 H38' stroke='%23000000' stroke-width='1.5' fill='none' opacity='0.04'/%3E%3C/svg%3E");
     }
+    .hero-content-wrapper { display: flex; flex-direction: column; align-items: center; gap: 40px; max-width: 1200px; width: 100%; z-index: 2; }
+    .hero-title { font-size: 3.5rem; font-weight: 800; color: var(--text-dark); line-height: 1.1; margin-bottom: 20px; }
+    .hero-title span { color: var(--primary-green); text-decoration: underline; text-decoration-thickness: 5px; text-underline-offset: 5px; }
+    .hero-subtitle { font-size: 1.25rem; color: var(--text-gray); margin-bottom: 30px; line-height: 1.6; }
 
-    .hero-content-wrapper {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 40px;
-        max-width: 1200px;
-        width: 100%;
-        z-index: 2;
-    }
+    /* --- 4. WIDGET --- */
+    .hero-widget-container { width: 100%; max-width: 450px; position: relative; z-index: 10; }
+    .booking-widget { background: white; border-radius: 24px; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.05); position: relative; overflow: hidden; transition: all 0.4s ease; }
+    .widget-tabs { display: flex; margin-bottom: 20px; border-bottom: 1px solid #eee; }
+    .widget-tab { padding: 10px 20px; cursor: pointer; font-weight: 700; color: var(--text-gray); border-bottom: 3px solid transparent; transition: 0.3s; flex: 1; text-align: center; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px; }
+    .widget-tab.active { color: var(--text-dark); border-bottom-color: var(--primary-green); }
+    .input-group-styled { background: #f8f9fa; border-radius: 12px; padding: 12px 15px; margin-bottom: 15px; border: 1px solid transparent; transition: 0.3s; display: flex; align-items: center; gap: 12px; }
+    .input-group-styled:focus-within { background: white; border-color: var(--text-dark); box-shadow: 0 0 0 4px rgba(0,0,0,0.05); }
+    .input-clean { border: none; background: transparent; width: 100%; outline: none; font-weight: 600; font-size: 1rem; color: var(--text-dark); }
+    .btn-block-action { width: 100%; background: var(--text-dark); color: white; padding: 16px; border-radius: 12px; font-size: 1.1rem; font-weight: 800; border: none; cursor: pointer; transition: 0.3s; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.5px; position: relative; overflow: hidden; }
+    .btn-block-action:hover { background: #000; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
 
-    @media (min-width: 992px) {
-        .hero-content-wrapper {
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-        .hero-text {
-            text-align: left;
-            max-width: 50%;
-            padding-top: 40px;
-        }
-        .hero-widget-container {
-            width: 450px;
-            /* Фіксуємо висоту, щоб віджет не "стрибав" при зміні контенту, або min-height */
-            min-height: 500px; 
-        }
+    /* LOADING STATE */
+    .loading-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(255,255,255,0.95);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        z-index: 10; opacity: 0; pointer-events: none; transition: opacity 0.3s;
     }
+    .loading-overlay.active { opacity: 1; pointer-events: all; }
+    .spinner-border { width: 3rem; height: 3rem; color: var(--primary-green); }
 
-    .hero-title {
-        font-size: 3.5rem;
-        font-weight: 800;
-        color: var(--text-dark);
-        line-height: 1.1;
-        margin-bottom: 20px;
+    /* --- 5. MATRIX PILLS --- */
+    .matrix-section { padding: 100px 20px; text-align: center; background: white; position: relative; z-index: 10; margin-top: -1px; }
+    .matrix-title { font-weight: 800; font-size: 2.5rem; margin-bottom: 10px; color: var(--text-dark); }
+    .matrix-subtitle { color: var(--text-gray); max-width: 600px; margin: 0 auto 50px; font-size: 1.1rem; line-height: 1.5; }
+    .pills-wrapper { display: flex; justify-content: center; gap: 60px; flex-wrap: wrap; }
+    .pill-container { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.3s; }
+    .pill-container:hover { transform: translateY(-10px); }
+    .pill { width: 160px; height: 60px; border-radius: 50px; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.15); margin-bottom: 15px; overflow: hidden; }
+    .pill-text { font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: white; z-index: 2; font-size: 1rem; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+    .pill-shine { position: absolute; top: 0; left: 10%; width: 80%; height: 50%; background: linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.1)); border-radius: 50px; z-index: 1; }
+    .pill-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); box-shadow: 0 10px 30px rgba(0, 198, 255, 0.4); }
+    .pill-red { background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%); box-shadow: 0 10px 30px rgba(255, 8, 68, 0.4); animation: pulse-red 2s infinite; }
+    .pill-desc { font-size: 0.9rem; color: #999; transition: 0.3s; }
+    .pill-container:hover .pill-desc { color: #333; }
+    @keyframes pulse-red { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 8, 68, 0.7); } 70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 8, 68, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 8, 68, 0); } }
+
+    /* --- 6. CATEGORIES --- */
+    .section-container { padding: 80px 20px; max-width: 1200px; margin: 0 auto; position: relative; z-index: 10; }
+    .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; }
+    .category-card { background: white; border: 1px solid #eee; border-radius: 16px; padding: 30px 20px; text-align: center; transition: 0.3s; cursor: pointer; }
+    .category-card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.08); border-color: var(--primary-green); }
+    .cat-icon-circle { width: 70px; height: 70px; background: #fff0f3; color: var(--text-dark); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; transition: 0.3s; }
+    .category-card:hover .cat-icon-circle { background: var(--primary-green); color: white; }
+
+    /* --- 7. MEADOW & ANIMATIONS --- */
+    /* Rocket Animation */
+    #rocket-launcher {
+        position: fixed; bottom: -200px; left: 50%; transform: translateX(-50%);
+        width: 120px; height: auto; z-index: 9999; pointer-events: none; transition: transform 0.1s;
     }
+    .rocket-shake { animation: rocketShake 0.5s ease-in-out infinite; }
+    .rocket-launching { animation: launchToSpace 1.5s cubic-bezier(0.5, 0, 0.5, 1) forwards; }
+    @keyframes rocketShake { 0% { transform: translateX(-52%) rotate(-2deg); } 25% { transform: translateX(-48%) rotate(2deg); } 50% { transform: translateX(-52%) rotate(-2deg); } 75% { transform: translateX(-48%) rotate(2deg); } 100% { transform: translateX(-50%) rotate(0deg); } }
+    @keyframes launchToSpace { 0% { bottom: 50px; transform: translateX(-50%) scale(1); } 100% { bottom: 150%; transform: translateX(-50%) scale(0.5); } }
+    .rocket-flame { animation: flameFlicker 0.1s infinite alternate; transform-origin: center top; }
+    @keyframes flameFlicker { 0% { transform: scaleY(1); opacity: 0.8; } 100% { transform: scaleY(1.3); opacity: 1; } }
+
+    /* Meadow */
+    .meadow-container { position: fixed; bottom: 0; left: 0; width: 100%; height: 250px; z-index: 1; pointer-events: none; transform: translateY(100px); transition: transform 0.1s linear; display: flex; align-items: flex-end; justify-content: center; opacity: 0.9; }
+    .meadow-svg { width: 100%; min-width: 1200px; height: auto; }
     
-    .hero-title span {
-        color: var(--primary-green);
-    }
+    /* Bee */
+    .bee-container { position: absolute; bottom: 80px; right: 20%; font-size: 40px; cursor: pointer; pointer-events: auto; transition: transform 0.3s; z-index: 10; }
+    .bee-container:hover { transform: scale(1.2); }
+    .bee-flying { animation: flyAround 3s linear forwards; }
+    @keyframes flyAround { 0% { transform: translate(0, 0) rotate(0deg); } 25% { transform: translate(-100px, -150px) rotate(-20deg); } 50% { transform: translate(-250px, -50px) rotate(-90deg); } 75% { transform: translate(-100px, 100px) rotate(10deg); } 100% { transform: translate(500px, -500px) rotate(45deg); opacity: 0; } }
 
-    .hero-subtitle {
-        font-size: 1.25rem;
-        color: var(--text-gray);
-        margin-bottom: 30px;
-    }
+    /* Floating Badges */
+    .floating-badge { position: absolute; background: white; padding: 10px 20px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 0.9rem; animation: float 6s ease-in-out infinite; z-index: 1; }
+    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
 
-    /* --- WIDGET STYLES --- */
-    .booking-widget {
-        background: white;
-        border-radius: 24px;
-        padding: 30px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.08);
-        border: 1px solid rgba(0,0,0,0.05);
-        position: relative;
-        overflow: hidden;
-        transition: height 0.3s ease;
-    }
-
-    .widget-tabs {
-        display: flex;
-        margin-bottom: 20px;
-        border-bottom: 1px solid #eee;
-    }
-
-    .widget-tab {
-        padding: 10px 20px;
-        cursor: pointer;
-        font-weight: 600;
-        color: var(--text-gray);
-        border-bottom: 3px solid transparent;
-        transition: 0.3s;
-        flex: 1;
-        text-align: center;
-    }
-
-    .widget-tab:hover {
-        background-color: #f8f9fa;
-    }
-
-    .widget-tab.active {
-        color: var(--text-dark);
-        border-bottom-color: var(--primary-green);
-    }
-
-    .input-group-styled {
-        background: #f8f9fa;
-        border-radius: 12px;
-        padding: 12px 15px;
-        margin-bottom: 15px;
-        border: 1px solid transparent;
-        transition: 0.3s;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .input-group-styled:focus-within {
-        background: white;
-        border-color: var(--text-dark);
-        box-shadow: 0 0 0 4px rgba(0,0,0,0.05);
-    }
-
-    .input-clean {
-        border: none;
-        background: transparent;
-        width: 100%;
-        outline: none;
-        font-weight: 600;
-        font-size: 1rem;
-        color: var(--text-dark);
-    }
-
-    .btn-block-action {
-        width: 100%;
-        background: var(--text-dark);
-        color: white;
-        padding: 16px;
-        border-radius: 12px;
-        font-size: 1.1rem;
-        font-weight: 700;
-        border: none;
-        cursor: pointer;
-        transition: 0.3s;
-        margin-top: 10px;
-    }
-
-    .btn-block-action:hover {
-        background: #000;
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-    }
-
-    /* --- FAKE RESULTS STYLES --- */
-    .provider-result-card {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        padding: 15px;
-        border-bottom: 1px solid #f0f0f0;
-        animation: fadeIn 0.5s ease;
-    }
-    
-    .provider-result-card:last-child {
-        border-bottom: none;
-    }
-
-    .provider-avatar {
-        width: 50px;
-        height: 50px;
-        background: #eee;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        color: #888;
-    }
-
-    .book-btn-sm {
-        background: var(--primary-green);
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.2s;
-        white-space: nowrap;
-    }
-    .book-btn-sm:hover { background: #19a463; }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Helper utility */
+    /* Fake Result Cards */
+    .provider-result-card { display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: 1px solid #f0f0f0; animation: slideDown 0.4s ease forwards; opacity: 0; transform: translateY(-10px); }
+    .provider-result-card:last-child { border-bottom: none; }
+    .provider-result-card:nth-child(1) { animation-delay: 0.1s; }
+    .provider-result-card:nth-child(2) { animation-delay: 0.2s; }
+    .provider-result-card:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .provider-avatar { width: 50px; height: 50px; background: #eee; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    .book-btn-sm { background: white; border: 1px solid var(--text-dark); color: var(--text-dark); padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .book-btn-sm:hover { background: var(--text-dark); color: white; }
     .hidden { display: none !important; }
 
-    /* --- DECORATIVE --- */
-    .floating-badge {
-        position: absolute;
-        background: white;
-        padding: 10px 20px;
-        border-radius: 50px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-weight: 700;
-        font-size: 0.9rem;
-        animation: float 6s ease-in-out infinite;
-        z-index: 1;
+    /* --- RESPONSIVE FIXES --- */
+    @media (min-width: 992px) { 
+        .hero-content-wrapper { flex-direction: row; justify-content: space-between; align-items: flex-start; } 
+        .hero-text { text-align: left; max-width: 50%; padding-top: 40px; } 
     }
-    @keyframes float {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-15px); }
-        100% { transform: translateY(0px); }
-    }
-
-    .section-container {
-        padding: 80px 20px;
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-    .category-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-    }
-    .category-card {
-        background: white; 
-        border: none;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-        border-radius: 16px;
-        padding: 25px;
-        text-align: center;
-        transition: 0.3s;
-        cursor: pointer;
-    }
-    .category-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-    .cat-icon-circle {
-        width: 60px; height: 60px;
-        background: #fff0f3; color: var(--text-dark);
-        border-radius: 50%; margin: 0 auto 15px;
-        display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+    
+    @media (max-width: 768px) {
+        /* На мобільному робимо кнопки "в потоці", щоб не перекривали хедер */
+        .top-nav-overlay { 
+            position: relative; 
+            top: 0; 
+            right: 0; 
+            justify-content: center; 
+            margin-bottom: 30px; 
+            margin-top: 20px;
+        }
+        .hero-section { 
+            padding-top: 40px; /* Менший відступ, бо кнопки тепер не абсолютні */
+            padding-bottom: 60px; 
+            flex-direction: column;
+        } 
+        .hero-title { font-size: 2.5rem; text-align: center; }
+        .hero-subtitle { text-align: center; }
     }
 </style>
 
 <div class="landing-wrapper">
+    
+    <div id="rocket-launcher">
+        <svg viewBox="0 0 512 512" width="100%" height="100%">
+            <path id="rocket-flame" class="rocket-flame" d="M256,430 c0,0, 60,10, 30,80 c-10,25, -30,60, -30,60 s-20,-35, -30,-60 c-30,-70, 30,-80, 30,-80 Z" fill="#FF5722" style="display: none;"/>
+            <path d="M256,16 C256,16 160,192 160,288 C160,341 203,384 256,384 C309,384 352,341 352,288 C352,192 256,16 256,16 Z" fill="#ECEFF1"/>
+            <path d="M256,16 C256,16 200,192 200,288 C200,341 256,384 256,384" fill="#CFD8DC"/>
+            <circle cx="256" cy="240" r="48" fill="#37474F"/>
+            <circle cx="256" cy="240" r="36" fill="#4FC3F7"/>
+            <path d="M275,225 A20,20 0 0 1 270,250" stroke="white" stroke-width="4" fill="none" opacity="0.6"/>
+            <path d="M160,288 C160,288 120,350 120,416 L190,384" fill="#DD2C00"/>
+            <path d="M352,288 C352,288 392,350 392,416 L322,384" fill="#DD2C00"/>
+            <path d="M256,384 L256,432" stroke="#DD2C00" stroke-width="20"/>
+        </svg>
+    </div>
+
+    <div class="meadow-container" id="meadow">
+        <svg class="meadow-svg" viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+            <path fill="#e8f5e9" fill-opacity="0.8" d="M0,256L48,229.3C96,203,192,149,288,154.7C384,160,480,224,576,218.7C672,213,768,139,864,128C960,117,1056,171,1152,197.3C1248,224,1344,224,1392,224L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            <g stroke="#4caf50" stroke-width="2" fill="none"><path d="M100 320 Q 110 250 100 200" /><path d="M150 320 Q 140 260 160 210" /><path d="M1100 320 Q 1120 250 1100 180" /><path d="M1200 320 Q 1180 260 1200 190" /></g>
+            <g fill="#9c27b0"><circle cx="100" cy="190" r="5" /><circle cx="100" cy="180" r="4" /><circle cx="100" cy="170" r="3" /></g>
+            <g fill="#ffc107"><circle cx="160" cy="210" r="6" /><circle cx="1100" cy="180" r="6" /></g>
+            <g fill="#e91e63"><circle cx="1200" cy="190" r="8" opacity="0.8"/></g>
+        </svg>
+        <div class="bee-container" onclick="flyBee(this)">🐝</div>
+    </div>
+
+    <div class="top-nav-overlay">
+        <a href="{{ url_for('auth.login') }}" class="nav-link-custom">{{ _("Log in") }}</a>
+        <a href="{{ url_for('auth.register') }}" class="btn-nav-custom">{{ _("Join Now") }} <i class="fas fa-arrow-right" style="font-size: 0.8rem;"></i></a>
+    </div>
+
     <div class="hero-section">
-        
-        <div class="floating-badge" style="top: 15%; left: 5%;">
-            <i class="fas fa-user-md" style="color: var(--primary-green)"></i> 500+ Providers
+        <div class="floating-badge d-none d-md-flex" style="top: 20%; left: 5%;">
+            <i class="fas fa-bolt" style="color: #ffc107"></i> {{ _("Instant Help") }}
         </div>
-        <div class="floating-badge" style="bottom: 15%; right: 5%; animation-delay: 1s;">
-            <i class="fas fa-shield-alt" style="color: var(--primary-green)"></i> Verified
+        <div class="floating-badge d-none d-md-flex" style="bottom: 15%; right: 5%; animation-delay: 1s;">
+            <i class="fas fa-heart" style="color: #e91e63"></i> {{ _("Verified Locals") }}
         </div>
 
         <div class="hero-content-wrapper">
             <div class="hero-text">
-                <h1 class="hero-title">Care that comes <br>to <span>you.</span></h1>
-                <p class="hero-subtitle">
-                    {{ _("Instant access to verified providers, physiotherapists, and caregivers near you. No calls, just clicks.") }}
-                </p>
+                <h1 class="hero-title">{{ _("Your space to") }} <br><span>{{ _("exhale.") }}</span> 😮‍💨</h1>
+                <p class="hero-subtitle">{{ _("Don’t let chores kill your vibe.") }}</p>
                 
-                <div class="d-flex gap-3 align-items-center mb-4">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="fas fa-star text-warning"></i>
-                        <strong>4.9/5</strong> <span class="text-muted small">Rating</span>
-                    </div>
+                <div class="d-flex gap-3 align-items-center mb-4 justify-content-center justify-content-lg-start">
+                    <div class="d-flex align-items-center gap-2"><i class="fas fa-star text-warning"></i><strong>4.9/5</strong> <span class="text-muted small">{{ _("Happiness Score") }}</span></div>
                     <div style="width: 1px; height: 20px; background: #ddd;"></div>
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="fas fa-check-circle text-success"></i>
-                        <strong>100%</strong> <span class="text-muted small">Verified</span>
-                    </div>
+                    <div class="d-flex align-items-center gap-2"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/2560px-Flag_of_Germany.svg.png" style="width: 20px; border-radius: 2px;"><span class="text-muted small">{{ _("Munich based") }}</span></div>
                 </div>
             </div>
 
@@ -292,157 +239,95 @@
                     
                     <div id="step-search">
                         <div class="widget-tabs">
-                            <div class="widget-tab active" onclick="switchTab(this, 'visit')">{{ _("Book a Visit") }}</div>
-                      
+                            <div class="widget-tab active" onclick="switchTab(this, 'task')">{{ _("Delegate Task") }}</div>
                         </div>
+                        <div class="input-group-styled"><i class="fas fa-magic"></i><select class="input-clean" id="fakeService"><option value="" disabled selected>{{ _("What’s the chaos?") }}</option><option value="cleaning">{{ _("Home Rescue (Cleaning)") }}</option><option value="tech">{{ _("Tech & Brain Support") }}</option><option value="errands">{{ _("Life Logistics (Errands)") }}</option><option value="pet">{{ _("Pet & Soul") }}</option></select></div>
+                        <div class="input-group-styled"><i class="fas fa-map-marker-alt"></i><input type="text" class="input-clean" placeholder="{{ _('Where in Munich?') }}" id="fakeLocation"><i class="fas fa-location-arrow" style="font-size: 0.9rem; cursor: pointer; color: var(--primary-green);"></i></div>
+                        <div class="input-group-styled"><i class="fas fa-clock"></i><select class="input-clean"><option>{{ _("Right Now (ASAP)") }}</option><option>{{ _("Today, later") }}</option><option>{{ _("Tomorrow") }}</option></select></div>
+                        <button type="button" class="btn-block-action" id="searchBtn" onclick="simulateSearch()">{{ _("Delegate Now") }} ⚡️</button>
+                    </div>
 
-                        <div class="input-group-styled">
-                            <i class="fas fa-stethoscope"></i>
-                            <select class="input-clean" id="fakeService">
-                                <option value="" disabled selected>{{ _("Choose service") }}</option>
-                                <option value="nurse">{{ _("Home Injection") }}</option>
-                                <option value="physio">{{ _("Physiotherapy") }}</option>
-                                <option value="baby">{{ _("Baby Sitter") }}</option>
-                                <option value="elder">{{ _("Elderly Care") }}</option>
-                            </select>
-                        </div>
-
-                        <div class="input-group-styled">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <input type="text" class="input-clean" placeholder="{{ _('Enter your address') }}" id="fakeLocation">
-                            <i class="fas fa-location-arrow" style="font-size: 0.9rem; cursor: pointer; color: var(--primary-green);"></i>
-                        </div>
-
-                        <div class="input-group-styled">
-                            <i class="fas fa-clock"></i>
-                            <select class="input-clean">
-                                <option>{{ _("As soon as possible") }}</option>
-                                <option>{{ _("Today, later") }}</option>
-                                <option>{{ _("Tomorrow") }}</option>
-                            </select>
-                        </div>
-
-                        <button type="button" class="btn-block-action" id="searchBtn" onclick="simulateSearch()">
-                            {{ _("See Prices & Book") }}
-                        </button>
+                    <div id="step-loading" class="loading-overlay">
+                        <div class="spinner-border mb-3" role="status"></div>
+                        <p class="fw-bold text-muted">{{ _("Scanning neighborhood...") }}</p>
                     </div>
 
                     <div id="step-results" class="hidden">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="mb-0 fw-bold">{{ _("Providers nearby") }}</h6>
+                            <h6 class="mb-0 fw-bold">{{ _("Available Creators") }}</h6>
                             <small class="text-muted" style="cursor: pointer; text-decoration: underline;" onclick="resetSearch()">{{ _("Change") }}</small>
                         </div>
-
                         <div class="results-list">
-                            <div class="provider-result-card">
-                                <div class="provider-avatar" style="background: #e3f2fd; color: #0d6efd;">
-                                    <i class="fas fa-user-nurse"></i>
-                                </div>
-                                <div style="flex: 1;">
-                                    <div class="fw-bold">Maria K.</div>
-                                    <div class="small text-muted"><i class="fas fa-star text-warning"></i> 5.0 (24 reviews)</div>
-                                    <div class="small fw-bold mt-1">~ 20.00 €</div>
-                                </div>
-                                <button class="book-btn-sm" onclick="redirectToRegister('Maria K.')">{{ _("Book") }}</button>
-                            </div>
-
-                            <div class="provider-result-card">
-                                <div class="provider-avatar" style="background: #e8f5e9; color: #198754;">
-                                    <i class="fas fa-user-md"></i>
-                                </div>
-                                <div style="flex: 1;">
-                                    <div class="fw-bold">Dr. Alex P.</div>
-                                    <div class="small text-muted"><i class="fas fa-star text-warning"></i> 4.9 (10 reviews)</div>
-                                    <div class="small fw-bold mt-1">~ 35.00 €</div>
-                                </div>
-                                <button class="book-btn-sm" onclick="redirectToRegister('Dr. Alex P.')">{{ _("Book") }}</button>
-                            </div>
-
-                             <div class="provider-result-card">
-                                <div class="provider-avatar" style="background: #fff3cd; color: #ffc107;">
-                                    <i class="fas fa-hands-helping"></i>
-                                </div>
-                                <div style="flex: 1;">
-                                    <div class="fw-bold">Sarah T.</div>
-                                    <div class="small text-muted"><i class="fas fa-star text-warning"></i> 4.8 (115 reviews)</div>
-                                    <div class="small fw-bold mt-1">~ 15.00 €</div>
-                                </div>
-                                <button class="book-btn-sm" onclick="redirectToRegister('Sarah T.')">{{ _("Book") }}</button>
-                            </div>
+                            <div class="provider-result-card"><div class="provider-avatar" style="background: #e3f2fd; color: #0d6efd;"><i class="fas fa-laptop-code"></i></div><div style="flex: 1;"><div class="fw-bold">Max T.</div><div class="small text-muted">{{ _("Tech Wizard • Excel & Zoom") }}</div><div class="small fw-bold mt-1">~ 20.00 € / task</div></div><button class="book-btn-sm" onclick="redirectToRegister('Max T.')">{{ _("Select") }}</button></div>
+                            <div class="provider-result-card"><div class="provider-avatar" style="background: #e8f5e9; color: #198754;"><i class="fas fa-broom"></i></div><div style="flex: 1;"><div class="fw-bold">Olena K.</div><div class="small text-muted">{{ _("Home Fairy • Cleaning") }}</div><div class="small fw-bold mt-1">~ 15.00 € / hr</div></div><button class="book-btn-sm" onclick="redirectToRegister('Olena K.')">{{ _("Select") }}</button></div>
+                             <div class="provider-result-card"><div class="provider-avatar" style="background: #fff3cd; color: #ffc107;"><i class="fas fa-dog"></i></div><div style="flex: 1;"><div class="fw-bold">Sarah J.</div><div class="small text-muted">{{ _("Pet Sitter • Dog Lover") }}</div><div class="small fw-bold mt-1">~ 12.00 € / hr</div></div><button class="book-btn-sm" onclick="redirectToRegister('Sarah J.')">{{ _("Select") }}</button></div>
                         </div>
-
-                        <div class="text-center mt-3 pt-2 border-top">
-                            <small class="text-muted">{{ _("Viewing 3 of 12 providers") }}</small>
-                        </div>
+                        <div class="text-center mt-3 pt-2 border-top"><small class="text-muted">{{ _("Viewing 3 available neighbors") }}</small></div>
                     </div>
-                    
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="matrix-section">
+        <h2 class="matrix-title">{{ _("The Choice is Yours.") }}</h2>
+        <p class="matrix-subtitle">{{ _("Take the blue pill—wake up and do all on your own. Take the red pill—break the loop and see how adventurous life can really be.") }}</p>
+        
+        <div class="pills-wrapper">
+            <div class="pill-container" onclick="choosePill('blue')">
+                <div class="pill pill-blue"><span class="pill-text">{{ _("Routine") }}</span><div class="pill-shine"></div></div>
+                <p class="pill-desc">{{ _("On your own") }}</p>
+            </div>
+            <div class="pill-container" onclick="launchRocket()">
+                <div class="pill pill-red"><span class="pill-text">{{ _("Freedom") }}</span><div class="pill-shine"></div></div>
+                <p class="pill-desc fw-bold text-danger">{{ _("Life is an adventure") }}</p>
             </div>
         </div>
     </div>
 
     <div class="section-container">
-        <h3 class="text-center mb-5" style="font-weight: 800;">{{ _("Top Services") }}</h3>
-        
+        <h3 class="text-center mb-5" style="font-weight: 800; font-size: 2.5rem;">{{ _("Menu of Freedom") }} ✨</h3>
         <div class="category-grid">
-            <div class="category-card" onclick="document.getElementById('fakeService').value='nurse'; window.scrollTo({top:0, behavior:'smooth'});">
-                <div class="cat-icon-circle"><i class="fas fa-user-md"></i></div>
-                <h6 class="mb-1">{{ _("Injection") }}</h6>
-                <small class="text-muted">{{ _("From 15€") }}</small>
+            <div class="category-card" onclick="document.getElementById('fakeService').value='cleaning'; launchRocket();">
+                <div class="cat-icon-circle"><i class="fas fa-broom"></i></div><h6 class="mb-2 fw-bold">{{ _("Home Rescue") }}</h6><p class="small text-muted mb-0">{{ _("Cleaning, Organizing, Laundry") }}</p>
             </div>
-            <div class="category-card" onclick="document.getElementById('fakeService').value='nurse'; window.scrollTo({top:0, behavior:'smooth'});">
-                <div class="cat-icon-circle"><i class="fas fa-band-aid"></i></div>
-                <h6 class="mb-1">{{ _("Dressing") }}</h6>
-                <small class="text-muted">{{ _("From 20€") }}</small>
+            <div class="category-card" onclick="document.getElementById('fakeService').value='tech'; launchRocket();">
+                <div class="cat-icon-circle"><i class="fas fa-laptop"></i></div><h6 class="mb-2 fw-bold">{{ _("Tech & Brain") }}</h6><p class="small text-muted mb-0">{{ _("Excel Fix, Translation, Setup") }}</p>
             </div>
-            <div class="category-card" onclick="document.getElementById('fakeService').value='physio'; window.scrollTo({top:0, behavior:'smooth'});">
-                <div class="cat-icon-circle"><i class="fas fa-running"></i></div>
-                <h6 class="mb-1">{{ _("Physio") }}</h6>
-                <small class="text-muted">{{ _("From 40€") }}</small>
+            <div class="category-card" onclick="document.getElementById('fakeService').value='errands'; launchRocket();">
+                <div class="cat-icon-circle"><i class="fas fa-box-open"></i></div><h6 class="mb-2 fw-bold">{{ _("Life Logistics") }}</h6><p class="small text-muted mb-0">{{ _("Post Office, Returns, Waiting") }}</p>
             </div>
-            <div class="category-card" onclick="document.getElementById('fakeService').value='baby'; window.scrollTo({top:0, behavior:'smooth'});">
-                <div class="cat-icon-circle"><i class="fas fa-baby"></i></div>
-                <h6 class="mb-1">{{ _("Baby Care") }}</h6>
-                <small class="text-muted">{{ _("From 12€/h") }}</small>
+            <div class="category-card" onclick="document.getElementById('fakeService').value='pet'; launchRocket();">
+                <div class="cat-icon-circle"><i class="fas fa-heart"></i></div><h6 class="mb-2 fw-bold">{{ _("Pet & Soul") }}</h6><p class="small text-muted mb-0">{{ _("Dog Walking, Plant Care") }}</p>
             </div>
         </div>
     </div>
 
-    <div style="background: white; padding: 80px 0;">
+    <div style="background: white; padding: 100px 0; position: relative; z-index: 10;">
         <div class="section-container">
             <div class="row align-items-center">
                 <div class="col-md-5">
-                    <h2 class="mb-4" style="font-weight: 800;">{{ _("Easy as ordering a pizza.") }}</h2>
-                    <p class="text-muted mb-4">{{ _("We simplified medical care. No more waiting on the phone or traveling to clinics for simple procedures.") }}</p>
-                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-dark rounded-pill px-4">{{ _("Get Started") }}</a>
+                    <h2 class="mb-4" style="font-weight: 800; font-size: 3rem; line-height: 1.1;">{{ _("Turn Chaos into Order.") }} ⚡️</h2>
+                    <p class="text-muted mb-4 fs-5">{{ _("No paperwork. No complex contracts. Just human help when you need it most.") }}</p>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-dark rounded-pill px-5 py-3 fw-bold">{{ _("Get Started") }}</a>
                 </div>
                 <div class="col-md-7">
-                     <div class="d-flex gap-4 mt-4 mt-md-0 justify-content-center text-center">
-                         <div>
-                             <div style="font-size: 2rem; margin-bottom: 10px;">📍</div>
-                             <h6 class="fw-bold">{{ _("1. Set Location") }}</h6>
-                         </div>
-                         <div style="color: #ddd; font-size: 2rem;">→</div>
-                         <div>
-                             <div style="font-size: 2rem; margin-bottom: 10px;">👨‍⚕️</div>
-                             <h6 class="fw-bold">{{ _("2. Choose Provider") }}</h6>
-                         </div>
-                         <div style="color: #ddd; font-size: 2rem;">→</div>
-                         <div>
-                             <div style="font-size: 2rem; margin-bottom: 10px;">✅</div>
-                             <h6 class="fw-bold">{{ _("3. Relax") }}</h6>
-                         </div>
+                     <div class="d-flex flex-column flex-md-row gap-4 mt-5 mt-md-0 justify-content-center text-center">
+                         <div style="flex: 1;"><div style="font-size: 2.5rem; margin-bottom: 15px;">📍</div><h6 class="fw-bold fs-5">{{ _("1. Post the Chaos") }}</h6><p class="small text-muted">{{ _("Describe the task.") }}</p></div>
+                         <div style="flex: 1;"><div style="font-size: 2.5rem; margin-bottom: 15px;">🤝</div><h6 class="fw-bold fs-5">{{ _("2. Pick Creator") }}</h6><p class="small text-muted">{{ _("Choose a neighbor.") }}</p></div>
+                         <div style="flex: 1;"><div style="font-size: 2.5rem; margin-bottom: 15px;">🥂</div><h6 class="fw-bold fs-5">{{ _("3. Go Live") }}</h6><p class="small text-muted">{{ _("We work. You live.") }}</p></div>
                      </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="section-container text-center pb-5">
-        <div style="background: var(--text-dark); color: white; border-radius: 24px; padding: 50px 20px;">
-            <h2>{{ _("Are you a service provider?") }}</h2>
-            <p class="text-white-50 mb-4">{{ _("Join thousands of providers earning on their own schedule.") }}</p>
-            <a href="{{ url_for('auth.register') }}" class="btn btn-light rounded-pill px-5 fw-bold">{{ _("Join as a Professional") }}</a>
+    <div class="section-container text-center pb-5" style="position: relative; z-index: 10; margin-bottom: 50px;">
+        <div style="background: #111; color: white; border-radius: 30px; padding: 80px 20px; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: var(--primary-green); border-radius: 50%; opacity: 0.2; filter: blur(50px);"></div>
+            <h2 style="font-weight: 800; margin-bottom: 20px;">{{ _("Join the Movement.") }} 🚀</h2>
+            <p class="text-white-50 mb-5 fs-5" style="max-width: 600px; margin-left: auto; margin-right: auto;">{{ _("Earn money by bringing order to chaos.") }}</p>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-light rounded-pill px-5 py-3 fw-bold" style="font-size: 1.1rem;">{{ _("Become a Creator") }}</a>
         </div>
     </div>
 
@@ -451,68 +336,71 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.botpress.cloud/webchat/v3.5/inject.js"></script>
-<script src="https://files.bpcontent.cloud/2026/01/10/13/20260110130650-79OB48AX.js" defer></script>
 <script>
-    // Tab switching logic
-    function switchTab(el, type) {
-        document.querySelectorAll('.widget-tab').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
-        // Visual feedback only, logic is the same for demo
-    }
-
-    // Simulate searching for providers
+    // --- BASIC LOGIC ---
+    function switchTab(el, type) { document.querySelectorAll('.widget-tab').forEach(t => t.classList.remove('active')); el.classList.add('active'); }
+    
+    // --- SEARCH SIMULATION ---
     function simulateSearch() {
-        const btn = document.getElementById('searchBtn');
-        const originalText = btn.innerText;
-        const step1 = document.getElementById('step-search');
-        const step2 = document.getElementById('step-results');
+        const stepSearch = document.getElementById('step-search');
+        const stepLoading = document.getElementById('step-loading');
+        const stepResults = document.getElementById('step-results');
+        
+        stepSearch.classList.add('hidden');
+        stepLoading.classList.add('active');
 
-        // Loading state
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ _("Searching nearby...") }}';
-        btn.style.opacity = '0.8';
-        btn.disabled = true;
-
-        // Fake delay
         setTimeout(() => {
-            step1.classList.add('hidden');
-            step2.classList.remove('hidden');
-            
-            // Reset button for when user clicks "Change" (go back)
-            btn.innerHTML = originalText;
-            btn.style.opacity = '1';
-            btn.disabled = false;
-        }, 1200);
+            stepLoading.classList.remove('active');
+            stepResults.classList.remove('hidden');
+        }, 1500);
     }
 
-    // Go back to search form
-    function resetSearch() {
-        document.getElementById('step-results').classList.add('hidden');
-        document.getElementById('step-search').classList.remove('hidden');
+    function resetSearch() { 
+        document.getElementById('step-results').classList.add('hidden'); 
+        document.getElementById('step-loading').classList.remove('active');
+        document.getElementById('step-search').classList.remove('hidden'); 
+    }
+    
+    function redirectToRegister(providerName) { window.location.href = "{{ url_for('auth.register') }}?intent=delegate&provider=" + encodeURIComponent(providerName); }
+
+    // --- BLUE PILL LOGIC ---
+    function choosePill(color) {
+        if (color === 'blue') alert("Really? You want to clean the toilet yourself? 🤔\n\nTake the RED pill. Trust us.");
     }
 
-    // Final redirection to REGISTER
-    function redirectToRegister(providerName) {
-        // We can pass the provider name or intent to the register page if needed
-        window.location.href = "{{ url_for('auth.register') }}?intent=book&provider=" + encodeURIComponent(providerName);
+    // --- ROCKET LAUNCH ---
+    function launchRocket() {
+        const rocket = document.getElementById('rocket-launcher');
+        const flame = document.getElementById('rocket-flame');
+        rocket.style.bottom = "50px"; 
+        rocket.classList.add('rocket-shake');
+        setTimeout(() => {
+            flame.style.display = "block";
+            rocket.classList.remove('rocket-shake');
+            rocket.classList.add('rocket-launching');
+            setTimeout(() => {
+                window.location.href = "{{ url_for('auth.register') }}";
+            }, 1200);
+        }, 500);
     }
 
-    // FIX FOR INFINITE LOADING WHEN CLICKING "BACK"
-    window.onpageshow = function(event) {
-        if (event.persisted) {
-            // Restore button state if page is loaded from cache
-            const btn = document.getElementById('searchBtn');
-            if (btn) {
-                btn.innerHTML = '{{ _("See Prices & Book") }}';
-                btn.disabled = false;
-                btn.style.opacity = '1';
-            }
-        }
-    };
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const status = document.getElementById('status-message');
-        if (status) status.textContent = '';
+    // --- MEADOW PARALLAX ---
+    window.addEventListener('scroll', () => {
+        const meadow = document.getElementById('meadow');
+        const scrollPosition = window.scrollY;
+        const pageHeight = document.body.scrollHeight - window.innerHeight;
+        const scrollPercent = scrollPosition / pageHeight;
+        const moveUp = 100 - (scrollPercent * 120);
+        meadow.style.transform = `translateY(${moveUp}px)`;
     });
+
+    // --- BEE ANIMATION ---
+    function flyBee(el) {
+        el.classList.add('bee-flying');
+        setTimeout(() => {
+            el.classList.remove('bee-flying');
+            el.style.display = 'none'; 
+        }, 3000);
+    }
 </script>
 {% endblock %}
