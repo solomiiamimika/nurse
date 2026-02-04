@@ -6,9 +6,10 @@ from flask_dance.contrib.google import make_google_blueprint
 import os
 from flask_socketio import SocketIO
 from flask_babel import Babel
+from flask_mail import Mail
 
 babel = Babel()
-
+mail=Mail()
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()

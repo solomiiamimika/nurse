@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, request,abort,jsonify,current_app
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy.sql.sqltypes import DateTime
-from app.extensions import db, bcrypt
+from app.extensions import db, bcrypt, socketio, db, mail
 from app.models import Appointment, NurseService, User,Message,Payment, ClientSelfCreatedAppointment, Review
 from . import client_bp
 from app.supabase_storage import get_file_url,delete_from_supabase,upload_to_supabase,buckets
@@ -13,7 +13,8 @@ from dotenv import load_dotenv
 import stripe
 import supabase
 import base64
-from app.extensions import socketio, db
+from flask_mail import Message as MailMessage 
+from threading import Thread
 from flask import current_app, request
 from flask_socketio import join_room, leave_room, emit
 from app.models import Message, db,User
@@ -34,6 +35,28 @@ PROFILE_PICTURES_FOLDER = os.path.join(UPLOAD_FOLDER, 'profile_pictures')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(DOCUMENTS_FOLDER, exist_ok=True)
 os.makedirs(PROFILE_PICTURES_FOLDER, exist_ok=True)
+
+def send_async_email(app, msg):
+    with app.app_context():
+        try:
+            mail.send(msg)      
+        except Exception as e:
+            print(f"Email sending error: {str(e)}")
+
+def send_payment_confirmation_email(user_email, user_name, service_name, amount, currency, appointment_date, appointment_time,):
+    app = current_app._get_current_object()
+    msg = MailMessage(
+        subject="Payment Confirmation",
+        sender=app.config['MAIL_DEFAULT_SENDER'],
+        recipients=[user_email]
+    )
+    msg.body = f"""\Hi {user_name}, 
+    Your payment of {amount} {currency} for the service '{service_name}' scheduled on {appointment_date} at {appointment_time} has been successfully processed.
+    Thank you for choosing our services!
+    Best regards,
+    The Team Human-me
+    """
+    Thread(target=send_async_email, args=(app, msg)).start()
 
 
 def allowed_file(filename):
@@ -60,6 +83,8 @@ def dashboard():
         nurses = User.query.filter_by(role='nurse', location_approved=True).all()
 
     return render_template('client/dashboard.html', nurses=nurses, search_query=search_query)
+
+
 
 
 @client_bp.route('/delete_document', methods=['POST'])
@@ -640,9 +665,22 @@ def handle_successful_payment(session):
 
         db.session.commit()
 
+        user=User.query.get(int(user_id))
+        if user and user.email and appointment:
+            send_payment_confirmation_email(
+                user_email=user.email,
+                user_name=user.full_name or user.user_name,
+                service_name=appointment.nurse_service.name if appointment.nurse_service else "Service",
+                amount=payment.amount,
+                currency=currency.upper(),
+                appointment_date=appointment.appointment_time.strftime('%Y-%m-%d'),
+                appointment_time=appointment.appointment_time.strftime('%H:%M')
+            )
+
     except Exception as e:
         current_app.logger.error(f"Webhook error: {str(e)}")
         db.session.rollback()
+
 
 
 
