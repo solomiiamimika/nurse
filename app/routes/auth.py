@@ -80,7 +80,7 @@ def login():
 def google_login():
     if not google_blueprint.session.authorized:
         return redirect(url_for("google.login"))
-    
+    role = request.form.get('role')
     resp = google_blueprint.session.get("/oauth2/v2/userinfo")
     if not resp.ok:
         flash("Login failed with Google", "danger")
@@ -112,7 +112,7 @@ def google_login():
                 google_id=google_data["id"],
                 email=google_data["email"],
                 user_name=username,
-                role='client', 
+                role=role, 
                 online=True
             )
             db.session.add(user)
