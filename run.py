@@ -6,7 +6,7 @@ from flask_socketio import SocketIO
 import os
 
 ngrok.set_auth_token('30Y5lts3TU8tBYOQ5g0CAxupy09_5M8qwijjkLXatMoCjpjbT')
-os.environ['OAUTHLIB_INSECURE_TRANSOPRT'] = 1
+os.environ['OAUTHLIB_INSECURE_TRANSOPRT'] = "1"
 app = create_app()
 
 if __name__ == '__main__':
