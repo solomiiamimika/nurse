@@ -14,7 +14,7 @@ class User(db.Model, UserMixin):
     user_name = Column(Text, unique=True, nullable=False, name='uq_user_user_name')
     email = Column(Text(), unique=True, nullable=False, name='uq_user_email')
 
-    password_hash = Column(Text, nullable=False)
+    password_hash = Column(Text, nullable=True)
     
     google_id = Column(String(100), unique=True, nullable=True)
     latitude = Column(Float) 
