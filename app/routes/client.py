@@ -19,8 +19,9 @@ from flask import current_app, request
 from flask_socketio import join_room, leave_room, emit
 from app.models import Message, db,User
 from datetime import datetime
-from app.supabase_storage import upload_to_supabase,supabase
+from app.supabase_storage import upload_to_supabase, supabase
 from flask_cors import cross_origin
+
 load_dotenv()
 
 stripe.api_key=os.getenv('STRIPE_SECRET_KEY')
@@ -47,7 +48,7 @@ def send_payment_confirmation_email(user_email, user_name, service_name, amount,
     app = current_app._get_current_object()
     msg = MailMessage(
         subject="Payment Confirmation",
-        sender=app.config['MAIL_DEFAULT_SENDER'],
+        sender=os.getenv('MAIL_DEFAULT_SENDER'),
         recipients=[user_email]
     )
     msg.body = f"""\Hi {user_name}, 
@@ -583,6 +584,17 @@ def payment_success(appointment_id):
                 db.session.add(payment)
                 appointment.status = 'confirmed_paid'
                 db.session.commit()
+
+                # Send confirmation email
+                send_payment_confirmation_email(
+                    user_email=current_user.email,
+                    user_name=current_user.full_name or current_user.user_name,
+                    service_name=appointment.nurse_service.name if appointment.nurse_service else "Service",
+                    amount=payment.amount,
+                    currency=payment.currency.upper(),
+                    appointment_date=appointment.appointment_time.strftime('%Y-%m-%d'),
+                    appointment_time=appointment.appointment_time.strftime('%H:%M')
+                )
 
                 flash('Payment successful!', 'success')
             else:

@@ -1,6 +1,6 @@
 from flask import Flask, app, session, request
 from wtforms.csrf.core import CSRF
-from .extensions import db, bcrypt, login_manager, migrate, google_blueprint, babel
+from .extensions import db, bcrypt, login_manager, migrate, google_blueprint, babel, mail
 from app.models import User, Message, Service, Appointment, Payment, MedicalRecord, Prescription, Review
 from app.routes import auth_bp, main_bp, client_bp, nurse_bp
 from flask_wtf.csrf import CSRFProtect
@@ -23,6 +23,13 @@ def create_app():
     app.config['GOOGLE_OAUTH_CLIENT_SECRET'] = os.getenv ('GOOGLE_OAUTH_CLIENT_SECRET')
     app.config['BABEL_DEFAULT_LOCALE'] = 'en'
     app.config['BABEL_SUPPORTED_LOCALES'] = ['de', 'uk', 'pl', 'cz-CN']
+    app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
+    app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
+    app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+    app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() == 'true'
+    app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+
     csrf=CSRFProtect()
 
     app.config["BABEL_TRANSLATION_DIRECTORIES"] = os.path.join(
@@ -40,6 +47,7 @@ def create_app():
     migrate.init_app(app, db)
     csrf.init_app(app)
     socketio.init_app(app)
+    mail.init_app(app)
 
     def get_locale():
         if 'lang' in session:
