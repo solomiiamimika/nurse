@@ -9,7 +9,7 @@ import os
 from dotenv import load_dotenv
 
 
-
+os.environ['OAUTHLIB_INSECURE_TRANSOPRT'] = 1
 
 
 
