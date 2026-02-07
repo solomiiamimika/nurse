@@ -88,6 +88,13 @@
                 <label class="form-label fw-bold small text-muted">ABOUT ME</label>
                 <textarea name="about_me" class="form-control" rows="3">{{ user.about_me or '' }}</textarea>
             </div>
+            {%if user.google_id%}
+
+            <div class="col-12">
+                <label class="form-label fw-bold small text-muted">PASSWORD</label>
+                <input type="password" name="password" class="form-control" value="{{user.password_hash}}"/>
+            </div>
+            {% endif %}
 
             <div class="col-12 mt-4">
                 <label class="form-label fw-bold small text-muted">UPLOAD DOCUMENTS</label>
