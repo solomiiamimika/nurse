@@ -6,6 +6,8 @@ from app.models import User,Review,Appointment,Message,Payment,ClientSelfCreated
 from app.extensions import google_blueprint
 from app.supabase_storage import delete_from_supabase
 import json
+import secrets 
+
 auth_bp = Blueprint('auth', __name__, template_folder='templates/auth')
 
 @auth_bp.route('/register', methods=['GET','POST'])
@@ -101,6 +103,10 @@ def google_login():
         else:
             # Create a new user
             username = google_data["email"].split('@')[0]
+            role= session.get('google_role', 'client') # Default to 'client' if not set
+
+            session.pop('google_role', None)  # Clear the temporary role from session
+            password = secrets.token_urlsafe(16)  # Generate a random password for Google users (not used for login)
             # Check username uniqueness
             counter = 1
             original_username = username
@@ -112,8 +118,10 @@ def google_login():
                 google_id=google_data["id"],
                 email=google_data["email"],
                 user_name=username,
-                role='client', 
-                online=True
+                role=role, 
+                online=True,
+                password_hash = password, #bcrypt.generate_password_hash(password).decode('utf-8')
+                full_name=google_data.get("name", "")
             )
             db.session.add(user)
             db.session.commit()
@@ -207,3 +215,15 @@ def set_language(lang_code):
         print(f"Setting language to: {lang_code}")
         session['lang'] = lang_code
         return redirect(request.referrer or url_for('main.index'))
+
+@auth_bp.route('/google_role/<role>')
+def google_role(role):
+    if role not in ['client', 'nurse']:
+        flash('Invalid role selection', 'danger')
+        return redirect(url_for('auth.register'))
+    
+    session['google_role'] = role
+    return redirect(url_for('google.login'))
+
+
+
