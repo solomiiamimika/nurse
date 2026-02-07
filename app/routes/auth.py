@@ -82,7 +82,7 @@ def login():
 def google_login():
     if not google_blueprint.session.authorized:
         return redirect(url_for("google.login"))
-    
+
     resp = google_blueprint.session.get("/oauth2/v2/userinfo")
     if not resp.ok:
         flash("Login failed with Google", "danger")
