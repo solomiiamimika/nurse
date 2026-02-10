@@ -254,3 +254,37 @@ a { text-decoration: none; color: inherit; }
   .top-search-bar { flex-direction: row; margin-bottom: 10px;}
   .dashboard-options { overflow-x: auto; white-space: nowrap; justify-content: flex-start; padding-bottom: 5px; width: 100%; }
 }
+
+
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+#password-input {
+    padding-right: 40px; /* Залишаємо місце справа, щоб текст не налізав на око */
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6c757d; /* Сірий колір іконки */
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.password-toggle-btn:hover {
+    color: #333; /* Колір при наведенні */
+}
+
+/* Прибираємо стандартний контур кнопки при фокусі (опціонально) */
+.password-toggle-btn:focus {
+    outline: none;
+}

@@ -76,11 +76,28 @@
             <label class="form-label fw-bold small text-muted">{{ _("ABOUT ME") }}</label>
             <textarea name="about_me" class="form-control" rows="3">{{ user.about_me or '' }}</textarea>
           </div>
-          {%if user.google_id%}
+
+
+          {%if user.google_id and  user.password_hash.startswith('$')%}
 
           <div class="col-12">
+
+
+            <label class="form-label fw-bold small text-muted">LOGIN</label>
+            <input  type="text" name="login" class="form-control" value="{{user.user_name}}"/>
+
             <label class="form-label fw-bold small text-muted">PASSWORD</label>
-            <input type="password" name="password" class="form-control" value="{{user.password_hash}}"/>
+            <div class="password-wrapper">
+                <input id="password-input" type="password" name="password" class="form-control" value="{{user.password_hash}}"/>
+                <button type="button" id="toggle-password" class="password-toggle-btn">
+                    <i class="fa-solid fa-eye"></i> <!--FONT AWESOME LIBRARY-->
+                </button>
+            </div>
+
+
+
+
+
           </div>
           {% endif %}
 
@@ -316,5 +333,25 @@
       });
     }
   });
+
+
+
+  const passwordInput = document.getElementById('password-input')
+  const togglePassword = document.getElementById('toggle-password')
+
+
+
+  togglePassword.addEventListener('click',function(){
+
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type',type);
+
+    
+
+
+
+
+
+  })
 </script>
 {% endblock %}
