@@ -1,11 +1,11 @@
 from app import create_app
 from app.extensions import db,socketio
 from app.models import User,Message,Service,Appointment,Payment,MedicalRecord,Prescription,Review
-from pyngrok import ngrok
+#from pyngrok import ngrok
 from flask_socketio import SocketIO
 import os
 
-ngrok.set_auth_token('30Y5lts3TU8tBYOQ5g0CAxupy09_5M8qwijjkLXatMoCjpjbT')
+#ngrok.set_auth_token('30Y5lts3TU8tBYOQ5g0CAxupy09_5M8qwijjkLXatMoCjpjbT')
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = "1"
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = "1"
 app = create_app()
