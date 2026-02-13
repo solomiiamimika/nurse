@@ -15,7 +15,7 @@ db = SQLAlchemy()
 bcrypt = Bcrypt()
 login_manager = LoginManager()
 migrate = Migrate()
-socketio = SocketIO(async_mode='eventlet', cors_allowed_origins="*")
+socketio = SocketIO(cors_allowed_origins="*")
 from supabase import create_client,Client
 
 
