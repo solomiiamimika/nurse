@@ -11,7 +11,7 @@ const BASE_URL = Platform.OS === 'android'
   : 'http://localhost:5000/api/auth';
 
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: 'https://human-me.com',
   headers: {
     'Content-Type': 'application/json',
   },
