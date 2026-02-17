@@ -2,11 +2,13 @@ from flask import Flask, app, session, request
 from wtforms.csrf.core import CSRF
 from .extensions import db, bcrypt, login_manager, migrate, google_blueprint, babel, mail
 from app.models import User, Message, Service, Appointment, Payment, MedicalRecord, Prescription, Review
-from app.routes import auth_bp, main_bp, client_bp, nurse_bp
+from app.routes import auth_bp, main_bp, client_bp, nurse_bp, api_auth_bp
 from flask_wtf.csrf import CSRFProtect
 from .extensions import socketio
 import os
 from dotenv import load_dotenv
+from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = "1"
@@ -29,6 +31,8 @@ def create_app():
     app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() == 'true'
     app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
     app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+    app.config["JWT_SECRET_KEY"] = "super-secret-key-change-this"  # Краще винести в .env
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 86400 # Токен живе 24 години
 
     csrf=CSRFProtect()
 
@@ -56,6 +60,9 @@ def create_app():
 
     babel.init_app(app, locale_selector=get_locale)
 
+    jwt = JWTManager(app)
+    CORS(app) # Дозволяє мобільному телефону стукатись на сервер
+
     # Registering blueprints
     from app.routes.auth import auth_bp
     from app.routes.main import main_bp
@@ -67,6 +74,8 @@ def create_app():
     app.register_blueprint(client_bp,url_prefix='/client')
     app.register_blueprint(nurse_bp,url_prefix='/nurse')
     app.register_blueprint(google_blueprint)
+    app.register_blueprint(api_auth_bp, url_prefix='/auth/api')
+
 
     @login_manager.user_loader
     def load_user(user_id):

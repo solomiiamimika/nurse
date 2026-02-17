@@ -7,6 +7,8 @@ main_bp = Blueprint('main',__name__)
 
 nurse_bp = Blueprint('nurse',__name__)
 
-
 client_bp = Blueprint('client',__name__)
+
+api_auth_bp = Blueprint('api_auth', __name__)
+
 from . import auth, nurse, main, client
