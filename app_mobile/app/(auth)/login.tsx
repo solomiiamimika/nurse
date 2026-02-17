@@ -30,7 +30,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       // POST на /login. 'username' тут може бути як email, так і нікнейм
-      const response = await api.post('/login', {
+      const response = await api.post('/auth/api/login', {
         username: username,
         password: password
       });

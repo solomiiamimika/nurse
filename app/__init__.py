@@ -52,7 +52,7 @@ def create_app():
     csrf.init_app(app)
     socketio.init_app(app)
     mail.init_app(app)
-
+    csrf.exempt(api_auth_bp)
     def get_locale():
         if 'lang' in session:
             return session.get('lang', 'en')
