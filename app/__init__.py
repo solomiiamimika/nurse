@@ -49,7 +49,7 @@ def create_app():
     csrf.init_app(app)
     socketio.init_app(app)
     mail.init_app(app)
-    csrf.exempt(api_auth_bp)
+
     def get_locale():
         if 'lang' in session:
             return session.get('lang', 'en')
@@ -66,6 +66,7 @@ def create_app():
     from app.routes.client import client_bp
     from app.routes.nurse import nurse_bp
     from app.routes.api_auth import api_auth_bp
+    csrf.exempt(api_auth_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(client_bp,url_prefix='/client')
