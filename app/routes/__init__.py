@@ -1,14 +1,5 @@
-from flask import Blueprint
-
-
-auth_bp = Blueprint('auth',__name__,url_prefix='/auth')
-
-main_bp = Blueprint('main',__name__)
-
-nurse_bp = Blueprint('nurse',__name__)
-
-client_bp = Blueprint('client',__name__)
-
-api_auth_bp = Blueprint('api_auth', __name__)
-
-from . import auth, nurse, main, client
+from .auth import auth_bp
+from .main import main_bp
+from .nurse import nurse_bp
+from .client import client_bp
+from .api_auth import api_auth_bp

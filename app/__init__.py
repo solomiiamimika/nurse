@@ -2,9 +2,7 @@ from flask import Flask, app, session, request
 from wtforms.csrf.core import CSRF
 from .extensions import db, bcrypt, login_manager, migrate, google_blueprint, babel, mail
 from app.models import User, Message, Service, Appointment, Payment, MedicalRecord, Prescription, Review
-from app.routes import auth_bp, main_bp, client_bp, nurse_bp, api_auth_bp
-from flask_wtf.csrf import CSRFProtect
-from .extensions import socketio
+from .extensions import socketio,csrf
 import os
 from dotenv import load_dotenv
 from flask_jwt_extended import JWTManager
@@ -34,7 +32,6 @@ def create_app():
     app.config["JWT_SECRET_KEY"] = "super-secret-key-change-this"  # Краще винести в .env
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 86400 # Токен живе 24 години
 
-    csrf=CSRFProtect()
 
     app.config["BABEL_TRANSLATION_DIRECTORIES"] = os.path.join(
         os.path.dirname(__file__), "..", "translations"
@@ -68,7 +65,7 @@ def create_app():
     from app.routes.main import main_bp
     from app.routes.client import client_bp
     from app.routes.nurse import nurse_bp
-    
+    from app.routes.api_auth import api_auth_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(client_bp,url_prefix='/client')

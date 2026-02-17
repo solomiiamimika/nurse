@@ -1,9 +1,7 @@
-from flask import render_template, redirect, url_for, flash, request,abort,jsonify,current_app
-from flask_login import login_user, logout_user, current_user, login_required
+from flask import render_template, redirect, url_for, flash, request,abort,jsonify,current_app,Blueprint
 from sqlalchemy.sql.sqltypes import DateTime
 from app.extensions import db, bcrypt, socketio, db, mail
 from app.models import Appointment, NurseService, User,Message,Payment, ClientSelfCreatedAppointment, Review
-from . import client_bp
 from app.supabase_storage import get_file_url,delete_from_supabase,upload_to_supabase,buckets
 from datetime import datetime, timedelta
 import os 
@@ -21,9 +19,9 @@ from app.models import Message, db,User
 from datetime import datetime
 from app.supabase_storage import upload_to_supabase, supabase
 from flask_cors import cross_origin
-
+from flask_login import login_required, current_user
 load_dotenv()
-
+client_bp = Blueprint('client', __name__)
 stripe.api_key=os.getenv('STRIPE_SECRET_KEY')
 stripe_public_key = os.getenv('STRIPE_PUBLIC_KEY')
 

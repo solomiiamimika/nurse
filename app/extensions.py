@@ -7,10 +7,10 @@ import os
 from flask_socketio import SocketIO
 from flask_babel import Babel
 from flask_mail import Mail
-
+from flask_wtf.csrf import CSRFProtect
 babel = Babel()
 mail=Mail()
-
+csrf = CSRFProtect()
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 login_manager = LoginManager()

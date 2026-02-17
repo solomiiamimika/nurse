@@ -258,3 +258,10 @@ class ClientSelfCreatedAppointment(db.Model):
     
 
     
+    
+    
+    
+    
+    
+
+    
