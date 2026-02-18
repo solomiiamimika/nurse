@@ -39,7 +39,7 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       // POST запит на наш новий endpoint
-      const response = await api.post('/register', formData);
+      const response = await api.post('/auth/api/register', formData);
       
       const { access_token, user } = response.data;
       
