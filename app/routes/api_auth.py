@@ -5,11 +5,12 @@ from app.models import User
 from app.extensions import db, bcrypt
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from app.extensions import csrf
-
+from app import csrf
 api_auth_bp = Blueprint('api_auth', __name__)
 
 # --- РЕЄСТРАЦІЯ ---
 @api_auth_bp.route('/register', methods=['POST'])
+@csrf.exempt
 def register():
     data = request.get_json()
     

@@ -53,12 +53,39 @@ export default function RegisterScreen() {
       router.replace('/(tabs)');
       
     } catch (error: any) {
-      console.log('Reg Error:', error);
+      // --- ЛОГУВАННЯ ДЛЯ РОЗРОБНИКА ---
+      console.log('========= REGISTRATION ERROR =========');
+      
+      if (error.response) {
+        // Сервер відповів, але зі статусом помилки (4xx, 5xx)
+        console.log('Status:', error.response.status); // Наприклад, 400
+        console.log('Data (Відповідь сервера):', JSON.stringify(error.response.data, null, 2));
+        console.log('Headers:', error.response.headers);
+      } else if (error.request) {
+        // Запит пішов, але сервер не відповів (проблеми з мережею або IP)
+        console.log('No response received:', error.request);
+      } else {
+        // Помилка при налаштуванні запиту
+        console.log('Error setup:', error.message);
+      }
+      console.log('======================================');
+
+      // --- ЛОГІКА ДЛЯ КОРИСТУВАЧА (Alert) ---
       const msg = error.response?.data?.msg || 'Не вдалося зареєструватися';
-      // Якщо сервер повернув список помилок validation errors
-      const details = error.response?.data?.errors 
-        ? '\n' + error.response.data.errors.join('\n') 
-        : '';
+      
+      // Обробка списку помилок, якщо сервер повертає масив errors
+      let details = '';
+      if (error.response?.data?.errors) {
+         const errs = error.response.data.errors;
+         if (Array.isArray(errs)) {
+             details = '\n' + errs.join('\n');
+         } else if (typeof errs === 'object') {
+             // Якщо errors це об'єкт, перетворимо його в рядок
+             details = '\n' + JSON.stringify(errs);
+         } else {
+             details = '\n' + errs;
+         }
+      }
         
       Alert.alert('Помилка', msg + details);
     } finally {
