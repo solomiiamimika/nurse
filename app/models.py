@@ -252,10 +252,21 @@ class ClientSelfCreatedAppointment(db.Model):
     patient = relationship('User', foreign_keys=[patient_id])
     doctor = relationship('User', foreign_keys=[doctor_id])
     nurse_service = relationship('NurseService')
+    offers = relationship('RequestOfferResponse',backref='appointment_requests')
     
 
     
+class RequestOfferResponse(db.Model):
+    __tablename__= 'request_offer_response'
+    id = Column(Integer,primary_key=True)
+    request_id = Column(Integer,ForeignKey('client_self_create_appointment.id'))
+    doctor_id = Column(Integer,ForeignKey('user.id'))
+    proposed_price = Column(Float)
+    status = Column(Text,default='pending')
+    created_at = Column(DateTime,default=datetime.now)
     
+    
+    doctor = relationship('User',foreign_keys=[doctor_id])
 
     
     

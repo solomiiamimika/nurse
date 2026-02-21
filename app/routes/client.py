@@ -550,43 +550,45 @@ def payment_success(appointment_id):
     
     try:
         if session_id:
-            # Verify the payment with Stripe
+            # Отримуємо сесію
             session = stripe.checkout.Session.retrieve(session_id)
             
-            if session.payment_status == 'paid' and session.metadata.get('appointment_id') == str(appointment_id):
+            # --- ГОЛОВНА ЗМІНА ТУТ ---
+            # Отримуємо деталі PaymentIntent, щоб перевірити статус холду
+            payment_intent = stripe.PaymentIntent.retrieve(session.payment_intent)
+
+            # Перевірка: 
+            # 1. session.payment_status == 'paid' (для звичайних оплат)
+            # 2. payment_intent.status == 'requires_capture' (для Auth & Capture)
+            is_success = (session.payment_status == 'paid') or (payment_intent.status == 'requires_capture')
+
+            if is_success and session.metadata.get('appointment_id') == str(appointment_id):
                 
-                # --- CRITICAL FIX START ---
-                # 1. Get the raw cents from the Stripe session
                 amount_cents = int(session.amount_total)
-                
-                # 2. Get the fee and currency from metadata/session
-                # We use .get() with a default of 0 to prevent errors if metadata is missing
                 platform_fee_cents = int(session.metadata.get('platform_fee_cents', 0))
                 transfer_group = session.metadata.get('transfer_group') or f"appt_{appointment_id}"
 
                 payment = Payment(
                     user_id=current_user.id,
                     appointment_id=appointment_id,
-                    amount=float(amount_cents) / 100,  # Human readable amount (50.0)
+                    amount=float(amount_cents) / 100,
                     
-                    # You MUST pass these fields to satisfy the database constraints:
-                    amount_cents=amount_cents,          # <-- This fixes the NotNullViolation
+                    amount_cents=amount_cents,
                     platform_fee_cents=platform_fee_cents,
                     currency=session.currency,
-                    transfer_group=transfer_group,      # Useful for the future payout
+                    transfer_group=transfer_group,
                     
                     payment_date=datetime.utcnow(),
-                    status='completed',
-                    transaction_id=session.payment_intent,
+                    status='completed', # Тут 'completed' означає "Успішно авторизовано"
+                    transaction_id=session.payment_intent, # Зберігаємо PaymentIntent ID (pi_...)
                     payment_method=session.payment_method_types[0] if session.payment_method_types else 'card'
                 )
-                # --- CRITICAL FIX END ---
                 
                 db.session.add(payment)
                 appointment.status = 'confirmed_paid'
                 db.session.commit()
 
-                # Send confirmation email
+                # Відправка листа (код той самий)
                 send_payment_confirmation_email(
                     user_email=current_user.email,
                     user_name=current_user.full_name or current_user.user_name,
@@ -597,9 +599,10 @@ def payment_success(appointment_id):
                     appointment_time=appointment.appointment_time.strftime('%H:%M')
                 )
 
-                flash('Payment successful!', 'success')
+                flash('Payment successfully authorized!', 'success')
             else:
-                flash('Payment not confirmed', 'warning')
+                current_app.logger.warning(f"Payment check failed. Status: {session.payment_status}, PI Status: {payment_intent.status}")
+                flash('Payment not confirmed by bank', 'warning')
         else:
             flash('Payment information is missing', 'warning')
     
@@ -730,6 +733,7 @@ def create_payment_session():
 
         # ВАЖЛИВО: це піде в PaymentIntent
         payment_intent_data={
+            "capture_method":'manual',
             "transfer_group": transfer_group,
             "metadata": {
                 "appointment_id": str(appointment_id),
@@ -853,14 +857,31 @@ def cancel_appointment():
         if not appointment:
             return jsonify({'success': False, 'message': 'Appointment not found'}), 404
         
+        
+        
         # Check if it's too late to cancel (e.g., less than 24 hours before)
-        if appointment.appointment_time - datetime.utcnow() < timedelta(hours=24):
+        if appointment.appointment_time - datetime.now() < timedelta(hours=0.5):
             return jsonify({
                 'success': False,
-                'message': 'Cancellation less than 24 hours before the appointment is not possible'
+                'message': 'Cancellation less than 30 minutes before the appointment is not possible'
             }), 400
         
-        appointment.status = 'cancelled'
+        if appointment.status == 'confirmed_paid':
+            payment = Payment.query.filter_by(appointment_id=appointment.id,status='completed').first()
+            
+            if payment and payment.transaction_id:
+                try:
+                    intent = stripe.PaymentIntent.cancel(
+                        payment.transaction_id,cancellation_reason='requested_by_customer'
+                    )
+                    payment.status='canceled'
+                except stripe.StripeError as e:
+                    current_app.logger.error(f'Stripe ERROR {str(e)}')
+                    return jsonify({'success':False,'message':f'FAIL'})
+            appointment.status='cancelled'
+        else:
+                
+            appointment.status = 'cancelled'
         appointment.cancellation_reason = reason
         db.session.commit()
         

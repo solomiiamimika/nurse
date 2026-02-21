@@ -74,6 +74,7 @@ def register():
 
 # --- ЛОГІН ---
 @api_auth_bp.route('/login', methods=['POST'])
+@csrf.exempt
 def login():
     data = request.get_json()
     login_input = data.get('username') # Може бути email або username
