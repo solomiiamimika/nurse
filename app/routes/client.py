@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, request,abort,jsonify,current_app,Blueprint
 from sqlalchemy.sql.sqltypes import DateTime
 from app.extensions import db, bcrypt, socketio, db, mail
-from app.models import Appointment, NurseService, User,Message,Payment, ClientSelfCreatedAppointment, Review
+from app.models import Appointment, NurseService, User,Message,Payment, ClientSelfCreatedAppointment, Review, RequestOfferResponse
 from app.supabase_storage import get_file_url,delete_from_supabase,upload_to_supabase,buckets
 from datetime import datetime, timedelta
 import os 
@@ -1152,3 +1152,39 @@ def provider_detail(provider_id):
         photo = get_file_url(provider.photo,buckets['profile_pictures'])
     return render_template("client/provider_public_profile.html", provider=provider, reviews=reviews, services=servises, photo=photo)
     
+@client_bp.route('/client_accept_request/<int:offer_id>/', method=['POST'])
+@login_required
+def client_accept_request(offer_id):
+    if current_user.role != 'client':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+    
+    try:
+        provider_offer=RequestOfferResponse.query.get(offer_id)
+
+        if not provider_offer or provider_offer.status!='pending': #тут змінити якщо ми хочемо бачити після прийняття запропонованих провайдерів 
+            return jsonify({'success': False, 'message': 'Request not found'}), 404  # обробка коли не виводити 
+        
+        req=ClientSelfCreatedAppointment.query.get(provider_offer.request_id)
+
+        if not req or provider_offer.status!='pending':
+            return jsonify({'success': False, 'message': 'Request not found'}), 404  
+
+        if req.patient_id!=current_user.id:
+            return jsonify({'success': False, 'message': 'Request not found'}), 404 
+        
+        provider_offer.status='accepted'
+        req.status='accepted'
+
+        req.doctor_id=provider_offer.doctor_id
+        req.payment=provider_offer.proposed_price
+
+        cancel_appointment
+        #сервіси і епойнтменти віхилянтство
+
+
+
+
+
+    
+
+

@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, current_app, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
-from app.models import User, Message, db, Service, NurseService, Appointment, ClientSelfCreatedAppointment
+from app.models import User, Message, db, Service, NurseService, Appointment, ClientSelfCreatedAppointment, RequestOfferResponse
 from datetime import datetime
 import json
 from app.supabase_storage import get_file_url,delete_from_supabase,upload_to_supabase,buckets,supabase
@@ -611,6 +611,9 @@ def nurse_accept_request(request_id):
         return jsonify({'success': False, 'message': 'Access denied'}), 403
     
     try:
+        data=request.get_json()
+        price=data.get('price')
+        
         req = ClientSelfCreatedAppointment.query.get(request_id) # змінив назву змінної request на req, щоб не плутати з flask.request
         
         if not req:
@@ -621,54 +624,12 @@ def nurse_accept_request(request_id):
         
         req.status = 'accepted'
         req.doctor_id = current_user.id
-        
-    
-        service_id_to_use = req.nurse_service_id
 
-        if not service_id_to_use:
-
-            duration_minutes = 60 
-            if req.end_time and req.appointment_start_time:
-                diff = req.end_time - req.appointment_start_time
-                duration_minutes = int(diff.total_seconds() / 60)
-
-        
-            new_custom_service = NurseService(
-                name=req.service_name if req.service_name else "Individual Request",
-                nurse_id=current_user.id,
-                price=req.payment if req.payment else 0.0,
-                duration=duration_minutes,
-                description=f"Auto-generated from client request #{req.id}. {req.service_description or ''}",
-                is_available=False 
-            )
-            
-            db.session.add(new_custom_service)
-            db.session.flush()
-            
-            service_id_to_use = new_custom_service.id
-            
-         
-            req.nurse_service_id = service_id_to_use
-
-        appointment = Appointment(
-            client_id=req.patient_id,
-            nurse_id=current_user.id,
-            nurse_service_id=service_id_to_use, 
-            appointment_time=req.appointment_start_time,
-            end_time=req.end_time,
-            status='scheduled',
-            notes=req.notes
-        )
-        
-        db.session.add(appointment)
+        new_offer=RequestOfferResponse(request_id=req.id, doctor_id=current_user.id, proposed_price=price)
+        db.session.add(new_offer)
         db.session.commit()
-        
-        return jsonify({
-            'success': True, 
-            'message': 'Request accepted',
-            'appointment_id': appointment.id
-        }), 200
-        
+    
+       
     except Exception as e:
         current_app.logger.error(f"Error accepting request: {str(e)}")
         db.session.rollback()
