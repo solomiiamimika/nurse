@@ -1,7 +1,8 @@
 from flask import render_template, redirect, url_for, flash, request,abort,jsonify,current_app,Blueprint
 from sqlalchemy.sql.sqltypes import DateTime
 from app.extensions import db, bcrypt, socketio, db, mail
-from app.models import Appointment, NurseService, User,Message,Payment, ClientSelfCreatedAppointment, Review, RequestOfferResponse
+from app.models import Appointment, NurseService, User,Message,Payment, ClientSelfCreatedAppointment, Review, RequestOfferResponse, ServiceHistory, CancellationPolicy
+from app.utils import fuzz_coordinates, validate_coordinates
 from app.supabase_storage import get_file_url,delete_from_supabase,upload_to_supabase,buckets
 from datetime import datetime, timedelta
 import os 
@@ -129,23 +130,22 @@ def delete_document():
 def update_location():
     if current_user.role != 'client':
         return jsonify({'success': False, 'message': 'Access denied'}), 403
-    
+
     try:
         data = request.get_json()
         if not data or 'latitude' not in data or 'longitude' not in data:
             return jsonify({'success': False, 'message': 'Coordinates are required'}), 400
-        
+
+        ok, err = validate_coordinates(data['latitude'], data['longitude'])
+        if not ok:
+            return jsonify({'success': False, 'message': err}), 400
+
         current_user.latitude = float(data['latitude'])
         current_user.longitude = float(data['longitude'])
         current_user.location_approved = True
         db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Location updated',
-            'latitude': current_user.latitude,
-            'longitude': current_user.longitude
-        })
+
+        return jsonify({'success': True, 'message': 'Location updated'})
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
@@ -154,22 +154,26 @@ def update_location():
 def get_nurses_locations():
     if current_user.role != 'client':
         return jsonify({'error': 'Entrance not allowed'}), 403
-    
+
     nurses = User.query.filter(
         User.role == 'nurse',
         User.location_approved == True,
         User.latitude.isnot(None),
         User.longitude.isnot(None)
     ).all()
-    
-    nurses_data = [{
-        'id': nurse.id,
-        'name': nurse.user_name,
-        'lat': nurse.latitude,
-        'lng': nurse.longitude,
-        'online': nurse.online
-    } for nurse in nurses]
-    
+
+    nurses_data = []
+    for nurse in nurses:
+        # Фаззимо ±100м — клієнт бачить район де живе медсестра, не точну адресу
+        f_lat, f_lng = fuzz_coordinates(nurse.latitude, nurse.longitude, meters=100)
+        nurses_data.append({
+            'id': nurse.id,
+            'name': nurse.user_name,
+            'lat': f_lat,
+            'lng': f_lng,
+            'online': nurse.online
+        })
+
     return jsonify(nurses_data)
     
     
@@ -366,7 +370,7 @@ def get_available_times():
         date = datetime.strptime(date_str, '%Y-%m-%d').date()
         service = NurseService.query.get(service_id)
 
-        if not service or service.nurse_id != int(nurse_id):
+        if not service or service.provider_id != int(nurse_id):
             return jsonify({'error': 'Service provider not found'}), 404
 
         # working hours
@@ -375,7 +379,7 @@ def get_available_times():
 
         # getting all scheduled appointments for this day
         appointments = Appointment.query.filter(
-            Appointment.nurse_id == nurse_id,
+            Appointment.provider_id == nurse_id,
             db.func.date(Appointment.appointment_time) == date,
             Appointment.status.in_(['scheduled', 'confirmed'])
         ).all()
@@ -407,6 +411,37 @@ def get_available_times():
         
 
 
+@client_bp.route('/get_provider_policy')
+@login_required
+def get_provider_policy():
+    if current_user.role != 'client':
+        return jsonify({'error': 'access denied'}), 403
+
+    provider_id = request.args.get('provider_id')
+    if not provider_id:
+        return jsonify({'error': 'provider_id required'}), 400
+
+    policy = CancellationPolicy.query.filter_by(provider_id=provider_id).first()
+
+    if not policy or policy.free_cancel_hours is None:
+        return jsonify({
+            'has_policy': False,
+            'description': 'Free cancellation at any time'
+        })
+
+    return jsonify({
+        'has_policy': True,
+        'free_cancel_hours': policy.free_cancel_hours,
+        'late_cancel_fee_percent': policy.late_cancel_fee_percent,
+        'no_show_client_fee_percent': policy.no_show_client_fee_percent,
+        'description': (
+            f'Free cancellation up to {policy.free_cancel_hours}h before. '
+            f'Late cancellation fee: {policy.late_cancel_fee_percent}%. '
+            f'No-show fee: {policy.no_show_client_fee_percent}%.'
+        )
+    })
+
+
 @client_bp.route('/get_nurse_services')
 @login_required
 def get_nurse_services():
@@ -419,7 +454,7 @@ def get_nurse_services():
     
     try:
         services = NurseService.query.filter_by(
-            nurse_id=nurse_id,
+            provider_id=nurse_id,
             is_available=True
         ).all()
         
@@ -460,7 +495,7 @@ def create_appointment():
             return jsonify({'success': False, 'message': 'Service provider not found'}), 404
         
         service = NurseService.query.get(service_id)
-        if not service or service.nurse_id != int(nurse_id):
+        if not service or service.provider_id != int(nurse_id):
             return jsonify({'success': False, 'message': 'Service not found'}), 404
         
 
@@ -468,7 +503,7 @@ def create_appointment():
         end_time = appointment_time + timedelta(minutes=service.duration)
         
         conflicting_appointments = Appointment.query.filter(
-            Appointment.nurse_id == nurse_id,
+            Appointment.provider_id == nurse_id,
             Appointment.status == 'scheduled',
             ((Appointment.appointment_time <= appointment_time) & (Appointment.end_time > appointment_time)) |
             ((Appointment.appointment_time < end_time) & (Appointment.end_time >= end_time)) |
@@ -481,7 +516,7 @@ def create_appointment():
 
         new_appointment = Appointment(
             client_id=current_user.id,
-            nurse_id=nurse_id,
+            provider_id=nurse_id,
             nurse_service_id=service_id,
             appointment_time=appointment_time,
             end_time=end_time,
@@ -840,53 +875,73 @@ def payout_after_completion(appointment_id):
 def cancel_appointment():
     if current_user.role != 'client':
         return jsonify({'success': False, 'message': 'access denied'}), 403
-    
+
     try:
         data = request.get_json()
         appointment_id = data.get('appointment_id')
         reason = data.get('reason', '')
-        
+
         if not appointment_id:
             return jsonify({'success': False, 'message': 'ID for Appointment Not Specified'}), 400
-        
+
         appointment = Appointment.query.filter_by(
             id=appointment_id,
             client_id=current_user.id
         ).first()
-        
+
         if not appointment:
             return jsonify({'success': False, 'message': 'Appointment not found'}), 404
-        
-        
-        
-        # Check if it's too late to cancel (e.g., less than 24 hours before)
-        if appointment.appointment_time - datetime.now() < timedelta(hours=0.5):
-            return jsonify({
-                'success': False,
-                'message': 'Cancellation less than 30 minutes before the appointment is not possible'
-            }), 400
-        
+
+        now = datetime.now()
+        hours_until = (appointment.appointment_time - now).total_seconds() / 3600
+
+        # Завантажуємо політику провайдера (якщо є)
+        policy = CancellationPolicy.query.filter_by(provider_id=appointment.provider_id).first()
+
+        # Якщо провайдер не встановив політику — скасування завжди безкоштовне
+        if policy is None or policy.free_cancel_hours is None:
+            fee_percent = 0
+        elif hours_until >= policy.free_cancel_hours:
+            fee_percent = 0
+        else:
+            fee_percent = policy.late_cancel_fee_percent
+
         if appointment.status == 'confirmed_paid':
-            payment = Payment.query.filter_by(appointment_id=appointment.id,status='completed').first()
-            
+            payment = Payment.query.filter_by(
+                appointment_id=appointment.id, status='completed'
+            ).first()
+
             if payment and payment.transaction_id:
                 try:
-                    intent = stripe.PaymentIntent.cancel(
-                        payment.transaction_id,cancellation_reason='requested_by_customer'
-                    )
-                    payment.status='canceled'
+                    if fee_percent == 0:
+                        # Повне повернення — скасовуємо PaymentIntent
+                        stripe.PaymentIntent.cancel(
+                            payment.transaction_id,
+                            cancellation_reason='requested_by_customer'
+                        )
+                        payment.status = 'canceled'
+                    else:
+                        # Частковий штраф — capture тільки % від суми
+                        fee_cents = int(payment.amount_cents * fee_percent / 100)
+                        stripe.PaymentIntent.capture(
+                            payment.transaction_id,
+                            amount_to_capture=fee_cents
+                        )
+                        payment.status = 'partially_captured'
+                        payment.platform_fee_cents = fee_cents
                 except stripe.StripeError as e:
                     current_app.logger.error(f'Stripe ERROR {str(e)}')
-                    return jsonify({'success':False,'message':f'FAIL'})
-            appointment.status='cancelled'
-        else:
-                
-            appointment.status = 'cancelled'
-        appointment.cancellation_reason = reason
+                    return jsonify({'success': False, 'message': 'Payment cancellation failed'}), 500
+
+        appointment.status = 'cancelled'
         db.session.commit()
-        
-        return jsonify({'success': True, 'message': 'Appointment cancelled'})
-    
+
+        msg = 'Appointment cancelled'
+        if fee_percent > 0:
+            msg = f'Appointment cancelled. Cancellation fee: {fee_percent}% per provider policy.'
+
+        return jsonify({'success': True, 'message': msg, 'fee_percent': fee_percent})
+
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Error cancelling appointment: {str(e)}")
@@ -986,8 +1041,8 @@ def client_get_requests():
                 'longitude': req.longitude,
                 'notes': req.notes,
                 'payment': req.payment,
-                'doctor_id': req.doctor_id,
-                'nurse_name': req.doctor.full_name if req.doctor else None
+                'provider_id': req.provider_id,
+                'nurse_name': req.provider.full_name if req.provider else None
             })
         
         return jsonify({'success': True, 'requests': result}), 200
@@ -1053,13 +1108,13 @@ def leave_review():
         return jsonify({'success': False, 'message': 'Review can be left only after the visit is completed'}), 400
 
     # Check to prevent duplicate reviews for the same appointment.
-    existing = Review.query.filter_by(patient_id=current_user.id, doctor_id=appo.nurse_id, appointment_id=appo.id).first()
+    existing = Review.query.filter_by(patient_id=current_user.id, provider_id=appo.provider_id, appointment_id=appo.id).first()
     if existing:
         return jsonify({'success': False, 'message': 'Review already left'}), 400
 
     review = Review(
         patient_id=current_user.id,
-        doctor_id=appo.nurse_id,     # nurse
+        provider_id=appo.provider_id,
         appointment_id=appo.id,
         rating=rating,
         comment=comment
@@ -1074,7 +1129,7 @@ def leave_review():
 @client_bp.route('/get_reviews/<int:nurse_id>')
 @login_required
 def get_nurse_reviews(nurse_id):
-    reviews = Review.query.filter_by(doctor_id=nurse_id).order_by(
+    reviews = Review.query.filter_by(provider_id=nurse_id).order_by(
         Review.created_at.desc()
     ).all()
     
@@ -1143,7 +1198,7 @@ def services():
 @login_required
 def provider_detail(provider_id):
     provider = User.query.filter_by(id=provider_id, role='nurse').first_or_404()
-    reviews = Review.query.filter_by(doctor_id=provider.id).order_by(
+    reviews = Review.query.filter_by(provider_id=provider.id).order_by(
         Review.created_at.desc()
     ).all()
     servises= NurseService.query.filter_by(nurse_id=provider.id,is_available=True).all()
@@ -1152,7 +1207,7 @@ def provider_detail(provider_id):
         photo = get_file_url(provider.photo,buckets['profile_pictures'])
     return render_template("client/provider_public_profile.html", provider=provider, reviews=reviews, services=servises, photo=photo)
     
-@client_bp.route('/client_accept_request/<int:offer_id>/', method=['POST'])
+@client_bp.route('/client_accept_request/<int:offer_id>/', methods=['POST'])
 @login_required
 def client_accept_request(offer_id):
     if current_user.role != 'client':
@@ -1175,16 +1230,42 @@ def client_accept_request(offer_id):
         provider_offer.status='accepted'
         req.status='accepted'
 
-        req.doctor_id=provider_offer.doctor_id
+        req.provider_id=provider_offer.provider_id
         req.payment=provider_offer.proposed_price
 
-        cancel_appointment
-        #сервіси і епойнтменти віхилянтство
+        # Створюємо Appointment
+        appointment = Appointment(
+            client_id=current_user.id,
+            provider_id=provider_offer.provider_id,
+            nurse_service_id=req.nurse_service_id,
+            appointment_time=req.appointment_start_time,
+            end_time=req.end_time,
+            status='scheduled',
+            notes=req.notes
+        )
+        db.session.add(appointment)
+        db.session.flush()  # отримуємо appointment.id до commit
 
+        # Створюємо запис в ServiceHistory
+        service_history = ServiceHistory(
+            provider_id=provider_offer.provider_id,
+            client_id=current_user.id,
+            request_id=req.id,
+            service_name=req.service_name,
+            service_description=req.service_description,
+            price=provider_offer.proposed_price,
+            appointment_time=req.appointment_start_time,
+            end_time=req.end_time,
+            status='scheduled'
+        )
+        db.session.add(service_history)
+        db.session.commit()
 
+        return jsonify({'success': True, 'message': 'Offer accepted', 'appointment_id': appointment.id}), 200
 
-
-
-    
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error accepting offer: {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 

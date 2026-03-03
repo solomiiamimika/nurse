@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, current_app, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
-from app.models import User, Message, db, Service, NurseService, Appointment, ClientSelfCreatedAppointment, RequestOfferResponse
+from app.models import User, Message, db, Service, NurseService, Appointment, ClientSelfCreatedAppointment, RequestOfferResponse, ServiceHistory, CancellationPolicy
+from app.utils import fuzz_coordinates, haversine_distance, validate_coordinates
 from datetime import datetime
 import json
 from app.supabase_storage import get_file_url,delete_from_supabase,upload_to_supabase,buckets,supabase
@@ -149,23 +150,22 @@ def appointments():
 def update_location():
     if current_user.role != 'nurse':
         return jsonify({'success': False, 'message': 'Access denied'}), 403
-    
+
     try:
         data = request.get_json()
         if not data or 'latitude' not in data or 'longitude' not in data:
             return jsonify({'success': False, 'message': 'Coordinates are required'}), 400
-        
+
+        ok, err = validate_coordinates(data['latitude'], data['longitude'])
+        if not ok:
+            return jsonify({'success': False, 'message': err}), 400
+
         current_user.latitude = float(data['latitude'])
         current_user.longitude = float(data['longitude'])
         current_user.location_approved = True
         db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Location updated',
-            'latitude': current_user.latitude,
-            'longitude': current_user.longitude
-        })
+
+        return jsonify({'success': True, 'message': 'Location updated'})
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
@@ -187,27 +187,48 @@ def toggle_online():
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
 
+CLIENTS_MAP_RADIUS_KM = 30  # показуємо запити тільки в межах 30 км
+
 @nurse_bp.route('/get_clients_locations')
 @login_required
 def get_clients_locations():
     if current_user.role != 'nurse':
         return jsonify({'error': 'Access denied'}), 403
-    
+
     try:
+        nurse_lat = current_user.latitude
+        nurse_lng = current_user.longitude
+
+        # Показуємо тільки клієнтів з відкритими запитами (pending)
+        open_request_patient_ids = db.session.query(
+            ClientSelfCreatedAppointment.patient_id
+        ).filter(
+            ClientSelfCreatedAppointment.status == 'pending'
+        ).subquery()
+
         clients = User.query.filter(
-            User.role == 'client',
+            User.id.in_(open_request_patient_ids),
             User.location_approved == True,
             User.latitude.isnot(None),
             User.longitude.isnot(None)
         ).all()
-        
-        clients_data = [{
-            'id': client.id,
-            'name': client.user_name,
-            'lat': client.latitude,
-            'lng': client.longitude
-        } for client in clients]
-        
+
+        clients_data = []
+        for client in clients:
+            # Фільтр по радіусу (якщо знаємо де провайдер)
+            if nurse_lat and nurse_lng:
+                dist = haversine_distance(nurse_lat, nurse_lng, client.latitude, client.longitude)
+                if dist > CLIENTS_MAP_RADIUS_KM:
+                    continue
+
+            # Фаззимо ±500м — провайдер бачить район, не точну адресу
+            f_lat, f_lng = fuzz_coordinates(client.latitude, client.longitude, meters=500)
+            clients_data.append({
+                'id': client.id,
+                'lat': f_lat,
+                'lng': f_lng,
+            })
+
         return jsonify(clients_data)
     except Exception as e:
         current_app.logger.error(f"Error getting clients locations: {str(e)}")
@@ -222,7 +243,7 @@ def manage_services():
         return redirect(url_for('auth.login'))
 
     standard_services = Service.query.filter_by(is_standart=True).all()
-    nurse_services = NurseService.query.filter_by(nurse_id=current_user.id).all()
+    nurse_services = NurseService.query.filter_by(provider_id=current_user.id).all()
 
     if request.method == 'POST':
         try:
@@ -230,7 +251,7 @@ def manage_services():
             
             if action == 'add_custom':
                 new_service = NurseService(
-                    nurse_id=current_user.id,
+                    provider_id=current_user.id,
                     service_id=None,
                     name=request.form.get('name'),
                     price=float(request.form.get('price')),
@@ -248,7 +269,7 @@ def manage_services():
                     return redirect(url_for('nurse.manage_services'))
                 
                 new_service = NurseService(
-                    nurse_id=current_user.id,
+                    provider_id=current_user.id,
                     service_id=service_id,
                     name=None,
                     price=float(request.form.get('price')),
@@ -266,14 +287,14 @@ def manage_services():
                 if is_custom:
                     service = NurseService.query.filter_by(
                         id=service_id,
-                        nurse_id=current_user.id
+                        provider_id=current_user.id
                     ).first()
                     if service:
                         service.name = request.form.get('name')
                 else:
                     service = NurseService.query.filter_by(
                         service_id=service_id,
-                        nurse_id=current_user.id
+                        provider_id=current_user.id
                     ).first()
                 
                 if service:
@@ -289,7 +310,7 @@ def manage_services():
                 service_id = request.form.get('service_id')
                 service = NurseService.query.filter_by(
                     service_id=service_id,
-                    nurse_id=current_user.id
+                    provider_id=current_user.id
                 ).first()
                 
                 if service:
@@ -302,7 +323,7 @@ def manage_services():
                 service_id = request.form.get('service_id')
                 service = NurseService.query.filter_by(
                     id=service_id,
-                    nurse_id=current_user.id
+                    provider_id=current_user.id
                 ).first()
                 
                 if service:
@@ -324,6 +345,92 @@ def manage_services():
                          nurse_services=nurse_services)
 
 
+@nurse_bp.route('/service_history', methods=['GET'])
+@login_required
+def get_service_history():
+    if current_user.role != 'nurse':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    try:
+        history = ServiceHistory.query.filter_by(
+            provider_id=current_user.id
+        ).order_by(ServiceHistory.created_at.desc()).all()
+
+        result = []
+        for h in history:
+            result.append({
+                'id': h.id,
+                'service_name': h.service_name,
+                'service_description': h.service_description,
+                'price': h.price,
+                'appointment_time': h.appointment_time.isoformat(),
+                'end_time': h.end_time.isoformat(),
+                'status': h.status,
+                'created_at': h.created_at.isoformat(),
+                'client_name': h.client.full_name or h.client.user_name if h.client else None,
+            })
+
+        return jsonify({'success': True, 'history': result}), 200
+
+    except Exception as e:
+        current_app.logger.error(f"Error getting service history: {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+
+@nurse_bp.route('/promote_from_history/<int:history_id>', methods=['POST'])
+@login_required
+def promote_from_history(history_id):
+    """Перенести сервіс з ServiceHistory в постійний NurseService."""
+    if current_user.role != 'nurse':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    try:
+        history_entry = ServiceHistory.query.filter_by(
+            id=history_id,
+            provider_id=current_user.id
+        ).first()
+
+        if not history_entry:
+            return jsonify({'success': False, 'message': 'History entry not found'}), 404
+
+        data = request.get_json() or {}
+        price = float(data.get('price', history_entry.price))
+        duration_minutes = int(data.get('duration', 60))
+        name = data.get('name', history_entry.service_name)
+        description = data.get('description', history_entry.service_description or '')
+
+        # Перевіряємо чи вже є такий самий кастомний сервіс
+        existing = NurseService.query.filter_by(
+            provider_id=current_user.id,
+            name=name,
+            service_id=None
+        ).first()
+
+        if existing:
+            return jsonify({'success': False, 'message': 'Service with this name already exists'}), 400
+
+        new_service = NurseService(
+            provider_id=current_user.id,
+            service_id=None,
+            name=name,
+            price=price,
+            duration=duration_minutes,
+            description=description,
+            is_available=True
+        )
+        db.session.add(new_service)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Service added to your permanent services',
+            'nurse_service_id': new_service.id
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error promoting from history: {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 
 @nurse_bp.route('/get_my_appointments')
@@ -336,7 +443,7 @@ def get_my_appointments():
         # Беремо тільки майбутні та підтверджені записи
         # Можна додати status='confirmed' або 'paid', залежно від вашої логіки
         appointments = Appointment.query.filter(
-            Appointment.nurse_id == current_user.id,
+            Appointment.provider_id == current_user.id,
             Appointment.appointment_time >= datetime.utcnow(),
             Appointment.status.in_(['confirmed', 'confirmed_paid', 'scheduled']) # Додайте ваші статуси
         ).order_by(Appointment.appointment_time.asc()).all()
@@ -389,7 +496,7 @@ def get_appointments():
     try:
         start_date = request.args.get('start')
         end_date = request.args.get('end')
-        query = Appointment.query.filter_by(nurse_id=current_user.id)
+        query = Appointment.query.filter_by(provider_id=current_user.id)
         
         if start_date and end_date:
             try:
@@ -416,7 +523,7 @@ def get_appointments():
                 'color': calendar_appointment_color(app.status),
                 'extendedProps': {
                     'client_name': app.client.user_name,
-                    'nurse_name': app.nurse.user_name,
+                    'nurse_name': app.provider.user_name,
                     'status': app.status,
                     'notes': app.notes,
                     'photo': app.client.photo if app.client.photo else None
@@ -450,7 +557,7 @@ def update_appointment_status():
     new_status = data.get('status')
     
     appointment = Appointment.query.get_or_404(appointment_id)
-    if appointment.nurse_id != current_user.id:
+    if appointment.provider_id != current_user.id:
         return jsonify({'success': False, 'message': 'Unauthorized'}), 403
 
     # Logic: Nurse Marks Job as Done
@@ -470,6 +577,65 @@ def update_appointment_status():
 
     return jsonify({'success': False, 'message': 'Invalid status update for Nurse'}), 400
 
+
+@nurse_bp.route('/cancellation_policy', methods=['GET', 'POST'])
+@login_required
+def cancellation_policy():
+    if current_user.role != 'nurse':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    policy = CancellationPolicy.query.filter_by(provider_id=current_user.id).first()
+
+    if request.method == 'GET':
+        if policy:
+            return jsonify({
+                'has_policy': True,
+                'free_cancel_hours': policy.free_cancel_hours,
+                'late_cancel_fee_percent': policy.late_cancel_fee_percent,
+                'no_show_client_fee_percent': policy.no_show_client_fee_percent,
+            })
+        return jsonify({
+            'has_policy': False,
+            'free_cancel_hours': None,
+            'late_cancel_fee_percent': 0,
+            'no_show_client_fee_percent': 0,
+        })
+
+    # POST — зберегти або оновити
+    try:
+        data = request.get_json()
+
+        free_cancel_hours = data.get('free_cancel_hours')
+        if free_cancel_hours is not None:
+            free_cancel_hours = int(free_cancel_hours)
+
+        late_fee = int(data.get('late_cancel_fee_percent', 0))
+        no_show_fee = int(data.get('no_show_client_fee_percent', 0))
+
+        if not (0 <= late_fee <= 100) or not (0 <= no_show_fee <= 100):
+            return jsonify({'success': False, 'message': 'Fee percent must be between 0 and 100'}), 400
+
+        if policy:
+            policy.free_cancel_hours = free_cancel_hours
+            policy.late_cancel_fee_percent = late_fee
+            policy.no_show_client_fee_percent = no_show_fee
+            policy.updated_at = datetime.now()
+        else:
+            policy = CancellationPolicy(
+                provider_id=current_user.id,
+                free_cancel_hours=free_cancel_hours,
+                late_cancel_fee_percent=late_fee,
+                no_show_client_fee_percent=no_show_fee,
+            )
+            db.session.add(policy)
+
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Policy saved'})
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error saving cancellation policy: {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 
 @socketio.on('connect')
@@ -540,12 +706,12 @@ def nurse_stats():
 
     accepted_statuses = ['confirmed', 'confirmed_paid', 'nurse_confirmed']
     accepted_count = Appointment.query.filter(
-        Appointment.nurse_id == current_user.id,
+        Appointment.provider_id == current_user.id,
         Appointment.status.in_(accepted_statuses)
     ).count()
 
     completed_count = Appointment.query.filter(
-        Appointment.nurse_id == current_user.id,
+        Appointment.provider_id == current_user.id,
         Appointment.status == 'completed'
     ).count()
 
@@ -554,7 +720,7 @@ def nurse_stats():
 
     # Additionally: how many upcoming active requests
     upcoming_count = Appointment.query.filter(
-        Appointment.nurse_id == current_user.id,
+        Appointment.provider_id == current_user.id,
         Appointment.appointment_time >= datetime.utcnow(),
         Appointment.status.in_(accepted_statuses)
     ).count()
@@ -587,17 +753,31 @@ def nurse_get_requests():
         
         result = []
         for req in requests:
+            if not req.latitude or not req.longitude:
+                continue
+
+            # Для перегляду запиту: відстань + розмиті координати для карти
+            # Точна адреса буде видна тільки після прийняття
+            distance_km = None
+            if nurse_lat and nurse_lng:
+                distance_km = round(haversine_distance(
+                    nurse_lat, nurse_lng, req.latitude, req.longitude
+                ), 1)
+
+            f_lat, f_lng = fuzz_coordinates(req.latitude, req.longitude, meters=300)
+
             result.append({
                 'id': req.id,
                 'patient_name': req.patient.full_name if req.patient else "Client",
                 'service_name': req.service_name,
                 'appointment_start_time': req.appointment_start_time.isoformat(),
-                'latitude': req.latitude,
-                'longitude': req.longitude,
+                'lat': f_lat,          # розмиті координати для карти
+                'lng': f_lng,
+                'distance_km': distance_km,  # відстань для рішення
                 'notes': req.notes,
                 'payment': req.payment
             })
-        
+
         return jsonify({'success': True, 'requests': result}), 200
         
     except Exception as e:
@@ -623,9 +803,9 @@ def nurse_accept_request(request_id):
             return jsonify({'success': False, 'message': 'Request already processed'}), 400
         
         req.status = 'accepted'
-        req.doctor_id = current_user.id
+        req.provider_id = current_user.id
 
-        new_offer=RequestOfferResponse(request_id=req.id, doctor_id=current_user.id, proposed_price=price)
+        new_offer=RequestOfferResponse(request_id=req.id, provider_id=current_user.id, proposed_price=price)
         db.session.add(new_offer)
         db.session.commit()
     
@@ -642,11 +822,11 @@ def nurse_get_accepted_requests():
     
     try:
         requests = ClientSelfCreatedAppointment.query.filter_by(
-            doctor_id=current_user.id
+            provider_id=current_user.id
         ).order_by(ClientSelfCreatedAppointment.created_appo.desc()).all()
         
         result = []
-        for req in requests: 
+        for req in requests:
             result.append({
                 'id': req.id,
                 'patient_name': req.patient.full_name,
@@ -654,6 +834,7 @@ def nurse_get_accepted_requests():
                 'status': req.status,
                 'appointment_start_time': req.appointment_start_time.isoformat(),
                 'created_appo': req.created_appo.isoformat(),
+                # Точні координати — провайдер вже прийняв замовлення, потрібна навігація
                 'latitude': req.latitude,
                 'longitude': req.longitude,
                 'notes': req.notes,

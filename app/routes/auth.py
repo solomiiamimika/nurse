@@ -1,64 +1,182 @@
-from flask import render_template, redirect, url_for, flash, request, abort, Blueprint, session
+from flask import render_template, redirect, url_for, flash, request, abort, Blueprint, session, jsonify
 from flask_login import login_user, logout_user, current_user,login_required
 from app.extensions import db, bcrypt
-from app.models import User,Review,Appointment,Message,Payment,ClientSelfCreatedAppointment
+from app.models import User,Review,Appointment,Message,Payment,ClientSelfCreatedAppointment,InvitationToken
 
 from app.extensions import google_blueprint
 from app.supabase_storage import delete_from_supabase
 import json
-import secrets 
+import secrets
+from datetime import datetime, timedelta
 
 auth_bp = Blueprint('auth', __name__, template_folder='templates/auth')
 
-@auth_bp.route('/register', methods=['GET','POST'])
+def _generate_referral_code():
+    """Генерує унікальний 8-символьний реферальний код."""
+    while True:
+        code = secrets.token_urlsafe(6)[:8].upper()
+        if not User.query.filter_by(referral_code=code).first():
+            return code
+
+
+@auth_bp.route(‘/invite/<token>’)
+def invite_landing(token):
+    """Лендінг для запрошень — показує опис додатку перед реєстрацією."""
+    inv = InvitationToken.query.filter_by(token=token, used=False).first()
+
+    if not inv:
+        flash(‘This invitation link is invalid or has already been used.’, ‘danger’)
+        return redirect(url_for(‘auth.register’))
+
+    if inv.expires_at and inv.expires_at < datetime.now():
+        flash(‘This invitation link has expired.’, ‘danger’)
+        return redirect(url_for(‘auth.register’))
+
+    return redirect(url_for(‘auth.register’, invite=token, role=inv.role_hint or ‘’))
+
+
+@auth_bp.route(‘/register’, methods=[‘GET’,’POST’])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for(f'{current_user.role}.dashboard'))
-    
+        return redirect(url_for(f’{current_user.role}.dashboard’))
+
+    # Токен запрошення та реферальний код з URL
+    invite_token = request.args.get(‘invite’) or request.form.get(‘invite_token’)
+    ref_code = request.args.get(‘ref’) or request.form.get(‘ref_code’)
+    role_hint = request.args.get(‘role’, ‘’)
+
+    # Валідуємо invite token якщо є
+    invitation = None
+    if invite_token:
+        invitation = InvitationToken.query.filter_by(token=invite_token, used=False).first()
+        if invitation and invitation.expires_at and invitation.expires_at < datetime.now():
+            invitation = None
+
     if request.method == "POST":
-        username = request.form.get('username')
-        fullname = request.form.get('full_name')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password') 
-        role = request.form.get('role')
+        username = request.form.get(‘username’)
+        fullname = request.form.get(‘full_name’)
+        email = request.form.get(‘email’)
+        password = request.form.get(‘password’)
+        confirm_password = request.form.get(‘confirm_password’)
+        role = request.form.get(‘role’)
 
         errors = []
         if not username or len(username) < 2:
-            errors.append('Username must be at least 2 characters long')
-        if not email or '@' not in email:
-            errors.append('Invalid email address')
-        if password and len(password) < 6:  #We’ll update it for Google users.
-            errors.append('Password must be at least 6 characters long')
+            errors.append(‘Username must be at least 2 characters long’)
+        if not email or ‘@’ not in email:
+            errors.append(‘Invalid email address’)
+        if password and len(password) < 6:
+            errors.append(‘Password must be at least 6 characters long’)
         if password and password != confirm_password:
-            errors.append('Passwords do not match')
-        if role not in ['client','nurse']:
-            errors.append('Invalid role')
-        
+            errors.append(‘Passwords do not match’)
+        if role not in [‘client’, ‘nurse’]:
+            errors.append(‘Invalid role’)
+
         if User.query.filter_by(user_name=username).first():
-            errors.append('User already exists')
+            errors.append(‘User already exists’)
         if User.query.filter_by(email=email).first():
-            errors.append('Email already exists')
+            errors.append(‘Email already exists’)
 
         if errors:
             for e in errors:
-                flash(e,'danger')
+                flash(e, ‘danger’)
         else:
+            referred_by = None
+            if ref_code:
+                referrer = User.query.filter_by(referral_code=ref_code).first()
+                if referrer:
+                    referred_by = ref_code
+
             user = User(
                 user_name=username,
                 email=email,
                 role=role,
-                full_name=fullname
+                full_name=fullname,
+                referral_code=_generate_referral_code(),
+                referred_by=referred_by,
             )
-            if password:  # If this is not a Google user
+            if password:
                 user.password = password
-            
+
             db.session.add(user)
+            db.session.flush()
+
+            # Позначити запрошення як використане
+            if invitation:
+                invitation.used = True
+                invitation.used_by = user.id
+                invitation.used_at = datetime.now()
+
             db.session.commit()
-            flash('Registration successful! Please login.', 'success')
-            return redirect(url_for('auth.login'))
-    
-    return render_template('auth/register.html')
+            flash(‘Registration successful! Please login.’, ‘success’)
+            return redirect(url_for(‘auth.login’))
+
+    return render_template(‘auth/register.html’,
+                           invite_token=invite_token,
+                           ref_code=ref_code,
+                           role_hint=role_hint)
+
+
+@auth_bp.route(‘/create_invite’, methods=[‘POST’])
+@login_required
+def create_invite():
+    """Будь-який юзер може створити посилання-запрошення."""
+    data = request.get_json() or {}
+    role_hint = data.get(‘role’)        # ‘nurse’ | ‘client’ | None
+    email_hint = data.get(‘email’)      # необов’язково
+    expires_days = data.get(‘expires_days’)  # None = безстроково
+
+    if role_hint and role_hint not in (‘nurse’, ‘client’):
+        return jsonify({‘success’: False, ‘message’: ‘Invalid role’}), 400
+
+    token = secrets.token_urlsafe(32)
+    expires_at = None
+    if expires_days:
+        expires_at = datetime.now() + timedelta(days=int(expires_days))
+
+    inv = InvitationToken(
+        token=token,
+        created_by=current_user.id,
+        role_hint=role_hint,
+        email_hint=email_hint,
+        expires_at=expires_at,
+    )
+    db.session.add(inv)
+    db.session.commit()
+
+    invite_url = url_for(‘auth.invite_landing’, token=token, _external=True)
+    return jsonify({‘success’: True, ‘url’: invite_url, ‘token’: token})
+
+
+@auth_bp.route(‘/my_referrals’)
+@login_required
+def my_referrals():
+    """Статистика рефералів поточного юзера."""
+    referrals = User.query.filter_by(referred_by=current_user.referral_code).all()
+    invites = InvitationToken.query.filter_by(created_by=current_user.id).order_by(
+        InvitationToken.created_at.desc()
+    ).all()
+
+    return jsonify({
+        ‘referral_code’: current_user.referral_code,
+        ‘referral_url’: url_for(‘auth.register’, ref=current_user.referral_code, _external=True),
+        ‘total_referred’: len(referrals),
+        ‘referred_users’: [
+            {‘id’: u.id, ‘user_name’: u.user_name, ‘role’: u.role,
+             ‘joined’: u.created_at.isoformat()}
+            for u in referrals
+        ],
+        ‘invites_sent’: len(invites),
+        ‘invites’: [
+            {‘token’: i.token,
+             ‘url’: url_for(‘auth.invite_landing’, token=i.token, _external=True),
+             ‘role_hint’: i.role_hint,
+             ‘used’: i.used,
+             ‘expires_at’: i.expires_at.isoformat() if i.expires_at else None,
+             ‘created_at’: i.created_at.isoformat()}
+            for i in invites
+        ]
+    })
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -173,17 +291,17 @@ def delete_account():
         
         # A. Delete Reviews (written by user OR written about user)
         Review.query.filter(
-            (Review.patient_id == user_id) | (Review.doctor_id == user_id)
+            (Review.patient_id == user_id) | (Review.provider_id == user_id)
         ).delete(synchronize_session=False)
 
-        # B. Delete Appointments (as client OR as nurse)
+        # B. Delete Appointments (as client OR as provider)
         Appointment.query.filter(
-            (Appointment.client_id == user_id) | (Appointment.nurse_id == user_id)
+            (Appointment.client_id == user_id) | (Appointment.provider_id == user_id)
         ).delete(synchronize_session=False)
 
         # C. Delete Self-Created Requests
         ClientSelfCreatedAppointment.query.filter(
-            (ClientSelfCreatedAppointment.patient_id == user_id) | (ClientSelfCreatedAppointment.doctor_id == user_id)
+            (ClientSelfCreatedAppointment.patient_id == user_id) | (ClientSelfCreatedAppointment.provider_id == user_id)
         ).delete(synchronize_session=False)
 
         # D. Delete Messages (sent OR received)
