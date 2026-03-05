@@ -39,6 +39,9 @@ class User(db.Model, UserMixin):
     referral_code     = Column(String(20), unique=True, nullable=True)
     referred_by       = Column(String(20), nullable=True)
 
+    is_owner  = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+
     created_at = Column(DateTime, default=datetime.now)
 
     # ── Relationships ──────────────────────────────────────────────

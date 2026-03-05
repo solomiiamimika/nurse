@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}My Finances{% endblock %}
+{% block title %}{{ _("My Finances") }}{% endblock %}
 
 {% block styles %}
 {{ super() }}
@@ -86,31 +86,31 @@
 
 
 <div class="greeting-header">
-    <h2>Financial Overview</h2>
-    <div class="hero-subtitle">Track your earnings, payouts, and transactions</div>
+    <h2>{{ _("Financial Overview") }}</h2>
+    <div class="hero-subtitle">{{ _("Track your earnings, payouts, and transactions") }}</div>
 </div>
 
 <div class="sticky-toolbar">
     <div class="toolbar-container">
         <div class="dashboard-options">
             <a href="{{ url_for('provider.dashboard') }}" class="btn">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                <i class="fas fa-arrow-left"></i> {{ _("Back to Dashboard") }}
             </a>
             <a href="https://dashboard.stripe.com/" target="_blank" class="btn">
-                <i class="fab fa-stripe"></i> Open Stripe Dashboard
+                <i class="fab fa-stripe"></i> {{ _("Open Stripe Dashboard") }}
             </a>
             <a href="{{ url_for('provider.provider_finances_management') }}" class="btn">
-                <i class="fas fa-sync-alt"></i> Refresh Data
+                <i class="fas fa-sync-alt"></i> {{ _("Refresh Data") }}
             </a>
         </div>
     </div>
 </div>
 
 <div class="client-dashboard">
-    
+
     <div class="finance-grid">
         <div class="content-card balance-card">
-            <div class="balance-label">Available to Payout</div>
+            <div class="balance-label">{{ _("Available to Payout") }}</div>
             <div class="balance-amount">
                 {% if balance.available %}
                     ${{ "%.2f"|format(balance.available[0].amount / 100) }}
@@ -118,11 +118,11 @@
                     $0.00
                 {% endif %}
             </div>
-            <div class="status-badge status-available">Ready</div>
+            <div class="status-badge status-available">{{ _("Ready") }}</div>
         </div>
 
         <div class="content-card balance-card">
-            <div class="balance-label">Pending Balance</div>
+            <div class="balance-label">{{ _("Pending Balance") }}</div>
             <div class="balance-amount" style="color: var(--text-gray);">
                 {% if balance.pending %}
                     ${{ "%.2f"|format(balance.pending[0].amount / 100) }}
@@ -130,24 +130,24 @@
                     $0.00
                 {% endif %}
             </div>
-            <div class="status-badge status-pending">Processing</div>
+            <div class="status-badge status-pending">{{ _("Processing") }}</div>
         </div>
     </div>
 
     <div class="content-card" style="margin-bottom: 25px;">
         <div style="padding: 10px 5px 0;">
-            <h5>Recent Payouts</h5>
-            <p class="hero-subtitle" style="font-size: 12px; margin-bottom: 0;">Transfers to your bank account</p>
+            <h5>{{ _("Recent Payouts") }}</h5>
+            <p class="hero-subtitle" style="font-size: 12px; margin-bottom: 0;">{{ _("Transfers to your bank account") }}</p>
         </div>
-        
+
         <div style="overflow-x: auto;">
             <table class="finance-table">
                 <thead>
                     <tr>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th>Arrival Date</th>
-                        <th>Bank Account</th>
+                        <th>{{ _("Amount") }}</th>
+                        <th>{{ _("Status") }}</th>
+                        <th>{{ _("Arrival Date") }}</th>
+                        <th>{{ _("Bank Account") }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -160,13 +160,13 @@
                             </span>
                         </td>
                         <td>
-                            {{ payout.arrival_date | datetimeformat('%b %d, %Y') if payout.arrival_date else 'N/A' }}
+                            {{ payout.arrival_date | ts_to_date }}
                         </td>
-                        
+
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="4" style="text-align: center; padding: 20px;">No payouts found yet.</td>
+                        <td colspan="4" style="text-align: center; padding: 20px;">{{ _("No payouts found yet.") }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -176,27 +176,27 @@
 
     <div class="content-card">
         <div style="padding: 10px 5px 0;">
-            <h5>Transaction History</h5>
-            <p class="hero-subtitle" style="font-size: 12px; margin-bottom: 0;">Recent activity on your account</p>
+            <h5>{{ _("Transaction History") }}</h5>
+            <p class="hero-subtitle" style="font-size: 12px; margin-bottom: 0;">{{ _("Recent activity on your account") }}</p>
         </div>
 
         <div style="overflow-x: auto;">
             <table class="finance-table">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Description</th>
-                        <th>Amount</th>
-                        <th>Fee</th>
-                        <th>Net</th>
+                        <th>{{ _("Date") }}</th>
+                        <th>{{ _("Description") }}</th>
+                        <th>{{ _("Amount") }}</th>
+                        <th>{{ _("Fee") }}</th>
+                        <th>{{ _("Net") }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for txn in transactions.data %}
                     <tr>
-                        <td>{{ txn.created | datetimeformat('%b %d, %Y') }}</td>
+                        <td>{{ txn.created | ts_to_date }}</td>
                         <td>
-                            <div style="font-weight: 600;">{{ txn.description or 'Payment' }}</div>
+                            <div style="font-weight: 600;">{{ txn.description or _('Payment') }}</div>
                             <div style="font-size: 12px; color: var(--text-gray);">{{ txn.type|replace('_', ' ')|capitalize }}</div>
                         </td>
                         <td>${{ "%.2f"|format(txn.amount / 100) }}</td>
@@ -209,7 +209,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 20px;">No transactions found yet.</td>
+                        <td colspan="5" style="text-align: center; padding: 20px;">{{ _("No transactions found yet.") }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

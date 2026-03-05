@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
-from app.models import User, ProviderService
-from sqlalchemy import or_
+from app.models import User, ProviderService, Appointment
+from app.extensions import db
+from sqlalchemy import or_, func
 from datetime import datetime
 
 main_bp = Blueprint('main', __name__)
@@ -83,6 +84,21 @@ def search_providers():
 
     results.sort(key=lambda x: -(x['average_rating'] or 0))
     return jsonify(results)
+
+
+@main_bp.route('/api/stats')
+def platform_stats():
+    providers = User.query.filter_by(role='provider').count()
+    completed = Appointment.query.filter_by(status='completed').count()
+    avg = db.session.query(func.avg(User.average_nurse_rating)).filter(
+        User.role == 'provider',
+        User.average_nurse_rating.isnot(None)
+    ).scalar()
+    return jsonify({
+        'providers': providers,
+        'tasks_completed': completed,
+        'avg_rating': round(float(avg), 1) if avg else None
+    })
 
 
 @main_bp.route('/patient_info/<int:user_id>')

@@ -48,6 +48,7 @@ class ClientSelfCreatedAppointment(db.Model):
     service_description  = Column(Text, nullable=True)
     latitude             = Column(Float)
     longitude            = Column(Float)
+    address              = Column(String, nullable=True)
     created_appo         = Column(DateTime, default=datetime.now)
 
     patient       = relationship('User', foreign_keys=[patient_id])

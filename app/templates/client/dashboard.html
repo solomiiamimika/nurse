@@ -18,6 +18,7 @@
     </form>
 
     <div class="dashboard-options">
+      {% if current_user.is_owner %}<a href="{{ url_for('owner.dashboard') }}" class="btn" style="color:#f59e0b;font-weight:700;"><i class="fas fa-crown"></i> Owner Panel</a>{% endif %}
       <a href="{{ url_for('client.profile') }}" class="btn">
         <i class="fa-solid fa-circle-user"></i> {{ _("Profile") }}
       </a>
@@ -171,6 +172,12 @@
                       <label class="form-label fw-bold small text-muted">{{ _("WHEN?") }}</label>
                       <input type="datetime-local" class="form-control" id="reqTime" required>
                   </div>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label fw-bold small text-muted">{{ _("YOUR ADDRESS") }} <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="reqAddress" required
+                         placeholder="{{ _('Street, building, city') }}">
+                  <div class="form-text text-muted" style="font-size:11px;">{{ _("Only visible to the provider after they accept your request.") }}</div>
               </div>
               <div class="mb-3">
                   <label class="form-label fw-bold small text-muted">{{ _("DESCRIPTION") }}</label>
@@ -340,45 +347,41 @@
   }
 
   // --- ІНШІ ФУНКЦІЇ (Request, Update Location, Booking) ---
-  
-  function loadMyRequests() {
-      fetch('/client/client_get_requests')
-        .then(r => r.json())
-        .then(data => {
-            const container = document.getElementById('myRequestsList');
-            if(!data.success || data.requests.length === 0) {
-                container.innerHTML = '<div class="text-center p-3 text-muted" style="border: 1px dashed #ccc; border-radius: 4px; background: rgba(255,255,255,0.6);"><small>{{ _("No active requests") }}</small></div>';
-                return;
-            }
-            let html = '';
-            data.requests.forEach(req => {
-                if(req.status === 'pending') {
-                    html += `
-                    <div class="card mb-2" style="border-left: 4px solid #ffc107;">
-                        <div class="card-body p-2">
-                            <div class="d-flex justify-content-between">
-                                <strong>${req.service_name}</strong> 
-                                <span class="badge bg-warning text-dark" style="height:fit-content">{{ _("Pending") }}</span>
-                            </div>
-                            <small class="text-muted">${new Date(req.appointment_start_time).toLocaleString()}</small><br>
-                            <button onclick="cancelRequest(${req.id})" class="btn btn-sm text-danger p-0 mt-1" style="font-size:12px">{{ _("Cancel Request") }}</button>
-                        </div>
-                    </div>`;
-                }
-            });
-            container.innerHTML = html;
-        });
-  }
+
+  window.showOffers = function(reqId) {
+      const el = document.getElementById('offersList-' + reqId);
+      if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  };
+
+  window.acceptOffer = function(offerId) {
+      if(!confirm("{{ _('Accept this provider?') }}")) return;
+      fetch(`/client/client_accept_request/${offerId}/`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+          body: JSON.stringify({})
+      }).then(r => r.json()).then(res => {
+          if(res.success) {
+              alert("{{ _('Provider accepted! Your appointment is scheduled.') }}");
+              loadMyRequests();
+          } else {
+              alert(res.message || res.error || 'Error');
+          }
+      });
+  };
 
   document.getElementById('submitRequestBtn').addEventListener('click', function() {
       if(!userMarker) { alert("{{ _('Please update location first using the button in the menu.') }}"); return; }
       const latLng = userMarker.getLatLng();
       
+      const address = document.getElementById('reqAddress').value.trim();
+      if (!address) { alert("{{ _('Please enter your address.') }}"); return; }
+
       const data = {
           service_name: document.getElementById('reqServiceName').value,
           notes: document.getElementById('reqNotes').value,
           payment: document.getElementById('reqPayment').value,
           appointment_start_time: document.getElementById('reqTime').value,
+          address: address,
           latitude: latLng.lat,
           longitude: latLng.lng
       };
@@ -463,10 +466,111 @@
       });
   });
 
+  // Track offer counts to detect new ones
+  let _lastOfferCounts = {};
+
+  function checkForNewOffers(requests) {
+      let hasNew = false;
+      (requests || []).forEach(req => {
+          const count = (req.offers || []).length;
+          if (_lastOfferCounts[req.id] !== undefined && count > _lastOfferCounts[req.id]) {
+              hasNew = true;
+          }
+          _lastOfferCounts[req.id] = count;
+      });
+      if (hasNew) showNewOffersToast();
+  }
+
+  function showNewOffersToast() {
+      let toast = document.getElementById('newOffersToast');
+      if (!toast) {
+          const div = document.createElement('div');
+          div.innerHTML = `
+          <div id="newOffersToast" style="position:fixed;top:80px;right:20px;z-index:9999;min-width:280px;">
+              <div class="toast show align-items-center text-white bg-success border-0 shadow" role="alert">
+                  <div class="d-flex">
+                      <div class="toast-body fw-bold">
+                          <i class="fas fa-bell me-2"></i>{{ _("New offers on your request!") }}
+                      </div>
+                      <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.closest('#newOffersToast').remove()"></button>
+                  </div>
+              </div>
+          </div>`;
+          document.body.appendChild(div.firstElementChild);
+          setTimeout(() => { const t = document.getElementById('newOffersToast'); if(t) t.remove(); }, 6000);
+      }
+  }
+
+  function loadMyRequests() {
+      fetch('/client/client_get_requests')
+        .then(r => r.json())
+        .then(data => {
+            checkForNewOffers(data.requests);
+            const container = document.getElementById('myRequestsList');
+            const active = (data.requests || []).filter(r => !['accepted','cancelled'].includes(r.status));
+            if(!data.success || active.length === 0) {
+                container.innerHTML = '<div class="text-center p-3 text-muted" style="border: 1px dashed #ccc; border-radius: 4px; background: rgba(255,255,255,0.6);"><small>{{ _("No active requests") }}</small></div>';
+                return;
+            }
+            let html = '';
+            active.forEach(req => {
+                const hasOffers = req.offers && req.offers.length > 0;
+                const borderColor = hasOffers ? '#10b981' : '#ffc107';
+                const badge = hasOffers
+                    ? `<span class="badge bg-success" style="height:fit-content">{{ _("Offers") }}: ${req.offers.length}</span>`
+                    : `<span class="badge bg-warning text-dark" style="height:fit-content">{{ _("Pending") }}</span>`;
+
+                html += `
+                <div class="card mb-2" style="border-left: 4px solid ${borderColor};">
+                    <div class="card-body p-2">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <strong>${req.service_name}</strong>
+                            ${badge}
+                        </div>
+                        <small class="text-muted">${new Date(req.appointment_start_time).toLocaleString()}</small>
+                        <div class="d-flex gap-2 mt-2">`;
+
+                if(hasOffers) {
+                    html += `<button onclick="showOffers(${req.id})" class="btn btn-sm btn-success flex-grow-1" style="font-size:12px">
+                        <i class="fas fa-list me-1"></i>{{ _("View Offers") }}
+                    </button>`;
+                }
+                html += `<button onclick="cancelRequest(${req.id})" class="btn btn-sm btn-outline-danger" style="font-size:12px">{{ _("Cancel") }}</button>
+                        </div>`;
+
+                if(hasOffers) {
+                    html += `<div id="offersList-${req.id}" class="mt-2" style="display:none;">`;
+                    req.offers.forEach(offer => {
+                        const photo = offer.provider_photo
+                            ? `<img src="${offer.provider_photo}" class="rounded-circle me-2" style="width:32px;height:32px;object-fit:cover;">`
+                            : `<div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold me-2" style="width:32px;height:32px;flex-shrink:0;font-size:13px;">${(offer.provider_name||'?')[0].toUpperCase()}</div>`;
+                        html += `
+                        <div class="d-flex align-items-center justify-content-between p-2 mb-1 rounded" style="background:#f8f9fa;border:1px solid #e5e7eb;">
+                            <div class="d-flex align-items-center">
+                                ${photo}
+                                <div>
+                                    <div class="fw-bold" style="font-size:13px;">${offer.provider_name}</div>
+                                    <div class="text-success fw-bold" style="font-size:13px;">€${offer.proposed_price}</div>
+                                </div>
+                            </div>
+                            <button onclick="acceptOffer(${offer.offer_id})" class="btn btn-success btn-sm">{{ _("Accept") }}</button>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                }
+
+                html += `</div></div>`;
+            });
+            container.innerHTML = html;
+        });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
       initMap();
       loadMyRequests();
       document.getElementById('location-btn').addEventListener('click', updateLocation);
+      // Poll every 30s to catch new offers
+      setInterval(loadMyRequests, 30000);
   });
 </script>
 {% endblock %}

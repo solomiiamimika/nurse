@@ -1,18 +1,18 @@
-{% extends "base.html" %} 
+{% extends "base.html" %}
 {% block content %}
 
 
 <div class="main-wrapper" style="padding-top: 40px; padding-bottom: 60px;">
-  
+
   <div class="custom-container">
-    
+
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
-          <h2 style="margin-bottom: 5px; font-weight: 700; color: #1f2937;">My Schedule</h2>
-          <span class="text-muted">Manage your upcoming appointments</span>
+          <h2 style="margin-bottom: 5px; font-weight: 700; color: #1f2937;">{{ _("My Schedule") }}</h2>
+          <span class="text-muted">{{ _("Manage your upcoming appointments") }}</span>
       </div>
       <a href="{{ url_for('provider.dashboard') }}" class="btn-tool">
-        <i class="fas fa-arrow-left"></i> Back to Dashboard
+        <i class="fas fa-arrow-left"></i> {{ _("Back to Dashboard") }}
       </a>
     </div>
 
@@ -27,30 +27,30 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title fw-bold">Appointment Details</h5>
+        <h5 class="modal-title fw-bold">{{ _("Appointment Details") }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        
+
         <div class="p-3 bg-light rounded mb-3 border">
             <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
-                <strong class="text-muted small">CLIENT</strong> 
+                <strong class="text-muted small">{{ _("CLIENT") }}</strong>
                 <span id="detailClientName" class="fw-bold text-dark"></span>
             </div>
             <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
-                <strong class="text-muted small">SERVICE</strong> 
+                <strong class="text-muted small">{{ _("SERVICE") }}</strong>
                 <span id="detailServiceName" class="fw-bold text-primary"></span>
             </div>
             <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
-                <strong class="text-muted small">DATE & TIME</strong> 
+                <strong class="text-muted small">{{ _("DATE & TIME") }}</strong>
                 <span id="detailDateTime"></span>
             </div>
             <div class="mb-2 d-flex justify-content-between border-bottom pb-2">
-                <strong class="text-muted small">STATUS</strong> 
+                <strong class="text-muted small">{{ _("STATUS") }}</strong>
                 <span id="detailStatus" class="fw-bold"></span>
             </div>
             <div class="mb-0">
-                <strong class="text-muted small d-block">NOTES</strong> 
+                <strong class="text-muted small d-block">{{ _("NOTES") }}</strong>
                 <div id="detailNotes" class="fst-italic text-secondary mt-1"></div>
             </div>
         </div>
@@ -76,7 +76,7 @@
         margin: 0 auto;
         padding: 0 20px;
     }
-    
+
     .content-card {
         background: white;
         padding: 20px;
@@ -160,6 +160,14 @@
 </style>
 
 <script>
+  // Translated strings for JS use
+  const i18n = {
+    acceptRequest: {{ _("Accept Request") | tojson }},
+    decline: {{ _("Decline") | tojson }},
+    close: {{ _("Close") | tojson }},
+    noComments: {{ _("No comments") | tojson }},
+  };
+
   document.addEventListener("DOMContentLoaded", function () {
     const calendarEl = document.getElementById("calendar");
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
@@ -183,11 +191,11 @@
       initialView: initialSettings.view,
       height: initialSettings.height,
       headerToolbar: initialSettings.header,
-      locale: "en", 
+      locale: "en",
       themeSystem: 'standard',
       events: "{{ url_for('provider.get_appointments') }}",
       dayMaxEvents: true,
-      handleWindowResize: true, 
+      handleWindowResize: true,
 
       windowResize: function(view) {
         const newSettings = getResponsiveSettings();
@@ -206,17 +214,17 @@
         document.getElementById("detailClientName").textContent = props.client_name || 'Unknown';
         document.getElementById("detailServiceName").textContent = props.service_name || 'Service';
         document.getElementById("detailDateTime").textContent = info.event.start.toLocaleString("uk-UA");
-        
+
         const statusEl = document.getElementById("detailStatus");
         statusEl.textContent = getStatusText(props.status);
-        
+
         // Colorize status text
-        statusEl.className = "fw-bold"; 
+        statusEl.className = "fw-bold";
         if(props.status === 'confirmed' || props.status === 'confirmed_paid') statusEl.classList.add('text-success');
         else if(props.status === 'scheduled') statusEl.classList.add('text-warning');
         else if(props.status === 'cancelled') statusEl.classList.add('text-danger');
-        
-        document.getElementById("detailNotes").textContent = props.notes || "No comments";
+
+        document.getElementById("detailNotes").textContent = props.notes || i18n.noComments;
 
         const actionsContainer = document.getElementById("appointmentActions");
         actionsContainer.innerHTML = "";
@@ -227,19 +235,19 @@
         if (props.status === "scheduled") {
           actionsContainer.innerHTML = `
             <button class="btn btn-success fw-bold text-white" onclick="updateStatus(${info.event.id}, 'confirmed')">
-                <i class="fas fa-check"></i> Accept Request
+                <i class="fas fa-check"></i> ${i18n.acceptRequest}
             </button>
             <button class="btn btn-outline-danger fw-bold" onclick="updateStatus(${info.event.id}, 'cancelled')">
-                <i class="fas fa-times"></i> Decline
+                <i class="fas fa-times"></i> ${i18n.decline}
             </button>
           `;
-        } 
+        }
         // 2. Accepted, but Client hasn't paid yet
         else if (props.status === "confirmed") {
             actionsContainer.innerHTML = `
             <div class="alert alert-warning w-100 text-center mb-0">
-                <i class="fas fa-clock"></i> Waiting for client payment.<br>
-                <small>You can submit work only after payment.</small>
+                <i class="fas fa-clock"></i> {{ _("Waiting for client payment.") }}<br>
+                <small>{{ _("You can submit work only after payment.") }}</small>
             </div>
             `;
         }
@@ -247,10 +255,10 @@
         else if (props.status === "confirmed_paid") {
           actionsContainer.innerHTML = `
             <div class="alert alert-info w-100 text-center mb-2 small">
-                <i class="fas fa-shield-alt"></i> Payment Secured. Safe to work.
+                <i class="fas fa-shield-alt"></i> {{ _("Payment Secured. Safe to work.") }}
             </div>
             <button class="btn btn-primary fw-bold w-100" onclick="updateStatus(${info.event.id}, 'work_submitted')">
-                <i class="fas fa-check"></i> I have finished the work
+                <i class="fas fa-check"></i> {{ _("I have finished the work") }}
             </button>
           `;
         }
@@ -258,17 +266,17 @@
         else if (props.status === "work_submitted") {
             actionsContainer.innerHTML = `
             <div class="alert alert-secondary w-100 text-center mb-0">
-                <i class="fas fa-hourglass-half"></i> Work Submitted.<br>
-                <small>Funds will be released when client approves.</small>
+                <i class="fas fa-hourglass-half"></i> {{ _("Work Submitted.") }}<br>
+                <small>{{ _("Funds will be released when client approves.") }}</small>
             </div>
             `;
         }
-        
+
         // Add Close button if not a simple view
         if (actionsContainer.innerHTML !== "") {
-            actionsContainer.innerHTML += `<button type="button" class="btn btn-light border mt-2 w-100" data-bs-dismiss="modal">Close</button>`;
+            actionsContainer.innerHTML += `<button type="button" class="btn btn-light border mt-2 w-100" data-bs-dismiss="modal">${i18n.close}</button>`;
         } else {
-            actionsContainer.innerHTML = `<button type="button" class="btn btn-light border" data-bs-dismiss="modal">Close</button>`;
+            actionsContainer.innerHTML = `<button type="button" class="btn btn-light border" data-bs-dismiss="modal">${i18n.close}</button>`;
         }
 
         const modal = new bootstrap.Modal(document.getElementById("appointmentDetailsModal"));
@@ -281,7 +289,7 @@
     window.updateStatus = function (appointmentId, status) {
       let confirmMsg = `Change status to ${status}?`;
       if(status === 'work_submitted') confirmMsg = "Are you sure you have finished the work? The client will be notified to approve.";
-      
+
       if (!confirm(confirmMsg)) return;
 
       fetch("/provider/update_appointment_status", {

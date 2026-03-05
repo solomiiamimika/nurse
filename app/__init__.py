@@ -14,6 +14,7 @@ How it all connects:
   static/        → CSS, JS, images
 """
 import os
+from datetime import datetime
 from flask import Flask, session, request
 from .config import Config
 from .extensions import db, bcrypt, login_manager, migrate, google_blueprint, babel, mail, socketio, csrf
@@ -55,6 +56,7 @@ def create_app():
     from app.routes.client   import client_bp
     from app.routes.provider import provider_bp
     from app.routes.api_auth import api_auth_bp
+    from app.routes.owner    import owner_bp
 
     csrf.exempt(api_auth_bp)   # mobile API uses JWT, not CSRF tokens
 
@@ -62,6 +64,7 @@ def create_app():
     app.register_blueprint(main_bp)
     app.register_blueprint(client_bp,   url_prefix='/client')
     app.register_blueprint(provider_bp, url_prefix='/provider')
+    app.register_blueprint(owner_bp)
     app.register_blueprint(google_blueprint)
     app.register_blueprint(api_auth_bp, url_prefix='/auth/api')
 
@@ -72,7 +75,14 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    # ── 4. Make google_oauth_enabled available in every template ──
+    # ── 4. Jinja2 filters ─────────────────────────────────────────
+    @app.template_filter('ts_to_date')
+    def ts_to_date(ts):
+        if ts is None:
+            return 'N/A'
+        return datetime.fromtimestamp(int(ts)).strftime('%d.%m.%Y')
+
+    # ── 5. Make google_oauth_enabled available in every template ──
     @app.context_processor
     def inject_globals():
         return dict(

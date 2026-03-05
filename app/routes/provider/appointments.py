@@ -179,12 +179,21 @@ def nurse_get_requests():
         nurse_lat = current_user.latitude
         nurse_lng = current_user.longitude
 
-        query = ClientSelfCreatedAppointment.query.filter_by(status='pending')
+        # Already-bid request IDs for this provider
+        already_bid_ids = {
+            o.request_id for o in RequestOfferResponse.query.filter_by(
+                provider_id=current_user.id
+            ).all()
+        }
 
-        requests = query.all()
+        requests = ClientSelfCreatedAppointment.query.filter(
+            ClientSelfCreatedAppointment.status.in_(('pending', 'has_offers'))
+        ).all()
 
         result = []
         for req in requests:
+            if req.id in already_bid_ids:
+                continue
             if not req.latitude or not req.longitude:
                 continue
 
@@ -195,6 +204,9 @@ def nurse_get_requests():
                 distance_km = round(haversine_distance(
                     nurse_lat, nurse_lng, req.latitude, req.longitude
                 ), 1)
+                # Only show requests within 50 km radius
+                if distance_km > 50:
+                    continue
 
             f_lat, f_lng = fuzz_coordinates(req.latitude, req.longitude, meters=300)
 
@@ -224,23 +236,31 @@ def nurse_accept_request(request_id):
         return jsonify({'success': False, 'message': 'Access denied'}), 403
 
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         price = data.get('price')
 
-        req = ClientSelfCreatedAppointment.query.get(request_id)  # змінив назву змінної request на req, щоб не плутати з flask.request
+        req = ClientSelfCreatedAppointment.query.get(request_id)
 
         if not req:
             return jsonify({'success': False, 'message': 'Request not found'}), 404
 
-        if req.status != 'pending':
+        if req.status not in ('pending', 'has_offers'):
             return jsonify({'success': False, 'message': 'Request already processed'}), 400
 
-        req.status = 'accepted'
-        req.provider_id = current_user.id
+        # Prevent duplicate offer from same provider
+        existing = RequestOfferResponse.query.filter_by(
+            request_id=req.id, provider_id=current_user.id
+        ).first()
+        if existing:
+            return jsonify({'success': False, 'message': 'You already sent an offer for this request'}), 400
+
+        # Mark request as having offers (stays visible to other providers)
+        req.status = 'has_offers'
 
         new_offer = RequestOfferResponse(request_id=req.id, provider_id=current_user.id, proposed_price=price)
         db.session.add(new_offer)
         db.session.commit()
+        return jsonify({'success': True})
 
     except Exception as e:
         current_app.logger.error(f"Error accepting request: {str(e)}")
@@ -255,24 +275,32 @@ def nurse_get_accepted_requests():
         return jsonify({'success': False, 'message': 'Access denied'}), 403
 
     try:
-        requests = ClientSelfCreatedAppointment.query.filter_by(
+        # All offers this provider sent, joined with the request
+        my_offers = RequestOfferResponse.query.filter_by(
             provider_id=current_user.id
-        ).order_by(ClientSelfCreatedAppointment.created_appo.desc()).all()
+        ).order_by(RequestOfferResponse.created_at.desc()).all()
 
         result = []
-        for req in requests:
+        for offer in my_offers:
+            req = offer.appointment_requests  # backref on ClientSelfCreatedAppointment
+            if not req:
+                continue
+            # Show address only when client accepted this provider's offer
+            show_address = (offer.status == 'accepted')
             result.append({
                 'id': req.id,
-                'patient_name': req.patient.full_name,
+                'offer_id': offer.id,
+                'offer_status': offer.status,   # pending | accepted | rejected
+                'patient_name': req.patient.full_name if req.patient else '',
                 'service_name': req.service_name,
                 'status': req.status,
                 'appointment_start_time': req.appointment_start_time.isoformat(),
                 'created_appo': req.created_appo.isoformat(),
-                # Точні координати — провайдер вже прийняв замовлення, потрібна навігація
-                'latitude': req.latitude,
-                'longitude': req.longitude,
+                'latitude': req.latitude if show_address else None,
+                'longitude': req.longitude if show_address else None,
+                'address': req.address if show_address else None,
                 'notes': req.notes,
-                'payment': req.payment
+                'payment': offer.proposed_price,
             })
 
         return jsonify({'success': True, 'requests': result}), 200

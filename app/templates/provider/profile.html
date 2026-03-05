@@ -6,11 +6,11 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
-        <h2 style="margin-bottom: 5px; font-weight: 700; color: #1f2937;">Service Provider Profile</h2>
-        <span class="text-muted">Manage your personal information and documents</span>
+        <h2 style="margin-bottom: 5px; font-weight: 700; color: #1f2937;">{{ _("Service Provider Profile") }}</h2>
+        <span class="text-muted">{{ _("Manage your personal information and documents") }}</span>
       </div>
       <a href="{{ url_for('provider.dashboard') }}" class="btn-tool">
-        <i class="fas fa-arrow-left"></i> Back to Dashboard
+        <i class="fas fa-arrow-left"></i> {{ _("Back to Dashboard") }}
       </a>
     </div>
 
@@ -23,42 +23,42 @@
 
         <div class="row g-3">
           <div class="col-md-6">
-            <label class="form-label fw-bold small text-muted">FULL NAME</label>
+            <label class="form-label fw-bold small text-muted">{{ _("FULL NAME") }}</label>
             <input type="text" name="full_name" class="form-control" value="{{ user.full_name or '' }}" />
           </div>
 
           <div class="col-md-6">
-            <label class="form-label fw-bold small text-muted">PHONE NUMBER</label>
+            <label class="form-label fw-bold small text-muted">{{ _("PHONE NUMBER") }}</label>
             <input type="text" name="phone_number" class="form-control" value="{{ user.phone_number or '' }}" />
           </div>
 
           <div class="col-md-6">
-            <label class="form-label fw-bold small text-muted">BIRTH DATE</label>
+            <label class="form-label fw-bold small text-muted">{{ _("BIRTH DATE") }}</label>
             <input type="date" name="date_birth" class="form-control" value="{{ formatted_date }}" />
           </div>
 
           <div class="col-md-6">
-            <label class="form-label fw-bold small text-muted">ADDRESS</label>
+            <label class="form-label fw-bold small text-muted">{{ _("ADDRESS") }}</label>
             <input type="text" name="address" class="form-control" value="{{ user.address or '' }}" />
           </div>
 
           <div class="col-12">
-            <label class="form-label fw-bold small text-muted">ABOUT ME</label>
+            <label class="form-label fw-bold small text-muted">{{ _("ABOUT ME") }}</label>
             <textarea name="about_me" class="form-control" rows="3">{{ user.about_me or '' }}</textarea>
           </div>
 
           <div class="col-12 mt-4">
-            <label class="form-label fw-bold small text-muted">UPLOAD DOCUMENTS</label>
+            <label class="form-label fw-bold small text-muted">{{ _("UPLOAD DOCUMENTS") }}</label>
             <div class="input-group">
               <input type="file" name="documents" id="documents" multiple class="form-control" />
               <span class="input-group-text text-muted"><i class="fas fa-file-upload"></i></span>
             </div>
-            <div class="form-text">You can select multiple files (PDF, JPG, PNG)</div>
+            <div class="form-text">{{ _("You can select multiple files (PDF, JPG, PNG)") }}</div>
           </div>
         </div>
 
         <div class="d-flex justify-content-end mt-4 pt-3 border-top">
-          <button type="submit" class="btn btn-primary fw-bold px-4">Update Profile</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4">{{ _("Update Profile") }}</button>
         </div>
       </form>
 
@@ -71,41 +71,87 @@
     <div class="mt-4">
       <div class="card">
         <div class="card-body">
-          <h5 class="card-title">Payout Settings</h5>
+          <h5 class="card-title fw-bold">{{ _("Payout Settings") }}</h5>
 
           {% if current_user.stripe_account_id %}
-          <div class="alert alert-success">
-            <i class="fas fa-check-circle"></i> Payout Account Connected
-          </div>
+            {% if stripe_info and not stripe_info.get('error') %}
+              <div class="d-flex gap-2 mb-3 flex-wrap">
+                {% if stripe_info.charges_enabled %}
+                  <span class="badge bg-success">{{ _("Payments") }} ✓</span>
+                {% else %}
+                  <span class="badge bg-warning text-dark">{{ _("Payments pending") }}</span>
+                {% endif %}
+                {% if stripe_info.payouts_enabled %}
+                  <span class="badge bg-success">{{ _("Payouts") }} ✓</span>
+                {% else %}
+                  <span class="badge bg-warning text-dark">{{ _("Payouts pending") }}</span>
+                {% endif %}
+              </div>
+
+              {% if stripe_info.bank_name or stripe_info.last4 %}
+              <div class="mb-3 p-3 bg-light rounded">
+                <div class="small text-muted fw-bold mb-1">{{ _("CONNECTED BANK ACCOUNT") }}</div>
+                <div class="d-flex align-items-center gap-2">
+                  <i class="fas fa-university text-primary"></i>
+                  <span>{{ stripe_info.bank_name or _("Bank") }} •••• {{ stripe_info.last4 }}</span>
+                </div>
+                {% if stripe_info.account_holder %}
+                <div class="small text-muted mt-1">{{ stripe_info.account_holder }}</div>
+                {% endif %}
+              </div>
+              {% endif %}
+
+              <div class="mb-3 p-3 bg-light rounded">
+                <div class="small text-muted fw-bold mb-1">{{ _("AVAILABLE BALANCE") }}</div>
+                <div class="fs-5 fw-bold text-success">{{ "%.2f"|format(stripe_info.available_balance) }} {{ stripe_info.currency }}</div>
+              </div>
+
+              <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ url_for('provider.stripe_login_link') }}" class="btn btn-primary">
+                  <i class="fab fa-stripe-s"></i> {{ _("Open Stripe Dashboard") }}
+                </a>
+                <a href="{{ url_for('provider.provider_finances_management') }}" class="btn btn-outline-secondary">
+                  <i class="fas fa-receipt"></i> {{ _("Transactions") }}
+                </a>
+              </div>
+
+            {% else %}
+              <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                {{ _("Could not load Stripe account info.") }}
+                <a href="{{ url_for('provider.connect_stripe') }}" class="alert-link">{{ _("Retry") }}</a>
+              </div>
+              <a href="{{ url_for('provider.provider_finances_management') }}" class="btn btn-outline-secondary mt-2">
+                <i class="fas fa-receipt"></i> {{ _("Transactions") }}
+              </a>
+            {% endif %}
+
           {% else %}
-          <div class="alert alert-warning">
-            <i class="fas fa-exclamation-triangle"></i>
-            Connect your bank account to receive payments.
-          </div>
-          <form action="{{ url_for('provider.connect_stripe') }}" method="POST">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <div class="mb-3">
-              <label class="form-label">Select your country:</label>
-              <select name="country" class="form-select" required>
-                <option value="UA">Ukraine (UA)</option>
-                <option value="US">United States (US)</option>
-                <option value="PL">Poland (PL)</option>
-                <option value="DE">Germany (DE)</option>
-                <option value="GB">United Kingdom (GB)</option>
-                <option value="FR">France (FR)</option>
-                <option value="ES">Spain (ES)</option>
-                <option value="IT">Italy (IT)</option>
-              </select>
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle"></i>
+              {{ _("Connect your bank account to receive payments.") }}
             </div>
-            <button type="submit" class="btn btn-primary">
-              <i class="fab fa-stripe-s"></i> Connect with Stripe
-            </button>
-          </form>
+            <form action="{{ url_for('provider.connect_stripe') }}" method="POST">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <div class="mb-3">
+                <label class="form-label">{{ _("Select your country:") }}</label>
+                <select name="country" class="form-select" required>
+                  <option value="UA">Ukraine (UA)</option>
+                  <option value="US">United States (US)</option>
+                  <option value="PL">Poland (PL)</option>
+                  <option value="DE">Germany (DE)</option>
+                  <option value="GB">United Kingdom (GB)</option>
+                  <option value="FR">France (FR)</option>
+                  <option value="ES">Spain (ES)</option>
+                  <option value="IT">Italy (IT)</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary">
+                <i class="fab fa-stripe-s"></i> {{ _("Connect with Stripe") }}
+              </button>
+            </form>
           {% endif %}
 
-          <a href="{{ url_for('provider.provider_finances_management') }}" class="btn btn-secondary mt-3">
-            <i class="fas fa-wallet"></i> Manage Payouts
-          </a>
         </div>
       </div>
     </div>

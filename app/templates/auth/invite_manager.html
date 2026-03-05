@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="csrf-token" content="{{ csrf_token() }}" />
+  <title>Запрошення</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body { background: #f8fafc; font-family: 'Inter', sans-serif; }
+    .page-header { background: white; border-bottom: 1px solid #e5e7eb; padding: 20px 0; margin-bottom: 30px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
+    .invite-row { border-left: 3px solid #10b981; }
+    .invite-row.used { border-left-color: #6b7280; opacity: 0.7; }
+    .invite-row.expired { border-left-color: #ef4444; opacity: 0.7; }
+    .role-badge-provider { background: #ede9fe; color: #7c3aed; }
+    .role-badge-client { background: #dbeafe; color: #2563eb; }
+    .role-badge-any { background: #f3f4f6; color: #6b7280; }
+    .copy-btn { cursor: pointer; }
+    .copy-btn:hover { background: #f0fdf4; }
+    .referral-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 16px; padding: 24px; }
+    .stat-box { background: rgba(255,255,255,0.15); border-radius: 10px; padding: 16px; text-align: center; }
+  </style>
+</head>
+<body>
+<div class="page-header">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <h4 class="fw-bold mb-0"><i class="fas fa-paper-plane me-2 text-primary"></i>Запрошення</h4>
+        <p class="text-muted small mb-0">Запрошуйте провайдерів та клієнтів на платформу</p>
+      </div>
+      <a href="javascript:history.back()" class="btn btn-light btn-sm">
+        <i class="fas fa-arrow-left me-1"></i> Назад
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <div class="row g-4">
+
+    <!-- LEFT: Referral link + generate invite -->
+    <div class="col-lg-5">
+
+      <!-- Referral link card -->
+      <div class="referral-card mb-4">
+        <div class="d-flex align-items-center mb-3">
+          <i class="fas fa-link fa-lg me-2"></i>
+          <span class="fw-bold fs-5">Ваше реферальне посилання</span>
+        </div>
+        <p class="small mb-3" style="opacity:.85;">Будь-хто, хто зареєструється через це посилання, буде прив'язаний до вас.</p>
+        <div class="d-flex gap-2">
+          <input type="text" class="form-control form-control-sm" id="referralUrlInput"
+                 value="{{ referral_url }}" readonly style="font-size:12px;">
+          <button class="btn btn-light btn-sm px-3 copy-btn" onclick="copyToClipboard('referralUrlInput', this)">
+            <i class="fas fa-copy"></i>
+          </button>
+        </div>
+        <div class="row g-2 mt-3">
+          <div class="col-6">
+            <div class="stat-box">
+              <div class="fs-4 fw-bold">{{ referrals|length }}</div>
+              <div class="small" style="opacity:.85;">Зареєстрованих</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="stat-box">
+              <div class="fs-4 fw-bold">{{ invites|length }}</div>
+              <div class="small" style="opacity:.85;">Запрошень відправлено</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generate new invite -->
+      <div class="card p-4">
+        <h6 class="fw-bold mb-3"><i class="fas fa-plus-circle me-2 text-success"></i>Створити нове запрошення</h6>
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">ДЛЯ КОГО</label>
+          <select class="form-select form-select-sm" id="inviteRole">
+            <option value="">Будь-хто (провайдер або клієнт)</option>
+            <option value="provider">Провайдер</option>
+            <option value="client">Клієнт</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">EMAIL (необов'язково)</label>
+          <input type="email" class="form-control form-control-sm" id="inviteEmail"
+                 placeholder="friend@example.com">
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">ТЕРМІН ДІЇ</label>
+          <select class="form-select form-select-sm" id="inviteExpiry">
+            <option value="">Безстроково</option>
+            <option value="1">1 день</option>
+            <option value="7" selected>7 днів</option>
+            <option value="30">30 днів</option>
+          </select>
+        </div>
+        <button class="btn btn-success w-100" onclick="generateInvite()">
+          <i class="fas fa-magic me-2"></i>Згенерувати посилання
+        </button>
+
+        <!-- Generated link -->
+        <div id="generatedLinkBox" class="mt-3 d-none">
+          <label class="form-label small fw-bold text-success">ГОТОВЕ ПОСИЛАННЯ</label>
+          <div class="d-flex gap-2">
+            <input type="text" class="form-control form-control-sm" id="generatedLinkInput" readonly>
+            <button class="btn btn-outline-success btn-sm px-3 copy-btn" onclick="copyToClipboard('generatedLinkInput', this)">
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
+          <div class="d-flex gap-2 mt-2">
+            <a id="shareWhatsApp" href="#" target="_blank" class="btn btn-sm btn-outline-secondary flex-fill">
+              <i class="fab fa-whatsapp me-1"></i>WhatsApp
+            </a>
+            <a id="shareTelegram" href="#" target="_blank" class="btn btn-sm btn-outline-secondary flex-fill">
+              <i class="fab fa-telegram me-1"></i>Telegram
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Sent invites list -->
+    <div class="col-lg-7">
+      <div class="card p-4">
+        <h6 class="fw-bold mb-3"><i class="fas fa-history me-2 text-primary"></i>Відправлені запрошення</h6>
+
+        {% if not invites %}
+        <div class="text-center text-muted py-4">
+          <i class="fas fa-envelope-open fa-2x mb-2 d-block"></i>
+          Ви ще не відправляли запрошень
+        </div>
+        {% else %}
+        <div style="max-height: 520px; overflow-y: auto;">
+          {% for inv in invites %}
+          {% set is_expired = inv.expires_at and inv.expires_at < now() %}
+          <div class="p-3 mb-2 rounded border invite-row {% if inv.used %}used{% elif is_expired %}expired{% endif %}">
+            <div class="d-flex justify-content-between align-items-start">
+              <div style="min-width:0; flex:1;">
+                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                  <span class="badge role-badge-{{ inv.role_hint or 'any' }} rounded-pill small">
+                    {% if inv.role_hint == 'provider' %}Провайдер
+                    {% elif inv.role_hint == 'client' %}Клієнт
+                    {% else %}Будь-хто{% endif %}
+                  </span>
+                  {% if inv.used %}
+                    <span class="badge bg-secondary rounded-pill small">Використано</span>
+                  {% elif is_expired %}
+                    <span class="badge bg-danger rounded-pill small">Прострочено</span>
+                  {% else %}
+                    <span class="badge bg-success rounded-pill small">Активне</span>
+                  {% endif %}
+                </div>
+                <div class="text-truncate small text-muted" style="max-width:300px;">
+                  {{ url_for('auth.invite_landing', token=inv.token, _external=True) }}
+                </div>
+                <div class="text-muted" style="font-size:11px; margin-top:3px;">
+                  Створено: {{ inv.created_at.strftime('%d.%m.%Y %H:%M') }}
+                  {% if inv.expires_at %} · Діє до: {{ inv.expires_at.strftime('%d.%m.%Y') }}{% endif %}
+                  {% if inv.email_hint %} · {{ inv.email_hint }}{% endif %}
+                </div>
+              </div>
+              {% if not inv.used and not is_expired %}
+              <button class="btn btn-sm btn-outline-secondary ms-2 flex-shrink-0 copy-btn"
+                      onclick="copyText('{{ url_for('auth.invite_landing', token=inv.token, _external=True) }}', this)">
+                <i class="fas fa-copy"></i>
+              </button>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Who joined via referral -->
+      {% if referrals %}
+      <div class="card p-4 mt-4">
+        <h6 class="fw-bold mb-3"><i class="fas fa-users me-2 text-warning"></i>Зареєструвалися за вашим посиланням</h6>
+        {% for u in referrals %}
+        <div class="d-flex align-items-center gap-3 mb-2 p-2 rounded border">
+          <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold"
+               style="width:36px; height:36px; flex-shrink:0;">
+            {{ (u.full_name or u.user_name)[0].upper() }}
+          </div>
+          <div>
+            <div class="fw-bold small">{{ u.full_name or u.user_name }}</div>
+            <div class="text-muted" style="font-size:11px;">
+              {{ 'Провайдер' if u.role == 'provider' else 'Клієнт' }} ·
+              {{ u.created_at.strftime('%d.%m.%Y') if u.created_at else '' }}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+function copyToClipboard(inputId, btn) {
+    const input = document.getElementById(inputId);
+    navigator.clipboard.writeText(input.value).then(() => {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check text-success"></i>';
+        setTimeout(() => btn.innerHTML = orig, 2000);
+    });
+}
+
+function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check text-success"></i>';
+        setTimeout(() => btn.innerHTML = orig, 2000);
+    });
+}
+
+function generateInvite() {
+    const role = document.getElementById('inviteRole').value;
+    const email = document.getElementById('inviteEmail').value;
+    const expiry = document.getElementById('inviteExpiry').value;
+
+    fetch('/auth/create_invite', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+        body: JSON.stringify({
+            role: role || null,
+            email: email || null,
+            expires_days: expiry ? parseInt(expiry) : null
+        })
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            const box = document.getElementById('generatedLinkBox');
+            const input = document.getElementById('generatedLinkInput');
+            input.value = data.url;
+            box.classList.remove('d-none');
+
+            const msg = encodeURIComponent('Привіт! Приєднуйся до нашої платформи: ' + data.url);
+            document.getElementById('shareWhatsApp').href = 'https://wa.me/?text=' + msg;
+            document.getElementById('shareTelegram').href = 'https://t.me/share/url?url=' + encodeURIComponent(data.url) + '&text=' + encodeURIComponent('Привіт! Приєднуйся до нас!');
+
+            // reload after a moment to show in the list
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            alert(data.message || 'Помилка');
+        }
+    });
+}
+</script>
+</body>
+</html>

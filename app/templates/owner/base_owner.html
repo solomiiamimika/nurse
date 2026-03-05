@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .owner-layout { display: flex; min-height: 100vh; background: #f1f5f9; }
+    .owner-sidebar {
+        width: 240px; flex-shrink: 0; background: #111; color: white;
+        display: flex; flex-direction: column; padding: 0; position: fixed;
+        top: 0; left: 0; height: 100vh; z-index: 100;
+    }
+    .sidebar-brand { padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-brand h6 { color: #fbbf24; font-weight: 800; font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; margin: 0; }
+    .sidebar-brand p { color: rgba(255,255,255,0.5); font-size: 0.75rem; margin: 4px 0 0; }
+    .sidebar-nav { flex: 1; padding: 16px 0; }
+    .sidebar-link {
+        display: flex; align-items: center; gap: 12px; padding: 12px 20px;
+        color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.9rem;
+        font-weight: 500; transition: 0.2s; border-left: 3px solid transparent;
+    }
+    .sidebar-link:hover, .sidebar-link.active {
+        color: white; background: rgba(255,255,255,0.07); border-left-color: #fbbf24;
+    }
+    .sidebar-link i { width: 16px; text-align: center; }
+    .sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-footer a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 0.8rem; }
+    .sidebar-footer a:hover { color: white; }
+
+    .owner-main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .owner-topbar {
+        background: white; border-bottom: 1px solid #e5e7eb; padding: 16px 28px;
+        display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50;
+    }
+    .owner-topbar h5 { font-weight: 700; margin: 0; color: #111; }
+    .owner-content { padding: 28px; }
+
+    .stat-card { background: white; border-radius: 12px; padding: 24px; border: 1px solid #e5e7eb; }
+    .stat-card .stat-val { font-size: 2rem; font-weight: 800; color: #111; line-height: 1; }
+    .stat-card .stat-lbl { font-size: 0.8rem; color: #6b7280; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+    .stat-card .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+
+    .owner-table th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; font-weight: 600; border-bottom: 2px solid #e5e7eb; }
+    .owner-table td { vertical-align: middle; font-size: 0.9rem; }
+    .role-badge-client { background: #dbeafe; color: #1d4ed8; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .role-badge-provider { background: #d1fae5; color: #065f46; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .role-badge-owner { background: #fef3c7; color: #92400e; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+
+    @media (max-width: 768px) {
+        .owner-sidebar { width: 200px; }
+        .owner-main { margin-left: 200px; }
+        .owner-content { padding: 16px; }
+    }
+</style>
+
+<div class="owner-layout">
+    <aside class="owner-sidebar">
+        <div class="sidebar-brand">
+            <h6>👑 Owner Panel</h6>
+            <p>{{ current_user.full_name or current_user.user_name }}</p>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('owner.dashboard') }}" class="sidebar-link {% if request.endpoint == 'owner.dashboard' %}active{% endif %}">
+                <i class="fas fa-chart-bar"></i> Dashboard
+            </a>
+            <a href="{{ url_for('owner.users') }}" class="sidebar-link {% if request.endpoint == 'owner.users' %}active{% endif %}">
+                <i class="fas fa-users"></i> Users
+            </a>
+            <a href="{{ url_for('owner.services') }}" class="sidebar-link {% if request.endpoint == 'owner.services' %}active{% endif %}">
+                <i class="fas fa-list-ul"></i> Services
+            </a>
+            <a href="{{ url_for('auth.invite_manager') }}" class="sidebar-link">
+                <i class="fas fa-paper-plane"></i> Invites
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('main.home') }}"><i class="fas fa-arrow-left me-1"></i> Back to site</a>
+        </div>
+    </aside>
+
+    <div class="owner-main">
+        <div class="owner-topbar">
+            <h5>{% block page_title %}Owner Panel{% endblock %}</h5>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge" style="background:#fef3c7;color:#92400e;padding:6px 14px;border-radius:20px;font-size:0.8rem;font-weight:700;">
+                    <i class="fas fa-crown me-1"></i> Owner
+                </span>
+            </div>
+        </div>
+        <div class="owner-content">
+            {% block owner_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

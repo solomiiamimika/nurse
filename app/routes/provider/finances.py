@@ -91,6 +91,22 @@ def connect_stripe():
         return redirect(url_for('provider.dashboard'))
 
 
+@provider_bp.route('/stripe_login_link')
+@login_required
+def stripe_login_link():
+    """Generate a one-time Stripe Express Dashboard login link."""
+    if not current_user.stripe_account_id:
+        flash('Please connect your Stripe account first.', 'warning')
+        return redirect(url_for('provider.profile'))
+    try:
+        link = stripe.Account.create_login_link(current_user.stripe_account_id)
+        return redirect(link.url)
+    except Exception as e:
+        current_app.logger.error(f"Stripe login link error: {str(e)}")
+        flash('Could not open Stripe dashboard. Please try again.', 'danger')
+        return redirect(url_for('provider.profile'))
+
+
 @provider_bp.route('/finances')
 @login_required
 def provider_finances_management():

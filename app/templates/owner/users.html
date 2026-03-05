@@ -1,0 +1,117 @@
+{% extends "owner/base_owner.html" %}
+{% block page_title %}Users{% endblock %}
+
+{% block owner_content %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
+<div class="bg-white rounded-3 border p-4 mb-4">
+    <form class="d-flex gap-2 flex-wrap" method="GET">
+        <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" style="max-width:240px;" placeholder="Search name, email...">
+        <select name="role" class="form-select form-select-sm" style="max-width:150px;">
+            <option value="">All roles</option>
+            <option value="client" {% if role_filter == 'client' %}selected{% endif %}>Client</option>
+            <option value="provider" {% if role_filter == 'provider' %}selected{% endif %}>Provider</option>
+        </select>
+        <button type="submit" class="btn btn-sm btn-dark">Filter</button>
+        <a href="{{ url_for('owner.users') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+    </form>
+</div>
+
+<div class="bg-white rounded-3 border">
+    <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+        <span class="fw-bold">{{ users|length }} user(s)</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table owner-table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr id="user-row-{{ u.id }}">
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width:34px;height:34px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:#374151;flex-shrink:0;">
+                                {{ (u.full_name or u.user_name)[0].upper() }}
+                            </div>
+                            <div>
+                                <div class="fw-semibold" style="font-size:0.9rem;">{{ u.full_name or u.user_name }}</div>
+                                <div class="text-muted" style="font-size:0.75rem;">@{{ u.user_name }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-muted small">{{ u.email }}</td>
+                    <td>
+                        <select class="form-select form-select-sm" style="width:110px;"
+                                onchange="changeRole({{ u.id }}, this.value)"
+                                {% if u.is_owner or u.id == current_user.id %}disabled{% endif %}>
+                            <option value="client" {% if u.role == 'client' %}selected{% endif %}>Client</option>
+                            <option value="provider" {% if u.role == 'provider' %}selected{% endif %}>Provider</option>
+                        </select>
+                        {% if u.is_owner %}<span class="role-badge-owner ms-1">Owner</span>{% endif %}
+                    </td>
+                    <td class="text-muted small">{{ u.created_at.strftime('%d.%m.%Y') if u.created_at else '—' }}</td>
+                    <td id="status-{{ u.id }}">
+                        {% if u.is_active %}
+                            <span class="badge bg-success-subtle text-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger-subtle text-danger">Banned</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not u.is_owner and u.id != current_user.id %}
+                        <button class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                                id="toggle-btn-{{ u.id }}"
+                                onclick="toggleActive({{ u.id }}, {{ 'true' if u.is_active else 'false' }})">
+                            {% if u.is_active %}Ban{% else %}Unban{% endif %}
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+const csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+function toggleActive(userId, currentlyActive) {
+    fetch(`/owner/users/${userId}/toggle_active`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' }
+    }).then(r => r.json()).then(data => {
+        if (!data.success) { alert(data.message); return; }
+        const statusEl = document.getElementById(`status-${userId}`);
+        const btn = document.getElementById(`toggle-btn-${userId}`);
+        if (data.is_active) {
+            statusEl.innerHTML = '<span class="badge bg-success-subtle text-success">Active</span>';
+            btn.textContent = 'Ban';
+            btn.className = 'btn btn-sm btn-outline-danger';
+        } else {
+            statusEl.innerHTML = '<span class="badge bg-danger-subtle text-danger">Banned</span>';
+            btn.textContent = 'Unban';
+            btn.className = 'btn btn-sm btn-outline-success';
+        }
+    });
+}
+
+function changeRole(userId, newRole) {
+    fetch(`/owner/users/${userId}/change_role`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: newRole })
+    }).then(r => r.json()).then(data => {
+        if (!data.success) alert(data.message);
+    });
+}
+</script>
+{% endblock %}

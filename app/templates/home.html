@@ -156,6 +156,49 @@
     .book-btn-sm:hover { background: var(--text-dark); color: white; }
     .hidden { display: none !important; }
 
+    /* --- STATS BAR --- */
+    .stats-bar { background: white; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; padding: 24px 20px; position: relative; z-index: 10; }
+    .stat-item { text-align: center; }
+    .stat-number { font-size: 2rem; font-weight: 800; color: var(--text-dark); line-height: 1; }
+    .stat-label { font-size: 0.85rem; color: var(--text-gray); margin-top: 4px; }
+
+    /* --- CRYSTAL BALL --- */
+    .crystal-section { padding: 80px 20px; text-align: center; background: linear-gradient(180deg, #f8f0ff 0%, #fff0f3 100%); position: relative; z-index: 10; }
+    .crystal-title { font-weight: 800; font-size: 2rem; margin-bottom: 8px; color: var(--text-dark); }
+    .crystal-subtitle { color: var(--text-gray); margin-bottom: 40px; font-size: 1rem; }
+    .crystal-ball-wrap { display: inline-block; cursor: pointer; position: relative; }
+    .crystal-ball {
+        width: 180px; height: 180px; border-radius: 50%; margin: 0 auto;
+        background: radial-gradient(circle at 35% 35%, #e8b4ff, #9b1dea 45%, #4a0080 80%, #1a0030);
+        box-shadow: 0 0 40px rgba(155, 29, 234, 0.4), 0 0 80px rgba(155, 29, 234, 0.2), inset 0 0 30px rgba(255,255,255,0.1);
+        transition: box-shadow 0.3s, transform 0.3s;
+        position: relative; overflow: hidden;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .crystal-ball::before { content: ''; position: absolute; top: 18%; left: 22%; width: 35%; height: 25%; background: radial-gradient(ellipse, rgba(255,255,255,0.6), transparent); border-radius: 50%; }
+    .crystal-ball-inner { color: rgba(255,255,255,0.7); font-size: 2.5rem; z-index: 1; user-select: none; }
+    .crystal-ball.shaking { animation: crystalShake 0.5s ease; }
+    .crystal-ball.glowing { box-shadow: 0 0 60px rgba(155, 29, 234, 0.8), 0 0 120px rgba(155, 29, 234, 0.4); }
+    @keyframes crystalShake { 0%,100%{transform:rotate(0deg)} 20%{transform:rotate(-8deg) scale(1.05)} 40%{transform:rotate(8deg) scale(1.08)} 60%{transform:rotate(-5deg) scale(1.05)} 80%{transform:rotate(5deg)} }
+    .crystal-quote-box { max-width: 500px; margin: 30px auto 0; min-height: 80px; }
+    .crystal-quote { font-size: 1.1rem; font-style: italic; color: #4a0080; font-weight: 600; line-height: 1.5; opacity: 0; transition: opacity 0.6s; }
+    .crystal-quote.visible { opacity: 1; }
+    .crystal-source { font-size: 0.85rem; color: var(--text-gray); margin-top: 6px; opacity: 0; transition: opacity 0.6s 0.2s; }
+    .crystal-source.visible { opacity: 1; }
+    .btn-ask-again { margin-top: 20px; background: transparent; border: 2px solid #9b1dea; color: #9b1dea; padding: 10px 28px; border-radius: 50px; font-weight: 700; cursor: pointer; transition: 0.3s; display: none; }
+    .btn-ask-again:hover { background: #9b1dea; color: white; }
+    .crystal-hint { color: var(--text-gray); font-size: 0.9rem; margin-top: 16px; }
+
+    /* --- DUAL CTA --- */
+    .dual-cta-section { padding: 80px 20px; position: relative; z-index: 10; }
+    .cta-card { border-radius: 24px; padding: 48px 36px; height: 100%; display: flex; flex-direction: column; }
+    .cta-card-light { background: #f8fafc; border: 2px solid #e5e7eb; }
+    .cta-card-dark { background: #111; color: white; }
+    .cta-card-dark .text-muted { color: rgba(255,255,255,0.6) !important; }
+    .cta-emoji { font-size: 3rem; margin-bottom: 20px; display: block; }
+    .provider-avatars { display: flex; gap: -8px; margin-top: auto; padding-top: 24px; }
+    .provider-mini-avatar { width: 44px; height: 44px; border-radius: 50%; border: 3px solid white; object-fit: cover; margin-right: -10px; background: #e8f5e9; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #198754; font-size: 0.9rem; flex-shrink: 0; }
+
     /* --- RESPONSIVE FIXES --- */
     @media (min-width: 992px) { 
         .hero-content-wrapper { flex-direction: row; justify-content: space-between; align-items: flex-start; } 
@@ -224,8 +267,8 @@
 
         <div class="hero-content-wrapper">
             <div class="hero-text">
-                <h1 class="hero-title">{{ _("Your space to") }} <br><span>{{ _("exhale.") }}</span> 😮‍💨</h1>
-                <p class="hero-subtitle">{{ _("Don’t let chores kill your vibe.") }}</p>
+                <h1 class="hero-title">{{ _("Care at your door.") }} <br><span>{{ _("Whenever.") }}</span> 🏠</h1>
+                <p class="hero-subtitle">{{ _("Medical help & everyday care — from verified locals, right at home.") }}</p>
                 
                 <div class="d-flex gap-3 align-items-center mb-4 justify-content-center justify-content-lg-start">
                     <div class="d-flex align-items-center gap-2"><i class="fas fa-star text-warning"></i><strong>4.9/5</strong> <span class="text-muted small">{{ _("Happiness Score") }}</span></div>
@@ -241,7 +284,7 @@
                         <div class="widget-tabs">
                             <div class="widget-tab active" onclick="switchTab(this, 'task')">{{ _("Delegate Task") }}</div>
                         </div>
-                        <div class="input-group-styled"><i class="fas fa-magic"></i><select class="input-clean" id="fakeService"><option value="" disabled selected>{{ _("What’s the chaos?") }}</option><option value="cleaning">{{ _("Home Rescue (Cleaning)") }}</option><option value="tech">{{ _("Tech & Brain Support") }}</option><option value="errands">{{ _("Life Logistics (Errands)") }}</option><option value="pet">{{ _("Pet & Soul") }}</option></select></div>
+                        <div class="input-group-styled"><i class="fas fa-magic"></i><select class="input-clean" id="fakeService"><option value="" disabled selected>{{ _("What do you need?") }}</option><option value="injections">{{ _("Injections & IV Drip") }}</option><option value="monitoring">{{ _("Health Check at Home") }}</option><option value="eldercare">{{ _("Elder Care") }}</option><option value="babycare">{{ _("Child Care") }}</option><option value="cleaning">{{ _("Home Cleaning & Help") }}</option><option value="errands">{{ _("Errands & Pharmacy") }}</option></select></div>
                         <div class="input-group-styled"><i class="fas fa-map-marker-alt"></i><input type="text" class="input-clean" placeholder="{{ _('Where in Munich?') }}" id="fakeLocation"><i class="fas fa-location-arrow" style="font-size: 0.9rem; cursor: pointer; color: var(--primary-green);"></i></div>
                         <div class="input-group-styled"><i class="fas fa-clock"></i><select class="input-clean"><option>{{ _("Right Now (ASAP)") }}</option><option>{{ _("Today, later") }}</option><option>{{ _("Tomorrow") }}</option></select></div>
                         <button type="button" class="btn-block-action" id="searchBtn" onclick="simulateSearch()">{{ _("Delegate Now") }} ⚡️</button>
@@ -265,6 +308,28 @@
         </div>
     </div>
 
+    <!-- STATS BAR -->
+    <div class="stats-bar">
+        <div class="container">
+            <div class="row justify-content-center g-4">
+                <div class="col-auto stat-item">
+                    <div class="stat-number" id="stat-providers">—</div>
+                    <div class="stat-label">{{ _("Verified Providers") }}</div>
+                </div>
+                <div class="col-auto d-none d-md-block" style="width:1px; background:#eee; margin:8px 20px;"></div>
+                <div class="col-auto stat-item">
+                    <div class="stat-number" id="stat-tasks">—</div>
+                    <div class="stat-label">{{ _("Tasks Completed") }}</div>
+                </div>
+                <div class="col-auto d-none d-md-block" style="width:1px; background:#eee; margin:8px 20px;"></div>
+                <div class="col-auto stat-item">
+                    <div class="stat-number" id="stat-rating">—</div>
+                    <div class="stat-label">{{ _("Avg. Rating") }} ⭐</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="matrix-section">
         <h2 class="matrix-title">{{ _("The Choice is Yours.") }}</h2>
         <p class="matrix-subtitle">{{ _("Take the blue pill—wake up and do all on your own. Take the red pill—break the loop and see how adventurous life can really be.") }}</p>
@@ -281,20 +346,44 @@
         </div>
     </div>
 
-    <div class="section-container">
-        <h3 class="text-center mb-5" style="font-weight: 800; font-size: 2.5rem;">{{ _("Menu of Freedom") }} ✨</h3>
-        <div class="category-grid">
-            <div class="category-card" onclick="document.getElementById('fakeService').value='cleaning'; launchRocket();">
-                <div class="cat-icon-circle"><i class="fas fa-broom"></i></div><h6 class="mb-2 fw-bold">{{ _("Home Rescue") }}</h6><p class="small text-muted mb-0">{{ _("Cleaning, Organizing, Laundry") }}</p>
+    <!-- CRYSTAL BALL -->
+    <div class="crystal-section">
+        <h2 class="crystal-title">{{ _("Ask the Universe") }} 🔮</h2>
+        <p class="crystal-subtitle">{{ _("Tap the ball for a prediction from the greatest books ever written.") }}</p>
+        <div class="crystal-ball-wrap" onclick="askCrystalBall()">
+            <div class="crystal-ball" id="crystalBall">
+                <span class="crystal-ball-inner">🔮</span>
             </div>
-            <div class="category-card" onclick="document.getElementById('fakeService').value='tech'; launchRocket();">
-                <div class="cat-icon-circle"><i class="fas fa-laptop"></i></div><h6 class="mb-2 fw-bold">{{ _("Tech & Brain") }}</h6><p class="small text-muted mb-0">{{ _("Excel Fix, Translation, Setup") }}</p>
+        </div>
+        <p class="crystal-hint" id="crystalHint">{{ _("Tap to reveal your destiny...") }}</p>
+        <div class="crystal-quote-box">
+            <div class="crystal-quote" id="crystalQuote"></div>
+            <div class="crystal-source" id="crystalSource"></div>
+        </div>
+        <button class="btn-ask-again" id="askAgainBtn" onclick="askCrystalBall()">{{ _("Ask again") }} ✨</button>
+    </div>
+
+    <div class="section-container">
+        <h3 class="text-center mb-2" style="font-weight: 800; font-size: 2.5rem;">{{ _("What can we help with?") }} 🌿</h3>
+        <p class="text-center text-muted mb-5" style="font-size: 1.05rem;">{{ _("Medical care & everyday help — right at your door.") }}</p>
+        <div class="category-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+            <div class="category-card" onclick="document.getElementById('fakeService').value='injections'; launchRocket();">
+                <div class="cat-icon-circle">💉</div><h6 class="mb-2 fw-bold">{{ _("Injections & IV") }}</h6><p class="small text-muted mb-0">{{ _("Shots, Drips, Wound Care") }}</p>
+            </div>
+            <div class="category-card" onclick="document.getElementById('fakeService').value='monitoring'; launchRocket();">
+                <div class="cat-icon-circle">❤️</div><h6 class="mb-2 fw-bold">{{ _("Health Check") }}</h6><p class="small text-muted mb-0">{{ _("Blood Pressure, Sugar, ECG") }}</p>
+            </div>
+            <div class="category-card" onclick="document.getElementById('fakeService').value='eldercare'; launchRocket();">
+                <div class="cat-icon-circle">🧓</div><h6 class="mb-2 fw-bold">{{ _("Elder Care") }}</h6><p class="small text-muted mb-0">{{ _("Home Visit, Companionship") }}</p>
+            </div>
+            <div class="category-card" onclick="document.getElementById('fakeService').value='babycare'; launchRocket();">
+                <div class="cat-icon-circle">👶</div><h6 class="mb-2 fw-bold">{{ _("Child Care") }}</h6><p class="small text-muted mb-0">{{ _("Babysitting, Nanny") }}</p>
+            </div>
+            <div class="category-card" onclick="document.getElementById('fakeService').value='cleaning'; launchRocket();">
+                <div class="cat-icon-circle"><i class="fas fa-broom"></i></div><h6 class="mb-2 fw-bold">{{ _("Home Help") }}</h6><p class="small text-muted mb-0">{{ _("Cleaning, Cooking, Laundry") }}</p>
             </div>
             <div class="category-card" onclick="document.getElementById('fakeService').value='errands'; launchRocket();">
-                <div class="cat-icon-circle"><i class="fas fa-box-open"></i></div><h6 class="mb-2 fw-bold">{{ _("Life Logistics") }}</h6><p class="small text-muted mb-0">{{ _("Post Office, Returns, Waiting") }}</p>
-            </div>
-            <div class="category-card" onclick="document.getElementById('fakeService').value='pet'; launchRocket();">
-                <div class="cat-icon-circle"><i class="fas fa-heart"></i></div><h6 class="mb-2 fw-bold">{{ _("Pet & Soul") }}</h6><p class="small text-muted mb-0">{{ _("Dog Walking, Plant Care") }}</p>
+                <div class="cat-icon-circle">🛒</div><h6 class="mb-2 fw-bold">{{ _("Errands") }}</h6><p class="small text-muted mb-0">{{ _("Pharmacy, Shopping, Post") }}</p>
             </div>
         </div>
     </div>
@@ -303,8 +392,8 @@
         <div class="section-container">
             <div class="row align-items-center">
                 <div class="col-md-5">
-                    <h2 class="mb-4" style="font-weight: 800; font-size: 3rem; line-height: 1.1;">{{ _("Turn Chaos into Order.") }} ⚡️</h2>
-                    <p class="text-muted mb-4 fs-5">{{ _("No paperwork. No complex contracts. Just human help when you need it most.") }}</p>
+                    <h2 class="mb-4" style="font-weight: 800; font-size: 3rem; line-height: 1.1;">{{ _("Simple. Fast. Human.") }} ⚡️</h2>
+                    <p class="text-muted mb-4 fs-5">{{ _("No clinic wait. No complicated contracts. Real help from verified people near you.") }}</p>
                     <a href="{{ url_for('auth.register') }}" class="btn btn-dark rounded-pill px-5 py-3 fw-bold">{{ _("Get Started") }}</a>
                 </div>
                 <div class="col-md-7">
@@ -318,12 +407,40 @@
         </div>
     </div>
     
-    <div class="section-container text-center pb-5" style="position: relative; z-index: 10; margin-bottom: 50px;">
-        <div style="background: #111; color: white; border-radius: 30px; padding: 80px 20px; position: relative; overflow: hidden;">
-            <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: var(--primary-green); border-radius: 50%; opacity: 0.2; filter: blur(50px);"></div>
-            <h2 style="font-weight: 800; margin-bottom: 20px;">{{ _("Join the Movement.") }} 🚀</h2>
-            <p class="text-white-50 mb-5 fs-5" style="max-width: 600px; margin-left: auto; margin-right: auto;">{{ _("Earn money by bringing order to chaos.") }}</p>
-            <a href="{{ url_for('auth.register') }}" class="btn btn-light rounded-pill px-5 py-3 fw-bold" style="font-size: 1.1rem;">{{ _("Become a Creator") }}</a>
+    <!-- DUAL CTA -->
+    <div class="dual-cta-section">
+        <div class="section-container" style="padding-top: 0; padding-bottom: 0;">
+            <h2 class="text-center mb-5" style="font-weight: 800; font-size: 2.2rem;">{{ _("Who are you?") }}</h2>
+            <div class="row g-4 align-items-stretch">
+                <div class="col-md-6">
+                    <div class="cta-card cta-card-light">
+                        <span class="cta-emoji">🧹</span>
+                        <h3 class="fw-bold mb-3" style="font-size: 1.8rem;">{{ _("Need help?") }}</h3>
+                        <p class="text-muted fs-5 mb-4">{{ _("Post a task, pick a local, get it done. No hassle, no contracts.") }}</p>
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-dark rounded-pill px-5 py-3 fw-bold" style="font-size: 1rem;">{{ _("Get Help Now") }}</a>
+                        <div class="mt-4">
+                            <div class="d-flex align-items-center gap-2" id="providerAvatarsRow">
+                                <div class="small text-muted">{{ _("Meet your neighbors") }} →</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="cta-card cta-card-dark">
+                        <span class="cta-emoji">💸</span>
+                        <h3 class="fw-bold mb-3" style="font-size: 1.8rem;">{{ _("Want to earn?") }}</h3>
+                        <p class="text-muted fs-5 mb-4">{{ _("Help neighbors on your own schedule. Get paid the same day.") }}</p>
+                        <a href="{{ url_for('auth.register') }}?role=provider" class="btn btn-light rounded-pill px-5 py-3 fw-bold" style="font-size: 1rem; color: #111;">{{ _("Become a Provider") }} ⚡️</a>
+                        <div class="mt-4">
+                            <div class="d-flex gap-3 flex-wrap">
+                                <div class="d-flex align-items-center gap-2"><i class="fas fa-check-circle text-success"></i><span class="small" style="color:rgba(255,255,255,.7);">{{ _("Set your own price") }}</span></div>
+                                <div class="d-flex align-items-center gap-2"><i class="fas fa-check-circle text-success"></i><span class="small" style="color:rgba(255,255,255,.7);">{{ _("Stripe payouts") }}</span></div>
+                                <div class="d-flex align-items-center gap-2"><i class="fas fa-check-circle text-success"></i><span class="small" style="color:rgba(255,255,255,.7);">{{ _("Work near home") }}</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -450,8 +567,98 @@
         el.classList.add('bee-flying');
         setTimeout(() => {
             el.classList.remove('bee-flying');
-            el.style.display = 'none'; 
+            el.style.display = 'none';
         }, 3000);
     }
+
+    // --- LIVE STATS ---
+    function animateCount(el, target, isFloat) {
+        if (target === null || target === 0) { el.textContent = '—'; return; }
+        const duration = 1500;
+        const steps = 40;
+        const step = target / steps;
+        let current = 0;
+        const interval = setInterval(() => {
+            current += step;
+            if (current >= target) { current = target; clearInterval(interval); }
+            el.textContent = isFloat ? current.toFixed(1) : Math.round(current);
+        }, duration / steps);
+    }
+
+    fetch('/api/stats').then(r => r.json()).then(data => {
+        animateCount(document.getElementById('stat-providers'), data.providers, false);
+        animateCount(document.getElementById('stat-tasks'), data.tasks_completed, false);
+        animateCount(document.getElementById('stat-rating'), data.avg_rating, true);
+    }).catch(() => {});
+
+    // --- CRYSTAL BALL ---
+    const CRYSTAL_QUOTES = [
+        { q: "All we have to decide is what to do with the time that is given us.", src: "J.R.R. Tolkien — The Lord of the Rings" },
+        { q: "It does not do to dwell on dreams and forget to live.", src: "J.K. Rowling — Harry Potter and the Philosopher's Stone" },
+        { q: "Not all those who wander are lost.", src: "J.R.R. Tolkien — The Lord of the Rings" },
+        { q: "The only way out of the labyrinth of suffering is to forgive.", src: "John Green — Looking for Alaska" },
+        { q: "When you want something, all the universe conspires in helping you to achieve it.", src: "Paulo Coelho — The Alchemist" },
+        { q: "It is our choices that show what we truly are, far more than our abilities.", src: "J.K. Rowling — Harry Potter and the Chamber of Secrets" },
+        { q: "You can't go back and change the beginning, but you can start where you are and change the ending.", src: "C.S. Lewis" },
+        { q: "The mystery of life is not a problem to be solved, but a reality to be experienced.", src: "Frank Herbert — Dune" },
+        { q: "Yesterday is history, tomorrow is a mystery, today is a gift — that is why it is called the present.", src: "Eleanor Roosevelt / Kung Fu Panda" },
+        { q: "Every person has two lives, and the second begins when they realize they only have one.", src: "Confucius" },
+        { q: "The most important thing is to enjoy your life — to be happy — it's all that matters.", src: "Audrey Hepburn" },
+        { q: "A reader lives a thousand lives before they die. One who never reads lives only one.", src: "George R.R. Martin — A Dance with Dragons" },
+        { q: "To live is the rarest thing in the world. Most people just exist.", src: "Oscar Wilde" },
+        { q: "In the middle of difficulty lies opportunity.", src: "Albert Einstein" },
+        { q: "The journey of a thousand miles begins with one step.", src: "Lao Tzu — Tao Te Ching" },
+        { q: "Magic is believing in yourself. If you can make that happen, you can make anything happen.", src: "Johann Wolfgang von Goethe" },
+        { q: "Even the darkest night will end and the sun will rise.", src: "Victor Hugo — Les Misérables" },
+        { q: "Do not go gentle into that good night. Rage, rage against the dying of the light.", src: "Dylan Thomas" },
+        { q: "We accept the love we think we deserve.", src: "Stephen Chbosky — The Perks of Being a Wallflower" },
+        { q: "It always seems impossible until it's done.", src: "Nelson Mandela" },
+    ];
+    let lastQuoteIndex = -1;
+
+    function askCrystalBall() {
+        const ball = document.getElementById('crystalBall');
+        const quoteEl = document.getElementById('crystalQuote');
+        const sourceEl = document.getElementById('crystalSource');
+        const hintEl = document.getElementById('crystalHint');
+        const btn = document.getElementById('askAgainBtn');
+
+        quoteEl.classList.remove('visible');
+        sourceEl.classList.remove('visible');
+        ball.classList.remove('shaking', 'glowing');
+
+        void ball.offsetWidth; // reflow
+        ball.classList.add('shaking');
+
+        setTimeout(() => {
+            ball.classList.add('glowing');
+            let idx;
+            do { idx = Math.floor(Math.random() * CRYSTAL_QUOTES.length); } while (idx === lastQuoteIndex);
+            lastQuoteIndex = idx;
+            const { q, src } = CRYSTAL_QUOTES[idx];
+            quoteEl.textContent = '"' + q + '"';
+            sourceEl.textContent = '— ' + src;
+            quoteEl.classList.add('visible');
+            sourceEl.classList.add('visible');
+            hintEl.style.display = 'none';
+            btn.style.display = 'inline-block';
+        }, 600);
+    }
+
+    // --- PROVIDER AVATARS (dual CTA) ---
+    fetch('/search_providers').then(r => r.json()).then(providers => {
+        const row = document.getElementById('providerAvatarsRow');
+        if (!row) return;
+        const top3 = providers.slice(0, 3);
+        if (!top3.length) return;
+        const avatarHtml = top3.map(p => {
+            if (p.photo) {
+                return `<img src="${escapeHtml(p.photo)}" class="provider-mini-avatar" title="${escapeHtml(p.full_name || p.user_name)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:3px solid #fff;margin-right:-10px;">`;
+            }
+            const initial = (p.full_name || p.user_name || '?')[0].toUpperCase();
+            return `<div class="provider-mini-avatar" title="${escapeHtml(p.full_name || p.user_name)}">${initial}</div>`;
+        }).join('');
+        row.innerHTML = avatarHtml + `<span class="small text-muted ms-3">{{ _("Meet your neighbors") }} →</span>`;
+    }).catch(() => {});
 </script>
 {% endblock %}

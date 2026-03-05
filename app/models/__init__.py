@@ -12,7 +12,7 @@ Each file groups related models by domain:
 Importing from here works exactly as before:
   from app.models import User, Appointment, Payment  ✓
 """
-
+from app.extensions import db
 from .user        import User, InvitationToken
 from .service     import Service, ProviderService, CancellationPolicy
 from .appointment import Appointment, ClientSelfCreatedAppointment, RequestOfferResponse, ServiceHistory

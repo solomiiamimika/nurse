@@ -1,0 +1,103 @@
+{% extends "owner/base_owner.html" %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block owner_content %}
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-val">{{ total_clients }}</div>
+                    <div class="stat-lbl">Clients</div>
+                </div>
+                <div class="stat-icon" style="background:#dbeafe;color:#1d4ed8;"><i class="fas fa-user"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-val">{{ total_providers }}</div>
+                    <div class="stat-lbl">Providers</div>
+                </div>
+                <div class="stat-icon" style="background:#d1fae5;color:#065f46;"><i class="fas fa-user-nurse"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-val">{{ total_completed }}</div>
+                    <div class="stat-lbl">Completed Tasks</div>
+                </div>
+                <div class="stat-icon" style="background:#dcfce7;color:#16a34a;"><i class="fas fa-check-circle"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-val">{{ avg_rating or '—' }}</div>
+                    <div class="stat-lbl">Avg Rating ⭐</div>
+                </div>
+                <div class="stat-icon" style="background:#fef9c3;color:#ca8a04;"><i class="fas fa-star"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-3 border p-4">
+    <h6 class="fw-bold mb-3">Recent Registrations</h6>
+    <div class="table-responsive">
+        <table class="table owner-table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in recent_users %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width:32px;height:32px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:#374151;flex-shrink:0;">
+                                {{ (u.full_name or u.user_name)[0].upper() }}
+                            </div>
+                            <span class="fw-semibold">{{ u.full_name or u.user_name }}</span>
+                        </div>
+                    </td>
+                    <td class="text-muted">{{ u.email }}</td>
+                    <td>
+                        {% if u.is_owner %}
+                            <span class="role-badge-owner">Owner</span>
+                        {% elif u.role == 'provider' %}
+                            <span class="role-badge-provider">Provider</span>
+                        {% else %}
+                            <span class="role-badge-client">Client</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted small">{{ u.created_at.strftime('%d.%m.%Y') if u.created_at else '—' }}</td>
+                    <td>
+                        {% if u.is_active %}
+                            <span class="badge bg-success-subtle text-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger-subtle text-danger">Banned</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-3">
+        <a href="{{ url_for('owner.users') }}" class="btn btn-sm btn-outline-dark">View all users →</a>
+    </div>
+</div>
+{% endblock %}

@@ -107,10 +107,36 @@ def profile():
         except json.JSONDecodeError:
             documents_urls = {}
 
+    # Fetch Stripe account details for the payout section
+    stripe_info = None
+    if current_user.stripe_account_id:
+        try:
+            acct = stripe.Account.retrieve(current_user.stripe_account_id)
+            balance = stripe.Balance.retrieve(stripe_account=current_user.stripe_account_id)
+            available_cents = sum(b.amount for b in balance.available)
+            currency = balance.available[0].currency.upper() if balance.available else 'EUR'
+
+            bank_accounts = acct.get('external_accounts', {}).get('data', [])
+            bank = bank_accounts[0] if bank_accounts else None
+
+            stripe_info = {
+                'charges_enabled': acct.charges_enabled,
+                'payouts_enabled': acct.payouts_enabled,
+                'details_submitted': acct.details_submitted,
+                'available_balance': available_cents / 100,
+                'currency': currency,
+                'bank_name': bank.get('bank_name') if bank else None,
+                'last4': bank.get('last4') if bank else None,
+                'account_holder': bank.get('account_holder_name') if bank else None,
+            }
+        except Exception:
+            stripe_info = {'error': True}
+
     return render_template('provider/profile.html',
                            formatted_date=formatted_date,
                            documents_urls=documents_urls,
                            profile_photo=profile_photo,
+                           stripe_info=stripe_info,
                            user=current_user)
 
 

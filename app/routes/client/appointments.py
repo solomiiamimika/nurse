@@ -266,10 +266,13 @@ def client_self_create_appointment():
     try:
         data = request.get_json()
 
-        required_fields = ['latitude', 'longitude', 'appointment_start_time']
+        required_fields = ['latitude', 'longitude', 'appointment_start_time', 'address']
 
         if not all(field in data for field in required_fields):
             return jsonify({'success': False, 'error': 'Not all required fields are filled'}), 400
+
+        if not data.get('address', '').strip():
+            return jsonify({'success': False, 'error': 'Address is required'}), 400
 
         appointment_start_time = datetime.fromisoformat(data['appointment_start_time'].replace('Z', '+00:00'))
 
@@ -285,6 +288,7 @@ def client_self_create_appointment():
             end_time=end_time,
             latitude=data['latitude'],
             longitude=data['longitude'],
+            address=data['address'].strip(),
             status='pending',
             notes=data.get('notes', ''),
             service_name=data.get('service_name', ''),
@@ -323,18 +327,26 @@ def client_get_requests():
 
         result = []
         for req in requests:
+            offers = []
+            for offer in req.offers:
+                if offer.status == 'pending':
+                    p = offer.provider
+                    offers.append({
+                        'offer_id': offer.id,
+                        'provider_id': offer.provider_id,
+                        'provider_name': p.full_name or p.user_name if p else 'Unknown',
+                        'provider_photo': p.photo if p else None,
+                        'proposed_price': offer.proposed_price,
+                    })
             result.append({
                 'id': req.id,
                 'service_name': req.service_name,
                 'status': req.status,
                 'appointment_start_time': req.appointment_start_time.isoformat(),
                 'created_appo': req.created_appo.isoformat(),
-                'latitude': req.latitude,
-                'longitude': req.longitude,
                 'notes': req.notes,
                 'payment': req.payment,
-                'provider_id': req.provider_id,
-                'nurse_name': req.provider.full_name if req.provider else None
+                'offers': offers,
             })
 
         return jsonify({'success': True, 'requests': result}), 200
@@ -395,9 +407,15 @@ def client_accept_request(offer_id):
 
         provider_offer.status = 'accepted'
         req.status = 'accepted'
-
         req.provider_id = provider_offer.provider_id
         req.payment = provider_offer.proposed_price
+
+        # Reject all other pending offers for this request
+        RequestOfferResponse.query.filter(
+            RequestOfferResponse.request_id == req.id,
+            RequestOfferResponse.id != provider_offer.id,
+            RequestOfferResponse.status == 'pending'
+        ).update({'status': 'rejected'}, synchronize_session=False)
 
         # Створюємо Appointment
         appointment = Appointment(

@@ -178,6 +178,21 @@ def my_referrals():
         ]
     })
 
+@auth_bp.route('/invite_manager')
+@login_required
+def invite_manager():
+    invites = InvitationToken.query.filter_by(created_by=current_user.id).order_by(
+        InvitationToken.created_at.desc()
+    ).all()
+    referrals = User.query.filter_by(referred_by=current_user.referral_code).all()
+    referral_url = url_for('auth.register', ref=current_user.referral_code, _external=True)
+    return render_template('auth/invite_manager.html',
+                           invites=invites,
+                           referrals=referrals,
+                           referral_url=referral_url,
+                           now=datetime.now)
+
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     
@@ -188,8 +203,13 @@ def login():
         user = User.query.filter((User.email == username) | (User.user_name == username)).first()
         
         if user and (user.verify_password(password) or user.google_id):
+            if not user.is_active:
+                flash('Your account has been deactivated. Contact support.', 'danger')
+                return redirect(url_for('auth.login'))
             login_user(user)
             flash('You have been logged in successfully!', 'success')
+            if user.is_owner:
+                return redirect(url_for('owner.dashboard'))
             return redirect(url_for(f'{user.role}.dashboard'))
         else:
             flash('Invalid username or password', 'danger')
