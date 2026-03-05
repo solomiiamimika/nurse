@@ -20,8 +20,11 @@ class Message(db.Model):
     is_read      = Column(Boolean, default=False)
 
     # For non-text messages
-    message_type      = Column(String, default='text')   # 'text' | 'audio' | 'video' | 'photo' | 'file'
+    message_type      = Column(String, default='text')   # 'text' | 'audio' | 'video' | 'photo' | 'file' | 'proposal'
     supabase_file_path = Column(String)
     mime_type         = Column(String)
     file_name         = Column(String)
     file_size         = Column(Integer)
+
+    # For proposal messages
+    proposal_status   = Column(String(20), nullable=True)  # 'pending' | 'accepted' | 'declined'

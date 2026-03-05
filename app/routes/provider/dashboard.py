@@ -1,7 +1,7 @@
 from . import provider_bp
 from flask import Blueprint, jsonify, request, current_app, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
-from app.models import User, Message, db, Service, ProviderService, Appointment, ClientSelfCreatedAppointment, RequestOfferResponse, ServiceHistory, CancellationPolicy
+from app.models import User, Message, db, Service, ProviderService, Appointment, ClientSelfCreatedAppointment, RequestOfferResponse, ServiceHistory, CancellationPolicy, Review
 from app.utils import fuzz_coordinates, haversine_distance, validate_coordinates
 from datetime import datetime
 import json
@@ -34,7 +34,11 @@ CLIENTS_MAP_RADIUS_KM = 30  # показуємо запити тільки в м
 def dashboard():
     if current_user.role != 'provider':
         return redirect(url_for('auth.login'))
-    return render_template('provider/dashboard.html')
+    from flask import make_response
+    resp = make_response(render_template('provider/dashboard.html'))
+    resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    resp.headers['Pragma'] = 'no-cache'
+    return resp
 
 
 @provider_bp.route('/get_clients_locations')
@@ -154,11 +158,16 @@ def handle_send_message(data):
         if not all(key in data for key in ['text', 'sender_id', 'recipient_id']):
             raise ValueError("Not enough data")
 
+        msg_type = data.get('message_type', 'text')
+        proposal_status = 'pending' if msg_type == 'proposal' else None
+
         # Create a message
         message = Message(
             sender_id=int(data['sender_id']),
             recipient_id=int(data['recipient_id']),
-            text=data['text']
+            text=data['text'],
+            message_type=msg_type,
+            proposal_status=proposal_status
         )
 
         # Save in DB
@@ -175,6 +184,8 @@ def handle_send_message(data):
             'sender_id': message.sender_id,
             'sender_name': sender_name,
             'text': message.text,
+            'message_type': msg_type,
+            'proposal_status': proposal_status,
             'timestamp': message.timestamp.isoformat()
         }, room=f"user_{message.recipient_id}")
 
@@ -219,3 +230,101 @@ def handle_location_update(data):
 def handle_end_trip(data):
     client_id = data.get('client_id')
     emit('trip_ended', {'message': "Arrived!"}, room=f"user_{client_id}")
+
+
+@provider_bp.route('/leave_review', methods=['POST'])
+@login_required
+def provider_leave_review():
+    """Provider reviews a client after a completed appointment."""
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    data = request.get_json() or {}
+    appointment_id = data.get('appointment_id')
+    rating = data.get('rating')
+    comment = data.get('comment', '').strip()
+
+    if not appointment_id or rating is None:
+        return jsonify({'success': False, 'message': 'appointment_id and rating are required'}), 400
+
+    try:
+        rating = int(rating)
+        if rating < 1 or rating > 5:
+            raise ValueError
+    except Exception:
+        return jsonify({'success': False, 'message': 'Rating must be an integer from 1 to 5'}), 400
+
+    if rating <= 3 and not comment:
+        return jsonify({'success': False, 'message': 'Please provide a reason for your low rating'}), 400
+
+    appo = Appointment.query.filter_by(id=appointment_id, provider_id=current_user.id).first()
+    if not appo:
+        return jsonify({'success': False, 'message': 'Appointment not found'}), 404
+    if appo.status not in ('confirmed_paid', 'completed'):
+        return jsonify({'success': False, 'message': 'Review can only be left after the appointment is completed'}), 400
+
+    existing = Review.query.filter_by(
+        provider_id=current_user.id,
+        patient_id=appo.client_id,
+        appointment_id=appo.id,
+        review_direction='provider_to_client'
+    ).first()
+    if existing:
+        return jsonify({'success': False, 'message': 'Review already left'}), 400
+
+    review = Review(
+        patient_id=appo.client_id,
+        provider_id=current_user.id,
+        appointment_id=appo.id,
+        rating=rating,
+        comment=comment,
+        review_direction='provider_to_client'
+    )
+    db.session.add(review)
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': 'Thank you for your review!'})
+
+
+@provider_bp.route('/get_provider_review/<int:appointment_id>')
+@login_required
+def get_provider_review(appointment_id):
+    """Check if provider already reviewed the client for this appointment."""
+    review = Review.query.filter_by(
+        appointment_id=appointment_id,
+        provider_id=current_user.id,
+        review_direction='provider_to_client'
+    ).first()
+
+    if review:
+        return jsonify({
+            'success': True,
+            'review': {
+                'rating': review.rating,
+                'comment': review.comment,
+                'created_at': review.created_at.isoformat()
+            }
+        })
+    return jsonify({'success': False})
+
+
+@provider_bp.route('/my_reviews')
+@login_required
+def my_reviews():
+    """Get all reviews received by the provider."""
+    reviews = Review.query.filter_by(
+        provider_id=current_user.id,
+        review_direction='client_to_provider'
+    ).order_by(Review.created_at.desc()).all()
+
+    return jsonify({
+        'reviews': [{
+            'id': r.id,
+            'patient_name': r.patient.full_name or r.patient.user_name,
+            'rating': r.rating,
+            'comment': r.comment,
+            'response_text': r.response_text,
+            'response_at': r.response_at.isoformat() if r.response_at else None,
+            'created_at': r.created_at.isoformat(),
+        } for r in reviews]
+    })

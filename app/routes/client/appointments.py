@@ -353,6 +353,8 @@ def client_get_requests():
                     'phone': p.phone_number,
                     'about': p.about_me,
                     'agreed_price': accepted_offer.proposed_price if accepted_offer else req.payment,
+                    'latitude': p.latitude,
+                    'longitude': p.longitude,
                 }
 
             result.append({
@@ -508,6 +510,9 @@ def leave_review():
     except Exception:
         return jsonify({'success': False, 'message': 'Rating must be an integer from 1 to 5'}), 400
 
+    if rating <= 3 and not comment:
+        return jsonify({'success': False, 'message': 'Please provide a reason for your low rating'}), 400
+
     appo = Appointment.query.filter_by(id=appointment_id, client_id=current_user.id).first()
     if not appo:
         return jsonify({'success': False, 'message': 'Appointment not found'}), 404
@@ -545,6 +550,9 @@ def get_reviews(nurse_id):
             'patient_name': r.patient.full_name,
             'rating': r.rating,
             'comment': r.comment,
+            'response_text': r.response_text,
+            'response_at': r.response_at.isoformat() if r.response_at else None,
+            'review_direction': r.review_direction or 'client_to_provider',
             'created_at': r.created_at.isoformat(),
             'appointment_date': r.appointment.appointment_time.isoformat() if r.appointment else None
         } for r in reviews]
@@ -583,7 +591,7 @@ def can_review_appointment(appointment_id):
     if not appointment:
         return jsonify({'can_review': False, 'reason': 'Appointment not found'})
 
-    if appointment.status != 'completed':
+    if appointment.status not in ('confirmed_paid', 'completed'):
         return jsonify({'can_review': False, 'reason': 'Appointment not completed'})
 
     existing_review = Review.query.filter_by(
@@ -595,6 +603,95 @@ def can_review_appointment(appointment_id):
         return jsonify({'can_review': False, 'review_exists': True})
 
     return jsonify({'can_review': True, 'review_exists': False})
+
+
+@client_bp.route('/review/<int:review_id>/respond', methods=['POST'])
+@login_required
+def respond_to_review(review_id):
+    """Let the reviewed party write a public dispute response."""
+    review = Review.query.get_or_404(review_id)
+
+    # Only the reviewed party can respond
+    if review.review_direction == 'client_to_provider':
+        if current_user.id != review.provider_id:
+            return jsonify({'success': False, 'message': 'Access denied'}), 403
+    else:
+        if current_user.id != review.patient_id:
+            return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    if review.response_text:
+        return jsonify({'success': False, 'message': 'Response already submitted'}), 400
+
+    data = request.get_json() or {}
+    response_text = data.get('response_text', '').strip()
+    if not response_text:
+        return jsonify({'success': False, 'message': 'Response text is required'}), 400
+
+    review.response_text = response_text
+    review.response_at = datetime.now()
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': 'Response submitted successfully'})
+
+
+@client_bp.route('/client_get_history', methods=['GET'])
+@login_required
+def client_get_history():
+    """Return completed/cancelled requests and completed appointments for history page."""
+    if current_user.role != 'client':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    try:
+        # Completed/cancelled self-created requests
+        reqs = ClientSelfCreatedAppointment.query.filter(
+            ClientSelfCreatedAppointment.patient_id == current_user.id,
+            ClientSelfCreatedAppointment.status.in_(['completed', 'confirmed_paid', 'cancelled'])
+        ).order_by(ClientSelfCreatedAppointment.created_appo.desc()).all()
+
+        requests_list = []
+        for req in reqs:
+            provider_name = None
+            if req.provider:
+                provider_name = req.provider.full_name or req.provider.user_name
+            requests_list.append({
+                'id': req.id,
+                'service_name': req.service_name,
+                'status': req.status,
+                'payment': req.payment,
+                'appointment_start_time': req.appointment_start_time.isoformat() if req.appointment_start_time else None,
+                'created_appo': req.created_appo.isoformat() if req.created_appo else None,
+                'provider_name': provider_name,
+            })
+
+        # Completed appointments (direct bookings)
+        appos = Appointment.query.filter(
+            Appointment.client_id == current_user.id,
+            Appointment.status.in_(['completed', 'confirmed_paid', 'cancelled', 'work_submitted'])
+        ).order_by(Appointment.appointment_time.desc()).all()
+
+        appointments_list = []
+        for a in appos:
+            provider = User.query.get(a.provider_id)
+            service = ProviderService.query.get(a.nurse_service_id) if a.nurse_service_id else None
+            service_name = service.name if service and service.name else (service.base_service.name if service and service.base_service else 'Service')
+            appointments_list.append({
+                'id': a.id,
+                'service_name': service_name,
+                'status': a.status,
+                'appointment_time': a.appointment_time.isoformat() if a.appointment_time else None,
+                'provider_name': (provider.full_name or provider.user_name) if provider else 'Unknown',
+                'notes': a.notes,
+            })
+
+        return jsonify({
+            'success': True,
+            'requests': requests_list,
+            'appointments': appointments_list,
+        })
+
+    except Exception as e:
+        current_app.logger.error(f"Error retrieving history: {str(e)}")
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 
 @socketio.on('connect')

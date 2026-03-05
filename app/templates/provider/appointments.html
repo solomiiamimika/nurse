@@ -55,6 +55,48 @@
             </div>
         </div>
 
+        <!-- Provider Review Section -->
+        <div id="providerReviewSection" style="display:none;">
+            <hr>
+            <h6 class="fw-bold mb-3"><i class="fas fa-star me-1 text-warning"></i>{{ _("Review Client") }}</h6>
+
+            <div id="providerExistingReview" style="display:none;">
+                <div class="p-3 bg-light rounded border">
+                    <div class="text-warning mb-1" id="providerReviewStars"></div>
+                    <p class="text-secondary small mb-0" id="providerReviewComment"></p>
+                </div>
+            </div>
+
+            <div id="providerReviewForm" style="display:none;">
+                <div class="mb-3 text-center">
+                    <div class="rating-input display-6 text-warning">
+                        {% for i in range(5, 0, -1) %}
+                        <input type="radio" id="pstar{{i}}" name="provider_rating" value="{{i}}" style="display:none;" onchange="handleProviderRatingChange(this.value)" />
+                        <label for="pstar{{i}}" title="{{ i }} {{ _('stars') }}" style="cursor:pointer; margin: 0 2px;">★</label>
+                        {% endfor %}
+                    </div>
+                    <small class="text-muted">{{ _("Tap a star to rate") }}</small>
+                </div>
+                <div class="mb-3">
+                    <textarea class="form-control" id="providerReviewComment" rows="3" placeholder="{{ _('Share your experience with this client...') }}"></textarea>
+                    <div id="providerReviewWarning" class="form-text text-danger" style="display:none;">
+                        <i class="fas fa-exclamation-circle me-1"></i>{{ _("Reason is required for ratings of 3 stars or below") }}
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button id="submitProviderReviewBtn" class="btn btn-success flex-grow-1" onclick="submitProviderReview()">{{ _("Send") }}</button>
+                    <button class="btn btn-light border" onclick="document.getElementById('providerReviewForm').style.display='none'">{{ _("Cancel") }}</button>
+                </div>
+            </div>
+
+            <div id="providerNoReview" style="display:none;" class="text-center">
+                <p class="text-muted small mb-2">{{ _("You haven't reviewed this client yet.") }}</p>
+                <button class="btn btn-outline-primary btn-sm" onclick="document.getElementById('providerReviewForm').style.display='';document.getElementById('providerNoReview').style.display='none';">
+                    <i class="fas fa-star"></i> {{ _("Write a Review") }}
+                </button>
+            </div>
+        </div>
+
       </div>
       <div class="modal-footer" id="appointmentActions">
         </div>
@@ -279,6 +321,14 @@
             actionsContainer.innerHTML = `<button type="button" class="btn btn-light border" data-bs-dismiss="modal">${i18n.close}</button>`;
         }
 
+        // Show review section for completed appointments
+        const reviewSection = document.getElementById('providerReviewSection');
+        if (['confirmed_paid', 'completed', 'work_submitted'].includes(props.status)) {
+            checkProviderReviewStatus(info.event.id);
+        } else {
+            reviewSection.style.display = 'none';
+        }
+
         const modal = new bootstrap.Modal(document.getElementById("appointmentDetailsModal"));
         modal.show();
       },
@@ -328,6 +378,75 @@
       };
       return statuses[status] || status;
     }
+
+    // Provider review logic
+    window.currentProviderReviewApptId = null;
+
+    window.checkProviderReviewStatus = function(appointmentId) {
+        const section = document.getElementById('providerReviewSection');
+        const existing = document.getElementById('providerExistingReview');
+        const form = document.getElementById('providerReviewForm');
+        const noReview = document.getElementById('providerNoReview');
+
+        section.style.display = '';
+        existing.style.display = 'none';
+        form.style.display = 'none';
+        noReview.style.display = 'none';
+        window.currentProviderReviewApptId = appointmentId;
+
+        fetch(`/provider/get_provider_review/${appointmentId}`, {
+            headers: { 'X-CSRFToken': csrfToken }
+        }).then(r => r.json()).then(data => {
+            if (data.success && data.review) {
+                existing.style.display = '';
+                document.getElementById('providerReviewStars').innerHTML = '★'.repeat(data.review.rating) + '<span class="text-muted small ms-1">(' + data.review.rating + ')</span>';
+                document.getElementById('providerReviewComment').textContent = data.review.comment || '';
+            } else {
+                noReview.style.display = '';
+            }
+        }).catch(() => { noReview.style.display = ''; });
+    };
+
+    window.handleProviderRatingChange = function(val) {
+        const warning = document.getElementById('providerReviewWarning');
+        const textarea = document.getElementById('providerReviewComment');
+        if (parseInt(val) <= 3) {
+            warning.style.display = '';
+            textarea.placeholder = "{{ _('Please explain the reason for your rating (required)') }}";
+        } else {
+            warning.style.display = 'none';
+            textarea.placeholder = "{{ _('Share your experience with this client...') }}";
+        }
+    };
+
+    window.submitProviderReview = function() {
+        const ratingEl = document.querySelector('input[name="provider_rating"]:checked');
+        const rating = ratingEl ? ratingEl.value : null;
+        const comment = document.getElementById('providerReviewComment').value.trim();
+
+        if (!rating) { alert("{{ _('Please select a rating') }}"); return; }
+        if (parseInt(rating) <= 3 && !comment) { alert("{{ _('Please provide a reason for your low rating') }}"); return; }
+
+        const btn = document.getElementById('submitProviderReviewBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        fetch('/provider/leave_review', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ appointment_id: window.currentProviderReviewApptId, rating: rating, comment: comment })
+        }).then(r => r.json()).then(data => {
+            if (data.success) {
+                alert("{{ _('Thank you for your feedback!') }}");
+                checkProviderReviewStatus(window.currentProviderReviewApptId);
+            } else {
+                alert("{{ _('Error:') }} " + data.message);
+            }
+        }).finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = "{{ _('Send') }}";
+        });
+    };
   });
 </script>
 {%endblock%}

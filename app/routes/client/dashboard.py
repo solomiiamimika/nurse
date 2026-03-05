@@ -206,7 +206,28 @@ def provider_detail(provider_id):
     photo = None
     if provider.photo:
         photo = get_file_url(provider.photo, buckets['profile_pictures'])
-    return render_template("client/provider_public_profile.html", provider=provider, reviews=reviews, services=servises, photo=photo)
+
+    portfolio_items = []
+    if provider.portfolio:
+        try:
+            import json as _json
+            for item in _json.loads(provider.portfolio):
+                portfolio_items.append({
+                    'url': get_file_url(item['url'], buckets['profile_pictures']),
+                    'type': item.get('type', 'photo'),
+                })
+        except Exception:
+            pass
+
+    return render_template("client/provider_public_profile.html", provider=provider, reviews=reviews, services=servises, photo=photo, portfolio_items=portfolio_items)
+
+
+@client_bp.route('/history')
+@login_required
+def history():
+    if current_user.role != 'client':
+        return redirect(url_for('auth.login'))
+    return render_template('client/history.html')
 
 
 @client_bp.route('/get_nurse_services')

@@ -136,12 +136,25 @@ def profile():
     if current_user.insurance_document:
         insurance_doc_url = get_file_url(current_user.insurance_document, buckets['documents'])
 
+    portfolio_items = []
+    if current_user.portfolio:
+        try:
+            for item in json.loads(current_user.portfolio):
+                portfolio_items.append({
+                    'url': get_file_url(item['url'], buckets['profile_pictures']),
+                    'filename': item['url'],
+                    'type': item.get('type', 'photo'),
+                })
+        except (json.JSONDecodeError, KeyError):
+            pass
+
     return render_template('provider/profile.html',
                            formatted_date=formatted_date,
                            documents_urls=documents_urls,
                            profile_photo=profile_photo,
                            stripe_info=stripe_info,
                            insurance_doc_url=insurance_doc_url,
+                           portfolio_items=portfolio_items,
                            user=current_user)
 
 
@@ -204,6 +217,72 @@ def delete_insurance_doc():
         delete_from_supabase(current_user.insurance_document, buckets['documents'])
         current_user.insurance_document = None
         db.session.commit()
+    return jsonify({'success': True})
+
+
+PORTFOLIO_PHOTO_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+PORTFOLIO_VIDEO_EXTENSIONS = {'mp4', 'mov', 'webm'}
+PORTFOLIO_ALL_EXTENSIONS = PORTFOLIO_PHOTO_EXTENSIONS | PORTFOLIO_VIDEO_EXTENSIONS
+
+
+@provider_bp.route('/portfolio/upload', methods=['POST'])
+@login_required
+def portfolio_upload():
+    """Upload a photo or video to portfolio gallery."""
+    file = request.files.get('file')
+    if not file or file.filename == '':
+        return jsonify({'success': False, 'message': 'No file provided'}), 400
+
+    ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+    if ext not in PORTFOLIO_ALL_EXTENSIONS:
+        return jsonify({'success': False, 'message': 'Allowed: JPG, PNG, GIF, WEBP, MP4, MOV, WEBM'}), 400
+
+    file_type = 'video' if ext in PORTFOLIO_VIDEO_EXTENSIONS else 'photo'
+
+    try:
+        filename, file_url = upload_to_supabase(
+            file, buckets['profile_pictures'], current_user.id, 'portfolio'
+        )
+        if not filename:
+            return jsonify({'success': False, 'message': 'Upload failed'}), 500
+
+        portfolio = json.loads(current_user.portfolio or '[]')
+        portfolio.append({'url': filename, 'type': file_type})
+        current_user.portfolio = json.dumps(portfolio)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'item': {
+                'url': get_file_url(filename, buckets['profile_pictures']),
+                'filename': filename,
+                'type': file_type,
+            }
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@provider_bp.route('/portfolio/delete', methods=['POST'])
+@login_required
+def portfolio_delete():
+    """Remove a photo or video from portfolio gallery."""
+    data = request.get_json()
+    filename = data.get('filename')
+    if not filename:
+        return jsonify({'success': False, 'message': 'Filename required'}), 400
+
+    try:
+        delete_from_supabase(filename, buckets['profile_pictures'])
+    except Exception:
+        pass
+
+    portfolio = json.loads(current_user.portfolio or '[]')
+    portfolio = [item for item in portfolio if item.get('url') != filename]
+    current_user.portfolio = json.dumps(portfolio) if portfolio else None
+    db.session.commit()
+
     return jsonify({'success': True})
 
 

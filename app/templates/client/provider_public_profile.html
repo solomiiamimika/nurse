@@ -61,6 +61,36 @@
                 </div>
             </div>
 
+            {% if portfolio_items %}
+            <div class="content-card mb-4">
+                <h4 class="fw-bold mb-4"><i class="fas fa-images me-2 text-primary"></i>{{ _("Portfolio") }}</h4>
+                <div class="row g-2" id="portfolioGallery">
+                    {% for item in portfolio_items %}
+                    <div class="col-4 col-md-3">
+                        <div class="position-relative rounded-3 overflow-hidden portfolio-thumb" style="aspect-ratio:1;background:#f3f4f6;cursor:pointer;" onclick="openLightbox({{ loop.index0 }})">
+                            {% if item.type == 'video' %}
+                            <video src="{{ item.url }}" class="w-100 h-100" style="object-fit:cover;" muted preload="metadata"></video>
+                            <div class="position-absolute top-50 start-50 translate-middle text-white" style="font-size:28px;text-shadow:0 2px 4px rgba(0,0,0,0.5);">
+                                <i class="fas fa-play-circle"></i>
+                            </div>
+                            {% else %}
+                            <img src="{{ item.url }}" class="w-100 h-100" style="object-fit:cover;" alt="Portfolio">
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Lightbox -->
+            <div id="lightbox" onclick="if(event.target===this)closeLightbox()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;justify-content:center;align-items:center;">
+                <button onclick="closeLightbox()" class="btn btn-link text-white position-absolute" style="top:16px;right:16px;font-size:24px;z-index:10000;"><i class="fas fa-times"></i></button>
+                <button onclick="lightboxPrev()" class="btn btn-link text-white position-absolute" style="left:16px;top:50%;transform:translateY(-50%);font-size:28px;"><i class="fas fa-chevron-left"></i></button>
+                <button onclick="lightboxNext()" class="btn btn-link text-white position-absolute" style="right:16px;top:50%;transform:translateY(-50%);font-size:28px;"><i class="fas fa-chevron-right"></i></button>
+                <div id="lightboxContent" style="max-width:90%;max-height:90%;display:flex;align-items:center;justify-content:center;"></div>
+            </div>
+            {% endif %}
+
             <div class="content-card">
                 <h4 class="fw-bold mb-4">{{ _("Reviews") }} ({{ reviews|length }})</h4>
                 
@@ -84,6 +114,16 @@
                                 </div>
                             </div>
                             <p class="text-secondary mb-0">"{{ review.comment }}"</p>
+                            {% if review.response_text %}
+                            <div class="mt-3 ms-4 p-3 bg-light rounded border-start border-3 border-primary">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="fas fa-reply text-primary small"></i>
+                                    <strong class="small text-primary">{{ _("Provider's response") }}</strong>
+                                    <span class="text-muted small">{{ review.response_at.strftime('%d %b %Y') if review.response_at else '' }}</span>
+                                </div>
+                                <p class="text-dark small mb-0">{{ review.response_text }}</p>
+                            </div>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>
@@ -218,6 +258,25 @@
         border-radius: 50%; display: flex; align-items: center; justify-content: center;
         color: #9ca3af;
     }
+
+    /* Stars celebration animation */
+    @keyframes starFall {
+        0% { transform: translateY(-100vh) rotate(0deg) scale(0); opacity: 1; }
+        10% { transform: translateY(-80vh) rotate(36deg) scale(1); opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateY(100vh) rotate(720deg) scale(0.5); opacity: 0; }
+    }
+    .celebration-star {
+        position: fixed; top: 0; z-index: 99999; pointer-events: none;
+        animation: starFall linear forwards; font-size: 24px;
+    }
+    .celebration-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 99998; pointer-events: none;
+        background: radial-gradient(circle at center, rgba(255,215,0,0.1) 0%, transparent 70%);
+        animation: celebrationGlow 2s ease-out forwards;
+    }
+    @keyframes celebrationGlow { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
 </style>
 
 <script>
@@ -254,7 +313,27 @@
             });
     }
 
-    // Логіка відправки форми (така ж, як на дашборді)
+    function celebrateBooking() {
+        const overlay = document.createElement('div');
+        overlay.className = 'celebration-overlay';
+        document.body.appendChild(overlay);
+        setTimeout(() => overlay.remove(), 2000);
+
+        const emojis = ['⭐', '🌟', '✨', '💫', '🎉', '🎊'];
+        for (let i = 0; i < 40; i++) {
+            setTimeout(() => {
+                const star = document.createElement('div');
+                star.className = 'celebration-star';
+                star.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                star.style.left = Math.random() * 100 + 'vw';
+                star.style.fontSize = (16 + Math.random() * 20) + 'px';
+                star.style.animationDuration = (2 + Math.random() * 2) + 's';
+                document.body.appendChild(star);
+                setTimeout(() => star.remove(), 4000);
+            }, i * 60);
+        }
+    }
+
     document.getElementById('submitBookingBtn').addEventListener('click', function() {
         const nurseId = document.getElementById('nurseIdInput').value;
         const serviceId = document.getElementById('serviceSelect').value;
@@ -274,12 +353,61 @@
         })
         .then(r => r.json())
         .then(data => {
-            if(data.success) { 
-                alert("{{ _('Appointment confirmed!') }}"); 
-                window.location.href = "{{ url_for('client.appointments') }}";
-            } 
+            if(data.success) {
+                celebrateBooking();
+                setTimeout(() => {
+                    alert("{{ _('Appointment confirmed!') }}");
+                    window.location.href = "{{ url_for('client.appointments') }}";
+                }, 1500);
+            }
             else { alert("{{ _('Error:') }} " + data.message); btn.disabled = false; btn.innerText = "{{ _('Confirm Booking') }}"; }
         });
+    });
+
+    // ── Portfolio Lightbox ──────────────────────────────────
+    const portfolioItems = {{ portfolio_items | tojson | default('[]') }};
+    let lightboxIdx = 0;
+
+    function openLightbox(idx) {
+        lightboxIdx = idx;
+        renderLightbox();
+        document.getElementById('lightbox').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+        document.getElementById('lightbox').style.display = 'none';
+        document.body.style.overflow = '';
+        // pause any playing video
+        const vid = document.querySelector('#lightboxContent video');
+        if (vid) vid.pause();
+    }
+
+    function lightboxPrev() {
+        lightboxIdx = (lightboxIdx - 1 + portfolioItems.length) % portfolioItems.length;
+        renderLightbox();
+    }
+
+    function lightboxNext() {
+        lightboxIdx = (lightboxIdx + 1) % portfolioItems.length;
+        renderLightbox();
+    }
+
+    function renderLightbox() {
+        const item = portfolioItems[lightboxIdx];
+        const container = document.getElementById('lightboxContent');
+        if (item.type === 'video') {
+            container.innerHTML = `<video src="${item.url}" controls autoplay style="max-width:100%;max-height:85vh;border-radius:8px;"></video>`;
+        } else {
+            container.innerHTML = `<img src="${item.url}" style="max-width:100%;max-height:85vh;border-radius:8px;" alt="Portfolio">`;
+        }
+    }
+
+    document.addEventListener('keydown', e => {
+        if (document.getElementById('lightbox').style.display !== 'flex') return;
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowLeft') lightboxPrev();
+        if (e.key === 'ArrowRight') lightboxNext();
     });
 </script>
 {% endblock %}

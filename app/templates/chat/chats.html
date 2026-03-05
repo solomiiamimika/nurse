@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width:700px;margin:0 auto;padding:20px;">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h4 class="fw-bold mb-0"><i class="fas fa-comments me-2"></i>{{ _("Chats") }}</h4>
+        <a href="{{ url_for(current_user.role + '.dashboard') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>{{ _("Back") }}
+        </a>
+    </div>
+
+    <div id="conversationsList">
+        <div class="text-center py-5">
+            <div class="spinner-border text-secondary" role="status"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const currentUserId = {{ current_user.id }};
+
+function loadConversations() {
+    fetch('/api/conversations').then(r => r.json()).then(conversations => {
+        const container = document.getElementById('conversationsList');
+        if (!conversations || conversations.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-5" style="background:#f8f9fa;border-radius:12px;border:1px dashed #d1d5db;">
+                    <i class="fas fa-comment-slash fa-2x mb-3" style="color:#d1d5db;"></i>
+                    <p class="text-muted mb-0">{{ _("No conversations yet") }}</p>
+                </div>`;
+            return;
+        }
+
+        let html = '';
+        conversations.forEach(conv => {
+            const photo = conv.photo
+                ? `<img src="${conv.photo}" class="rounded-circle" style="width:48px;height:48px;object-fit:cover;flex-shrink:0;">`
+                : `<div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold" style="width:48px;height:48px;flex-shrink:0;font-size:18px;">${(conv.name||'?')[0].toUpperCase()}</div>`;
+
+            const time = new Date(conv.timestamp).toLocaleString('uk-UA', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+            const unread = conv.unread > 0 ? `<span class="badge bg-success rounded-pill">${conv.unread}</span>` : '';
+            const lastMsg = conv.last_message_type !== 'text'
+                ? `<i class="fas fa-paperclip me-1"></i>{{ _("Attachment") }}`
+                : (conv.last_message.length > 40 ? conv.last_message.substring(0, 40) + '...' : conv.last_message);
+
+            html += `
+            <a href="/chat/${conv.user_id}" class="d-flex align-items-center gap-3 p-3 mb-2 text-decoration-none" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;transition:0.2s;cursor:pointer;" onmouseover="this.style.background='#f9fafb';this.style.borderColor='#bfdbfe'" onmouseout="this.style.background='#fff';this.style.borderColor='#e5e7eb'">
+                ${photo}
+                <div class="flex-grow-1 min-w-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong class="text-dark">${conv.name}</strong>
+                        <small class="text-muted">${time}</small>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <small class="text-muted text-truncate" style="max-width:80%;">${lastMsg}</small>
+                        ${unread}
+                    </div>
+                </div>
+            </a>`;
+        });
+        container.innerHTML = html;
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadConversations();
+    setInterval(loadConversations, 10000);
+});
+</script>
+{% endblock %}

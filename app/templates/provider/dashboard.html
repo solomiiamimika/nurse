@@ -9,6 +9,20 @@
         <div class="custom-container text-center">
             <h2>Hi, {{ current_user.full_name if current_user.full_name else current_user.username}}!</h2>
             <div class="hero-subtitle">{{ _("Manage your requests and availability") }}</div>
+            {% set lvl = current_user.player_level_info %}
+            <div class="player-badge mt-2" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);padding:6px 16px;border-radius:20px;font-size:0.85rem;">
+                <span style="font-size:1.2rem;">{{ lvl.icon }}</span>
+                <span style="font-weight:700;">{{ lvl.title }}</span>
+                <span style="opacity:0.8;font-size:0.8rem;">{{ lvl.count }} {{ _("orders") }}</span>
+                {% if lvl.next_title %}
+                <div style="width:60px;height:6px;background:rgba(255,255,255,0.2);border-radius:3px;overflow:hidden;">
+                    <div style="height:100%;background:#fbbf24;border-radius:3px;width:{{ lvl.progress }}%;"></div>
+                </div>
+                <span style="font-size:0.75rem;opacity:0.7;">{{ _("Next:") }} {{ lvl.next_icon }} {{ lvl.next_title }} ({{ lvl.next_threshold }})</span>
+                {% else %}
+                <span style="font-size:0.75rem;color:#fbbf24;font-weight:700;">{{ _("Max Level!") }}</span>
+                {% endif %}
+            </div>
         </div>
     </div>
 
@@ -19,6 +33,8 @@
                 <a href="{{ url_for('provider.profile') }}" class="btn-tool"><i class="fas fa-user-md"></i> {{ _("Profile") }}</a>
                 <a href="{{ url_for('provider.appointments') }}" class="btn-tool"><i class="fas fa-calendar-check"></i> {{ _("Appointments") }}</a>
                 <a href="{{ url_for('provider.manage_services') }}" class="btn-tool"><i class="fas fa-list-ul"></i> {{ _("My Services") }}</a>
+                <a href="{{ url_for('main.chats') }}" class="btn-tool" style="position:relative;" id="chatsBtn"><i class="fas fa-comments"></i> {{ _("Chats") }}<span id="unreadBadge" class="badge bg-danger rounded-pill" style="display:none;position:absolute;top:-4px;right:-4px;font-size:10px;min-width:18px;padding:3px 5px;"></span></a>
+                <button class="btn-tool" onclick="openMyReviewsModal()"><i class="fas fa-star text-warning"></i> {{ _("Reviews") }}</button>
                 <button id="location-btn" class="btn-tool text-primary"><i class="fas fa-map-marker-alt"></i> {{ _("Update Location") }}</button>
                 <button id="toggle-online-btn" class="btn-tool {{ 'status-online' if current_user.online else 'status-offline' }}">
                     <span class="status-indicator"></span>
@@ -50,9 +66,8 @@
             </div>
 
             <div class="col-lg-4">
-                <div class="h-100 d-flex flex-column">
 
-                    <div class="nav nav-pills nav-fill p-1 bg-white border rounded-pill mb-3 shadow-sm" role="tablist">
+                    <div class="nav nav-pills nav-fill p-1 bg-white border rounded-pill mb-2 shadow-sm" role="tablist">
                         <button class="nav-link rounded-pill active fw-bold small py-2" id="tab-requests" onclick="switchTab('requests')">
                             {{ _("New Requests") }}
                         </button>
@@ -64,25 +79,43 @@
                         </button>
                     </div>
 
-                    <!-- Filters: visible only on requests tab -->
-                    <div id="requestsFilters" class="mb-2">
-                        <div class="d-flex gap-1 flex-wrap mb-1">
-                            <span class="small text-muted me-1 align-self-center">{{ _("Distance:") }}</span>
-                            <button class="btn btn-sm btn-outline-secondary active" id="rad-all"   onclick="setRadiusFilter(null)">{{ _("All") }}</button>
-                            <button class="btn btn-sm btn-outline-secondary"        id="rad-20"    onclick="setRadiusFilter(20)">20 km</button>
-                            <button class="btn btn-sm btn-outline-secondary"        id="rad-50"    onclick="setRadiusFilter(50)">50 km</button>
-                            <button class="btn btn-sm btn-outline-secondary"        id="rad-100"   onclick="setRadiusFilter(100)">100 km</button>
+                    <!-- Filters: shown only on New Requests tab -->
+                    <div id="requestsFilters" style="background:#f8f9fa;border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-bottom:8px;">
+                        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;align-items:center;">
+                            <span style="font-size:0.8rem;color:#6b7280;"><i class="fas fa-route"></i></span>
+                            <button id="rad-all"  onclick="setRadiusFilter(null)" style="padding:2px 8px;font-size:0.75rem;border:1px solid #6b7280;border-radius:20px;background:#1f2937;color:#fff;cursor:pointer;">{{ _("All") }}</button>
+                            <button id="rad-5"    onclick="setRadiusFilter(5)"    style="padding:2px 8px;font-size:0.75rem;border:1px solid #6b7280;border-radius:20px;background:#fff;cursor:pointer;">5 km</button>
+                            <button id="rad-10"   onclick="setRadiusFilter(10)"   style="padding:2px 8px;font-size:0.75rem;border:1px solid #6b7280;border-radius:20px;background:#fff;cursor:pointer;">10 km</button>
+                            <button id="rad-20"   onclick="setRadiusFilter(20)"   style="padding:2px 8px;font-size:0.75rem;border:1px solid #6b7280;border-radius:20px;background:#fff;cursor:pointer;">20 km</button>
+                            <button id="rad-50"   onclick="setRadiusFilter(50)"   style="padding:2px 8px;font-size:0.75rem;border:1px solid #6b7280;border-radius:20px;background:#fff;cursor:pointer;">50 km</button>
                         </div>
-                        <div class="d-flex gap-1 flex-wrap mb-2">
-                            <span class="small text-muted me-1 align-self-center">{{ _("Price:") }}</span>
-                            <button class="btn btn-sm btn-outline-success active" id="pay-all"  onclick="setPayFilter(null)">{{ _("All") }}</button>
-                            <button class="btn btn-sm btn-outline-success"        id="pay-20"   onclick="setPayFilter(20)">€20+</button>
-                            <button class="btn btn-sm btn-outline-success"        id="pay-50"   onclick="setPayFilter(50)">€50+</button>
-                            <button class="btn btn-sm btn-outline-success"        id="pay-100"  onclick="setPayFilter(100)">€100+</button>
+                        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;align-items:center;">
+                            <span style="font-size:0.8rem;color:#6b7280;"><i class="fas fa-euro-sign"></i></span>
+                            <button id="pay-all"  onclick="setPayFilter(null)"  style="padding:2px 8px;font-size:0.75rem;border:1px solid #10b981;border-radius:20px;background:#10b981;color:#fff;cursor:pointer;">{{ _("All") }}</button>
+                            <button id="pay-20"   onclick="setPayFilter(20)"    style="padding:2px 8px;font-size:0.75rem;border:1px solid #10b981;border-radius:20px;background:#fff;cursor:pointer;">€20+</button>
+                            <button id="pay-50"   onclick="setPayFilter(50)"    style="padding:2px 8px;font-size:0.75rem;border:1px solid #10b981;border-radius:20px;background:#fff;cursor:pointer;">€50+</button>
+                            <button id="pay-100"  onclick="setPayFilter(100)"   style="padding:2px 8px;font-size:0.75rem;border:1px solid #10b981;border-radius:20px;background:#fff;cursor:pointer;">€100+</button>
                         </div>
-                        <input type="text" id="reqSearchInput" class="form-control form-control-sm"
+                        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;align-items:center;">
+                            <span style="font-size:0.8rem;color:#6b7280;"><i class="fas fa-calendar-day"></i></span>
+                            <button id="date-all"       onclick="setDateFilter('all')"       style="padding:2px 8px;font-size:0.75rem;border:1px solid #3b82f6;border-radius:20px;background:#3b82f6;color:#fff;cursor:pointer;">{{ _("All") }}</button>
+                            <button id="date-today"     onclick="setDateFilter('today')"     style="padding:2px 8px;font-size:0.75rem;border:1px solid #3b82f6;border-radius:20px;background:#fff;cursor:pointer;">{{ _("Today") }}</button>
+                            <button id="date-tomorrow"  onclick="setDateFilter('tomorrow')"  style="padding:2px 8px;font-size:0.75rem;border:1px solid #3b82f6;border-radius:20px;background:#fff;cursor:pointer;">{{ _("Tomorrow") }}</button>
+                            <button id="date-week"      onclick="setDateFilter('week')"      style="padding:2px 8px;font-size:0.75rem;border:1px solid #3b82f6;border-radius:20px;background:#fff;cursor:pointer;">{{ _("This Week") }}</button>
+                        </div>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;align-items:center;">
+                            <span style="font-size:0.8rem;color:#6b7280;"><i class="fas fa-sort"></i></span>
+                            <select id="sortSelect" onchange="applyRequestFilters()" style="padding:2px 8px;font-size:0.75rem;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">
+                                <option value="nearest">{{ _("Nearest first") }}</option>
+                                <option value="price_desc">{{ _("Highest price") }}</option>
+                                <option value="price_asc">{{ _("Lowest price") }}</option>
+                                <option value="newest">{{ _("Newest first") }}</option>
+                                <option value="soonest">{{ _("Soonest first") }}</option>
+                            </select>
+                        </div>
+                        <input type="text" id="reqSearchInput" oninput="applyRequestFilters()"
                                placeholder="{{ _('Search by service...') }}"
-                               oninput="applyRequestFilters()">
+                               style="width:100%;padding:4px 8px;font-size:0.8rem;border:1px solid #d1d5db;border-radius:6px;">
                     </div>
 
                     <div class="requests-scroll-area">
@@ -105,7 +138,6 @@
                         </div>
                     </div>
 
-                </div>
             </div>
         </div>
     </div>
@@ -157,13 +189,30 @@
   </div>
 </div>
 
+<!-- My Reviews Modal -->
+<div class="modal fade" id="myReviewsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold"><i class="fas fa-star text-warning me-2"></i>{{ _("My Reviews") }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="myReviewsBody">
+        <div class="text-center py-4"><i class="fas fa-spinner fa-spin"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 {% block scripts %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
 <script src="https://cdn.botpress.cloud/webchat/v3.5/inject.js"></script>
 <script src="https://files.bpcontent.cloud/2026/01/10/13/20260110130650-79OB48AX.js" defer></script>
@@ -184,7 +233,7 @@
     .status-offline { background: #f3f4f6; border-color: #d1d5db; color: #6b7280; }
     .status-indicator { width: 8px; height: 8px; border-radius: 50%; background-color: currentColor; display: inline-block; }
     .content-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-    .requests-scroll-area { height: 600px; overflow-y: auto; padding-right: 5px; }
+    .requests-scroll-area { flex: 1 1 0; min-height: 100px; max-height: 480px; overflow-y: auto; padding-right: 5px; }
     .nurse-item { background: white; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 15px; transition: all 0.2s; cursor: pointer; position: relative; overflow: hidden; }
     .nurse-item:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-color: #bfdbfe; }
     .item-request::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #ef4444; }
@@ -214,33 +263,88 @@
   let _allRequests = [];
   let _activeRadius = null;
   let _activeMinPay = null;
+  let _activeDateFilter = 'all';
 
   function setRadiusFilter(km) {
       _activeRadius = km;
-      ['rad-all','rad-20','rad-50','rad-100'].forEach(id => document.getElementById(id).classList.remove('active'));
-      document.getElementById(km === null ? 'rad-all' : `rad-${km}`).classList.add('active');
+      ['rad-all','rad-5','rad-10','rad-20','rad-50'].forEach(id => {
+          const b = document.getElementById(id);
+          b.style.background = '#fff'; b.style.color = '#000';
+      });
+      const active = document.getElementById(km === null ? 'rad-all' : `rad-${km}`);
+      active.style.background = '#1f2937'; active.style.color = '#fff';
       applyRequestFilters();
   }
 
   function setPayFilter(min) {
       _activeMinPay = min;
-      ['pay-all','pay-20','pay-50','pay-100'].forEach(id => document.getElementById(id).classList.remove('active'));
-      document.getElementById(min === null ? 'pay-all' : `pay-${min}`).classList.add('active');
+      ['pay-all','pay-20','pay-50','pay-100'].forEach(id => {
+          const b = document.getElementById(id);
+          b.style.background = '#fff'; b.style.color = '#000';
+      });
+      const active = document.getElementById(min === null ? 'pay-all' : `pay-${min}`);
+      active.style.background = '#10b981'; active.style.color = '#fff';
+      applyRequestFilters();
+  }
+
+  function setDateFilter(period) {
+      _activeDateFilter = period;
+      ['date-all','date-today','date-tomorrow','date-week'].forEach(id => {
+          const b = document.getElementById(id);
+          b.style.background = '#fff'; b.style.color = '#000';
+      });
+      const active = document.getElementById(`date-${period}`);
+      active.style.background = '#3b82f6'; active.style.color = '#fff';
       applyRequestFilters();
   }
 
   function applyRequestFilters() {
       const search = (document.getElementById('reqSearchInput').value || '').toLowerCase().trim();
       let filtered = _allRequests;
+
+      // Distance filter
       if (_activeRadius !== null) {
           filtered = filtered.filter(r => r.distance_km !== null && r.distance_km <= _activeRadius);
       }
+      // Price filter
       if (_activeMinPay !== null) {
           filtered = filtered.filter(r => (parseFloat(r.payment) || 0) >= _activeMinPay);
       }
+      // Date filter
+      if (_activeDateFilter !== 'all') {
+          const now = new Date();
+          const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const tomorrowStart = new Date(todayStart); tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+          const tomorrowEnd = new Date(tomorrowStart); tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
+          const weekEnd = new Date(todayStart); weekEnd.setDate(weekEnd.getDate() + 7);
+
+          filtered = filtered.filter(r => {
+              const d = new Date(r.appointment_start_time);
+              if (_activeDateFilter === 'today') return d >= todayStart && d < tomorrowStart;
+              if (_activeDateFilter === 'tomorrow') return d >= tomorrowStart && d < tomorrowEnd;
+              if (_activeDateFilter === 'week') return d >= todayStart && d < weekEnd;
+              return true;
+          });
+      }
+      // Search filter
       if (search) {
           filtered = filtered.filter(r => (r.service_name || '').toLowerCase().includes(search));
       }
+      // Sorting
+      const sort = document.getElementById('sortSelect').value;
+      filtered = [...filtered];
+      if (sort === 'nearest') {
+          filtered.sort((a, b) => (a.distance_km === null ? 9999 : a.distance_km) - (b.distance_km === null ? 9999 : b.distance_km));
+      } else if (sort === 'price_desc') {
+          filtered.sort((a, b) => (parseFloat(b.payment) || 0) - (parseFloat(a.payment) || 0));
+      } else if (sort === 'price_asc') {
+          filtered.sort((a, b) => (parseFloat(a.payment) || 0) - (parseFloat(b.payment) || 0));
+      } else if (sort === 'newest') {
+          filtered.sort((a, b) => new Date(b.appointment_start_time) - new Date(a.appointment_start_time));
+      } else if (sort === 'soonest') {
+          filtered.sort((a, b) => new Date(a.appointment_start_time) - new Date(b.appointment_start_time));
+      }
+
       renderList(filtered, 'requestsList', 'item-request', 'btn-req');
       updateMarkers(filtered, '#ef4444');
   }
@@ -283,7 +387,7 @@
       document.getElementById('requestsList').classList.toggle('d-none', mode !== 'requests');
       document.getElementById('offersList').classList.toggle('d-none', mode !== 'offers');
       document.getElementById('appointmentsList').classList.toggle('d-none', mode !== 'appointments');
-      document.getElementById('requestsFilters').classList.toggle('d-none', mode !== 'requests');
+      document.getElementById('requestsFilters').style.display = (mode === 'requests') ? 'block' : 'none';
 
       if (mode === 'requests') loadRequests();
       else if (mode === 'offers') loadMyOffers();
@@ -306,6 +410,36 @@
           }).addTo(map);
 
           markersLayer.addTo(map);
+
+          // Draw control for boundary filtering
+          const drawnItems = new L.FeatureGroup();
+          map.addLayer(drawnItems);
+
+          const drawControl = new L.Control.Draw({
+              position: 'topright',
+              draw: {
+                  polygon: { allowIntersection: false, shapeOptions: { color: '#8b5cf6', weight: 2, fillOpacity: 0.1 } },
+                  rectangle: { shapeOptions: { color: '#8b5cf6', weight: 2, fillOpacity: 0.1 } },
+                  circle: { shapeOptions: { color: '#8b5cf6', weight: 2, fillOpacity: 0.1 } },
+                  polyline: false,
+                  marker: false,
+                  circlemarker: false,
+              },
+              edit: { featureGroup: drawnItems, remove: true }
+          });
+          map.addControl(drawControl);
+
+          map.on(L.Draw.Event.CREATED, function(e) {
+              drawnItems.clearLayers();
+              drawnItems.addLayer(e.layer);
+              window._boundaryLayer = e.layer;
+              filterMarkersByBoundary(e.layer);
+          });
+
+          map.on(L.Draw.Event.DELETED, function() {
+              window._boundaryLayer = null;
+              showAllMarkers();
+          });
 
           if (nurseLat && nurseLng) {
               userMarker = L.marker([nurseLat, nurseLng], {
@@ -400,6 +534,46 @@
           document.getElementById('detailDistance').textContent = `${distance} (~${time})`;
       })
       .addTo(map);
+  }
+
+  // --- BOUNDARY FILTERING ---
+  function pointInLayer(lat, lng, layer) {
+      if (layer instanceof L.Circle) {
+          return map.distance(L.latLng(lat, lng), layer.getLatLng()) <= layer.getRadius();
+      }
+      if (layer.getBounds && !(layer instanceof L.Polygon)) {
+          return layer.getBounds().contains(L.latLng(lat, lng));
+      }
+      const poly = layer.getLatLngs()[0];
+      let inside = false;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+          const xi = poly[i].lat, yi = poly[i].lng;
+          const xj = poly[j].lat, yj = poly[j].lng;
+          if ((yi > lng) !== (yj > lng) && lat < (xj - xi) * (lng - yi) / (yj - yi) + xi) {
+              inside = !inside;
+          }
+      }
+      return inside;
+  }
+
+  function filterMarkersByBoundary(layer) {
+      markersLayer.eachLayer(marker => {
+          const ll = marker.getLatLng();
+          if (pointInLayer(ll.lat, ll.lng, layer)) {
+              marker.setOpacity(1);
+              if (marker._icon) marker._icon.style.pointerEvents = 'auto';
+          } else {
+              marker.setOpacity(0.15);
+              if (marker._icon) marker._icon.style.pointerEvents = 'none';
+          }
+      });
+  }
+
+  function showAllMarkers() {
+      markersLayer.eachLayer(marker => {
+          marker.setOpacity(1);
+          if (marker._icon) marker._icon.style.pointerEvents = 'auto';
+      });
   }
 
   // --- LOADERS ---
@@ -568,6 +742,8 @@
               marker.addTo(markersLayer);
           }
       });
+      // Re-apply boundary filter if active
+      if (window._boundaryLayer) filterMarkersByBoundary(window._boundaryLayer);
   }
 
   window.handleItemClick = function(item) {
@@ -724,13 +900,103 @@
       });
   }
 
+  function loadUnreadCount() {
+      fetch('/api/unread_count').then(r => r.json()).then(data => {
+          const badge = document.getElementById('unreadBadge');
+          if (data.count > 0) {
+              badge.textContent = data.count > 99 ? '99+' : data.count;
+              badge.style.display = '';
+          } else {
+              badge.style.display = 'none';
+          }
+      }).catch(() => {});
+  }
+
+  // --- My Reviews Modal ---
+  window.openMyReviewsModal = function() {
+      const body = document.getElementById('myReviewsBody');
+      body.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin"></i></div>';
+      new bootstrap.Modal(document.getElementById('myReviewsModal')).show();
+
+      fetch('/provider/my_reviews').then(r => r.json()).then(data => {
+          const reviews = data.reviews || [];
+          if (!reviews.length) {
+              body.innerHTML = '<div class="text-center py-5"><i class="far fa-comment-dots fa-2x text-muted mb-2"></i><p class="text-muted">{{ _("No reviews yet.") }}</p></div>';
+              return;
+          }
+          body.innerHTML = reviews.map(r => {
+              const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+              const date = new Date(r.created_at).toLocaleDateString('uk-UA');
+              let responseHtml = '';
+              if (r.response_text) {
+                  const respDate = r.response_at ? new Date(r.response_at).toLocaleDateString('uk-UA') : '';
+                  responseHtml = `<div class="ms-4 mt-2 p-3 bg-light rounded border-start border-3 border-primary">
+                      <div class="d-flex align-items-center gap-2 mb-1">
+                          <i class="fas fa-reply text-primary small"></i>
+                          <strong class="small text-primary">{{ _("Your response") }}</strong>
+                          <span class="text-muted small">${respDate}</span>
+                      </div>
+                      <p class="text-dark small mb-0">${r.response_text}</p>
+                  </div>`;
+              } else {
+                  responseHtml = `<div class="mt-2">
+                      <button class="btn btn-sm btn-outline-primary" onclick="showRespondForm(${r.id}, this)">
+                          <i class="fas fa-reply me-1"></i>{{ _("Respond") }}
+                      </button>
+                      <div class="respond-form mt-2" style="display:none;">
+                          <textarea class="form-control mb-2" rows="2" placeholder="{{ _('Write your public response...') }}" id="responseText${r.id}"></textarea>
+                          <div class="d-flex gap-2">
+                              <button class="btn btn-sm btn-success" onclick="submitResponse(${r.id})">{{ _("Send") }}</button>
+                              <button class="btn btn-sm btn-light border" onclick="this.closest('.respond-form').style.display='none'">{{ _("Cancel") }}</button>
+                          </div>
+                      </div>
+                  </div>`;
+              }
+              return `<div class="border-bottom pb-3 mb-3">
+                  <div class="d-flex justify-content-between mb-1">
+                      <strong>${r.patient_name}</strong>
+                      <span class="text-warning">${stars} <span class="text-muted small">(${r.rating})</span></span>
+                  </div>
+                  <div class="text-muted small mb-1">${date}</div>
+                  <p class="text-secondary mb-0">"${r.comment || ''}"</p>
+                  ${responseHtml}
+              </div>`;
+          }).join('');
+      });
+  };
+
+  window.showRespondForm = function(reviewId, btn) {
+      const form = btn.nextElementSibling;
+      form.style.display = '';
+      btn.style.display = 'none';
+  };
+
+  window.submitResponse = function(reviewId) {
+      const text = document.getElementById('responseText' + reviewId).value.trim();
+      if (!text) { alert("{{ _('Please write a response') }}"); return; }
+
+      fetch(`/client/review/${reviewId}/respond`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+          body: JSON.stringify({ response_text: text })
+      }).then(r => r.json()).then(data => {
+          if (data.success) {
+              openMyReviewsModal();
+          } else {
+              alert(data.message || 'Error');
+          }
+      });
+  };
+
   document.addEventListener('DOMContentLoaded', () => {
       initMap();
       refreshOffersBadge();
+      loadUnreadCount();
       setInterval(() => {
           if(currentMode === 'requests') loadRequests();
           else if(currentMode === 'offers') loadMyOffers();
           refreshOffersBadge();
+          loadUnreadCount();
       }, 30000);
   });
 </script>

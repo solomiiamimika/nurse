@@ -1,4 +1,4 @@
-{% extends "base.html" %} 
+{% extends "base.html" %}
 {% block content %}
 
 
@@ -6,12 +6,26 @@
   <div style="max-width: 1200px; margin: 0 auto;">
     <h2>{{ _("Hi") }}, {{ current_user.full_name if current_user.full_name else current_user.username}}!</h2>
     <div class="hero-subtitle">{{ _("Find the perfect service for your needs") }}</div>
+    {% set lvl = current_user.player_level_info %}
+    <div class="player-badge mt-2">
+      <span class="player-icon">{{ lvl.icon }}</span>
+      <span class="player-title">{{ lvl.title }}</span>
+      <span class="player-orders">{{ lvl.count }} {{ _("orders") }}</span>
+      {% if lvl.next_title %}
+      <div class="player-progress-wrapper">
+        <div class="player-progress-bar" style="width: {{ lvl.progress }}%"></div>
+      </div>
+      <span class="player-next">{{ _("Next:") }} {{ lvl.next_icon }} {{ lvl.next_title }} ({{ lvl.next_threshold }})</span>
+      {% else %}
+      <span class="player-max">{{ _("Max Level!") }}</span>
+      {% endif %}
+    </div>
   </div>
 </div>
 
 <div class="sticky-toolbar">
   <div class="toolbar-container">
-    
+
     <form class="top-search-bar" method="GET" action="{{ request.path }}">
       <input type="text" name="q" value="{{ search_query|default('') }}" placeholder="{{ _('What service are you looking for?') }}" class="search-input"/>
       <button type="submit" class="search-btn">{{ _("Search") }}</button>
@@ -27,10 +41,19 @@
         <i class="fas fa-calendar"></i> {{ _("My Appointments") }}
       </a>
 
+      <a href="{{ url_for('main.chats') }}" class="btn" style="position:relative;" id="chatsBtn">
+        <i class="fas fa-comments"></i> {{ _("Chats") }}
+        <span id="unreadBadge" class="badge bg-danger rounded-pill" style="display:none;position:absolute;top:-4px;right:-4px;font-size:10px;min-width:18px;padding:3px 5px;"></span>
+      </a>
+
+      <a href="{{ url_for('client.history') }}" class="btn">
+        <i class="fas fa-clock-rotate-left"></i> {{ _("History") }}
+      </a>
+
       <button id="location-btn" class="btn">
         <i class="fas fa-map-marker-alt"></i> {{ _("Update Location") }}
       </button>
-      
+
       <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#createRequestModal">
         <i class="fas fa-plus"></i> {{ _("Post a Request") }}
       </button>
@@ -49,69 +72,106 @@
 
 <div class="client-dashboard">
   <div class="row g-4">
-      
+
+      <!-- Left: Map (always visible) -->
       <div class="col-lg-8 col-md-7">
         <div class="content-card map-card-wrapper">
             <div class="d-flex justify-content-between align-items-center mb-3">
                   <h5 class="premium-title mb-0">{{ _("Available Services Nearby") }}</h5>
                   <span class="text-muted small">{{ _("Based on your location") }}</span>
             </div>
-            
+
             <div id="nursesMap" style="height: 600px; width: 100%; background: #e0e0e0; border-radius: 8px;"></div>
         </div>
       </div>
 
+      <!-- Right: Tabs -->
       <div class="col-lg-4 col-md-5">
-        
-        <div class="mb-4">
-            <h6 class="text-uppercase text-muted small fw-bold mb-3" style="letter-spacing: 1px;">{{ _("My Active Requests") }}</h6>
-            <div id="myRequestsList">
-                </div>
+
+        <!-- Tracking banner (hidden by default) -->
+        <div id="trackingBanner" class="d-none mb-3 p-3 rounded-3 shadow-sm" style="background:linear-gradient(135deg,#1dbf73 0%,#0ea5e9 100%);color:#fff;">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="tracking-pulse-dot"></div>
+                <strong id="trackingTitle">{{ _("Provider is on the way!") }}</strong>
+            </div>
+            <div id="trackingInfo" class="small" style="opacity:0.9;"></div>
         </div>
 
-        <hr style="opacity: 0.1; margin: 20px 0;">
-
-        <h5 class="premium-title">{{ _("Found Providers") }}</h5>
-        <div class="providers-scroll-area">
-          
-          {% if nurses %} 
-            {% for nurse in nurses %}
-            <div class="card nurse-item" onclick="calculateRoute({{nurse.latitude or 'null'}},{{nurse.longitude or 'null'}},'{{nurse.user_name}}')">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h6 class="mb-1 fw-bold">{{ nurse.full_name or nurse.user_name }}</h6>
-                        <div class="small text-muted mb-2">
-                             <i class="fas fa-map-marker-alt text-muted"></i> {{ nurse.address or _('No address') }}
-                        </div>
-                    </div>
-                    {% if nurse.online %} 
-                        <span class="badge badge-online">{{ _("Online") }}</span>
-                    {% else %} 
-                        <span class="badge badge-offline">{{ _("Offline") }}</span> 
-                    {% endif %}
-                </div>
-                
-               <div class="d-flex gap-2 mt-2">
-                  <a href="{{ url_for('client.provider_detail', provider_id=nurse.id) }}" class="btn btn-outline-secondary flex-grow-1" style="font-size: 0.9rem; font-weight: 600;">
-                      {{ _("View Profile") }}
-                  </a>
-                  
-                  <button onclick="openBookingModal('{{ nurse.id }}','{{ nurse.full_name }}')" class="btn btn-success flex-grow-1" style="font-size: 0.9rem; font-weight: 600;">
-                      {{ _("Book") }}
-                  </button>
-              </div>
-              </div>
-            </div>
-            {% endfor %} 
-          {% else %}
-            <div class="text-center py-5 text-muted">
-                <i class="fas fa-search fa-2x mb-3" style="color:#ddd"></i>
-                <p>{{ _("No services found in this area.") }}</p>
-            </div>
-          {% endif %}
-
+        <!-- Tab buttons -->
+        <div class="nav nav-pills nav-fill p-1 bg-white border rounded-pill mb-3 shadow-sm" role="tablist">
+          <button class="nav-link rounded-pill active fw-bold small py-2" id="tab-active" onclick="switchTab('active')">
+            <i class="fas fa-clock me-1"></i>{{ _("Active") }} <span id="activeBadge" class="badge bg-warning text-dark ms-1 d-none"></span>
+          </button>
+          <button class="nav-link rounded-pill fw-bold small py-2" id="tab-accepted" onclick="switchTab('accepted')">
+            <i class="fas fa-check-circle me-1"></i>{{ _("Accepted") }} <span id="acceptedBadge" class="badge bg-success ms-1 d-none"></span>
+          </button>
+          <button class="nav-link rounded-pill fw-bold small py-2" id="tab-find" onclick="switchTab('find')">
+            <i class="fas fa-search me-1"></i>{{ _("Providers") }}
+          </button>
         </div>
+
+        <!-- Tab 1: Active Requests (pending) -->
+        <div id="activeContent">
+          <div id="activeRequestsList">
+            <div class="text-center p-3 text-muted" style="border: 1px dashed #ccc; border-radius: 8px; background: rgba(255,255,255,0.6);">
+              <small>{{ _("Loading...") }}</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Accepted Requests -->
+        <div id="acceptedContent" class="d-none">
+          <div id="acceptedRequestsList">
+            <div class="text-center p-3 text-muted" style="border: 1px dashed #ccc; border-radius: 8px; background: rgba(255,255,255,0.6);">
+              <small>{{ _("Loading...") }}</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Found Providers -->
+        <div id="findContent" class="d-none">
+          <div class="providers-scroll-area">
+
+            {% if nurses %}
+              {% for nurse in nurses %}
+              <div class="card nurse-item" onclick="calculateRoute({{nurse.latitude or 'null'}},{{nurse.longitude or 'null'}},'{{nurse.user_name}}')">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start">
+                      <div>
+                          <h6 class="mb-1 fw-bold">{{ nurse.full_name or nurse.user_name }}</h6>
+                          <div class="small text-muted mb-2">
+                               <i class="fas fa-map-marker-alt text-muted"></i> {{ nurse.address or _('No address') }}
+                          </div>
+                      </div>
+                      {% if nurse.online %}
+                          <span class="badge badge-online">{{ _("Online") }}</span>
+                      {% else %}
+                          <span class="badge badge-offline">{{ _("Offline") }}</span>
+                      {% endif %}
+                  </div>
+
+                 <div class="d-flex gap-2 mt-2">
+                    <a href="{{ url_for('client.provider_detail', provider_id=nurse.id) }}" class="btn btn-outline-secondary flex-grow-1" style="font-size: 0.9rem; font-weight: 600;">
+                        {{ _("View Profile") }}
+                    </a>
+
+                    <button onclick="openBookingModal('{{ nurse.id }}','{{ nurse.full_name }}')" class="btn btn-success flex-grow-1" style="font-size: 0.9rem; font-weight: 600;">
+                        {{ _("Book") }}
+                    </button>
+                </div>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="text-center py-5 text-muted">
+                  <i class="fas fa-search fa-2x mb-3" style="color:#ddd"></i>
+                  <p>{{ _("No services found in this area.") }}</p>
+              </div>
+            {% endif %}
+
+          </div>
+        </div>
+
       </div>
   </div>
 </div>
@@ -199,33 +259,239 @@
     </div>
 </div>
 
-{% endblock %} 
+{% endblock %}
 
 {% block scripts %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
 <script src="https://js.stripe.com/v3/"></script>
 
 <script src="https://cdn.botpress.cloud/webchat/v3.5/inject.js"></script>
 <script src="https://files.bpcontent.cloud/2026/01/10/13/20260110130650-79OB48AX.js" defer></script>
-    
+
 <style>
-    /* Ховаємо текстову панель маршруту, лишаємо тільки лінію */
     .leaflet-routing-container { display: none !important; }
+
+    /* Player level badge */
+    .player-badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
+        padding: 6px 16px; border-radius: 20px; font-size: 0.85rem;
+        color: #fff;
+    }
+    .player-icon { font-size: 1.2rem; }
+    .player-title { font-weight: 700; }
+    .player-orders { opacity: 0.8; font-size: 0.8rem; }
+    .player-progress-wrapper {
+        width: 60px; height: 6px; background: rgba(255,255,255,0.2);
+        border-radius: 3px; overflow: hidden;
+    }
+    .player-progress-bar {
+        height: 100%; background: #fbbf24; border-radius: 3px;
+        transition: width 0.5s ease;
+    }
+    .player-next { font-size: 0.75rem; opacity: 0.7; }
+    .player-max { font-size: 0.75rem; color: #fbbf24; font-weight: 700; }
+
+    /* Stars celebration animation */
+    @keyframes starFall {
+        0% { transform: translateY(-100vh) rotate(0deg) scale(0); opacity: 1; }
+        10% { transform: translateY(-80vh) rotate(36deg) scale(1); opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateY(100vh) rotate(720deg) scale(0.5); opacity: 0; }
+    }
+    .celebration-star {
+        position: fixed;
+        top: 0;
+        z-index: 99999;
+        pointer-events: none;
+        animation: starFall linear forwards;
+        font-size: 24px;
+    }
+    .celebration-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 99998; pointer-events: none;
+        background: radial-gradient(circle at center, rgba(255,215,0,0.1) 0%, transparent 70%);
+        animation: celebrationGlow 2s ease-out forwards;
+    }
+    @keyframes celebrationGlow {
+        0% { opacity: 0; }
+        30% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+
+    /* Pulsing dot for tracking banner */
+    .tracking-pulse-dot {
+        width: 10px; height: 10px; border-radius: 50%;
+        background: #fff; flex-shrink: 0;
+        animation: pulse-dot 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
+        50% { box-shadow: 0 0 0 8px rgba(255,255,255,0); }
+    }
+
+    /* Animated provider marker on map */
+    .provider-tracking-marker {
+        width: 36px; height: 36px; position: relative;
+    }
+    .provider-tracking-marker .marker-icon {
+        width: 36px; height: 36px; border-radius: 50%;
+        background: #1dbf73; border: 3px solid #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-size: 16px; z-index: 2; position: relative;
+    }
+    .provider-tracking-marker .marker-pulse {
+        position: absolute; top: -6px; left: -6px;
+        width: 48px; height: 48px; border-radius: 50%;
+        background: rgba(29, 191, 115, 0.3);
+        animation: marker-pulse 2s ease-out infinite;
+    }
+    @keyframes marker-pulse {
+        0% { transform: scale(0.8); opacity: 1; }
+        100% { transform: scale(2); opacity: 0; }
+    }
+
+    /* Highlighted provider marker */
+    .provider-highlight-marker {
+        width: 28px; height: 28px; border-radius: 50%;
+        background: #f59e0b; border: 3px solid #fff;
+        box-shadow: 0 0 0 4px rgba(245,158,11,0.3), 0 2px 8px rgba(0,0,0,0.3);
+        animation: highlight-bounce 0.6s ease-out;
+    }
+    @keyframes highlight-bounce {
+        0% { transform: scale(0); }
+        60% { transform: scale(1.3); }
+        100% { transform: scale(1); }
+    }
 </style>
 
 <script>
   let map;
   let userMarker;
   let nursesLayer = L.layerGroup();
-  let routingControl = null; // Змінна для зберігання поточного маршруту
+  let routingControl = null;
+  let currentTab = 'active';
 
+  // Tracking state
+  let trackingMarker = null;
+  let trackingRoute = null;
+  let highlightMarker = null;
+  let isTracking = false;
+
+  const currentUserId = {{ current_user.id }};
   const csrfMeta = document.querySelector('meta[name="csrf-token"]');
   const csrfToken = csrfMeta ? csrfMeta.content : '';
+
+  // --- SOCKETIO for real-time tracking ---
+  const socket = io();
+
+  socket.on('connect', () => {
+      socket.emit('join', { user_id: currentUserId });
+  });
+
+  // Provider started trip
+  socket.on('trip_started', (data) => {
+      isTracking = true;
+      const banner = document.getElementById('trackingBanner');
+      banner.classList.remove('d-none');
+      document.getElementById('trackingTitle').innerHTML =
+          `<i class="fas fa-car me-1"></i> ${data.message || "{{ _('Provider is on the way!') }}"}`;
+      document.getElementById('trackingInfo').textContent = "{{ _('Waiting for location...') }}";
+  });
+
+  // Provider location update
+  socket.on('nurse_location_update', (data) => {
+      if (!map || !data.lat || !data.lng) return;
+      const lat = data.lat, lng = data.lng;
+
+      if (!trackingMarker) {
+          // Create animated tracking marker
+          trackingMarker = L.marker([lat, lng], {
+              icon: L.divIcon({
+                  className: '',
+                  html: `<div class="provider-tracking-marker">
+                      <div class="marker-pulse"></div>
+                      <div class="marker-icon"><i class="fas fa-user-nurse"></i></div>
+                  </div>`,
+                  iconSize: [36, 36],
+                  iconAnchor: [18, 18]
+              }),
+              zIndexOffset: 1000
+          }).addTo(map);
+      } else {
+          trackingMarker.setLatLng([lat, lng]);
+      }
+
+      // Update route from provider to client
+      if (userMarker) {
+          if (trackingRoute) map.removeControl(trackingRoute);
+          const clientLL = userMarker.getLatLng();
+          trackingRoute = L.Routing.control({
+              waypoints: [L.latLng(lat, lng), L.latLng(clientLL.lat, clientLL.lng)],
+              routeWhileDragging: false,
+              draggableWaypoints: false,
+              addWaypoints: false,
+              createMarker: () => null,
+              lineOptions: { styles: [{color: '#1dbf73', opacity: 0.8, weight: 5, dashArray: '10 6'}] },
+              show: false
+          })
+          .on('routesfound', (e) => {
+              const s = e.routes[0].summary;
+              const dist = (s.totalDistance / 1000).toFixed(1);
+              const mins = Math.round(s.totalTime / 60);
+              document.getElementById('trackingInfo').innerHTML =
+                  `<i class="fas fa-road me-1"></i>${dist} km &nbsp; <i class="fas fa-clock me-1"></i>~${mins} {{ _("min") }}`;
+          })
+          .addTo(map);
+      }
+
+      // Fit map to show both markers
+      if (userMarker) {
+          const bounds = L.latLngBounds([
+              [lat, lng],
+              userMarker.getLatLng()
+          ]);
+          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+      }
+  });
+
+  // Provider arrived
+  socket.on('trip_ended', (data) => {
+      isTracking = false;
+      const banner = document.getElementById('trackingBanner');
+      banner.style.background = 'linear-gradient(135deg,#10b981 0%,#059669 100%)';
+      document.getElementById('trackingTitle').innerHTML =
+          `<i class="fas fa-check-circle me-1"></i> {{ _("Provider has arrived!") }}`;
+      document.getElementById('trackingInfo').textContent = '';
+
+      // Clean up after 10 seconds
+      setTimeout(() => {
+          banner.classList.add('d-none');
+          banner.style.background = 'linear-gradient(135deg,#1dbf73 0%,#0ea5e9 100%)';
+          if (trackingMarker) { map.removeLayer(trackingMarker); trackingMarker = null; }
+          if (trackingRoute) { map.removeControl(trackingRoute); trackingRoute = null; }
+      }, 10000);
+  });
+
+  // --- TAB SWITCHING ---
+  window.switchTab = function(mode) {
+      currentTab = mode;
+      document.getElementById('tab-active').classList.toggle('active', mode === 'active');
+      document.getElementById('tab-accepted').classList.toggle('active', mode === 'accepted');
+      document.getElementById('tab-find').classList.toggle('active', mode === 'find');
+
+      document.getElementById('activeContent').classList.toggle('d-none', mode !== 'active');
+      document.getElementById('acceptedContent').classList.toggle('d-none', mode !== 'accepted');
+      document.getElementById('findContent').classList.toggle('d-none', mode !== 'find');
+  };
 
   function showStatus(message, isError = false) {
       const statusEl = document.getElementById('status-message');
@@ -238,31 +504,101 @@
 
   function initMap() {
       try {
-          // Беремо координати з бекенду або дефолтні (Київ)
           const userLat = {{ current_user.latitude if current_user.latitude else 'null' }};
           const userLng = {{ current_user.longitude if current_user.longitude else 'null' }};
           const mapCenterLat = userLat !== null ? userLat : 50.4501;
           const mapCenterLng = userLng !== null ? userLng : 30.5234;
 
           map = L.map('nursesMap').setView([mapCenterLat, mapCenterLng], 12);
-          
+
           L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
               attribution: '&copy; OpenStreetMap contributors'
           }).addTo(map);
-          
+
           nursesLayer.addTo(map);
 
           if (userLat !== null && userLng !== null) {
               createUserMarker(userLat, userLng);
           }
-          
+
           loadNursesLocations();
+
+          // Draw control for boundary filtering
+          const drawnItems = new L.FeatureGroup();
+          map.addLayer(drawnItems);
+
+          const drawControl = new L.Control.Draw({
+              position: 'topright',
+              draw: {
+                  polygon: { allowIntersection: false, shapeOptions: { color: '#3b82f6', weight: 2, fillOpacity: 0.1 } },
+                  rectangle: { shapeOptions: { color: '#3b82f6', weight: 2, fillOpacity: 0.1 } },
+                  circle: { shapeOptions: { color: '#3b82f6', weight: 2, fillOpacity: 0.1 } },
+                  polyline: false,
+                  marker: false,
+                  circlemarker: false,
+              },
+              edit: { featureGroup: drawnItems, remove: true }
+          });
+          map.addControl(drawControl);
+
+          map.on(L.Draw.Event.CREATED, function(e) {
+              drawnItems.clearLayers();
+              drawnItems.addLayer(e.layer);
+              filterMarkersByBoundary(e.layer);
+          });
+
+          map.on(L.Draw.Event.DELETED, function() {
+              showAllMarkers();
+          });
+
       } catch (error) { console.error("Map error:", error); }
+  }
+
+  function pointInLayer(lat, lng, layer) {
+      if (layer instanceof L.Circle) {
+          const center = layer.getLatLng();
+          const radius = layer.getRadius();
+          return map.distance(L.latLng(lat, lng), center) <= radius;
+      }
+      if (layer.getBounds && !(layer instanceof L.Polygon)) {
+          return layer.getBounds().contains(L.latLng(lat, lng));
+      }
+      // Polygon — ray-casting
+      const poly = layer.getLatLngs()[0];
+      let inside = false;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+          const xi = poly[i].lat, yi = poly[i].lng;
+          const xj = poly[j].lat, yj = poly[j].lng;
+          if ((yi > lng) !== (yj > lng) && lat < (xj - xi) * (lng - yi) / (yj - yi) + xi) {
+              inside = !inside;
+          }
+      }
+      return inside;
+  }
+
+  function filterMarkersByBoundary(layer) {
+      nursesLayer.eachLayer(marker => {
+          const ll = marker.getLatLng();
+          if (pointInLayer(ll.lat, ll.lng, layer)) {
+              marker.setOpacity(1);
+              if (marker._icon) marker._icon.style.pointerEvents = 'auto';
+          } else {
+              marker.setOpacity(0.15);
+              if (marker._icon) marker._icon.style.pointerEvents = 'none';
+          }
+      });
+  }
+
+  function showAllMarkers() {
+      nursesLayer.eachLayer(marker => {
+          marker.setOpacity(1);
+          if (marker._icon) marker._icon.style.pointerEvents = 'auto';
+      });
   }
 
   function createUserMarker(lat, lng) {
       if (userMarker) map.removeLayer(userMarker);
-      
+
       userMarker = L.marker([lat, lng], {
           icon: L.divIcon({
               className: 'my-marker',
@@ -272,22 +608,35 @@
       }).addTo(map).bindPopup('<b>{{ _("You are here") }}</b>');
   }
 
-  // --- ЛОГІКА МАРШРУТІВ ---
   window.calculateRoute = function(destLat, destLng, providerName) {
+      if (destLat === null || destLng === null) return;
+
+      // Remove previous highlight
+      if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
+
+      // Add highlighted marker at provider location
+      highlightMarker = L.marker([destLat, destLng], {
+          icon: L.divIcon({
+              className: '',
+              html: '<div class="provider-highlight-marker"></div>',
+              iconSize: [28, 28],
+              iconAnchor: [14, 14]
+          }),
+          zIndexOffset: 500
+      }).addTo(map).bindPopup(`<b>${providerName}</b>`).openPopup();
+
+      // Fly to provider location
       if (!userMarker) {
-          alert("{{ _('Please update your location first so we can build a route.') }}");
+          map.flyTo([destLat, destLng], 14, { duration: 1 });
           return;
       }
 
-      // 1. Видаляємо старий маршрут, якщо є
+      // Show route
       if (routingControl) {
           map.removeControl(routingControl);
       }
-
       const userLatLng = userMarker.getLatLng();
       showStatus(`{{ _('Calculating route to') }} ${providerName}...`);
-
-      // 2. Створюємо новий маршрут
       routingControl = L.Routing.control({
           waypoints: [
               L.latLng(userLatLng.lat, userLatLng.lng),
@@ -296,21 +645,24 @@
           routeWhileDragging: false,
           draggableWaypoints: false,
           addWaypoints: false,
-          // Не створюємо нові маркери (бо у нас вже є маркери юзера і провайдера)
           createMarker: function() { return null; },
           lineOptions: {
               styles: [{color: '#0d6efd', opacity: 0.7, weight: 5}]
           },
-          show: false // Ховаємо текстову інструкцію
+          show: false
       })
       .on('routesfound', function(e) {
-          const routes = e.routes;
-          const summary = routes[0].summary;
+          const summary = e.routes[0].summary;
           const distance = (summary.totalDistance / 1000).toFixed(1) + " km";
           const time = Math.round(summary.totalTime / 60) + " min";
-          
-          // Показуємо результат зверху сторінки
-          showStatus(`${providerName}: ${distance}, ~${time} drive`);
+          showStatus(`${providerName}: ${distance}, ~${time}`);
+
+          // Fit map to show both points
+          const bounds = L.latLngBounds([
+              [userLatLng.lat, userLatLng.lng],
+              [destLat, destLng]
+          ]);
+          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
       })
       .on('routingerror', function() {
           showStatus("{{ _('Could not calculate route.') }}", true);
@@ -323,7 +675,7 @@
           nursesLayer.clearLayers();
           const response = await fetch('{{ url_for("client.get_nurses_locations") }}');
           const nurses = await response.json();
-          
+
           nurses.forEach(nurse => {
               const marker = L.marker([nurse.lat, nurse.lng], {
                   icon: L.divIcon({
@@ -332,17 +684,16 @@
                   })
               }).addTo(nursesLayer);
 
-              // Додаємо кнопку маршруту в Popup
               const popupContent = `
                   <div class="text-center">
                       <h6 class="fw-bold mb-1">${nurse.name}</h6>
                       <div class="d-flex gap-2 justify-content-center mt-2">
-                          <button class="btn btn-sm btn-outline-primary" 
-                                  onclick="calculateRoute(${nurse.lat}, ${nurse.lng}, '${nurse.name}')" 
+                          <button class="btn btn-sm btn-outline-primary"
+                                  onclick="calculateRoute(${nurse.lat}, ${nurse.lng}, '${nurse.name}')"
                                   title="{{ _('Show Route') }}">
                               <i class="fas fa-route"></i>
                           </button>
-                          <button class="btn btn-sm btn-success" 
+                          <button class="btn btn-sm btn-success"
                                   onclick="openBookingModal('${nurse.id}', '${nurse.name}')">
                               {{ _("Book") }}
                           </button>
@@ -354,7 +705,7 @@
       } catch (error) { console.error("Error loading services:", error); }
   }
 
-  // --- ІНШІ ФУНКЦІЇ (Request, Update Location, Booking) ---
+  // --- PAYMENT & ACTIONS ---
 
   const stripe = Stripe("{{ stripe_public_key }}");
 
@@ -400,7 +751,26 @@
       });
   };
 
-  // Store detected coordinates from the "detect location" button
+  window.acceptAndPay = function(offerId, reqId, price) {
+      if(!confirm("{{ _('Confirm provider and proceed to payment?') }}")) return;
+      fetch(`/client/client_accept_request/${offerId}/`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+          body: JSON.stringify({})
+      }).then(r => r.json()).then(res => {
+          if(res.success) {
+              payForRequest(reqId, price);
+          } else {
+              alert(res.message || res.error || 'Error');
+          }
+      });
+  };
+
+  window.openChat = function(userId) {
+      window.location.href = `/chat/${userId}`;
+  };
+
+  // Store detected coordinates
   let _detectedLat = null, _detectedLng = null;
 
   document.getElementById('detectAddressBtn').addEventListener('click', function() {
@@ -416,18 +786,17 @@
           (pos) => {
               _detectedLat = pos.coords.latitude;
               _detectedLng = pos.coords.longitude;
-              // Reverse geocode via Nominatim
               fetch(`https://nominatim.openstreetmap.org/reverse?lat=${_detectedLat}&lon=${_detectedLng}&format=json`)
                   .then(r => r.json())
                   .then(geo => {
                       const addr = geo.display_name || `${_detectedLat.toFixed(5)}, ${_detectedLng.toFixed(5)}`;
                       document.getElementById('reqAddress').value = addr;
-                      statusEl.textContent = '✓ {{ _("Location detected") }}';
+                      statusEl.textContent = '{{ _("Location detected") }}';
                       statusEl.style.color = '#16a34a';
                   })
                   .catch(() => {
                       document.getElementById('reqAddress').value = `${_detectedLat.toFixed(5)}, ${_detectedLng.toFixed(5)}`;
-                      statusEl.textContent = '✓ {{ _("Location detected") }}';
+                      statusEl.textContent = '{{ _("Location detected") }}';
                       statusEl.style.color = '#16a34a';
                   })
                   .finally(() => {
@@ -436,7 +805,7 @@
                   });
           },
           (err) => {
-              statusEl.textContent = '✗ ' + err.message;
+              statusEl.textContent = err.message;
               statusEl.style.color = '#dc3545';
               btn.disabled = false;
               btn.innerHTML = '<i class="fas fa-crosshairs"></i>';
@@ -449,7 +818,6 @@
       const address = document.getElementById('reqAddress').value.trim();
       if (!address) { alert("{{ _('Please enter your address.') }}"); return; }
 
-      // Priority: detected coords → map marker → saved DB coords → 0
       let lat, lng;
       if (_detectedLat !== null) {
           lat = _detectedLat; lng = _detectedLng;
@@ -495,9 +863,11 @@
       showStatus("{{ _('Locating...') }}");
       navigator.geolocation.getCurrentPosition(async (position) => {
           const {latitude, longitude} = position.coords;
-          createUserMarker(latitude, longitude);
-          map.setView([latitude, longitude], 13);
-          
+          if (map) {
+              createUserMarker(latitude, longitude);
+              map.setView([latitude, longitude], 13);
+          }
+
           await fetch('{{ url_for("client.update_location") }}', {
               method: 'POST',
               headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
@@ -532,6 +902,28 @@
           });
   }
 
+  function celebrateBooking() {
+      const overlay = document.createElement('div');
+      overlay.className = 'celebration-overlay';
+      document.body.appendChild(overlay);
+      setTimeout(() => overlay.remove(), 2000);
+
+      const emojis = ['⭐', '🌟', '✨', '💫', '🎉', '🎊'];
+      for (let i = 0; i < 40; i++) {
+          setTimeout(() => {
+              const star = document.createElement('div');
+              star.className = 'celebration-star';
+              star.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+              star.style.left = Math.random() * 100 + 'vw';
+              star.style.fontSize = (16 + Math.random() * 20) + 'px';
+              star.style.animationDuration = (2 + Math.random() * 2) + 's';
+              star.style.animationDelay = '0s';
+              document.body.appendChild(star);
+              setTimeout(() => star.remove(), 4000);
+          }, i * 60);
+      }
+  }
+
   document.getElementById('submitBookingBtn').addEventListener('click', function() {
       const nurseId = document.getElementById('nurseIdInput').value;
       const serviceId = document.getElementById('serviceSelect').value;
@@ -545,7 +937,10 @@
       })
       .then(r => r.json())
       .then(data => {
-          if(data.success) { alert("{{ _('Appointment confirmed!') }}"); location.reload(); } 
+          if(data.success) {
+              celebrateBooking();
+              setTimeout(() => { alert("{{ _('Appointment confirmed!') }}"); location.reload(); }, 1500);
+          }
           else { alert("{{ _('Error:') }} " + data.message); }
       });
   });
@@ -585,143 +980,208 @@
       }
   }
 
+  // --- RENDER REQUEST CARD (shared between tabs) ---
+  function renderRequestCard(req) {
+      const isCompleted  = req.status === 'completed' || req.status === 'confirmed_paid';
+      const isAuthorized = req.status === 'authorized';
+      const isAccepted   = req.status === 'accepted';
+      const isBooked     = isAccepted || isAuthorized || isCompleted;
+      const hasOffers    = !isBooked && req.offers && req.offers.length > 0;
+
+      const daysUntil = (new Date(req.appointment_start_time) - new Date()) / (1000 * 3600 * 24);
+      const canPayNow = daysUntil <= 7;
+
+      let borderColor, badge;
+      if (isCompleted) {
+          borderColor = '#10b981';
+          badge = `<span class="badge bg-success" style="height:fit-content">{{ _("Completed") }}</span>`;
+      } else if (isAuthorized) {
+          borderColor = '#8b5cf6';
+          badge = `<span class="badge" style="height:fit-content;background:#8b5cf6;color:#fff;">{{ _("Payment held") }}</span>`;
+      } else if (isAccepted && canPayNow) {
+          borderColor = '#f59e0b';
+          badge = `<span class="badge bg-warning text-dark" style="height:fit-content">{{ _("Pay to confirm") }}</span>`;
+      } else if (isAccepted) {
+          borderColor = '#3b82f6';
+          badge = `<span class="badge bg-primary" style="height:fit-content">{{ _("Booked") }}</span>`;
+      } else if (hasOffers) {
+          borderColor = '#10b981';
+          badge = `<span class="badge bg-success" style="height:fit-content">{{ _("Offers") }}: ${req.offers.length}</span>`;
+      } else {
+          borderColor = '#ffc107';
+          badge = `<span class="badge bg-warning text-dark" style="height:fit-content">{{ _("Pending") }}</span>`;
+      }
+
+      let html = `
+      <div class="card mb-2" style="border-left: 4px solid ${borderColor};">
+          <div class="card-body p-3">
+              <div class="d-flex justify-content-between align-items-start">
+                  <strong>${req.service_name}</strong>
+                  ${badge}
+              </div>
+              <small class="text-muted">${new Date(req.appointment_start_time).toLocaleString()}</small>
+              ${req.payment ? `<div class="small text-success fw-bold mt-1">${req.payment}</div>` : ''}
+              <div class="d-flex gap-2 mt-2 flex-wrap">`;
+
+      if (isBooked && req.accepted_provider) {
+          html += `<button onclick="toggleProviderCard(${req.id})" class="btn btn-sm btn-primary flex-grow-1" style="font-size:12px">
+              <i class="fas fa-user-nurse me-1"></i>{{ _("View Provider") }}
+          </button>`;
+      }
+      if (isAccepted && canPayNow && req.accepted_provider) {
+          const price = req.accepted_provider.agreed_price || req.payment;
+          html += `<button onclick="payForRequest(${req.id}, ${price})" class="btn btn-sm btn-success flex-grow-1" style="font-size:12px">
+              <i class="fas fa-lock me-1"></i>{{ _("Hold payment") }} ${price}
+          </button>`;
+      }
+      if (isBooked && req.accepted_provider) {
+          html += `<button onclick="openChat(${req.accepted_provider.id})" class="btn btn-sm btn-outline-secondary" style="font-size:12px">
+              <i class="fas fa-comment me-1"></i>{{ _("Chat") }}
+          </button>`;
+      }
+      if(hasOffers) {
+          html += `<button onclick="showOffers(${req.id})" class="btn btn-sm btn-success flex-grow-1" style="font-size:12px">
+              <i class="fas fa-list me-1"></i>{{ _("View Offers") }} (${req.offers.length})
+          </button>`;
+      }
+      if (!isBooked) {
+          html += `<button onclick="cancelRequest(${req.id})" class="btn btn-sm btn-outline-danger" style="font-size:12px">{{ _("Cancel") }}</button>`;
+      }
+      html += `</div>`;
+
+      // Payment notice
+      if (isAccepted && !canPayNow) {
+          const payDate = new Date(new Date(req.appointment_start_time).getTime() - 7*24*3600*1000);
+          const payDateStr = payDate.toLocaleDateString('uk-UA', {day:'numeric', month:'long'});
+          html += `
+          <div class="mt-2 p-2 rounded" style="background:#eff6ff;border:1px solid #bfdbfe;font-size:12px;line-height:1.5;">
+              <i class="fas fa-info-circle text-primary me-1"></i>
+              <strong>{{ _("Payment is available 7 days before the appointment.") }}</strong><br>
+              <span class="text-muted">{{ _("From") }} <strong>${payDateStr}</strong> {{ _("you will receive an email to authorize the payment. Funds are held securely and released only after the service.") }}</span>
+          </div>`;
+      }
+
+      // Provider card (for accepted)
+      if (isBooked && req.accepted_provider) {
+          const prov = req.accepted_provider;
+          const provPhoto = prov.photo
+              ? `<img src="${prov.photo}" class="rounded-circle me-2" style="width:40px;height:40px;object-fit:cover;flex-shrink:0;">`
+              : `<div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold me-2" style="width:40px;height:40px;flex-shrink:0;font-size:15px;">${(prov.name||'?')[0].toUpperCase()}</div>`;
+          html += `
+          <div id="providerCard-${req.id}" class="mt-2 p-3 rounded" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                  ${provPhoto}
+                  <div>
+                      <div class="fw-bold" style="font-size:14px;">${prov.name}</div>
+                      ${prov.phone ? `<div class="small text-muted"><i class="fas fa-phone me-1"></i>${prov.phone}</div>` : ''}
+                  </div>
+                  <div class="ms-auto text-end">
+                      <div class="text-success fw-bold" style="font-size:15px;">${prov.agreed_price}</div>
+                      <div class="small text-muted">{{ _("agreed price") }}</div>
+                  </div>
+              </div>
+              ${prov.about ? `<div class="small text-muted" style="border-top:1px solid #bfdbfe;padding-top:8px;">${prov.about}</div>` : ''}
+              <div class="mt-2 d-flex gap-1 flex-wrap">
+                  <a href="/client/provider/${prov.id}" class="btn btn-sm btn-outline-primary" style="font-size:11px;">
+                      <i class="fas fa-id-card me-1"></i>{{ _("Full Profile") }}
+                  </a>
+                  ${prov.latitude && prov.longitude ? `<button onclick="calculateRoute(${prov.latitude}, ${prov.longitude}, '${prov.name}')" class="btn btn-sm btn-outline-success" style="font-size:11px;">
+                      <i class="fas fa-map-marker-alt me-1"></i>{{ _("Show on map") }}
+                  </button>` : ''}
+              </div>
+          </div>`;
+      }
+
+      // Offers list
+      if(hasOffers) {
+          html += `<div id="offersList-${req.id}" class="mt-2" style="display:none;">`;
+          req.offers.forEach(offer => {
+              const photo = offer.provider_photo
+                  ? `<img src="${offer.provider_photo}" class="rounded-circle me-2" style="width:32px;height:32px;object-fit:cover;">`
+                  : `<div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold me-2" style="width:32px;height:32px;flex-shrink:0;font-size:13px;">${(offer.provider_name||'?')[0].toUpperCase()}</div>`;
+              html += `
+              <div class="p-2 mb-2 rounded" style="background:#f8f9fa;border:1px solid #e5e7eb;">
+                  <div class="d-flex align-items-center mb-2">
+                      ${photo}
+                      <div>
+                          <div class="fw-bold" style="font-size:13px;">${offer.provider_name}</div>
+                          <div class="text-success fw-bold" style="font-size:13px;">${offer.proposed_price}</div>
+                      </div>
+                  </div>
+                  <div class="d-flex gap-1 flex-wrap">
+                      <button onclick="acceptOffer(${offer.offer_id})" class="btn btn-primary btn-sm flex-grow-1" style="font-size:11px;">
+                          <i class="fas fa-check me-1"></i>{{ _("Confirm") }}
+                      </button>
+                      <button onclick="acceptAndPay(${offer.offer_id}, ${req.id}, ${offer.proposed_price})" class="btn btn-success btn-sm flex-grow-1" style="font-size:11px;">
+                          <i class="fas fa-lock me-1"></i>{{ _("Confirm & Pay") }}
+                      </button>
+                      <button onclick="openChat(${offer.provider_id})" class="btn btn-outline-secondary btn-sm flex-grow-1" style="font-size:11px;">
+                          <i class="fas fa-comment me-1"></i>{{ _("Chat") }}
+                      </button>
+                  </div>
+              </div>`;
+          });
+          html += `</div>`;
+      }
+
+      html += `</div></div>`;
+      return html;
+  }
+
   function loadMyRequests() {
       fetch('/client/client_get_requests')
         .then(r => r.json())
         .then(data => {
             checkForNewOffers(data.requests);
-            const container = document.getElementById('myRequestsList');
-            const visible = (data.requests || []).filter(r => r.status !== 'cancelled');
-            if(!data.success || visible.length === 0) {
-                container.innerHTML = '<div class="text-center p-3 text-muted" style="border: 1px dashed #ccc; border-radius: 4px; background: rgba(255,255,255,0.6);"><small>{{ _("No active requests") }}</small></div>';
-                return;
+            const allReqs = (data.requests || []).filter(r => r.status !== 'cancelled');
+
+            // Split into active (pending) and accepted (booked)
+            const activeReqs = allReqs.filter(r => r.status === 'pending');
+            const acceptedReqs = allReqs.filter(r => ['accepted', 'authorized', 'completed', 'confirmed_paid'].includes(r.status));
+
+            // Render active requests
+            const activeContainer = document.getElementById('activeRequestsList');
+            if (activeReqs.length === 0) {
+                activeContainer.innerHTML = `
+                <div class="text-center p-4 text-muted" style="border: 1px dashed #d1d5db; border-radius: 8px; background: rgba(255,255,255,0.6);">
+                    <i class="fas fa-inbox fa-2x mb-2" style="color:#d1d5db;"></i>
+                    <p class="mb-2">{{ _("No active requests") }}</p>
+                    <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#createRequestModal">
+                        <i class="fas fa-plus me-1"></i>{{ _("Post a Request") }}
+                    </button>
+                </div>`;
+            } else {
+                activeContainer.innerHTML = activeReqs.map(renderRequestCard).join('');
             }
-            let html = '';
-            visible.forEach(req => {
-                const isCompleted  = req.status === 'completed' || req.status === 'confirmed_paid';
-                const isAuthorized = req.status === 'authorized';
-                const isAccepted   = req.status === 'accepted';
-                const isBooked     = isAccepted || isAuthorized || isCompleted;
-                const hasOffers    = !isBooked && req.offers && req.offers.length > 0;
 
-                const daysUntil = (new Date(req.appointment_start_time) - new Date()) / (1000 * 3600 * 24);
-                const canPayNow = daysUntil <= 7;
+            // Render accepted requests
+            const acceptedContainer = document.getElementById('acceptedRequestsList');
+            if (acceptedReqs.length === 0) {
+                acceptedContainer.innerHTML = `
+                <div class="text-center p-4 text-muted" style="border: 1px dashed #d1d5db; border-radius: 8px; background: rgba(255,255,255,0.6);">
+                    <i class="fas fa-check-circle fa-2x mb-2" style="color:#d1d5db;"></i>
+                    <p class="mb-0">{{ _("No accepted requests yet") }}</p>
+                </div>`;
+            } else {
+                acceptedContainer.innerHTML = acceptedReqs.map(renderRequestCard).join('');
+            }
 
-                let borderColor, badge;
-                if (isCompleted) {
-                    borderColor = '#10b981';
-                    badge = `<span class="badge bg-success" style="height:fit-content">{{ _("Completed") }} ✓</span>`;
-                } else if (isAuthorized) {
-                    borderColor = '#8b5cf6';
-                    badge = `<span class="badge" style="height:fit-content;background:#8b5cf6;color:#fff;">🔒 {{ _("Payment held") }}</span>`;
-                } else if (isAccepted && canPayNow) {
-                    borderColor = '#f59e0b';
-                    badge = `<span class="badge bg-warning text-dark" style="height:fit-content">{{ _("Pay to confirm") }}</span>`;
-                } else if (isAccepted) {
-                    borderColor = '#3b82f6';
-                    badge = `<span class="badge bg-primary" style="height:fit-content">{{ _("Booked") }} ✓</span>`;
-                } else if (hasOffers) {
-                    borderColor = '#10b981';
-                    badge = `<span class="badge bg-success" style="height:fit-content">{{ _("Offers") }}: ${req.offers.length}</span>`;
-                } else {
-                    borderColor = '#ffc107';
-                    badge = `<span class="badge bg-warning text-dark" style="height:fit-content">{{ _("Pending") }}</span>`;
-                }
+            // Update badges
+            const activeBadge = document.getElementById('activeBadge');
+            if (activeReqs.length > 0) {
+                activeBadge.textContent = activeReqs.length;
+                activeBadge.classList.remove('d-none');
+            } else {
+                activeBadge.classList.add('d-none');
+            }
 
-                html += `
-                <div class="card mb-2" style="border-left: 4px solid ${borderColor};">
-                    <div class="card-body p-2">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <strong>${req.service_name}</strong>
-                            ${badge}
-                        </div>
-                        <small class="text-muted">${new Date(req.appointment_start_time).toLocaleString()}</small>
-                        <div class="d-flex gap-2 mt-2 flex-wrap">`;
-
-                if (isBooked && req.accepted_provider) {
-                    html += `<button onclick="toggleProviderCard(${req.id})" class="btn btn-sm btn-primary flex-grow-1" style="font-size:12px">
-                        <i class="fas fa-user-nurse me-1"></i>{{ _("View Provider") }}
-                    </button>`;
-                }
-                if (isAccepted && canPayNow && req.accepted_provider) {
-                    const price = req.accepted_provider.agreed_price || req.payment;
-                    html += `<button onclick="payForRequest(${req.id}, ${price})" class="btn btn-sm btn-success flex-grow-1" style="font-size:12px">
-                        <i class="fas fa-lock me-1"></i>{{ _("Hold payment") }} €${price}
-                    </button>`;
-                }
-                if(hasOffers) {
-                    html += `<button onclick="showOffers(${req.id})" class="btn btn-sm btn-success flex-grow-1" style="font-size:12px">
-                        <i class="fas fa-list me-1"></i>{{ _("View Offers") }}
-                    </button>`;
-                }
-                if (!isBooked) {
-                    html += `<button onclick="cancelRequest(${req.id})" class="btn btn-sm btn-outline-danger" style="font-size:12px">{{ _("Cancel") }}</button>`;
-                }
-                html += `</div>`;
-
-                // Info notice: payment available from 7 days before appointment
-                if (isAccepted && !canPayNow) {
-                    const payDate = new Date(new Date(req.appointment_start_time).getTime() - 7*24*3600*1000);
-                    const payDateStr = payDate.toLocaleDateString('uk-UA', {day:'numeric', month:'long'});
-                    html += `
-                    <div class="mt-2 p-2 rounded" style="background:#eff6ff;border:1px solid #bfdbfe;font-size:12px;line-height:1.5;">
-                        <i class="fas fa-info-circle text-primary me-1"></i>
-                        <strong>{{ _("Payment is available 7 days before the appointment.") }}</strong><br>
-                        <span class="text-muted">{{ _("From") }} <strong>${payDateStr}</strong> {{ _("you will receive an email to authorize the payment. Funds are held securely and released only after the service.") }}</span>
-                    </div>`;
-                }
-
-                if (isBooked && req.accepted_provider) {
-                    const prov = req.accepted_provider;
-                    const provPhoto = prov.photo
-                        ? `<img src="${prov.photo}" class="rounded-circle me-2" style="width:40px;height:40px;object-fit:cover;flex-shrink:0;">`
-                        : `<div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold me-2" style="width:40px;height:40px;flex-shrink:0;font-size:15px;">${(prov.name||'?')[0].toUpperCase()}</div>`;
-                    html += `
-                    <div id="providerCard-${req.id}" class="mt-2 p-3 rounded" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;">
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            ${provPhoto}
-                            <div>
-                                <div class="fw-bold" style="font-size:14px;">${prov.name}</div>
-                                ${prov.phone ? `<div class="small text-muted"><i class="fas fa-phone me-1"></i>${prov.phone}</div>` : ''}
-                            </div>
-                            <div class="ms-auto text-end">
-                                <div class="text-success fw-bold" style="font-size:15px;">€${prov.agreed_price}</div>
-                                <div class="small text-muted">{{ _("agreed price") }}</div>
-                            </div>
-                        </div>
-                        ${prov.about ? `<div class="small text-muted" style="border-top:1px solid #bfdbfe;padding-top:8px;">${prov.about}</div>` : ''}
-                        <div class="mt-2">
-                            <a href="/client/provider/${prov.id}" class="btn btn-sm btn-outline-primary" style="font-size:11px;">
-                                <i class="fas fa-id-card me-1"></i>{{ _("Full Profile") }}
-                            </a>
-                        </div>
-                    </div>`;
-                }
-
-                if(hasOffers) {
-                    html += `<div id="offersList-${req.id}" class="mt-2" style="display:none;">`;
-                    req.offers.forEach(offer => {
-                        const photo = offer.provider_photo
-                            ? `<img src="${offer.provider_photo}" class="rounded-circle me-2" style="width:32px;height:32px;object-fit:cover;">`
-                            : `<div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold me-2" style="width:32px;height:32px;flex-shrink:0;font-size:13px;">${(offer.provider_name||'?')[0].toUpperCase()}</div>`;
-                        html += `
-                        <div class="d-flex align-items-center justify-content-between p-2 mb-1 rounded" style="background:#f8f9fa;border:1px solid #e5e7eb;">
-                            <div class="d-flex align-items-center">
-                                ${photo}
-                                <div>
-                                    <div class="fw-bold" style="font-size:13px;">${offer.provider_name}</div>
-                                    <div class="text-success fw-bold" style="font-size:13px;">€${offer.proposed_price}</div>
-                                </div>
-                            </div>
-                            <button onclick="acceptOffer(${offer.offer_id})" class="btn btn-success btn-sm">{{ _("Accept") }}</button>
-                        </div>`;
-                    });
-                    html += `</div>`;
-                }
-
-                html += `</div></div>`;
-            });
-            container.innerHTML = html;
+            const acceptedBadge = document.getElementById('acceptedBadge');
+            if (acceptedReqs.length > 0) {
+                acceptedBadge.textContent = acceptedReqs.length;
+                acceptedBadge.classList.remove('d-none');
+            } else {
+                acceptedBadge.classList.add('d-none');
+            }
         });
   }
 
@@ -731,17 +1191,31 @@
       document.getElementById('reqAddressStatus').textContent = '';
   });
 
+  function loadUnreadCount() {
+      fetch('/api/unread_count').then(r => r.json()).then(data => {
+          const badge = document.getElementById('unreadBadge');
+          if (data.count > 0) {
+              badge.textContent = data.count > 99 ? '99+' : data.count;
+              badge.style.display = '';
+          } else {
+              badge.style.display = 'none';
+          }
+      }).catch(() => {});
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
       initMap();
       loadMyRequests();
+      loadUnreadCount();
       document.getElementById('location-btn').addEventListener('click', updateLocation);
       setInterval(loadMyRequests, 30000);
+      setInterval(loadUnreadCount, 15000);
 
       // Auto-trigger payment from email link (?pay_request=ID)
       const urlParams = new URLSearchParams(window.location.search);
       const payReqId = urlParams.get('pay_request');
       if (payReqId) {
-          // Wait for requests to load, then trigger payment
+          switchTab('accepted');
           setTimeout(() => {
               fetch('/client/client_get_requests').then(r => r.json()).then(data => {
                   const req = (data.requests || []).find(r => r.id == payReqId && r.status === 'accepted');

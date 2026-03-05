@@ -99,7 +99,7 @@
                     <div class="mb-3 text-center">
                         <div class="rating-input display-6 text-warning">
                             {% for i in range(5, 0, -1) %}
-                            <input type="radio" id="star{{i}}" name="rating" value="{{i}}" style="display:none;" />
+                            <input type="radio" id="star{{i}}" name="rating" value="{{i}}" style="display:none;" onchange="handleRatingChange(this.value)" />
                             <label for="star{{i}}" title="{{ i }} {{ _('stars') }}" style="cursor:pointer; margin: 0 2px;">★</label>
                             {% endfor %}
                         </div>
@@ -107,6 +107,9 @@
                     </div>
                     <div class="mb-3">
                         <textarea class="form-control" id="reviewComment" rows="3" placeholder="{{ _('Share your experience...') }}"></textarea>
+                        <div id="reviewReasonWarning" class="form-text text-danger" style="display:none;">
+                            <i class="fas fa-exclamation-circle me-1"></i>{{ _("Reason is required for ratings of 3 stars or below") }}
+                        </div>
                     </div>
                     <div class="d-flex gap-2">
                         <button id="submitReviewBtn" class="btn btn-success flex-grow-1">{{ _("Send") }}</button>
@@ -456,6 +459,20 @@
         });
     }
   });
+
+  function handleRatingChange(val) {
+      const warning = document.getElementById('reviewReasonWarning');
+      const textarea = document.getElementById('reviewComment');
+      if (parseInt(val) <= 3) {
+          warning.style.display = '';
+          textarea.setAttribute('required', 'required');
+          textarea.placeholder = "{{ _('Please explain the reason for your rating (required)') }}";
+      } else {
+          warning.style.display = 'none';
+          textarea.removeAttribute('required');
+          textarea.placeholder = "{{ _('Share your experience...') }}";
+      }
+  }
 
   // --- HELPER FUNCTIONS ---
 

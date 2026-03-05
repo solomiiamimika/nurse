@@ -3,10 +3,10 @@ Medical data: records, prescriptions, and reviews.
 
   MedicalRecord  → diagnosis + treatment notes written by provider
   Prescription   → medication instructions for a patient
-  Review         → star rating + comment left by client after appointment
+  Review         → star rating + comment left by client or provider after appointment
 """
 from app.extensions import db
-from sqlalchemy import Column, Integer, Text, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, Text, DateTime, ForeignKey, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import func
@@ -51,6 +51,9 @@ class Review(db.Model):
     appointment_id = Column(Integer, ForeignKey('appointment.id'), nullable=False)
     rating         = Column(Integer, nullable=False)   # 1 – 5
     comment        = Column(Text)
+    review_direction = Column(String(20), default='client_to_provider')  # 'client_to_provider' | 'provider_to_client'
+    response_text  = Column(Text)          # public dispute response from reviewed party
+    response_at    = Column(DateTime)      # when the response was written
     created_at     = Column(DateTime, default=datetime.now)
 
     patient  = relationship('User', foreign_keys=[patient_id])

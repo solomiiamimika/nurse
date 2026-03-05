@@ -29,13 +29,15 @@ class User(db.Model, UserMixin):
     address       = Column(String)
     photo         = Column(String)
     documents     = Column(Text)
+    portfolio     = Column(Text)   # JSON: [{"url":"filename","type":"photo|video"}, ...]
 
     latitude          = Column(Float)
     longitude         = Column(Float)
     location_approved = Column(Boolean, default=False)
     online            = Column(Boolean)
 
-    stripe_account_id = Column(String)
+    stripe_account_id  = Column(String)   # Provider's Stripe Connected Account
+    stripe_customer_id = Column(String)   # Client's Stripe Customer (for saved cards)
     referral_code     = Column(String(20), unique=True, nullable=True)
     referred_by       = Column(String(20), nullable=True)
 
@@ -85,6 +87,57 @@ class User(db.Model, UserMixin):
     @property
     def review_count(self):
         return len(self.reviews_received)
+
+    # ── Gamification ──────────────────────────────────────────────
+    LEVEL_THRESHOLDS = [
+        (0,   'Newcomer',    '🌱'),
+        (3,   'Explorer',    '🔍'),
+        (10,  'Regular',     '⭐'),
+        (25,  'Pro',         '💎'),
+        (50,  'Expert',      '🏆'),
+        (100, 'Legend',      '👑'),
+    ]
+
+    @property
+    def completed_orders_count(self):
+        if self.role == 'client':
+            return len([a for a in self.client_appointments if a.status in ('completed', 'confirmed_paid')])
+        return len([a for a in self.provider_appointments if a.status in ('completed', 'confirmed_paid')])
+
+    @property
+    def player_level(self):
+        count = self.completed_orders_count
+        level = self.LEVEL_THRESHOLDS[0]
+        for threshold, title, icon in self.LEVEL_THRESHOLDS:
+            if count >= threshold:
+                level = (threshold, title, icon)
+        return level
+
+    @property
+    def player_level_info(self):
+        count = self.completed_orders_count
+        _, title, icon = self.player_level
+        # Find next level
+        next_level = None
+        for threshold, next_title, next_icon in self.LEVEL_THRESHOLDS:
+            if threshold > count:
+                next_level = (threshold, next_title, next_icon)
+                break
+        progress = 0
+        if next_level:
+            prev_threshold = self.player_level[0]
+            progress = int((count - prev_threshold) / (next_level[0] - prev_threshold) * 100)
+        else:
+            progress = 100
+        return {
+            'title': title,
+            'icon': icon,
+            'count': count,
+            'progress': progress,
+            'next_title': next_level[1] if next_level else None,
+            'next_icon': next_level[2] if next_level else None,
+            'next_threshold': next_level[0] if next_level else None,
+        }
 
     # ── Password helpers ───────────────────────────────────────────
     @property

@@ -68,6 +68,43 @@
 
     {% include 'shared/_change_password_accordion.html' %}
 
+    <!-- Portfolio Gallery -->
+    <div class="profile-card mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0"><i class="fas fa-images me-2 text-primary"></i>{{ _("Portfolio") }}</h5>
+        <label for="portfolioUpload" class="btn btn-outline-primary btn-sm mb-0" style="cursor:pointer;">
+          <i class="fas fa-plus me-1"></i>{{ _("Add Photo/Video") }}
+        </label>
+        <input type="file" id="portfolioUpload" class="d-none" accept="image/*,video/mp4,video/mov,video/webm" multiple>
+      </div>
+      <p class="text-muted small mb-3">{{ _("Showcase your work — photos and videos visible to clients") }}</p>
+
+      <div id="portfolioGrid" class="row g-2">
+        {% for item in portfolio_items %}
+        <div class="col-4 col-md-3 portfolio-item" data-filename="{{ item.filename }}">
+          <div class="position-relative rounded-3 overflow-hidden" style="aspect-ratio:1;background:#f3f4f6;">
+            {% if item.type == 'video' %}
+            <video src="{{ item.url }}" class="w-100 h-100" style="object-fit:cover;" muted preload="metadata"></video>
+            <div class="position-absolute top-50 start-50 translate-middle text-white" style="font-size:24px;text-shadow:0 2px 4px rgba(0,0,0,0.5);">
+              <i class="fas fa-play-circle"></i>
+            </div>
+            {% else %}
+            <img src="{{ item.url }}" class="w-100 h-100" style="object-fit:cover;" alt="Portfolio">
+            {% endif %}
+            <button onclick="deletePortfolioItem('{{ item.filename }}')" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle d-flex align-items-center justify-content-center" style="width:28px;height:28px;padding:0;opacity:0.85;">
+              <i class="fas fa-times" style="font-size:12px;"></i>
+            </button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div id="portfolioEmpty" class="text-center py-4 {% if portfolio_items %}d-none{% endif %}" style="background:#f8fafc;border-radius:12px;border:1px dashed #d1d5db;">
+        <i class="fas fa-camera fa-2x mb-2" style="color:#d1d5db;"></i>
+        <p class="text-muted mb-0 small">{{ _("No portfolio items yet") }}</p>
+      </div>
+    </div>
+
     <!-- Insurance Section -->
     <div class="profile-card mt-4">
       <h6 class="fw-bold mb-3">{{ _("Insurance") }}</h6>
@@ -244,6 +281,84 @@ function deleteInsuranceDoc() {
     }).then(r => r.json()).then(data => {
         if (data.success) location.reload();
         else alert(data.message || 'Error');
+    });
+}
+
+// ── Portfolio Gallery ──────────────────────────────────────
+document.getElementById('portfolioUpload').addEventListener('change', function() {
+    const files = Array.from(this.files);
+    if (!files.length) return;
+
+    const maxPhoto = 5 * 1024 * 1024;   // 5MB
+    const maxVideo = 20 * 1024 * 1024;   // 20MB
+    const validImg = ['image/jpeg','image/png','image/gif','image/webp'];
+    const validVid = ['video/mp4','video/quicktime','video/webm'];
+
+    files.forEach(file => {
+        const isVideo = validVid.includes(file.type);
+        const isPhoto = validImg.includes(file.type);
+        if (!isPhoto && !isVideo) { alert(`${file.name}: {{ _("unsupported format") }}`); return; }
+        if (isPhoto && file.size > maxPhoto) { alert(`${file.name}: {{ _("max 5MB for photos") }}`); return; }
+        if (isVideo && file.size > maxVideo) { alert(`${file.name}: {{ _("max 20MB for videos") }}`); return; }
+
+        const fd = new FormData();
+        fd.append('file', file);
+
+        fetch('/provider/portfolio/upload', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': _csrf },
+            body: fd
+        }).then(r => r.json()).then(data => {
+            if (data.success) {
+                addPortfolioItemToGrid(data.item);
+                document.getElementById('portfolioEmpty').classList.add('d-none');
+            } else {
+                alert(data.message || 'Upload error');
+            }
+        });
+    });
+    this.value = '';
+});
+
+function addPortfolioItemToGrid(item) {
+    const grid = document.getElementById('portfolioGrid');
+    const col = document.createElement('div');
+    col.className = 'col-4 col-md-3 portfolio-item';
+    col.dataset.filename = item.filename;
+
+    const isVideo = item.type === 'video';
+    const media = isVideo
+        ? `<video src="${item.url}" class="w-100 h-100" style="object-fit:cover;" muted preload="metadata"></video>
+           <div class="position-absolute top-50 start-50 translate-middle text-white" style="font-size:24px;text-shadow:0 2px 4px rgba(0,0,0,0.5);"><i class="fas fa-play-circle"></i></div>`
+        : `<img src="${item.url}" class="w-100 h-100" style="object-fit:cover;" alt="Portfolio">`;
+
+    col.innerHTML = `
+        <div class="position-relative rounded-3 overflow-hidden" style="aspect-ratio:1;background:#f3f4f6;">
+            ${media}
+            <button onclick="deletePortfolioItem('${item.filename}')" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle d-flex align-items-center justify-content-center" style="width:28px;height:28px;padding:0;opacity:0.85;">
+                <i class="fas fa-times" style="font-size:12px;"></i>
+            </button>
+        </div>`;
+    grid.appendChild(col);
+}
+
+function deletePortfolioItem(filename) {
+    if (!confirm("{{ _('Remove this item?') }}")) return;
+
+    fetch('/provider/portfolio/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': _csrf },
+        body: JSON.stringify({ filename: filename })
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            const el = document.querySelector(`.portfolio-item[data-filename="${filename}"]`);
+            if (el) el.remove();
+            if (!document.querySelectorAll('.portfolio-item').length) {
+                document.getElementById('portfolioEmpty').classList.remove('d-none');
+            }
+        } else {
+            alert(data.message || 'Error');
+        }
     });
 }
 </script>

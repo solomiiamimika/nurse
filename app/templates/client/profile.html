@@ -83,6 +83,41 @@
 
     {% include 'shared/_change_password_accordion.html' %}
 
+    <!-- Payment Methods (Amazon-style) -->
+    <div class="profile-card mt-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0"><i class="fas fa-credit-card me-2 text-primary"></i>{{ _("Payment Methods") }}</h5>
+        <button onclick="addNewCard()" class="btn btn-outline-primary btn-sm" id="addCardBtn">
+          <i class="fas fa-plus me-1"></i>{{ _("Add Card") }}
+        </button>
+      </div>
+
+      <!-- Card list -->
+      <div id="cardsList">
+        <div class="text-center py-3">
+          <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+        </div>
+      </div>
+
+      <!-- Add card form (hidden) -->
+      <div id="addCardForm" style="display:none;" class="mt-3">
+        <div class="border rounded-3 p-3" style="background:#f8fafc;">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <strong class="small text-muted">{{ _("NEW CARD") }}</strong>
+            <button onclick="cancelAddCard()" class="btn btn-sm btn-link text-muted p-0"><i class="fas fa-times"></i></button>
+          </div>
+          <div id="card-element" style="padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;background:#fff;"></div>
+          <div id="card-errors" class="text-danger small mt-2" style="display:none;"></div>
+          <div class="d-flex gap-2 mt-3">
+            <button onclick="saveCard()" id="saveCardBtn" class="btn btn-success btn-sm px-4">
+              <i class="fas fa-lock me-1"></i>{{ _("Save Card") }}
+            </button>
+            <button onclick="cancelAddCard()" class="btn btn-light btn-sm">{{ _("Cancel") }}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Visibility Settings -->
     {% set vis = current_user.profile_visibility | from_json %}
     {% set visibility_fields = [
@@ -143,6 +178,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://js.stripe.com/v3/"></script>
 <script>
   const passwordInput = document.getElementById('password-input');
   const togglePassword = document.getElementById('toggle-password');
@@ -152,5 +188,144 @@
       passwordInput.setAttribute('type', type);
     });
   }
+
+  // ── Card Management ──────────────────────────────────────────
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+  let stripe, elements, cardElement, clientSecret;
+
+  const brandIcons = {
+    visa: 'fab fa-cc-visa text-primary',
+    mastercard: 'fab fa-cc-mastercard',
+    amex: 'fab fa-cc-amex text-info',
+    discover: 'fab fa-cc-discover',
+    jcb: 'fab fa-cc-jcb',
+    diners: 'fab fa-cc-diners-club',
+    unionpay: 'fas fa-credit-card',
+  };
+
+  function loadCards() {
+    fetch('/client/api/cards').then(r => r.json()).then(data => {
+      const container = document.getElementById('cardsList');
+      if (data.error) {
+        container.innerHTML = `<div class="alert alert-warning small">${data.error}</div>`;
+        return;
+      }
+      if (!data.cards || data.cards.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-4" style="background:#f8fafc;border-radius:12px;border:1px dashed #d1d5db;">
+            <i class="fas fa-credit-card fa-2x mb-2" style="color:#d1d5db;"></i>
+            <p class="text-muted mb-0 small">{{ _("No saved cards yet") }}</p>
+          </div>`;
+        return;
+      }
+
+      let html = '';
+      data.cards.forEach(card => {
+        const icon = brandIcons[card.brand] || 'fas fa-credit-card';
+        const brandName = card.brand.charAt(0).toUpperCase() + card.brand.slice(1);
+        const isDefault = card.is_default;
+
+        html += `
+        <div class="d-flex align-items-center justify-content-between p-3 mb-2 rounded-3 ${isDefault ? 'border-primary' : ''}" style="background:${isDefault ? '#eff6ff' : '#fff'};border:1px solid ${isDefault ? '#93c5fd' : '#e5e7eb'};transition:0.2s;">
+          <div class="d-flex align-items-center gap-3">
+            <i class="${icon}" style="font-size:28px;"></i>
+            <div>
+              <div class="fw-bold" style="font-size:14px;">
+                ${brandName} •••• ${card.last4}
+                ${isDefault ? '<span class="badge bg-primary ms-2" style="font-size:10px;">{{ _("Default") }}</span>' : ''}
+              </div>
+              <div class="text-muted" style="font-size:12px;">{{ _("Expires") }} ${String(card.exp_month).padStart(2,'0')}/${card.exp_year}</div>
+            </div>
+          </div>
+          <div class="d-flex gap-1">
+            ${!isDefault ? `<button onclick="setDefault('${card.id}')" class="btn btn-sm btn-outline-primary" title="{{ _('Set as default') }}"><i class="fas fa-star"></i></button>` : ''}
+            <button onclick="deleteCard('${card.id}')" class="btn btn-sm btn-outline-danger" title="{{ _('Remove') }}"><i class="fas fa-trash-alt"></i></button>
+          </div>
+        </div>`;
+      });
+      container.innerHTML = html;
+    });
+  }
+
+  function addNewCard() {
+    document.getElementById('addCardForm').style.display = 'block';
+    document.getElementById('addCardBtn').style.display = 'none';
+    document.getElementById('card-errors').style.display = 'none';
+
+    // Create SetupIntent and init Stripe Elements
+    fetch('/client/api/cards/setup', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+    }).then(r => r.json()).then(data => {
+      if (data.error) {
+        document.getElementById('card-errors').textContent = data.error;
+        document.getElementById('card-errors').style.display = 'block';
+        return;
+      }
+      clientSecret = data.client_secret;
+
+      if (!stripe) {
+        stripe = Stripe(data.public_key);
+        elements = stripe.elements();
+        cardElement = elements.create('card', {
+          style: {
+            base: { fontSize: '15px', color: '#1f2937', '::placeholder': { color: '#9ca3af' } },
+            invalid: { color: '#ef4444' }
+          }
+        });
+      }
+      cardElement.mount('#card-element');
+    });
+  }
+
+  function cancelAddCard() {
+    document.getElementById('addCardForm').style.display = 'none';
+    document.getElementById('addCardBtn').style.display = '';
+    if (cardElement) cardElement.unmount();
+  }
+
+  function saveCard() {
+    const btn = document.getElementById('saveCardBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>{{ _("Saving...") }}';
+
+    stripe.confirmCardSetup(clientSecret, {
+      payment_method: { card: cardElement }
+    }).then(result => {
+      if (result.error) {
+        document.getElementById('card-errors').textContent = result.error.message;
+        document.getElementById('card-errors').style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-lock me-1"></i>{{ _("Save Card") }}';
+      } else {
+        cancelAddCard();
+        loadCards();
+      }
+    });
+  }
+
+  function setDefault(pmId) {
+    fetch(`/client/api/cards/${pmId}/default`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+    }).then(r => r.json()).then(data => {
+      if (data.success) loadCards();
+      else alert(data.error || 'Error');
+    });
+  }
+
+  function deleteCard(pmId) {
+    if (!confirm("{{ _('Remove this card?') }}")) return;
+
+    fetch(`/client/api/cards/${pmId}`, {
+      method: 'DELETE',
+      headers: {'X-CSRFToken': csrfToken},
+    }).then(r => r.json()).then(data => {
+      if (data.success) loadCards();
+      else alert(data.error || 'Error');
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', loadCards);
 </script>
 {% endblock %}

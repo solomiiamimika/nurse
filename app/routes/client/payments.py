@@ -76,8 +76,15 @@ def create_payment_session():
     amount_cents = int(round(appointment.nurse_service.price * 100))
     transfer_group = f"appt_{appointment_id}"
 
+    # Use saved Stripe customer if available
+    customer_kwargs = {}
+    if current_user.stripe_customer_id:
+        customer_kwargs['customer'] = current_user.stripe_customer_id
+    else:
+        customer_kwargs['customer_email'] = current_user.email
+
     session = stripe.checkout.Session.create(
-        payment_method_types=['card'],  # Apple Pay включиться як wallet для card
+        payment_method_types=['card'],
         line_items=[{
             'price_data': {
                 'currency': 'eur',
@@ -89,9 +96,8 @@ def create_payment_session():
         mode='payment',
         success_url=url_for('client.payment_success', appointment_id=appointment_id, _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
         cancel_url=url_for('client.payment_cancel', _external=True),
-        customer_email=current_user.email,
+        **customer_kwargs,
 
-        # ВАЖЛИВО: це піде в PaymentIntent
         payment_intent_data={
             "capture_method": 'manual',
             "transfer_group": transfer_group,
@@ -282,6 +288,12 @@ def create_request_payment_session():
     agreed_price = accepted_offer.proposed_price if accepted_offer else req.payment
     amount_cents = int(round(float(agreed_price or 0) * 100))
 
+    customer_kwargs2 = {}
+    if current_user.stripe_customer_id:
+        customer_kwargs2['customer'] = current_user.stripe_customer_id
+    else:
+        customer_kwargs2['customer_email'] = current_user.email
+
     session = stripe.checkout.Session.create(
         payment_method_types=['card'],
         line_items=[{
@@ -295,7 +307,7 @@ def create_request_payment_session():
         mode='payment',
         success_url=url_for('client.request_payment_success', request_id=request_id, _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
         cancel_url=url_for('client.dashboard', _external=True),
-        customer_email=current_user.email,
+        **customer_kwargs2,
         payment_intent_data={
             'capture_method': 'manual',
             'metadata': {
@@ -465,3 +477,100 @@ def handle_successful_payment(session):
     except Exception as e:
         current_app.logger.error(f"Webhook error: {str(e)}")
         db.session.rollback()
+
+
+# ── Card Management (Amazon-style) ────────────────────────────
+
+def get_or_create_stripe_customer():
+    """Get existing Stripe customer or create one for current user."""
+    if current_user.stripe_customer_id:
+        return current_user.stripe_customer_id
+
+    customer = stripe.Customer.create(
+        email=current_user.email,
+        name=current_user.full_name or current_user.user_name,
+        metadata={'user_id': str(current_user.id)}
+    )
+    current_user.stripe_customer_id = customer.id
+    db.session.commit()
+    return customer.id
+
+
+@client_bp.route('/api/cards', methods=['GET'])
+@login_required
+def list_cards():
+    """List all saved payment methods for current user."""
+    if not current_user.stripe_customer_id:
+        return jsonify({'cards': [], 'default_pm': None})
+
+    try:
+        methods = stripe.Customer.list_payment_methods(
+            current_user.stripe_customer_id, type='card'
+        )
+        customer = stripe.Customer.retrieve(current_user.stripe_customer_id)
+        default_pm = None
+        if customer.invoice_settings and customer.invoice_settings.default_payment_method:
+            default_pm = customer.invoice_settings.default_payment_method
+
+        cards = []
+        for pm in methods.data:
+            cards.append({
+                'id': pm.id,
+                'brand': pm.card.brand,
+                'last4': pm.card.last4,
+                'exp_month': pm.card.exp_month,
+                'exp_year': pm.card.exp_year,
+                'is_default': pm.id == default_pm,
+            })
+
+        return jsonify({'cards': cards, 'default_pm': default_pm})
+    except stripe.StripeError as e:
+        return jsonify({'error': str(e)}), 400
+
+
+@client_bp.route('/api/cards/setup', methods=['POST'])
+@login_required
+def create_setup_intent():
+    """Create a SetupIntent to securely save a new card."""
+    try:
+        customer_id = get_or_create_stripe_customer()
+
+        setup_intent = stripe.SetupIntent.create(
+            customer=customer_id,
+            payment_method_types=['card'],
+        )
+
+        return jsonify({
+            'client_secret': setup_intent.client_secret,
+            'public_key': stripe_public_key,
+        })
+    except stripe.StripeError as e:
+        return jsonify({'error': str(e)}), 400
+
+
+@client_bp.route('/api/cards/<pm_id>/default', methods=['POST'])
+@login_required
+def set_default_card(pm_id):
+    """Set a payment method as default."""
+    if not current_user.stripe_customer_id:
+        return jsonify({'error': 'No customer'}), 400
+
+    try:
+        stripe.Customer.modify(
+            current_user.stripe_customer_id,
+            invoice_settings={'default_payment_method': pm_id}
+        )
+        return jsonify({'success': True})
+    except stripe.StripeError as e:
+        return jsonify({'error': str(e)}), 400
+
+
+@client_bp.route('/api/cards/<pm_id>', methods=['DELETE'])
+@login_required
+def delete_card(pm_id):
+    """Detach a payment method from the customer."""
+    try:
+        stripe.PaymentMethod.detach(pm_id)
+        return jsonify({'success': True})
+    except stripe.StripeError as e:
+        return jsonify({'error': str(e)}), 400

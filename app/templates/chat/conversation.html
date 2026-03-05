@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width:700px;margin:0 auto;padding:0;display:flex;flex-direction:column;height:calc(100vh - 80px);">
+
+    <!-- Header -->
+    <div class="d-flex align-items-center gap-3 p-3" style="background:#fff;border-bottom:1px solid #e5e7eb;">
+        <a href="{{ url_for('main.chats') }}" class="text-dark" style="font-size:1.2rem;"><i class="fas fa-arrow-left"></i></a>
+        {% if other_user.photo %}
+            <img src="{{ other_user.photo }}" class="rounded-circle" style="width:40px;height:40px;object-fit:cover;">
+        {% else %}
+            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold" style="width:40px;height:40px;font-size:16px;">{{ (other_user.full_name or other_user.user_name or '?')[0]|upper }}</div>
+        {% endif %}
+        <div>
+            <strong>{{ other_user.full_name or other_user.user_name }}</strong>
+            <div class="small text-muted">
+                {% if other_user.online %}<span class="text-success">{{ _("Online") }}</span>{% else %}{{ _("Offline") }}{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages area -->
+    <div id="messagesArea" style="flex:1;overflow-y:auto;padding:16px;background:#f0f2f5;">
+        <div class="text-center py-3">
+            <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+        </div>
+    </div>
+
+    <!-- Proposal form (hidden by default) -->
+    <div id="proposalForm" style="display:none;background:#fff;border-top:1px solid #e5e7eb;padding:12px 16px;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong class="small"><i class="fas fa-file-invoice me-1"></i>{{ _("Create Proposal") }}</strong>
+            <button onclick="toggleProposalForm()" class="btn btn-sm btn-link text-muted p-0"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="row g-2">
+            <div class="col-12">
+                <input type="text" id="propService" class="form-control form-control-sm" placeholder="{{ _('Service name') }}" required>
+            </div>
+            <div class="col-6">
+                <div class="input-group input-group-sm">
+                    <input type="number" id="propPrice" class="form-control" placeholder="{{ _('Price') }}" step="0.01" required>
+                </div>
+            </div>
+            <div class="col-6">
+                <input type="number" id="propDuration" class="form-control form-control-sm" placeholder="{{ _('Duration (min)') }}" value="60">
+            </div>
+            <div class="col-12">
+                <input type="datetime-local" id="propDatetime" class="form-control form-control-sm" required>
+            </div>
+            <div class="col-12">
+                <input type="text" id="propNotes" class="form-control form-control-sm" placeholder="{{ _('Notes (optional)') }}">
+            </div>
+            <div class="col-12">
+                <button onclick="sendProposal()" class="btn btn-success btn-sm w-100">
+                    <i class="fas fa-paper-plane me-1"></i>{{ _("Send Proposal") }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Input area -->
+    <div id="inputArea" style="background:#fff;border-top:1px solid #e5e7eb;padding:12px 16px;">
+        <div class="d-flex gap-2 align-items-end">
+            <button onclick="toggleProposalForm()" class="btn btn-outline-success rounded-circle d-flex align-items-center justify-content-center" style="width:42px;height:42px;flex-shrink:0;" title="{{ _('Create Proposal') }}">
+                <i class="fas fa-file-invoice"></i>
+            </button>
+            <div class="flex-grow-1 position-relative">
+                <textarea id="messageInput" rows="1" placeholder="{{ _('Write a message...') }}"
+                    style="width:100%;border:1px solid #d1d5db;border-radius:20px;padding:10px 16px;font-size:14px;resize:none;max-height:120px;outline:none;"
+                    onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"
+                    oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+            </div>
+            <button onclick="sendMessage()" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center" style="width:42px;height:42px;flex-shrink:0;">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+<style>
+    .proposal-card {
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 100%);
+        border: 1px solid #a7f3d0;
+        border-radius: 12px;
+        padding: 12px;
+        min-width: 240px;
+    }
+    .proposal-card.declined {
+        background: #fef2f2;
+        border-color: #fecaca;
+        opacity: 0.7;
+    }
+    .proposal-card.accepted {
+        background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 100%);
+        border-color: #86efac;
+    }
+</style>
+<script>
+const currentUserId = {{ current_user.id }};
+const otherUserId = {{ other_user.id }};
+const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+const socket = io();
+
+let allMessages = [];
+let hasMore = false;
+let currentPage = 1;
+let isLoadingMore = false;
+
+// Join socket room
+socket.on('connect', () => {
+    socket.emit('join', { user_id: currentUserId });
+});
+
+// Receive real-time messages
+socket.on('new_message', (data) => {
+    if (data.sender_id === otherUserId) {
+        allMessages.push(data);
+        renderMessages(allMessages);
+        scrollToBottom();
+        fetch(`/api/messages/${otherUserId}?page=1`);
+    }
+});
+
+function loadMessages(page) {
+    isLoadingMore = true;
+    fetch(`/api/messages/${otherUserId}?page=${page}`).then(r => r.json()).then(data => {
+        hasMore = data.has_more;
+
+        if (page === 1) {
+            allMessages = data.messages;
+            renderMessages(allMessages);
+            scrollToBottom();
+        } else {
+            const area = document.getElementById('messagesArea');
+            const prevHeight = area.scrollHeight;
+            allMessages = [...data.messages, ...allMessages];
+            renderMessages(allMessages);
+            area.scrollTop = area.scrollHeight - prevHeight;
+        }
+        isLoadingMore = false;
+    });
+}
+
+function renderProposalContent(msg) {
+    let proposal;
+    try { proposal = JSON.parse(msg.text); } catch(e) { return escapeHtml(msg.text || ''); }
+
+    const isMine = msg.sender_id === currentUserId;
+    const status = msg.proposal_status || 'pending';
+    const dt = proposal.datetime ? new Date(proposal.datetime) : null;
+    const dateStr = dt ? dt.toLocaleString('uk-UA', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}) : '';
+
+    let statusHtml = '';
+    let actionsHtml = '';
+
+    if (status === 'accepted') {
+        statusHtml = `<div class="mt-2 text-center"><span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Accepted") }}</span></div>`;
+    } else if (status === 'declined') {
+        statusHtml = `<div class="mt-2 text-center"><span class="badge bg-danger"><i class="fas fa-times me-1"></i>{{ _("Declined") }}</span></div>`;
+    } else if (!isMine) {
+        actionsHtml = `
+        <div class="d-flex gap-2 mt-2">
+            <button onclick="respondProposal(${msg.id}, 'accept')" class="btn btn-success btn-sm flex-grow-1">
+                <i class="fas fa-check me-1"></i>{{ _("Accept") }}
+            </button>
+            <button onclick="respondProposal(${msg.id}, 'decline')" class="btn btn-outline-danger btn-sm flex-grow-1">
+                <i class="fas fa-times me-1"></i>{{ _("Decline") }}
+            </button>
+        </div>`;
+    } else {
+        statusHtml = `<div class="mt-2 text-center"><span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>{{ _("Pending") }}</span></div>`;
+    }
+
+    const cardClass = status === 'accepted' ? 'accepted' : (status === 'declined' ? 'declined' : '');
+
+    return `
+    <div class="proposal-card ${cardClass}">
+        <div class="d-flex align-items-center gap-1 mb-2">
+            <i class="fas fa-file-invoice text-success"></i>
+            <strong style="font-size:13px;">{{ _("Proposal") }}</strong>
+        </div>
+        <div style="font-size:13px;">
+            <div class="mb-1"><i class="fas fa-briefcase me-1 text-muted"></i><strong>${escapeHtml(proposal.service_name || '')}</strong></div>
+            <div class="mb-1"><i class="fas fa-euro-sign me-1 text-muted"></i>${proposal.price || 0}</div>
+            ${dateStr ? `<div class="mb-1"><i class="fas fa-calendar me-1 text-muted"></i>${dateStr}</div>` : ''}
+            ${proposal.duration_minutes ? `<div class="mb-1"><i class="fas fa-clock me-1 text-muted"></i>${proposal.duration_minutes} {{ _("min") }}</div>` : ''}
+            ${proposal.notes ? `<div class="text-muted fst-italic" style="font-size:12px;">${escapeHtml(proposal.notes)}</div>` : ''}
+        </div>
+        ${statusHtml}
+        ${actionsHtml}
+    </div>`;
+}
+
+function renderMessages(messages) {
+    const area = document.getElementById('messagesArea');
+    if (!messages || messages.length === 0) {
+        area.innerHTML = `<div class="text-center py-5 text-muted"><i class="fas fa-hand-peace fa-2x mb-2"></i><p>{{ _("Say hi!") }}</p></div>`;
+        return;
+    }
+
+    let html = '';
+    if (hasMore) {
+        html += `<div class="text-center mb-3"><button onclick="loadMore()" class="btn btn-sm btn-outline-secondary rounded-pill" id="loadMoreBtn"><i class="fas fa-chevron-up me-1"></i>{{ _("Load earlier") }}</button></div>`;
+    }
+
+    let lastDate = '';
+    messages.forEach(msg => {
+        const dt = new Date(msg.timestamp);
+        const dateStr = dt.toLocaleDateString('uk-UA', {day:'numeric', month:'long', year:'numeric'});
+        if (dateStr !== lastDate) {
+            lastDate = dateStr;
+            html += `<div class="text-center my-3"><span class="badge bg-light text-muted border px-3 py-1" style="font-size:11px;">${dateStr}</span></div>`;
+        }
+
+        const isMine = msg.sender_id === currentUserId;
+        const time = dt.toLocaleTimeString('uk-UA', {hour:'2-digit', minute:'2-digit'});
+        const align = isMine ? 'justify-content-end' : 'justify-content-start';
+
+        let content = '';
+        let bubbleBg, bubbleBorder;
+
+        if (msg.message_type === 'proposal') {
+            content = renderProposalContent(msg);
+            bubbleBg = 'transparent';
+            bubbleBorder = 'transparent';
+        } else if (msg.message_type === 'photo') {
+            content = `<img src="${msg.file_url}" style="max-width:200px;border-radius:8px;cursor:pointer;" onclick="window.open('${msg.file_url}')">`;
+            bubbleBg = isMine ? '#dcf8c6' : '#fff';
+            bubbleBorder = isMine ? '#c5e1a5' : '#e5e7eb';
+        } else if (msg.message_type === 'audio') {
+            content = `<audio controls src="${msg.file_url}" style="max-width:250px;"></audio>`;
+            bubbleBg = isMine ? '#dcf8c6' : '#fff';
+            bubbleBorder = isMine ? '#c5e1a5' : '#e5e7eb';
+        } else if (msg.message_type === 'text' || !msg.message_type) {
+            content = escapeHtml(msg.text || '');
+            bubbleBg = isMine ? '#dcf8c6' : '#fff';
+            bubbleBorder = isMine ? '#c5e1a5' : '#e5e7eb';
+        } else {
+            content = `<a href="${msg.file_url}" target="_blank" class="text-primary"><i class="fas fa-file me-1"></i>${msg.file_name || '{{ _("File") }}'}</a>`;
+            bubbleBg = isMine ? '#dcf8c6' : '#fff';
+            bubbleBorder = isMine ? '#c5e1a5' : '#e5e7eb';
+        }
+
+        const readCheck = isMine && msg.message_type !== 'proposal' ? `<span style="margin-left:4px;font-size:10px;color:${msg.is_read ? '#53bdeb' : '#999'};">✓✓</span>` : '';
+
+        if (msg.message_type === 'proposal') {
+            html += `
+            <div class="d-flex ${align} mb-2">
+                <div style="max-width:80%;">
+                    ${content}
+                    <div style="font-size:10px;color:#999;text-align:right;margin-top:2px;">${time}</div>
+                </div>
+            </div>`;
+        } else {
+            html += `
+            <div class="d-flex ${align} mb-1">
+                <div style="max-width:75%;padding:8px 12px;border-radius:${isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px'};background:${bubbleBg};border:1px solid ${bubbleBorder};word-wrap:break-word;">
+                    <div style="font-size:14px;line-height:1.4;">${content}</div>
+                    <div style="font-size:10px;color:#999;text-align:right;margin-top:2px;">${time}${readCheck}</div>
+                </div>
+            </div>`;
+        }
+    });
+    area.innerHTML = html;
+}
+
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    socket.emit('send_message', {
+        text: text,
+        sender_id: currentUserId,
+        recipient_id: otherUserId
+    });
+
+    const msg = {
+        id: Date.now(),
+        sender_id: currentUserId,
+        text: text,
+        timestamp: new Date().toISOString(),
+        is_read: false,
+        message_type: 'text',
+    };
+    allMessages.push(msg);
+    renderMessages(allMessages);
+    scrollToBottom();
+
+    input.value = '';
+    input.style.height = 'auto';
+}
+
+// --- PROPOSAL FUNCTIONS ---
+
+function toggleProposalForm() {
+    const form = document.getElementById('proposalForm');
+    const input = document.getElementById('inputArea');
+    if (form.style.display === 'none') {
+        form.style.display = 'block';
+        input.style.display = 'none';
+        document.getElementById('propService').focus();
+    } else {
+        form.style.display = 'none';
+        input.style.display = 'block';
+    }
+}
+
+function sendProposal() {
+    const service = document.getElementById('propService').value.trim();
+    const price = parseFloat(document.getElementById('propPrice').value);
+    const datetime = document.getElementById('propDatetime').value;
+    const duration = parseInt(document.getElementById('propDuration').value) || 60;
+    const notes = document.getElementById('propNotes').value.trim();
+
+    if (!service || !price || !datetime) {
+        alert("{{ _('Please fill in service name, price and date/time.') }}");
+        return;
+    }
+
+    const proposalData = {
+        service_name: service,
+        price: price,
+        datetime: datetime,
+        duration_minutes: duration,
+        notes: notes
+    };
+
+    const text = JSON.stringify(proposalData);
+
+    socket.emit('send_message', {
+        text: text,
+        sender_id: currentUserId,
+        recipient_id: otherUserId,
+        message_type: 'proposal'
+    });
+
+    const msg = {
+        id: Date.now(),
+        sender_id: currentUserId,
+        text: text,
+        timestamp: new Date().toISOString(),
+        is_read: false,
+        message_type: 'proposal',
+        proposal_status: 'pending',
+    };
+    allMessages.push(msg);
+    renderMessages(allMessages);
+    scrollToBottom();
+
+    // Reset form
+    document.getElementById('propService').value = '';
+    document.getElementById('propPrice').value = '';
+    document.getElementById('propDatetime').value = '';
+    document.getElementById('propDuration').value = '60';
+    document.getElementById('propNotes').value = '';
+    toggleProposalForm();
+}
+
+function respondProposal(messageId, action) {
+    const confirmMsg = action === 'accept'
+        ? "{{ _('Accept this proposal? An appointment will be created.') }}"
+        : "{{ _('Decline this proposal?') }}";
+    if (!confirm(confirmMsg)) return;
+
+    fetch(`/api/proposal/${messageId}/${action}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+    }).then(r => r.json()).then(res => {
+        if (res.success) {
+            // Update message in local array
+            const msg = allMessages.find(m => m.id === messageId);
+            if (msg) msg.proposal_status = action === 'accept' ? 'accepted' : 'declined';
+            renderMessages(allMessages);
+            if (action === 'accept') {
+                alert("{{ _('Proposal accepted! Appointment created.') }}");
+            }
+        } else {
+            alert(res.message || 'Error');
+        }
+    });
+}
+
+function loadMore() {
+    if (isLoadingMore || !hasMore) return;
+    currentPage++;
+    const btn = document.getElementById('loadMoreBtn');
+    if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    loadMessages(currentPage);
+}
+
+function scrollToBottom() {
+    const area = document.getElementById('messagesArea');
+    setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50);
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Scroll-to-top loader
+document.getElementById('messagesArea').addEventListener('scroll', function() {
+    if (this.scrollTop === 0 && hasMore && !isLoadingMore) {
+        loadMore();
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadMessages(1);
+    document.getElementById('messageInput').focus();
+});
+</script>
+{% endblock %}
