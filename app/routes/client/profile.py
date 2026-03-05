@@ -118,6 +118,19 @@ def profile():
     return render_template('client/profile.html', profile_photo=profile_photo, documents_urls=documents_urls, user=current_user)
 
 
+@client_bp.route('/update_visibility', methods=['POST'])
+@login_required
+def update_visibility():
+    data = request.get_json()
+    field = data.get('field')
+    visible = data.get('visible')
+    vis = json.loads(current_user.profile_visibility or '{}')
+    vis[field] = visible
+    current_user.profile_visibility = json.dumps(vis)
+    db.session.commit()
+    return jsonify({'success': True})
+
+
 @client_bp.route('/delete_document', methods=['POST'])
 @login_required
 def delete_document():

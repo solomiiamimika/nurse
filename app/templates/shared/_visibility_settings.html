@@ -1,0 +1,58 @@
+{# _visibility_settings.html
+   Requires in calling template:
+     vis               — dict parsed from current_user.profile_visibility JSON
+     visibility_fields — list of (key, label) tuples
+   The AJAX endpoint is determined by the user's role.
+#}
+<div class="profile-card mt-4">
+  <h6 class="fw-bold mb-1">{{ _("Profile Visibility") }}</h6>
+  <p class="text-muted small mb-3">{{ _("Choose what others can see on your public profile. Everything is visible by default.") }}</p>
+
+  <div class="row g-2">
+    {% for field_key, field_label in visibility_fields %}
+    {% set is_visible = vis.get(field_key, true) %}
+    <div class="col-sm-6">
+      <div class="d-flex align-items-center justify-content-between p-2 rounded"
+           style="background:#f8f9fa;border:1px solid #e5e7eb;">
+        <span class="small fw-semibold">{{ field_label }}</span>
+        <div class="form-check form-switch mb-0">
+          <input class="form-check-input vis-toggle" type="checkbox"
+                 data-field="{{ field_key }}"
+                 {% if is_visible %}checked{% endif %}
+                 style="cursor:pointer;">
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+(function(){
+  const role = '{{ current_user.role }}';
+  const endpoint = '/' + role + '/update_visibility';
+  const csrf = document.querySelector('meta[name="csrf-token"]')
+               ? document.querySelector('meta[name="csrf-token"]').content
+               : '';
+
+  document.querySelectorAll('.vis-toggle').forEach(function(toggle) {
+    toggle.addEventListener('change', function() {
+      const field = this.getAttribute('data-field');
+      const visible = this.checked;
+      fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrf
+        },
+        body: JSON.stringify({ field: field, visible: visible })
+      }).then(function(r){ return r.json(); }).then(function(data){
+        if (!data.success) {
+          toggle.checked = !visible; // revert on error
+          alert(data.message || 'Error saving visibility');
+        }
+      });
+    });
+  });
+})();
+</script>

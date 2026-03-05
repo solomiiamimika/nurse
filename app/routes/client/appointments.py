@@ -266,10 +266,8 @@ def client_self_create_appointment():
     try:
         data = request.get_json()
 
-        required_fields = ['latitude', 'longitude', 'appointment_start_time', 'address']
-
-        if not all(field in data for field in required_fields):
-            return jsonify({'success': False, 'error': 'Not all required fields are filled'}), 400
+        if not data.get('appointment_start_time'):
+            return jsonify({'success': False, 'error': 'Time is required'}), 400
 
         if not data.get('address', '').strip():
             return jsonify({'success': False, 'error': 'Address is required'}), 400
@@ -286,8 +284,8 @@ def client_self_create_appointment():
             patient_id=current_user.id,
             appointment_start_time=appointment_start_time,
             end_time=end_time,
-            latitude=data['latitude'],
-            longitude=data['longitude'],
+            latitude=data.get('latitude') or 0,
+            longitude=data.get('longitude') or 0,
             address=data['address'].strip(),
             status='pending',
             notes=data.get('notes', ''),
@@ -338,6 +336,25 @@ def client_get_requests():
                         'provider_photo': p.photo if p else None,
                         'proposed_price': offer.proposed_price,
                     })
+
+            # For accepted requests, include the accepted provider info
+            accepted_provider = None
+            if req.status in ('accepted', 'authorized', 'completed', 'confirmed_paid') and req.provider:
+                p = req.provider
+                # Find the accepted offer to get the agreed price
+                accepted_offer = next(
+                    (o for o in req.offers if o.status == 'accepted'),
+                    None
+                )
+                accepted_provider = {
+                    'id': p.id,
+                    'name': p.full_name or p.user_name,
+                    'photo': p.photo,
+                    'phone': p.phone_number,
+                    'about': p.about_me,
+                    'agreed_price': accepted_offer.proposed_price if accepted_offer else req.payment,
+                }
+
             result.append({
                 'id': req.id,
                 'service_name': req.service_name,
@@ -347,6 +364,7 @@ def client_get_requests():
                 'notes': req.notes,
                 'payment': req.payment,
                 'offers': offers,
+                'accepted_provider': accepted_provider,
             })
 
         return jsonify({'success': True, 'requests': result}), 200
@@ -354,6 +372,22 @@ def client_get_requests():
     except Exception as e:
         current_app.logger.error(f"Error retrieving requests: {str(e)}")
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+
+@client_bp.route('/pay_request/<int:request_id>')
+@login_required
+def pay_request_page(request_id):
+    """Email link landing page — redirect to dashboard with ?pay_request=ID."""
+    req = ClientSelfCreatedAppointment.query.filter_by(
+        id=request_id, patient_id=current_user.id
+    ).first_or_404()
+    if req.status == 'authorized':
+        flash('Payment already authorized for this appointment.', 'info')
+        return redirect(url_for('client.dashboard'))
+    if req.status != 'accepted':
+        flash('This appointment cannot be paid at this stage.', 'warning')
+        return redirect(url_for('client.dashboard'))
+    return redirect(url_for('client.dashboard') + f'?pay_request={request_id}')
 
 
 @client_bp.route('/client_cancel_request/<int:request_id>', methods=['POST'])

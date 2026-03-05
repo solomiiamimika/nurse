@@ -132,11 +132,16 @@ def profile():
         except Exception:
             stripe_info = {'error': True}
 
+    insurance_doc_url = None
+    if current_user.insurance_document:
+        insurance_doc_url = get_file_url(current_user.insurance_document, buckets['documents'])
+
     return render_template('provider/profile.html',
                            formatted_date=formatted_date,
                            documents_urls=documents_urls,
                            profile_photo=profile_photo,
                            stripe_info=stripe_info,
+                           insurance_doc_url=insurance_doc_url,
                            user=current_user)
 
 
@@ -160,3 +165,56 @@ def delete_document():
         return jsonify({'success': False, 'message': 'Doc not found'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@provider_bp.route('/update_insurance_flag', methods=['POST'])
+@login_required
+def update_insurance_flag():
+    data = request.get_json()
+    current_user.has_insurance = bool(data.get('has_insurance'))
+    db.session.commit()
+    return jsonify({'success': True})
+
+
+@provider_bp.route('/upload_insurance_doc', methods=['POST'])
+@login_required
+def upload_insurance_doc():
+    file = request.files.get('insurance_document')
+    if not file or file.filename == '':
+        return jsonify({'success': False, 'message': 'No file provided'})
+    if not allowed_file(file.filename):
+        return jsonify({'success': False, 'message': 'Invalid file type'})
+    try:
+        if current_user.insurance_document:
+            delete_from_supabase(current_user.insurance_document, buckets['documents'])
+        filename, _ = upload_to_supabase(file, buckets['documents'], current_user.id, 'insurance')
+        if filename:
+            current_user.insurance_document = filename
+            db.session.commit()
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'message': 'Upload failed'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@provider_bp.route('/delete_insurance_doc', methods=['POST'])
+@login_required
+def delete_insurance_doc():
+    if current_user.insurance_document:
+        delete_from_supabase(current_user.insurance_document, buckets['documents'])
+        current_user.insurance_document = None
+        db.session.commit()
+    return jsonify({'success': True})
+
+
+@provider_bp.route('/update_visibility', methods=['POST'])
+@login_required
+def update_visibility():
+    data = request.get_json()
+    field = data.get('field')
+    visible = data.get('visible')
+    vis = json.loads(current_user.profile_visibility or '{}')
+    vis[field] = visible
+    current_user.profile_visibility = json.dumps(vis)
+    db.session.commit()
+    return jsonify({'success': True})

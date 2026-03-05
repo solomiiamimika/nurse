@@ -14,12 +14,13 @@ How it all connects:
   static/        → CSS, JS, images
 """
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, session, request
 from .config import Config
 from .extensions import db, bcrypt, login_manager, migrate, google_blueprint, babel, mail, socketio, csrf
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from apscheduler.schedulers.background import BackgroundScheduler
 
 # Allow OAuth over plain HTTP during local development
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -82,6 +83,14 @@ def create_app():
             return 'N/A'
         return datetime.fromtimestamp(int(ts)).strftime('%d.%m.%Y')
 
+    import json as _json
+    @app.template_filter('from_json')
+    def from_json_filter(value):
+        try:
+            return _json.loads(value or '{}')
+        except Exception:
+            return {}
+
     # ── 5. Make google_oauth_enabled available in every template ──
     @app.context_processor
     def inject_globals():
@@ -92,6 +101,54 @@ def create_app():
     # ── 5. Create tables if they don't exist yet ──────────────────
     with app.app_context():
         db.create_all()
+
+    # ── 6. Scheduler: send payment reminder emails 7 days before service ──
+    def send_payment_reminders():
+        from app.models import ClientSelfCreatedAppointment
+        from flask_mail import Message as MailMessage
+        from threading import Thread
+
+        with app.app_context():
+            now = datetime.utcnow()
+            window_start = now + timedelta(days=6, hours=23)
+            window_end   = now + timedelta(days=7, hours=1)
+
+            pending = ClientSelfCreatedAppointment.query.filter(
+                ClientSelfCreatedAppointment.status == 'accepted',
+                ClientSelfCreatedAppointment.appointment_start_time >= window_start,
+                ClientSelfCreatedAppointment.appointment_start_time <= window_end,
+                ClientSelfCreatedAppointment.payment_intent_id == None,
+            ).all()
+
+            for req in pending:
+                client = req.patient
+                if not client or not client.email:
+                    continue
+                pay_url = f"{app.config.get('BASE_URL', '')}/client/pay_request/{req.id}"
+                msg = MailMessage(
+                    subject="Payment reminder — your appointment is in 7 days",
+                    sender=os.getenv('MAIL_DEFAULT_SENDER'),
+                    recipients=[client.email],
+                    body=(
+                        f"Hi {client.full_name or client.user_name},\n\n"
+                        f"Your appointment for '{req.service_name}' is scheduled for "
+                        f"{req.appointment_start_time.strftime('%d %b %Y at %H:%M')}.\n\n"
+                        f"Please authorize your payment now so the provider is confirmed:\n"
+                        f"{pay_url}\n\n"
+                        f"The funds will be held securely and only released after the service.\n\n"
+                        f"If you need to cancel, do it before the appointment to avoid any fees.\n\n"
+                        f"— The Team"
+                    )
+                )
+                try:
+                    Thread(target=lambda m=msg: mail.send(m)).start()
+                except Exception as e:
+                    app.logger.error(f"Email error for request {req.id}: {e}")
+
+    if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+        scheduler = BackgroundScheduler(daemon=True)
+        scheduler.add_job(send_payment_reminders, 'cron', hour=9, minute=0)
+        scheduler.start()
 
     return app
     

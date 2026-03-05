@@ -51,7 +51,7 @@ def send_payment_confirmation_email(user_email, user_name, service_name, amount,
         sender=os.getenv('MAIL_DEFAULT_SENDER'),
         recipients=[user_email]
     )
-    msg.body = f"""\Hi {user_name},
+    msg.body = f"""Hi {user_name},
     Your payment of {amount} {currency} for the service '{service_name}' scheduled on {appointment_date} at {appointment_time} has been successfully processed.
     Thank you for choosing our services!
     Best regards,
@@ -263,6 +263,84 @@ def payment_cancel():
 
     flash('Payment canceled. You can try again.', 'warning')
     return redirect(url_for('client.appointments'))
+
+
+@client_bp.route('/create_request_payment_session', methods=['POST'])
+@login_required
+def create_request_payment_session():
+    data = request.get_json()
+    request_id = data.get('request_id')
+    req = ClientSelfCreatedAppointment.query.get_or_404(request_id)
+
+    if req.patient_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    if req.status == 'confirmed_paid':
+        return jsonify({'error': 'Already paid'}), 400
+
+    accepted_offer = next((o for o in req.offers if o.status == 'accepted'), None)
+    agreed_price = accepted_offer.proposed_price if accepted_offer else req.payment
+    amount_cents = int(round(float(agreed_price or 0) * 100))
+
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=[{
+            'price_data': {
+                'currency': 'eur',
+                'product_data': {'name': req.service_name or 'Service'},
+                'unit_amount': amount_cents,
+            },
+            'quantity': 1,
+        }],
+        mode='payment',
+        success_url=url_for('client.request_payment_success', request_id=request_id, _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url=url_for('client.dashboard', _external=True),
+        customer_email=current_user.email,
+        payment_intent_data={
+            'capture_method': 'manual',
+            'metadata': {
+                'request_id': str(request_id),
+                'user_id': str(current_user.id),
+            }
+        },
+        metadata={
+            'request_id': str(request_id),
+            'user_id': str(current_user.id),
+        }
+    )
+
+    return jsonify({'sessionId': session.id, 'request_id': request_id})
+
+
+@client_bp.route('/request_payment_success/<int:request_id>')
+@login_required
+def request_payment_success(request_id):
+    req = ClientSelfCreatedAppointment.query.get_or_404(request_id)
+    session_id = request.args.get('session_id')
+
+    try:
+        if session_id:
+            session = stripe.checkout.Session.retrieve(session_id)
+            payment_intent = stripe.PaymentIntent.retrieve(session.payment_intent)
+            is_success = (session.payment_status == 'paid') or (payment_intent.status == 'requires_capture')
+
+            if is_success and session.metadata.get('request_id') == str(request_id):
+                req.status = 'authorized'
+                req.payment_intent_id = session.payment_intent
+                db.session.commit()
+                flash('Payment authorized! Funds are held and will be released after the service.', 'success')
+            else:
+                flash('Payment not confirmed by bank', 'warning')
+        else:
+            flash('Payment information is missing', 'warning')
+    except stripe.StripeError as e:
+        current_app.logger.error(f"Stripe error in request_payment_success: {str(e)}")
+        flash('Error during payment verification', 'danger')
+    except Exception as e:
+        current_app.logger.error(f"Error in request_payment_success: {str(e)}")
+        flash('Server error', 'danger')
+
+    return redirect(url_for('client.dashboard'))
 
 
 @client_bp.route('/appointments/<int:appointment_id>/payout', methods=['POST'])

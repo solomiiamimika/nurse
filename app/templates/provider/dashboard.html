@@ -64,6 +64,27 @@
                         </button>
                     </div>
 
+                    <!-- Filters: visible only on requests tab -->
+                    <div id="requestsFilters" class="mb-2">
+                        <div class="d-flex gap-1 flex-wrap mb-1">
+                            <span class="small text-muted me-1 align-self-center">{{ _("Distance:") }}</span>
+                            <button class="btn btn-sm btn-outline-secondary active" id="rad-all"   onclick="setRadiusFilter(null)">{{ _("All") }}</button>
+                            <button class="btn btn-sm btn-outline-secondary"        id="rad-20"    onclick="setRadiusFilter(20)">20 km</button>
+                            <button class="btn btn-sm btn-outline-secondary"        id="rad-50"    onclick="setRadiusFilter(50)">50 km</button>
+                            <button class="btn btn-sm btn-outline-secondary"        id="rad-100"   onclick="setRadiusFilter(100)">100 km</button>
+                        </div>
+                        <div class="d-flex gap-1 flex-wrap mb-2">
+                            <span class="small text-muted me-1 align-self-center">{{ _("Price:") }}</span>
+                            <button class="btn btn-sm btn-outline-success active" id="pay-all"  onclick="setPayFilter(null)">{{ _("All") }}</button>
+                            <button class="btn btn-sm btn-outline-success"        id="pay-20"   onclick="setPayFilter(20)">€20+</button>
+                            <button class="btn btn-sm btn-outline-success"        id="pay-50"   onclick="setPayFilter(50)">€50+</button>
+                            <button class="btn btn-sm btn-outline-success"        id="pay-100"  onclick="setPayFilter(100)">€100+</button>
+                        </div>
+                        <input type="text" id="reqSearchInput" class="form-control form-control-sm"
+                               placeholder="{{ _('Search by service...') }}"
+                               oninput="applyRequestFilters()">
+                    </div>
+
                     <div class="requests-scroll-area">
                         <div id="requestsList">
                             <div class="text-center mt-5">
@@ -189,6 +210,41 @@
   let currentRequestId = null;
   let currentMode = 'requests';
 
+  // --- REQUEST FILTER STATE ---
+  let _allRequests = [];
+  let _activeRadius = null;
+  let _activeMinPay = null;
+
+  function setRadiusFilter(km) {
+      _activeRadius = km;
+      ['rad-all','rad-20','rad-50','rad-100'].forEach(id => document.getElementById(id).classList.remove('active'));
+      document.getElementById(km === null ? 'rad-all' : `rad-${km}`).classList.add('active');
+      applyRequestFilters();
+  }
+
+  function setPayFilter(min) {
+      _activeMinPay = min;
+      ['pay-all','pay-20','pay-50','pay-100'].forEach(id => document.getElementById(id).classList.remove('active'));
+      document.getElementById(min === null ? 'pay-all' : `pay-${min}`).classList.add('active');
+      applyRequestFilters();
+  }
+
+  function applyRequestFilters() {
+      const search = (document.getElementById('reqSearchInput').value || '').toLowerCase().trim();
+      let filtered = _allRequests;
+      if (_activeRadius !== null) {
+          filtered = filtered.filter(r => r.distance_km !== null && r.distance_km <= _activeRadius);
+      }
+      if (_activeMinPay !== null) {
+          filtered = filtered.filter(r => (parseFloat(r.payment) || 0) >= _activeMinPay);
+      }
+      if (search) {
+          filtered = filtered.filter(r => (r.service_name || '').toLowerCase().includes(search));
+      }
+      renderList(filtered, 'requestsList', 'item-request', 'btn-req');
+      updateMarkers(filtered, '#ef4444');
+  }
+
   // --- TRIP TRACKING VARIABLES ---
   let watchId = null;
   let activeTripClientId = null; // ID клієнта, до якого їдемо
@@ -227,6 +283,7 @@
       document.getElementById('requestsList').classList.toggle('d-none', mode !== 'requests');
       document.getElementById('offersList').classList.toggle('d-none', mode !== 'offers');
       document.getElementById('appointmentsList').classList.toggle('d-none', mode !== 'appointments');
+      document.getElementById('requestsFilters').classList.toggle('d-none', mode !== 'requests');
 
       if (mode === 'requests') loadRequests();
       else if (mode === 'offers') loadMyOffers();
@@ -350,8 +407,8 @@
       if(currentMode !== 'requests') return;
       fetch('/provider/nurse_get_requests').then(r => r.json()).then(data => {
           if (data.success) {
-              renderList(data.requests, 'requestsList', 'item-request', 'btn-req');
-              updateMarkers(data.requests, '#ef4444');
+              _allRequests = data.requests || [];
+              applyRequestFilters();
           }
       });
   }
@@ -412,9 +469,14 @@
                   </div>
                   <div class="small text-muted mb-1"><i class="fas fa-user me-1"></i> ${item.patient_name || 'Client'}</div>
                   <div class="small text-muted mb-2"><i class="fas fa-clock me-1"></i> ${time}</div>
-                  <div class="d-flex justify-content-between align-items-center">
+                  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                       <span class="fw-bold text-success">${item.payment || 0} €</span>
-                      ${item.offer_status === 'accepted' ? `<span class="small text-success"><i class="fas fa-check-circle me-1"></i>{{ _("Client selected you!") }}</span>` : ''}
+                      ${item.offer_status === 'accepted' && item.req_status === 'authorized' ? `
+                          <button class="btn btn-success btn-sm fw-bold" onclick="event.stopPropagation();markRequestDone(${item.req_id})">
+                              <i class="fas fa-check me-1"></i>{{ _("Mark Done") }}
+                          </button>` : ''}
+                      ${item.offer_status === 'accepted' && item.req_status === 'accepted' ? `<span class="small text-warning"><i class="fas fa-clock me-1"></i>{{ _("Waiting for client payment") }}</span>` : ''}
+                      ${item.offer_status === 'accepted' && item.req_status === 'completed' ? `<span class="small text-success"><i class="fas fa-check-circle me-1"></i>{{ _("Completed") }}</span>` : ''}
                       ${item.offer_status === 'pending' ? `<span class="small text-warning"><i class="fas fa-hourglass-half me-1"></i>{{ _("Awaiting client") }}</span>` : ''}
                   </div>
               </div>`;
@@ -484,7 +546,8 @@
                       <span class="badge bg-secondary bg-opacity-10 text-dark">${item.payment || item.price || 0} €</span>
                   </div>
                   <div class="small text-muted mb-1"><i class="fas fa-user me-1"></i> ${item.patient_name || item.client_name || 'Client'}</div>
-                  <div class="small text-muted mb-2"><i class="fas fa-clock me-1"></i> ${time}</div>
+                  <div class="small text-muted mb-1"><i class="fas fa-clock me-1"></i> ${time}</div>
+                  ${item.distance_km != null ? `<div class="small text-primary mb-2"><i class="fas fa-map-marker-alt me-1"></i> ${item.distance_km} km</div>` : ''}
                   <button class="view-request-btn ${btnClass}">${btnText}</button>
               </div>`;
       });
@@ -564,6 +627,21 @@
       new bootstrap.Modal(document.getElementById('requestDetailsModal')).show();
   }
 
+  window.markRequestDone = function(reqId) {
+      if (!confirm('{{ _("Confirm service completed? Payment will be captured and sent to your account.") }}')) return;
+      fetch(`/provider/complete_request/${reqId}`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken}
+      }).then(r => r.json()).then(data => {
+          if (data.success) {
+              showStatus('{{ _("Service completed! Payment processed.") }}');
+              loadMyOffers();
+          } else {
+              alert(data.message || 'Error');
+          }
+      });
+  };
+
   window.acceptRequest = function(id) {
       const btn = document.querySelector('#modalActions button');
       btn.disabled = true; btn.textContent = i18n.processing;
@@ -591,8 +669,50 @@
       });
   }
 
-  document.getElementById('location-btn').addEventListener('click', () => { /* ...existing... */ });
-  document.getElementById('toggle-online-btn').addEventListener('click', () => { /* ...existing... */ });
+  document.getElementById('location-btn').addEventListener('click', () => {
+      if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
+      showStatus('{{ _("Locating...") }}');
+      navigator.geolocation.getCurrentPosition(
+          (pos) => {
+              const lat = pos.coords.latitude;
+              const lng = pos.coords.longitude;
+              fetch('/provider/update_location', {
+                  method: 'POST',
+                  headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+                  body: JSON.stringify({latitude: lat, longitude: lng})
+              }).then(r => r.json()).then(data => {
+                  if (data.success) {
+                      showStatus('{{ _("Location updated!") }}');
+                      if (userMarker) userMarker.setLatLng([lat, lng]);
+                      else userMarker = L.marker([lat, lng]).addTo(map).bindPopup('<b>You are here</b>');
+                      map.setView([lat, lng], 13);
+                  } else {
+                      showStatus(data.message || 'Error', true);
+                  }
+              });
+          },
+          (err) => { showStatus('Could not get location: ' + err.message, true); }
+      );
+  });
+
+  document.getElementById('toggle-online-btn').addEventListener('click', () => {
+      fetch('/provider/toggle_online', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken}
+      }).then(r => r.json()).then(data => {
+          if (data.success) {
+              const btn = document.getElementById('toggle-online-btn');
+              const txt = document.getElementById('status-text');
+              if (data.online) {
+                  btn.classList.replace('status-offline', 'status-online');
+                  txt.textContent = '{{ _("You are Online") }}';
+              } else {
+                  btn.classList.replace('status-online', 'status-offline');
+                  txt.textContent = '{{ _("You are Offline") }}';
+              }
+          }
+      });
+  });
 
   function refreshOffersBadge() {
       fetch('/provider/nurse_get_accepted_requests').then(r => r.json()).then(data => {

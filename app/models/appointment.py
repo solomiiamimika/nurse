@@ -50,6 +50,7 @@ class ClientSelfCreatedAppointment(db.Model):
     longitude            = Column(Float)
     address              = Column(String, nullable=True)
     created_appo         = Column(DateTime, default=datetime.now)
+    payment_intent_id    = Column(String, nullable=True)   # Stripe PI id (for capture/cancel)
 
     patient       = relationship('User', foreign_keys=[patient_id])
     provider      = relationship('User', foreign_keys=[provider_id])

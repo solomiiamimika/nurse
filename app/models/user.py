@@ -42,6 +42,11 @@ class User(db.Model, UserMixin):
     is_owner  = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
 
+    terms_accepted     = Column(Boolean, default=False)
+    has_insurance      = Column(Boolean, default=False)
+    insurance_document = Column(String)
+    profile_visibility = Column(Text, default='{}')
+
     created_at = Column(DateTime, default=datetime.now)
 
     # ── Relationships ──────────────────────────────────────────────

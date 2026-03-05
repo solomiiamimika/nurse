@@ -94,6 +94,7 @@ def register():
                 full_name=fullname,
                 referral_code=_generate_referral_code(),
                 referred_by=referred_by,
+                terms_accepted=True,
             )
             if password:
                 user.password = password
@@ -203,7 +204,7 @@ def login():
         user = User.query.filter((User.email == username) | (User.user_name == username)).first()
         
         if user and (user.verify_password(password) or user.google_id):
-            if not user.is_active:
+            if user.is_active is False:
                 flash('Your account has been deactivated. Contact support.', 'danger')
                 return redirect(url_for('auth.login'))
             login_user(user)

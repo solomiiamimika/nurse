@@ -46,16 +46,16 @@ def dashboard():
     nurses = []
 
     if search_query:
-        nurses = User.query.filter(User.role == 'provider', User.location_approved == True).outerjoin(ProviderService).filter(
+        nurses = User.query.filter(User.role == 'provider').outerjoin(ProviderService).filter(
             (User.full_name.ilike(f'%{search_query}%')) |
             (User.user_name.ilike(f'%{search_query}%')) |
             (ProviderService.name.ilike(f'%{search_query}%')) |
             (User.address.ilike(f'%{search_query}%'))
         ).distinct().all()
     else:
-        nurses = User.query.filter_by(role='provider', location_approved=True).all()
+        nurses = User.query.filter_by(role='provider').all()
 
-    return render_template('client/dashboard.html', nurses=nurses, search_query=search_query)
+    return render_template('client/dashboard.html', nurses=nurses, search_query=search_query, stripe_public_key=stripe_public_key)
 
 
 @client_bp.route('/get_nurses_locations')

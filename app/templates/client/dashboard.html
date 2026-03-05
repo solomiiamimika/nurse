@@ -175,8 +175,15 @@
               </div>
               <div class="mb-3">
                   <label class="form-label fw-bold small text-muted">{{ _("YOUR ADDRESS") }} <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control" id="reqAddress" required
-                         placeholder="{{ _('Street, building, city') }}">
+                  <div class="input-group">
+                      <input type="text" class="form-control" id="reqAddress" required
+                             placeholder="{{ _('Street, building, city') }}">
+                      <button type="button" class="btn btn-outline-secondary" id="detectAddressBtn"
+                              title="{{ _('Detect my location') }}" style="white-space:nowrap;">
+                          <i class="fas fa-crosshairs"></i>
+                      </button>
+                  </div>
+                  <div id="reqAddressStatus" class="form-text" style="font-size:11px;"></div>
                   <div class="form-text text-muted" style="font-size:11px;">{{ _("Only visible to the provider after they accept your request.") }}</div>
               </div>
               <div class="mb-3">
@@ -201,6 +208,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+<script src="https://js.stripe.com/v3/"></script>
 
 <script src="https://cdn.botpress.cloud/webchat/v3.5/inject.js"></script>
 <script src="https://files.bpcontent.cloud/2026/01/10/13/20260110130650-79OB48AX.js" defer></script>
@@ -348,8 +356,31 @@
 
   // --- ІНШІ ФУНКЦІЇ (Request, Update Location, Booking) ---
 
+  const stripe = Stripe("{{ stripe_public_key }}");
+
+  window.payForRequest = function(reqId, price) {
+      fetch('/client/create_request_payment_session', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+          body: JSON.stringify({request_id: reqId})
+      }).then(r => r.json()).then(data => {
+          if (data.sessionId) {
+              stripe.redirectToCheckout({sessionId: data.sessionId}).then(result => {
+                  if (result && result.error) alert(result.error.message);
+              });
+          } else {
+              alert(data.error || 'Failed to create payment session');
+          }
+      });
+  };
+
   window.showOffers = function(reqId) {
       const el = document.getElementById('offersList-' + reqId);
+      if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  };
+
+  window.toggleProviderCard = function(reqId) {
+      const el = document.getElementById('providerCard-' + reqId);
       if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
   };
 
@@ -369,12 +400,65 @@
       });
   };
 
+  // Store detected coordinates from the "detect location" button
+  let _detectedLat = null, _detectedLng = null;
+
+  document.getElementById('detectAddressBtn').addEventListener('click', function() {
+      if (!navigator.geolocation) { alert("{{ _('Geolocation not supported') }}"); return; }
+      const statusEl = document.getElementById('reqAddressStatus');
+      const btn = this;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      statusEl.textContent = '{{ _("Detecting location...") }}';
+      statusEl.style.color = '#6b7280';
+
+      navigator.geolocation.getCurrentPosition(
+          (pos) => {
+              _detectedLat = pos.coords.latitude;
+              _detectedLng = pos.coords.longitude;
+              // Reverse geocode via Nominatim
+              fetch(`https://nominatim.openstreetmap.org/reverse?lat=${_detectedLat}&lon=${_detectedLng}&format=json`)
+                  .then(r => r.json())
+                  .then(geo => {
+                      const addr = geo.display_name || `${_detectedLat.toFixed(5)}, ${_detectedLng.toFixed(5)}`;
+                      document.getElementById('reqAddress').value = addr;
+                      statusEl.textContent = '✓ {{ _("Location detected") }}';
+                      statusEl.style.color = '#16a34a';
+                  })
+                  .catch(() => {
+                      document.getElementById('reqAddress').value = `${_detectedLat.toFixed(5)}, ${_detectedLng.toFixed(5)}`;
+                      statusEl.textContent = '✓ {{ _("Location detected") }}';
+                      statusEl.style.color = '#16a34a';
+                  })
+                  .finally(() => {
+                      btn.disabled = false;
+                      btn.innerHTML = '<i class="fas fa-crosshairs"></i>';
+                  });
+          },
+          (err) => {
+              statusEl.textContent = '✗ ' + err.message;
+              statusEl.style.color = '#dc3545';
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-crosshairs"></i>';
+          },
+          { timeout: 10000 }
+      );
+  });
+
   document.getElementById('submitRequestBtn').addEventListener('click', function() {
-      if(!userMarker) { alert("{{ _('Please update location first using the button in the menu.') }}"); return; }
-      const latLng = userMarker.getLatLng();
-      
       const address = document.getElementById('reqAddress').value.trim();
       if (!address) { alert("{{ _('Please enter your address.') }}"); return; }
+
+      // Priority: detected coords → map marker → saved DB coords → 0
+      let lat, lng;
+      if (_detectedLat !== null) {
+          lat = _detectedLat; lng = _detectedLng;
+      } else if (userMarker) {
+          const ll = userMarker.getLatLng(); lat = ll.lat; lng = ll.lng;
+      } else {
+          lat = {{ current_user.latitude or 0 }}; lng = {{ current_user.longitude or 0 }};
+      }
+      const latLng = { lat, lng };
 
       const data = {
           service_name: document.getElementById('reqServiceName').value,
@@ -395,8 +479,8 @@
               bootstrap.Modal.getInstance(document.getElementById('createRequestModal')).hide();
               loadMyRequests();
               alert("{{ _('Request published successfully!') }}");
-          } else { alert(res.message); }
-      });
+          } else { alert(res.error || res.message || 'Error'); }
+      }).catch(err => { console.error('Request error:', err); alert('Network error: ' + err); });
   });
 
   window.cancelRequest = function(id) {
@@ -507,18 +591,42 @@
         .then(data => {
             checkForNewOffers(data.requests);
             const container = document.getElementById('myRequestsList');
-            const active = (data.requests || []).filter(r => !['accepted','cancelled'].includes(r.status));
-            if(!data.success || active.length === 0) {
+            const visible = (data.requests || []).filter(r => r.status !== 'cancelled');
+            if(!data.success || visible.length === 0) {
                 container.innerHTML = '<div class="text-center p-3 text-muted" style="border: 1px dashed #ccc; border-radius: 4px; background: rgba(255,255,255,0.6);"><small>{{ _("No active requests") }}</small></div>';
                 return;
             }
             let html = '';
-            active.forEach(req => {
-                const hasOffers = req.offers && req.offers.length > 0;
-                const borderColor = hasOffers ? '#10b981' : '#ffc107';
-                const badge = hasOffers
-                    ? `<span class="badge bg-success" style="height:fit-content">{{ _("Offers") }}: ${req.offers.length}</span>`
-                    : `<span class="badge bg-warning text-dark" style="height:fit-content">{{ _("Pending") }}</span>`;
+            visible.forEach(req => {
+                const isCompleted  = req.status === 'completed' || req.status === 'confirmed_paid';
+                const isAuthorized = req.status === 'authorized';
+                const isAccepted   = req.status === 'accepted';
+                const isBooked     = isAccepted || isAuthorized || isCompleted;
+                const hasOffers    = !isBooked && req.offers && req.offers.length > 0;
+
+                const daysUntil = (new Date(req.appointment_start_time) - new Date()) / (1000 * 3600 * 24);
+                const canPayNow = daysUntil <= 7;
+
+                let borderColor, badge;
+                if (isCompleted) {
+                    borderColor = '#10b981';
+                    badge = `<span class="badge bg-success" style="height:fit-content">{{ _("Completed") }} ✓</span>`;
+                } else if (isAuthorized) {
+                    borderColor = '#8b5cf6';
+                    badge = `<span class="badge" style="height:fit-content;background:#8b5cf6;color:#fff;">🔒 {{ _("Payment held") }}</span>`;
+                } else if (isAccepted && canPayNow) {
+                    borderColor = '#f59e0b';
+                    badge = `<span class="badge bg-warning text-dark" style="height:fit-content">{{ _("Pay to confirm") }}</span>`;
+                } else if (isAccepted) {
+                    borderColor = '#3b82f6';
+                    badge = `<span class="badge bg-primary" style="height:fit-content">{{ _("Booked") }} ✓</span>`;
+                } else if (hasOffers) {
+                    borderColor = '#10b981';
+                    badge = `<span class="badge bg-success" style="height:fit-content">{{ _("Offers") }}: ${req.offers.length}</span>`;
+                } else {
+                    borderColor = '#ffc107';
+                    badge = `<span class="badge bg-warning text-dark" style="height:fit-content">{{ _("Pending") }}</span>`;
+                }
 
                 html += `
                 <div class="card mb-2" style="border-left: 4px solid ${borderColor};">
@@ -528,15 +636,67 @@
                             ${badge}
                         </div>
                         <small class="text-muted">${new Date(req.appointment_start_time).toLocaleString()}</small>
-                        <div class="d-flex gap-2 mt-2">`;
+                        <div class="d-flex gap-2 mt-2 flex-wrap">`;
 
+                if (isBooked && req.accepted_provider) {
+                    html += `<button onclick="toggleProviderCard(${req.id})" class="btn btn-sm btn-primary flex-grow-1" style="font-size:12px">
+                        <i class="fas fa-user-nurse me-1"></i>{{ _("View Provider") }}
+                    </button>`;
+                }
+                if (isAccepted && canPayNow && req.accepted_provider) {
+                    const price = req.accepted_provider.agreed_price || req.payment;
+                    html += `<button onclick="payForRequest(${req.id}, ${price})" class="btn btn-sm btn-success flex-grow-1" style="font-size:12px">
+                        <i class="fas fa-lock me-1"></i>{{ _("Hold payment") }} €${price}
+                    </button>`;
+                }
                 if(hasOffers) {
                     html += `<button onclick="showOffers(${req.id})" class="btn btn-sm btn-success flex-grow-1" style="font-size:12px">
                         <i class="fas fa-list me-1"></i>{{ _("View Offers") }}
                     </button>`;
                 }
-                html += `<button onclick="cancelRequest(${req.id})" class="btn btn-sm btn-outline-danger" style="font-size:12px">{{ _("Cancel") }}</button>
-                        </div>`;
+                if (!isBooked) {
+                    html += `<button onclick="cancelRequest(${req.id})" class="btn btn-sm btn-outline-danger" style="font-size:12px">{{ _("Cancel") }}</button>`;
+                }
+                html += `</div>`;
+
+                // Info notice: payment available from 7 days before appointment
+                if (isAccepted && !canPayNow) {
+                    const payDate = new Date(new Date(req.appointment_start_time).getTime() - 7*24*3600*1000);
+                    const payDateStr = payDate.toLocaleDateString('uk-UA', {day:'numeric', month:'long'});
+                    html += `
+                    <div class="mt-2 p-2 rounded" style="background:#eff6ff;border:1px solid #bfdbfe;font-size:12px;line-height:1.5;">
+                        <i class="fas fa-info-circle text-primary me-1"></i>
+                        <strong>{{ _("Payment is available 7 days before the appointment.") }}</strong><br>
+                        <span class="text-muted">{{ _("From") }} <strong>${payDateStr}</strong> {{ _("you will receive an email to authorize the payment. Funds are held securely and released only after the service.") }}</span>
+                    </div>`;
+                }
+
+                if (isBooked && req.accepted_provider) {
+                    const prov = req.accepted_provider;
+                    const provPhoto = prov.photo
+                        ? `<img src="${prov.photo}" class="rounded-circle me-2" style="width:40px;height:40px;object-fit:cover;flex-shrink:0;">`
+                        : `<div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold me-2" style="width:40px;height:40px;flex-shrink:0;font-size:15px;">${(prov.name||'?')[0].toUpperCase()}</div>`;
+                    html += `
+                    <div id="providerCard-${req.id}" class="mt-2 p-3 rounded" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            ${provPhoto}
+                            <div>
+                                <div class="fw-bold" style="font-size:14px;">${prov.name}</div>
+                                ${prov.phone ? `<div class="small text-muted"><i class="fas fa-phone me-1"></i>${prov.phone}</div>` : ''}
+                            </div>
+                            <div class="ms-auto text-end">
+                                <div class="text-success fw-bold" style="font-size:15px;">€${prov.agreed_price}</div>
+                                <div class="small text-muted">{{ _("agreed price") }}</div>
+                            </div>
+                        </div>
+                        ${prov.about ? `<div class="small text-muted" style="border-top:1px solid #bfdbfe;padding-top:8px;">${prov.about}</div>` : ''}
+                        <div class="mt-2">
+                            <a href="/client/provider/${prov.id}" class="btn btn-sm btn-outline-primary" style="font-size:11px;">
+                                <i class="fas fa-id-card me-1"></i>{{ _("Full Profile") }}
+                            </a>
+                        </div>
+                    </div>`;
+                }
 
                 if(hasOffers) {
                     html += `<div id="offersList-${req.id}" class="mt-2" style="display:none;">`;
@@ -565,12 +725,33 @@
         });
   }
 
+  // Reset detected coords when the request modal is closed
+  document.getElementById('createRequestModal').addEventListener('hidden.bs.modal', () => {
+      _detectedLat = null; _detectedLng = null;
+      document.getElementById('reqAddressStatus').textContent = '';
+  });
+
   document.addEventListener('DOMContentLoaded', () => {
       initMap();
       loadMyRequests();
       document.getElementById('location-btn').addEventListener('click', updateLocation);
-      // Poll every 30s to catch new offers
       setInterval(loadMyRequests, 30000);
+
+      // Auto-trigger payment from email link (?pay_request=ID)
+      const urlParams = new URLSearchParams(window.location.search);
+      const payReqId = urlParams.get('pay_request');
+      if (payReqId) {
+          // Wait for requests to load, then trigger payment
+          setTimeout(() => {
+              fetch('/client/client_get_requests').then(r => r.json()).then(data => {
+                  const req = (data.requests || []).find(r => r.id == payReqId && r.status === 'accepted');
+                  if (req && req.accepted_provider) {
+                      const price = req.accepted_provider.agreed_price || req.payment;
+                      payForRequest(parseInt(payReqId), price);
+                  }
+              });
+          }, 1000);
+      }
   });
 </script>
 {% endblock %}

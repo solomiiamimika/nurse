@@ -3,6 +3,7 @@ from app.models import User, ProviderService, Appointment
 from app.extensions import db
 from sqlalchemy import or_, func
 from datetime import datetime
+import json
 
 main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
@@ -71,14 +72,16 @@ def search_providers():
             name = s.name or (s.base_service.name if s.base_service else 'Service')
             services_list.append({'name': name, 'price': s.price, 'duration': s.duration})
 
+        vis = json.loads(n.profile_visibility or '{}')
+
         results.append({
             'id': n.id,
             'user_name': n.user_name,
-            'full_name': n.full_name or n.user_name,
-            'photo': n.photo,
+            'full_name': (n.full_name or n.user_name) if vis.get('full_name', True) else n.user_name,
+            'photo': n.photo if vis.get('photo', True) else None,
             'average_rating': n.average_rating,
             'review_count': n.review_count,
-            'about_me': n.about_me,
+            'about_me': n.about_me if vis.get('about_me', True) else None,
             'services': services_list,
         })
 

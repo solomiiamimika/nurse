@@ -204,9 +204,6 @@ def nurse_get_requests():
                 distance_km = round(haversine_distance(
                     nurse_lat, nurse_lng, req.latitude, req.longitude
                 ), 1)
-                # Only show requests within 50 km radius
-                if distance_km > 50:
-                    continue
 
             f_lat, f_lng = fuzz_coordinates(req.latitude, req.longitude, meters=300)
 
@@ -221,6 +218,9 @@ def nurse_get_requests():
                 'notes': req.notes,
                 'payment': req.payment
             })
+
+        # Sort: requests with known distance first (closest first), unknown last
+        result.sort(key=lambda x: (x['distance_km'] is None, x['distance_km'] or 0))
 
         return jsonify({'success': True, 'requests': result}), 200
 
@@ -301,6 +301,8 @@ def nurse_get_accepted_requests():
                 'address': req.address if show_address else None,
                 'notes': req.notes,
                 'payment': offer.proposed_price,
+                'req_status': req.status,
+                'req_id': req.id,
             })
 
         return jsonify({'success': True, 'requests': result}), 200
@@ -308,3 +310,86 @@ def nurse_get_accepted_requests():
     except Exception as e:
         current_app.logger.error(f"Error retrieving accepted requests: {str(e)}")
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+
+@provider_bp.route('/complete_request/<int:request_id>', methods=['POST'])
+@login_required
+def complete_request(request_id):
+    """Provider marks service as done → capture payment + transfer to provider."""
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    try:
+        req = ClientSelfCreatedAppointment.query.filter_by(
+            id=request_id, provider_id=current_user.id
+        ).first()
+
+        if not req:
+            return jsonify({'success': False, 'message': 'Request not found'}), 404
+
+        if req.status != 'authorized':
+            return jsonify({'success': False, 'message': 'Payment not yet authorized by client'}), 400
+
+        if not req.payment_intent_id:
+            return jsonify({'success': False, 'message': 'No payment intent found'}), 400
+
+        if not current_user.stripe_account_id:
+            return jsonify({'success': False, 'message': 'Provider Stripe account not connected'}), 400
+
+        # 1. Capture the authorized payment
+        pi = stripe.PaymentIntent.capture(req.payment_intent_id)
+        amount_cents = pi.amount_received
+        platform_fee_cents = int(round(amount_cents * 0.10))
+        payout_cents = amount_cents - platform_fee_cents
+
+        # 2. Transfer to provider minus platform fee
+        stripe.Transfer.create(
+            amount=payout_cents,
+            currency='eur',
+            destination=current_user.stripe_account_id,
+            transfer_group=f"req_{request_id}",
+            metadata={'request_id': str(request_id)},
+            idempotency_key=f"complete_req_{request_id}",
+        )
+
+        req.status = 'completed'
+        db.session.commit()
+        return jsonify({'success': True})
+
+    except stripe.StripeError as e:
+        current_app.logger.error(f"Stripe error completing request {request_id}: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error completing request {request_id}: {str(e)}")
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
+
+
+@provider_bp.route('/cancel_accepted_request/<int:request_id>', methods=['POST'])
+@login_required
+def provider_cancel_request(request_id):
+    """Provider cancels → void PaymentIntent (0 fee if authorized) + free client."""
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    try:
+        req = ClientSelfCreatedAppointment.query.filter_by(
+            id=request_id, provider_id=current_user.id
+        ).first()
+
+        if not req or req.status not in ('accepted', 'authorized'):
+            return jsonify({'success': False, 'message': 'Cannot cancel at this stage'}), 400
+
+        if req.payment_intent_id and req.status == 'authorized':
+            stripe.PaymentIntent.cancel(req.payment_intent_id)
+
+        req.status = 'cancelled'
+        db.session.commit()
+        return jsonify({'success': True})
+
+    except stripe.StripeError as e:
+        current_app.logger.error(f"Stripe error cancelling request {request_id}: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500

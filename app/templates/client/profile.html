@@ -83,6 +83,17 @@
 
     {% include 'shared/_change_password_accordion.html' %}
 
+    <!-- Visibility Settings -->
+    {% set vis = current_user.profile_visibility | from_json %}
+    {% set visibility_fields = [
+      ('photo',        _('Profile Photo')),
+      ('full_name',    _('Full Name')),
+      ('phone_number', _('Phone Number')),
+      ('about_me',     _('About Me')),
+      ('date_birth',   _('Birth Date'))
+    ] %}
+    {% include 'shared/_visibility_settings.html' %}
+
     <div class="mt-3">
       <div class="accordion" id="dangerZoneAccordion">
         <div class="accordion-item border-danger">
