@@ -29,7 +29,7 @@ def register():
         errors.append('Invalid email address')
     if not password or len(password) < 6:
         errors.append('Password must be at least 6 characters long')
-    if role not in ['client', 'nurse']:
+    if role not in ['client', 'provider']:
         errors.append('Invalid role (must be client or nurse)')
         
     if User.query.filter_by(user_name=username).first():

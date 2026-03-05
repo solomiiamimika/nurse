@@ -84,7 +84,6 @@
 
 {% block content %}
 
-<div class="ambient-background"></div>
 
 <div class="greeting-header">
     <h2>Financial Overview</h2>
@@ -94,13 +93,13 @@
 <div class="sticky-toolbar">
     <div class="toolbar-container">
         <div class="dashboard-options">
-            <a href="{{ url_for('nurse.dashboard') }}" class="btn">
+            <a href="{{ url_for('provider.dashboard') }}" class="btn">
                 <i class="fas fa-arrow-left"></i> Back to Dashboard
             </a>
             <a href="https://dashboard.stripe.com/" target="_blank" class="btn">
                 <i class="fab fa-stripe"></i> Open Stripe Dashboard
             </a>
-            <a href="{{ url_for('nurse.provider_finances_management') }}" class="btn">
+            <a href="{{ url_for('provider.provider_finances_management') }}" class="btn">
                 <i class="fas fa-sync-alt"></i> Refresh Data
             </a>
         </div>

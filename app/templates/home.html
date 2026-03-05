@@ -257,12 +257,8 @@
                             <h6 class="mb-0 fw-bold">{{ _("Available Creators") }}</h6>
                             <small class="text-muted" style="cursor: pointer; text-decoration: underline;" onclick="resetSearch()">{{ _("Change") }}</small>
                         </div>
-                        <div class="results-list">
-                            <div class="provider-result-card"><div class="provider-avatar" style="background: #e3f2fd; color: #0d6efd;"><i class="fas fa-laptop-code"></i></div><div style="flex: 1;"><div class="fw-bold">Max T.</div><div class="small text-muted">{{ _("Tech Wizard • Excel & Zoom") }}</div><div class="small fw-bold mt-1">~ 20.00 € / task</div></div><button class="book-btn-sm" onclick="redirectToRegister('Max T.')">{{ _("Select") }}</button></div>
-                            <div class="provider-result-card"><div class="provider-avatar" style="background: #e8f5e9; color: #198754;"><i class="fas fa-broom"></i></div><div style="flex: 1;"><div class="fw-bold">Olena K.</div><div class="small text-muted">{{ _("Home Fairy • Cleaning") }}</div><div class="small fw-bold mt-1">~ 15.00 € / hr</div></div><button class="book-btn-sm" onclick="redirectToRegister('Olena K.')">{{ _("Select") }}</button></div>
-                             <div class="provider-result-card"><div class="provider-avatar" style="background: #fff3cd; color: #ffc107;"><i class="fas fa-dog"></i></div><div style="flex: 1;"><div class="fw-bold">Sarah J.</div><div class="small text-muted">{{ _("Pet Sitter • Dog Lover") }}</div><div class="small fw-bold mt-1">~ 12.00 € / hr</div></div><button class="book-btn-sm" onclick="redirectToRegister('Sarah J.')">{{ _("Select") }}</button></div>
-                        </div>
-                        <div class="text-center mt-3 pt-2 border-top"><small class="text-muted">{{ _("Viewing 3 available neighbors") }}</small></div>
+                        <div id="results-list"></div>
+                        <div class="text-center mt-3 pt-2 border-top"><small class="text-muted" id="results-count"></small></div>
                     </div>
                 </div>
             </div>
@@ -340,27 +336,82 @@
     // --- BASIC LOGIC ---
     function switchTab(el, type) { document.querySelectorAll('.widget-tab').forEach(t => t.classList.remove('active')); el.classList.add('active'); }
     
-    // --- SEARCH SIMULATION ---
-    function simulateSearch() {
+    // --- REAL PROVIDER SEARCH ---
+    async function simulateSearch() {
         const stepSearch = document.getElementById('step-search');
         const stepLoading = document.getElementById('step-loading');
         const stepResults = document.getElementById('step-results');
-        
+
         stepSearch.classList.add('hidden');
         stepLoading.classList.add('active');
 
-        setTimeout(() => {
-            stepLoading.classList.remove('active');
-            stepResults.classList.remove('hidden');
-        }, 1500);
+        const q = document.getElementById('fakeLocation').value.trim();
+        const params = new URLSearchParams();
+        if (q) params.set('q', q);
+
+        try {
+            const resp = await fetch('/search_providers?' + params.toString());
+            const providers = await resp.json();
+            renderResults(providers);
+        } catch (e) {
+            renderResults([]);
+        }
+
+        stepLoading.classList.remove('active');
+        stepResults.classList.remove('hidden');
     }
 
-    function resetSearch() { 
-        document.getElementById('step-results').classList.add('hidden'); 
-        document.getElementById('step-loading').classList.remove('active');
-        document.getElementById('step-search').classList.remove('hidden'); 
+    function renderResults(providers) {
+        const list = document.getElementById('results-list');
+        const countEl = document.getElementById('results-count');
+
+        list.innerHTML = '';
+
+        if (!providers.length) {
+            list.innerHTML = '<div class="text-center py-4 text-muted">No providers found. Try a different search.</div>';
+            countEl.textContent = 'No providers found';
+            return;
+        }
+
+        providers.forEach((p, i) => {
+            const mainService = p.services && p.services[0];
+            const priceText = mainService ? `~ ${parseFloat(mainService.price).toFixed(2)} € / task` : 'Price on request';
+            const serviceText = mainService ? mainService.name : 'General help';
+            const stars = p.average_rating ? '⭐ ' + p.average_rating : 'New';
+
+            const avatarHtml = p.photo
+                ? `<img src="${escapeHtml(p.photo)}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
+                : `<div class="provider-avatar" style="background:#e8f5e9;color:#198754;"><i class="fas fa-user"></i></div>`;
+
+            const card = document.createElement('div');
+            card.className = 'provider-result-card';
+            card.style.animationDelay = ((i + 1) * 0.1) + 's';
+            card.innerHTML = `
+                ${avatarHtml}
+                <div style="flex:1;">
+                    <div class="fw-bold">${escapeHtml(p.full_name || p.user_name)}</div>
+                    <div class="small text-muted">${escapeHtml(serviceText)} • ${stars}</div>
+                    <div class="small fw-bold mt-1">${priceText}</div>
+                </div>
+                <button class="book-btn-sm" onclick="redirectToRegister('${encodeURIComponent(p.user_name)}')">Select</button>
+            `;
+            list.appendChild(card);
+        });
+
+        countEl.textContent = `Viewing ${providers.length} available provider${providers.length !== 1 ? 's' : ''}`;
     }
-    
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function resetSearch() {
+        document.getElementById('step-results').classList.add('hidden');
+        document.getElementById('step-loading').classList.remove('active');
+        document.getElementById('step-search').classList.remove('hidden');
+    }
+
     function redirectToRegister(providerName) { window.location.href = "{{ url_for('auth.register') }}?intent=delegate&provider=" + encodeURIComponent(providerName); }
 
     // --- BLUE PILL LOGIC ---

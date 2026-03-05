@@ -1,8 +1,7 @@
-{# templates/nurse/dashboard.html #}
+{# templates/provider/dashboard.html #}
 {% extends "base.html" %} 
 {% block content %}
 
-<div class="ambient-background"></div>
 
 <div class="main-wrapper">
     
@@ -16,9 +15,9 @@
     <div class="sticky-toolbar-wrapper">
         <div class="custom-container">
             <div class="toolbar-inner d-flex justify-content-center align-items-center flex-wrap gap-2">
-                <a href="{{ url_for('nurse.profile') }}" class="btn-tool"><i class="fas fa-user-md"></i> Profile</a>
-                <a href="{{ url_for('nurse.appointments') }}" class="btn-tool"><i class="fas fa-calendar-check"></i> Appointments</a>
-                <a href="{{ url_for('nurse.manage_services') }}" class="btn-tool"><i class="fas fa-list-ul"></i> My Services</a>
+                <a href="{{ url_for('provider.profile') }}" class="btn-tool"><i class="fas fa-user-md"></i> Profile</a>
+                <a href="{{ url_for('provider.appointments') }}" class="btn-tool"><i class="fas fa-calendar-check"></i> Appointments</a>
+                <a href="{{ url_for('provider.manage_services') }}" class="btn-tool"><i class="fas fa-list-ul"></i> My Services</a>
                 <button id="location-btn" class="btn-tool text-primary"><i class="fas fa-map-marker-alt"></i> Update Location</button>
                 <button id="toggle-online-btn" class="btn-tool {{ 'status-online' if current_user.online else 'status-offline' }}">
                     <span class="status-indicator"></span>
@@ -326,7 +325,7 @@
   // --- LOADERS ---
   function loadRequests() {
       if(currentMode !== 'requests') return;
-      fetch('/nurse/nurse_get_requests').then(r => r.json()).then(data => {
+      fetch('/provider/nurse_get_requests').then(r => r.json()).then(data => {
           if (data.success) {
               renderList(data.requests, 'requestsList', 'item-request', 'btn-req');
               updateMarkers(data.requests, '#ef4444');
@@ -336,7 +335,7 @@
 
   function loadMyAppointments() {
       if(currentMode !== 'appointments') return;
-      fetch('/nurse/get_my_appointments').then(r => r.json()).then(data => {
+      fetch('/provider/get_my_appointments').then(r => r.json()).then(data => {
           const items = Array.isArray(data) ? data : (data.appointments || []);
           renderList(items, 'appointmentsList', 'item-appointment', 'btn-appt');
           updateMarkers(items, '#10b981');
@@ -438,7 +437,7 @@
   window.acceptRequest = function(id) {
       const btn = document.querySelector('#modalActions button');
       btn.disabled = true; btn.textContent = 'Processing...';
-      fetch(`/nurse/nurse_accept_request/${id}`, { method: 'POST', headers: {'X-CSRFToken': csrfToken} })
+      fetch(`/provider/nurse_accept_request/${id}`, { method: 'POST', headers: {'X-CSRFToken': csrfToken} })
       .then(r => r.json()).then(data => {
           if (data.success) {
               bootstrap.Modal.getInstance(document.getElementById('requestDetailsModal')).hide();

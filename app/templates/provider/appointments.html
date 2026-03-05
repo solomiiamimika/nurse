@@ -1,7 +1,6 @@
 {% extends "base.html" %} 
 {% block content %}
 
-<div class="ambient-background"></div>
 
 <div class="main-wrapper" style="padding-top: 40px; padding-bottom: 60px;">
   
@@ -12,7 +11,7 @@
           <h2 style="margin-bottom: 5px; font-weight: 700; color: #1f2937;">My Schedule</h2>
           <span class="text-muted">Manage your upcoming appointments</span>
       </div>
-      <a href="{{ url_for('nurse.dashboard') }}" class="btn-tool">
+      <a href="{{ url_for('provider.dashboard') }}" class="btn-tool">
         <i class="fas fa-arrow-left"></i> Back to Dashboard
       </a>
     </div>
@@ -186,7 +185,7 @@
       headerToolbar: initialSettings.header,
       locale: "en", 
       themeSystem: 'standard',
-      events: "{{ url_for('nurse.get_appointments') }}",
+      events: "{{ url_for('provider.get_appointments') }}",
       dayMaxEvents: true,
       handleWindowResize: true, 
 
@@ -285,7 +284,7 @@
       
       if (!confirm(confirmMsg)) return;
 
-      fetch("/nurse/update_appointment_status", {
+      fetch("/provider/update_appointment_status", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

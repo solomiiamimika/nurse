@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="profile-page">
+  <div class="profile-container">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 style="margin-bottom: 5px; font-weight: 700; color: #1f2937;">Service Provider Profile</h2>
+        <span class="text-muted">Manage your personal information and documents</span>
+      </div>
+      <a href="{{ url_for('provider.dashboard') }}" class="btn-tool">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+      </a>
+    </div>
+
+    <div class="profile-card">
+      <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+        {% set profile_icon = 'fa-user-nurse' %}
+        {% include 'shared/_profile_photo.html' %}
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">FULL NAME</label>
+            <input type="text" name="full_name" class="form-control" value="{{ user.full_name or '' }}" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">PHONE NUMBER</label>
+            <input type="text" name="phone_number" class="form-control" value="{{ user.phone_number or '' }}" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">BIRTH DATE</label>
+            <input type="date" name="date_birth" class="form-control" value="{{ formatted_date }}" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted">ADDRESS</label>
+            <input type="text" name="address" class="form-control" value="{{ user.address or '' }}" />
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-bold small text-muted">ABOUT ME</label>
+            <textarea name="about_me" class="form-control" rows="3">{{ user.about_me or '' }}</textarea>
+          </div>
+
+          <div class="col-12 mt-4">
+            <label class="form-label fw-bold small text-muted">UPLOAD DOCUMENTS</label>
+            <div class="input-group">
+              <input type="file" name="documents" id="documents" multiple class="form-control" />
+              <span class="input-group-text text-muted"><i class="fas fa-file-upload"></i></span>
+            </div>
+            <div class="form-text">You can select multiple files (PDF, JPG, PNG)</div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+          <button type="submit" class="btn btn-primary fw-bold px-4">Update Profile</button>
+        </div>
+      </form>
+
+      {% set delete_doc_endpoint = 'provider.delete_document' %}
+      {% include 'shared/_documents_grid.html' %}
+    </div>
+
+    {% include 'shared/_change_password_accordion.html' %}
+
+    <div class="mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Payout Settings</h5>
+
+          {% if current_user.stripe_account_id %}
+          <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> Payout Account Connected
+          </div>
+          {% else %}
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            Connect your bank account to receive payments.
+          </div>
+          <form action="{{ url_for('provider.connect_stripe') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <div class="mb-3">
+              <label class="form-label">Select your country:</label>
+              <select name="country" class="form-select" required>
+                <option value="UA">Ukraine (UA)</option>
+                <option value="US">United States (US)</option>
+                <option value="PL">Poland (PL)</option>
+                <option value="DE">Germany (DE)</option>
+                <option value="GB">United Kingdom (GB)</option>
+                <option value="FR">France (FR)</option>
+                <option value="ES">Spain (ES)</option>
+                <option value="IT">Italy (IT)</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary">
+              <i class="fab fa-stripe-s"></i> Connect with Stripe
+            </button>
+          </form>
+          {% endif %}
+
+          <a href="{{ url_for('provider.provider_finances_management') }}" class="btn btn-secondary mt-3">
+            <i class="fas fa-wallet"></i> Manage Payouts
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

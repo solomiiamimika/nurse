@@ -1,0 +1,136 @@
+from . import provider_bp
+from flask import Blueprint, jsonify, request, current_app, render_template, redirect, url_for, flash
+from flask_login import login_required, current_user
+from app.models import User, Message, db, Service, ProviderService, Appointment, ClientSelfCreatedAppointment, RequestOfferResponse, ServiceHistory, CancellationPolicy
+from app.utils import fuzz_coordinates, haversine_distance, validate_coordinates
+from datetime import datetime
+import json
+from app.supabase_storage import get_file_url, delete_from_supabase, upload_to_supabase, buckets, supabase
+import os
+from werkzeug.utils import secure_filename
+from math import radians, sin, cos, sqrt, atan2
+import stripe
+from app.extensions import socketio, db
+from flask import current_app, request
+from flask_socketio import join_room, leave_room, emit
+from app.models import Message, db, User
+from datetime import datetime
+from sqlalchemy import func
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'uploads')
+DOCUMENTS_FOLDER = os.path.join(UPLOAD_FOLDER, 'documents')
+PROFILE_PICTURES_FOLDER = os.path.join(UPLOAD_FOLDER, 'profile_pictures')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx'}
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(DOCUMENTS_FOLDER, exist_ok=True)
+os.makedirs(PROFILE_PICTURES_FOLDER, exist_ok=True)
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@provider_bp.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    if current_user.role != 'provider':
+        return redirect(url_for('auth.login'))
+
+    formatted_date = current_user.date_birth.strftime('%Y-%m-%d') if current_user.date_birth else ''
+
+    if request.method == 'POST':
+        try:
+            current_user.full_name = request.form.get('full_name')
+            current_user.phone_number = request.form.get('phone_number')
+            current_user.about_me = request.form.get('about_me')
+            current_user.address = request.form.get('address')
+            current_user.password_hash = request.form.get('password')
+
+            date_birth_str = request.form.get('date_birth')
+            if date_birth_str:
+                current_user.date_birth = datetime.strptime(date_birth_str, '%Y-%m-%d').date()
+
+            if 'profile_picture' in request.files:
+                file = request.files['profile_picture']
+                if file and file.filename != '' and allowed_file(file.filename):
+                    if current_user.photo:
+                        delete_from_supabase(current_user.photo, buckets['profile_pictures'])
+
+                    filename, file_url = upload_to_supabase(
+                        file,
+                        buckets['profile_pictures'],
+                        current_user.id,
+                        'nurse_profile'
+                    )
+                    if filename:
+                        current_user.photo = filename
+
+            if 'documents' in request.files:
+                documents = request.files.getlist('documents')
+                saved_docs = []
+                for doc in documents:
+                    if doc and doc.filename != '' and allowed_file(doc.filename):
+                        filename, file_url = upload_to_supabase(
+                            doc,
+                            buckets['documents'],
+                            current_user.id,
+                            'nurse_doc'
+                        )
+                        if filename:
+                            saved_docs.append(filename)
+
+                if saved_docs:
+                    current_docs = json.loads(current_user.documents) if current_user.documents else []
+                    current_docs.extend(saved_docs)
+                    current_user.documents = json.dumps(current_docs)
+
+            db.session.commit()
+            flash('Profile successfully updated!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Error updating profile: {str(e)}")
+            flash(f'Error updating profile: {str(e)}', 'danger')
+
+        return redirect(url_for('provider.profile'))
+
+    profile_photo = None
+    if current_user.photo:
+        profile_photo = get_file_url(current_user.photo, buckets['profile_pictures'])
+
+    documents_urls = {}
+    if current_user.documents:
+        try:
+            documents_list = json.loads(current_user.documents)
+            for doc_name in documents_list:
+                documents_urls[doc_name] = get_file_url(doc_name, buckets['documents'])
+        except json.JSONDecodeError:
+            documents_urls = {}
+
+    return render_template('provider/profile.html',
+                           formatted_date=formatted_date,
+                           documents_urls=documents_urls,
+                           profile_photo=profile_photo,
+                           user=current_user)
+
+
+@provider_bp.route('/delete_document', methods=['POST'])
+@login_required
+def delete_document():
+    try:
+        data = request.get_json()
+        doc_name = data.get('doc_name')
+
+        delete_from_supabase(doc_name, buckets['documents'])
+
+        if current_user.documents:
+            docs = json.loads(current_user.documents)
+            if doc_name in docs:
+                docs.remove(doc_name)
+                current_user.documents = json.dumps(docs) if docs else None
+                db.session.commit()
+                return jsonify({'success': True})
+
+        return jsonify({'success': False, 'message': 'Doc not found'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500

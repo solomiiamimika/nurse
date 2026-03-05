@@ -1,0 +1,55 @@
+{#
+  Profile photo upload widget.
+  Variables (set in parent before include):
+    profile_photo - URL string or falsy   (passed from view)
+    profile_icon  - FA icon class, e.g. 'fa-user' or 'fa-user-nurse'  (set with {% set %})
+#}
+<div class="text-center mb-5">
+    <div class="profile-img-container mb-3">
+        {% if profile_photo %}
+        <img src="{{ profile_photo }}" class="client-avatar shadow-sm" alt="{{ _('Profile Photo') }}" />
+        {% else %}
+        <div class="client-no-photo shadow-sm">
+            <i class="fas {{ profile_icon | default('fa-user') }} fa-3x text-muted"></i>
+        </div>
+        {% endif %}
+        <label for="profile_picture" class="edit-photo-btn" title="{{ _('Change photo') }}">
+            <i class="fas fa-camera"></i>
+        </label>
+    </div>
+    <input type="file" name="profile_picture" id="profile_picture" class="d-none" accept="image/*" />
+    <div class="text-muted small">{{ _("Allowed: JPG, PNG, GIF (Max 5MB)") }}</div>
+</div>
+
+<script>
+(function () {
+    const input = document.getElementById('profile_picture');
+    if (!input) return;
+    input.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+            alert("{{ _('File is too large, 5MB max.') }}");
+            this.value = '';
+            return;
+        }
+        const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!validTypes.includes(file.type)) {
+            alert("{{ _('Only JPG, PNG, and GIF files are allowed.') }}");
+            this.value = '';
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const img = document.querySelector('.client-avatar');
+            const noPhoto = document.querySelector('.client-no-photo');
+            if (img) {
+                img.src = e.target.result;
+            } else if (noPhoto) {
+                noPhoto.outerHTML = `<img src="${e.target.result}" class="client-avatar shadow-sm" style="border:none;" alt="Profile Photo">`;
+            }
+        };
+        reader.readAsDataURL(file);
+    });
+})();
+</script>

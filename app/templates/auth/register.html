@@ -238,7 +238,7 @@
                 <i class="fas fa-user-tag"></i>
                 <select name="role" class="styled-input" required>
                     <option value="client">{{ _("I want to find care (Client)") }}</option>
-                    <option value="nurse">{{ _("I want to offer services (Provider)") }}</option>
+                    <option value="provider">{{ _("I want to offer services (Provider)") }}</option>
                 </select>
                 <i class="fas fa-chevron-down" style="left: auto; right: 15px;"></i>
               </div>
@@ -263,7 +263,7 @@
         <div>
             <a href="{{ url_for('auth.google_role', role='client') }}" class="google-btn" style="margin-bottom: 10px;">
                 <i class="fab fa-google"></i> {{ _("Sign up as Client") }} </a>
-            <a href="{{ url_for('auth.google_role', role='nurse') }}" class="google-btn" style="margin-bottom: 10px;">
+            <a href="{{ url_for('auth.google_role', role='provider') }}" class="google-btn" style="margin-bottom: 10px;">
                 <i class="fab fa-google"></i> {{ _("Sign up as Nurse") }} </a>    
         </div>
         <div class="login-link">

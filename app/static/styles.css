@@ -288,3 +288,117 @@ a { text-decoration: none; color: inherit; }
 .password-toggle-btn:focus {
     outline: none;
 }
+
+/* ===================== BTN-TOOL (shared nav button) ===================== */
+.btn-tool {
+    background: white;
+    border: 1px solid #e5e7eb;
+    color: #4b5563;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+.btn-tool:hover {
+    background: #f9fafb;
+    color: #111827;
+    border-color: #d1d5db;
+}
+
+/* ===================== PROFILE PAGE LAYOUT ===================== */
+.profile-page {
+    padding-top: 40px;
+    padding-bottom: 60px;
+}
+.profile-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+.profile-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+/* ===================== PROFILE PHOTO WIDGET ===================== */
+.profile-img-container {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    margin: 0 auto;
+}
+.client-avatar,
+.client-no-photo {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid white;
+}
+.client-no-photo {
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.edit-photo-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: var(--primary-green);
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 2px solid white;
+    transition: transform 0.2s, background 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.edit-photo-btn:hover {
+    transform: scale(1.1);
+    background: var(--primary-hover);
+}
+
+/* ===================== DOCUMENTS GRID ===================== */
+.documents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+.client-doc-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+}
+.client-doc-item:hover {
+    background: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+}
+.doc-icon {
+    width: 36px;
+    height: 36px;
+    background: #e0f2fe;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}

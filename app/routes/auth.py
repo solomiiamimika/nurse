@@ -19,31 +19,31 @@ def _generate_referral_code():
             return code
 
 
-@auth_bp.route(‘/invite/<token>’)
+@auth_bp.route('/invite/<token>')
 def invite_landing(token):
     """Лендінг для запрошень — показує опис додатку перед реєстрацією."""
     inv = InvitationToken.query.filter_by(token=token, used=False).first()
 
     if not inv:
-        flash(‘This invitation link is invalid or has already been used.’, ‘danger’)
-        return redirect(url_for(‘auth.register’))
+        flash('This invitation link is invalid or has already been used.', 'danger')
+        return redirect(url_for('auth.register'))
 
     if inv.expires_at and inv.expires_at < datetime.now():
-        flash(‘This invitation link has expired.’, ‘danger’)
-        return redirect(url_for(‘auth.register’))
+        flash('This invitation link has expired.', 'danger')
+        return redirect(url_for('auth.register'))
 
-    return redirect(url_for(‘auth.register’, invite=token, role=inv.role_hint or ‘’))
+    return redirect(url_for('auth.register', invite=token, role=inv.role_hint or ''))
 
 
-@auth_bp.route(‘/register’, methods=[‘GET’,’POST’])
+@auth_bp.route('/register', methods=['GET','POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for(f’{current_user.role}.dashboard’))
+        return redirect(url_for(f'{current_user.role}.dashboard'))
 
     # Токен запрошення та реферальний код з URL
-    invite_token = request.args.get(‘invite’) or request.form.get(‘invite_token’)
-    ref_code = request.args.get(‘ref’) or request.form.get(‘ref_code’)
-    role_hint = request.args.get(‘role’, ‘’)
+    invite_token = request.args.get('invite') or request.form.get('invite_token')
+    ref_code = request.args.get('ref') or request.form.get('ref_code')
+    role_hint = request.args.get('role', '')
 
     # Валідуємо invite token якщо є
     invitation = None
@@ -53,33 +53,33 @@ def register():
             invitation = None
 
     if request.method == "POST":
-        username = request.form.get(‘username’)
-        fullname = request.form.get(‘full_name’)
-        email = request.form.get(‘email’)
-        password = request.form.get(‘password’)
-        confirm_password = request.form.get(‘confirm_password’)
-        role = request.form.get(‘role’)
+        username = request.form.get('username')
+        fullname = request.form.get('full_name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        role = request.form.get('role')
 
         errors = []
         if not username or len(username) < 2:
-            errors.append(‘Username must be at least 2 characters long’)
-        if not email or ‘@’ not in email:
-            errors.append(‘Invalid email address’)
+            errors.append('Username must be at least 2 characters long')
+        if not email or '@' not in email:
+            errors.append('Invalid email address')
         if password and len(password) < 6:
-            errors.append(‘Password must be at least 6 characters long’)
+            errors.append('Password must be at least 6 characters long')
         if password and password != confirm_password:
-            errors.append(‘Passwords do not match’)
-        if role not in [‘client’, ‘nurse’]:
-            errors.append(‘Invalid role’)
+            errors.append('Passwords do not match')
+        if role not in ['client', 'provider']:
+            errors.append('Invalid role')
 
         if User.query.filter_by(user_name=username).first():
-            errors.append(‘User already exists’)
+            errors.append('User already exists')
         if User.query.filter_by(email=email).first():
-            errors.append(‘Email already exists’)
+            errors.append('Email already exists')
 
         if errors:
             for e in errors:
-                flash(e, ‘danger’)
+                flash(e, 'danger')
         else:
             referred_by = None
             if ref_code:
@@ -108,26 +108,26 @@ def register():
                 invitation.used_at = datetime.now()
 
             db.session.commit()
-            flash(‘Registration successful! Please login.’, ‘success’)
-            return redirect(url_for(‘auth.login’))
+            flash('Registration successful! Please login.', 'success')
+            return redirect(url_for('auth.login'))
 
-    return render_template(‘auth/register.html’,
+    return render_template('auth/register.html',
                            invite_token=invite_token,
                            ref_code=ref_code,
                            role_hint=role_hint)
 
 
-@auth_bp.route(‘/create_invite’, methods=[‘POST’])
+@auth_bp.route('/create_invite', methods=['POST'])
 @login_required
 def create_invite():
     """Будь-який юзер може створити посилання-запрошення."""
     data = request.get_json() or {}
-    role_hint = data.get(‘role’)        # ‘nurse’ | ‘client’ | None
-    email_hint = data.get(‘email’)      # необов’язково
-    expires_days = data.get(‘expires_days’)  # None = безстроково
+    role_hint = data.get('role')        # 'provider' | 'client' | None
+    email_hint = data.get('email')      # необов'язково
+    expires_days = data.get('expires_days')  # None = безстроково
 
-    if role_hint and role_hint not in (‘nurse’, ‘client’):
-        return jsonify({‘success’: False, ‘message’: ‘Invalid role’}), 400
+    if role_hint and role_hint not in ('provider', 'client'):
+        return jsonify({'success': False, 'message': 'Invalid role'}), 400
 
     token = secrets.token_urlsafe(32)
     expires_at = None
@@ -144,11 +144,11 @@ def create_invite():
     db.session.add(inv)
     db.session.commit()
 
-    invite_url = url_for(‘auth.invite_landing’, token=token, _external=True)
-    return jsonify({‘success’: True, ‘url’: invite_url, ‘token’: token})
+    invite_url = url_for('auth.invite_landing', token=token, _external=True)
+    return jsonify({'success': True, 'url': invite_url, 'token': token})
 
 
-@auth_bp.route(‘/my_referrals’)
+@auth_bp.route('/my_referrals')
 @login_required
 def my_referrals():
     """Статистика рефералів поточного юзера."""
@@ -158,22 +158,22 @@ def my_referrals():
     ).all()
 
     return jsonify({
-        ‘referral_code’: current_user.referral_code,
-        ‘referral_url’: url_for(‘auth.register’, ref=current_user.referral_code, _external=True),
-        ‘total_referred’: len(referrals),
-        ‘referred_users’: [
-            {‘id’: u.id, ‘user_name’: u.user_name, ‘role’: u.role,
-             ‘joined’: u.created_at.isoformat()}
+        'referral_code': current_user.referral_code,
+        'referral_url': url_for('auth.register', ref=current_user.referral_code, _external=True),
+        'total_referred': len(referrals),
+        'referred_users': [
+            {'id': u.id, 'user_name': u.user_name, 'role': u.role,
+             'joined': u.created_at.isoformat()}
             for u in referrals
         ],
-        ‘invites_sent’: len(invites),
-        ‘invites’: [
-            {‘token’: i.token,
-             ‘url’: url_for(‘auth.invite_landing’, token=i.token, _external=True),
-             ‘role_hint’: i.role_hint,
-             ‘used’: i.used,
-             ‘expires_at’: i.expires_at.isoformat() if i.expires_at else None,
-             ‘created_at’: i.created_at.isoformat()}
+        'invites_sent': len(invites),
+        'invites': [
+            {'token': i.token,
+             'url': url_for('auth.invite_landing', token=i.token, _external=True),
+             'role_hint': i.role_hint,
+             'used': i.used,
+             'expires_at': i.expires_at.isoformat() if i.expires_at else None,
+             'created_at': i.created_at.isoformat()}
             for i in invites
         ]
     })
@@ -334,9 +334,37 @@ def set_language(lang_code):
         session['lang'] = lang_code
         return redirect(request.referrer or url_for('main.index'))
 
+@auth_bp.route('/change_password', methods=['POST'])
+@login_required
+def change_password():
+    current_pw = request.form.get('current_password', '')
+    new_pw = request.form.get('new_password', '')
+    confirm = request.form.get('confirm_password', '')
+
+    # Google-only users have a raw token as password_hash (not a bcrypt hash)
+    is_google_only = bool(current_user.google_id) and not (
+        current_user.password_hash and current_user.password_hash.startswith('$2')
+    )
+
+    if is_google_only:
+        flash('You signed in with Google. Password change is not available.', 'danger')
+    elif not current_user.verify_password(current_pw):
+        flash('Current password is incorrect.', 'danger')
+    elif new_pw != confirm:
+        flash('New passwords do not match.', 'danger')
+    elif len(new_pw) < 6:
+        flash('Password must be at least 6 characters.', 'danger')
+    else:
+        current_user.password = new_pw
+        db.session.commit()
+        flash('Password updated successfully!', 'success')
+
+    return redirect(url_for(f'{current_user.role}.profile'))
+
+
 @auth_bp.route('/google_role/<role>')
 def google_role(role):
-    if role not in ['client', 'nurse']:
+    if role not in ['client', 'provider']:
         flash('Invalid role selection', 'danger')
         return redirect(url_for('auth.register'))
     

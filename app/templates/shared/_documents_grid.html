@@ -1,0 +1,81 @@
+{#
+  Documents display grid + delete logic.
+  Variables (set in parent before include):
+    documents_urls       - dict {filename: url}   (passed from view)
+    delete_doc_endpoint  - endpoint string, e.g. 'client.delete_document'  (set with {% set %})
+#}
+<div class="mt-5">
+    <h5 class="mb-3 fw-bold text-dark">{{ _("Your Documents") }}</h5>
+
+    {% if documents_urls %}
+    <div class="documents-grid">
+        {% for filename, url in documents_urls.items() %}
+        <div class="client-doc-item" data-filename="{{ filename }}">
+            <div class="d-flex align-items-center overflow-hidden">
+                <div class="doc-icon me-3">
+                    <i class="fas fa-file-alt text-primary"></i>
+                </div>
+                <a href="{{ url }}" target="_blank"
+                   class="text-truncate text-dark text-decoration-none fw-bold"
+                   style="max-width: 200px;">
+                    {{ filename }}
+                </a>
+            </div>
+            <button class="btn btn-sm btn-light text-danger delete-doc-btn border"
+                    title="{{ _('Delete') }}">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="p-4 text-center bg-light rounded">
+        <i class="fas fa-folder-open fa-2x text-muted mb-2 d-block"></i>
+        <p class="text-muted mb-0">{{ _("No documents uploaded yet.") }}</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+(function () {
+    const DELETE_URL = '{{ url_for(delete_doc_endpoint) }}';
+    const CSRF = '{{ csrf_token() }}';
+
+    document.addEventListener('click', async function (event) {
+        const deleteBtn = event.target.closest('.delete-doc-btn');
+        if (!deleteBtn) return;
+        event.preventDefault();
+
+        const docItem = deleteBtn.closest('.client-doc-item');
+        const filename = docItem.dataset.filename;
+        if (!confirm(`{{ _("Delete document") }} "${filename}"?`)) return;
+
+        try {
+            const resp = await fetch(DELETE_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': CSRF
+                },
+                body: JSON.stringify({ doc_name: filename })
+            });
+            const result = await resp.json();
+
+            if (result.success) {
+                docItem.style.transition = 'all 0.3s';
+                docItem.style.opacity = '0';
+                docItem.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    docItem.remove();
+                    if (!document.querySelector('.client-doc-item')) location.reload();
+                }, 300);
+            } else {
+                alert('{{ _("Error:") }} ' + result.message);
+            }
+        } catch (e) {
+            console.error(e);
+            alert('{{ _("Error with server.") }}');
+        }
+    });
+})();
+</script>

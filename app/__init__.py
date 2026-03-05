@@ -1,46 +1,35 @@
-from flask import Flask, app, session, request
-from wtforms.csrf.core import CSRF
-from .extensions import db, bcrypt, login_manager, migrate, google_blueprint, babel, mail
-from app.models import User, Message, Service, Appointment, Payment, MedicalRecord, Prescription, Review
-from .extensions import socketio,csrf
+"""
+__init__.py — App Factory
+
+This file creates and configures the Flask application.
+'App Factory' pattern means we create the app inside a function (create_app),
+which makes it easy to create different versions for testing, development, etc.
+
+How it all connects:
+  config.py      → all settings (keys, URLs, email config)
+  extensions.py  → third-party tools (database, auth, sockets...)
+  models/        → database table definitions
+  routes/        → URL handlers (what happens at each URL)
+  templates/     → HTML pages
+  static/        → CSS, JS, images
+"""
 import os
-from dotenv import load_dotenv
+from flask import Flask, session, request
+from .config import Config
+from .extensions import db, bcrypt, login_manager, migrate, google_blueprint, babel, mail, socketio, csrf
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 
+# Allow OAuth over plain HTTP during local development
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
 
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = "1"
-os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = "1"
 
-
-load_dotenv()
 def create_app():
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv ('DATABASE_URL')
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['GOOGLE_OAUTH_CLIENT_ID'] = os.getenv ('GOOGLE_OAUTH_CLIENT_ID')
-    app.config['GOOGLE_OAUTH_CLIENT_SECRET'] = os.getenv ('GOOGLE_OAUTH_CLIENT_SECRET')
-    app.config['BABEL_DEFAULT_LOCALE'] = 'en'
-    app.config['BABEL_SUPPORTED_LOCALES'] = ['de', 'uk', 'pl', 'cz-CN']
-    app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
-    app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
-    app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
-    app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() == 'true'
-    app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
-    app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-    app.config["JWT_SECRET_KEY"] = "super-secret-key-change-this"  # Краще винести в .env
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 86400 # Токен живе 24 години
+    app.config.from_object(Config)   # load all settings from config.py
 
-
-    app.config["BABEL_TRANSLATION_DIRECTORIES"] = os.path.join(
-        os.path.dirname(__file__), "..", "translations"
-    )
-#banking
-    app.config['STRIPE_PUBLIC_KEY']= os.getenv ('STRIPE_PUBLIC_KEY')
-    app.config['STRIPE_SECRET_KEY']= os.getenv ('STRIPE_SECRET_KEY')
-
-    # Initializing extensions
+    # ── 1. Init extensions (order matters) ────────────────────────
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
@@ -50,42 +39,47 @@ def create_app():
     socketio.init_app(app)
     mail.init_app(app)
 
+    # Babel needs a locale selector function
     def get_locale():
         if 'lang' in session:
             return session.get('lang', 'en')
         return request.accept_languages.best_match(['en', 'uk'])
-
     babel.init_app(app, locale_selector=get_locale)
 
-    jwt = JWTManager(app)
-    CORS(app) # Дозволяє мобільному телефону стукатись на сервер
+    JWTManager(app)
+    CORS(app)   # allows the mobile app to make requests to this server
 
-    # Registering blueprints
-    from app.routes.auth import auth_bp
-    from app.routes.main import main_bp
-    from app.routes.client import client_bp
-    from app.routes.nurse import nurse_bp
+    # ── 2. Register blueprints (URL route groups) ─────────────────
+    from app.routes.auth     import auth_bp
+    from app.routes.main     import main_bp
+    from app.routes.client   import client_bp
+    from app.routes.provider import provider_bp
     from app.routes.api_auth import api_auth_bp
-    csrf.exempt(api_auth_bp)
+
+    csrf.exempt(api_auth_bp)   # mobile API uses JWT, not CSRF tokens
+
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
-    app.register_blueprint(client_bp,url_prefix='/client')
-    app.register_blueprint(nurse_bp,url_prefix='/nurse')
+    app.register_blueprint(client_bp,   url_prefix='/client')
+    app.register_blueprint(provider_bp, url_prefix='/provider')
     app.register_blueprint(google_blueprint)
     app.register_blueprint(api_auth_bp, url_prefix='/auth/api')
 
+    # ── 3. Tell Flask-Login how to load a user from the session ───
+    from app.models import User
 
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    # Additional configuration for Google OAuth
+    # ── 4. Make google_oauth_enabled available in every template ──
     @app.context_processor
-    def inject_google_oauth():
+    def inject_globals():
         return dict(
             google_oauth_enabled=app.config.get('GOOGLE_OAUTH_CLIENT_ID') is not None
         )
 
+    # ── 5. Create tables if they don't exist yet ──────────────────
     with app.app_context():
         db.create_all()
 
