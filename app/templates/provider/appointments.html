@@ -213,6 +213,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     const calendarEl = document.getElementById("calendar");
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    let currentEventPrice = 0;
 
     function getResponsiveSettings() {
       const isMobile = window.innerWidth < 768;
@@ -252,6 +253,7 @@
 
       eventClick: function (info) {
         const props = info.event.extendedProps;
+        currentEventPrice = parseFloat(props.price) || 0;
 
         document.getElementById("detailClientName").textContent = props.client_name || 'Unknown';
         document.getElementById("detailServiceName").textContent = props.service_name || 'Service';
@@ -284,7 +286,7 @@
             </button>
           `;
         }
-        // 2. Accepted, but Client hasn't paid yet
+        // 2. Accepted, but Client hasn't paid yet (only for paid services; free ones skip to confirmed_paid)
         else if (props.status === "confirmed") {
             actionsContainer.innerHTML = `
             <div class="alert alert-warning w-100 text-center mb-0">
@@ -295,10 +297,11 @@
         }
         // 3. Paid: Allow Provider to "Submit Work"
         else if (props.status === "confirmed_paid") {
+          const priceVal = parseFloat(props.price) || 0;
           actionsContainer.innerHTML = `
-            <div class="alert alert-info w-100 text-center mb-2 small">
+            ${priceVal > 0 ? `<div class="alert alert-info w-100 text-center mb-2 small">
                 <i class="fas fa-shield-alt"></i> {{ _("Payment Secured. Safe to work.") }}
-            </div>
+            </div>` : ''}
             <button class="btn btn-primary fw-bold w-100" onclick="updateStatus(${info.event.id}, 'work_submitted')">
                 <i class="fas fa-check"></i> {{ _("I have finished the work") }}
             </button>
@@ -306,11 +309,32 @@
         }
         // 4. Submitted: Waiting for Client Approval
         else if (props.status === "work_submitted") {
+            const priceWs = parseFloat(props.price) || 0;
             actionsContainer.innerHTML = `
-            <div class="alert alert-secondary w-100 text-center mb-0">
+            <div class="alert alert-secondary w-100 text-center mb-2">
                 <i class="fas fa-hourglass-half"></i> {{ _("Work Submitted.") }}<br>
-                <small>{{ _("Funds will be released when client approves.") }}</small>
+                <small>${priceWs > 0 ? "{{ _('Funds will be released when client approves.') }}" : "{{ _('Waiting for client confirmation.') }}"}</small>
             </div>
+            <button class="btn btn-outline-warning w-100" onclick="retractWorkAppointment(${info.event.id})">
+                <i class="fas fa-arrow-left me-1"></i> {{ _("Retract (Go Back)") }}
+            </button>
+            `;
+        }
+        // 5. Cancelled: Offer Undo
+        else if (props.status === "cancelled") {
+            actionsContainer.innerHTML = `
+            <div class="alert alert-danger w-100 text-center mb-0">
+                <i class="fas fa-times-circle"></i> {{ _("This appointment was cancelled.") }}
+            </div>
+            `;
+        }
+
+        // Receipt button for completed appointments
+        if (props.status === 'completed') {
+            actionsContainer.innerHTML += `
+                <a href="/provider/receipt/appointment/${info.event.id}" target="_blank" class="btn btn-outline-secondary w-100 mb-2" style="border-radius:10px;">
+                    <i class="fas fa-file-invoice me-1"></i> {{ _("Download Receipt") }}
+                </a>
             `;
         }
 
@@ -335,6 +359,33 @@
     });
 
     calendar.render();
+
+    window.retractWorkAppointment = async function(appointmentId) {
+      const ok = await confirmAction("{{ _('Retract your work submission? This will go back to the previous step.') }}", {
+        title: '{{ _("Retract Work") }}',
+        btnText: '{{ _("Yes, Retract") }}',
+        btnClass: 'btn-warning',
+        icon: 'fa-arrow-left',
+        iconColor: '#f59e0b'
+      });
+      if (!ok) return;
+
+      fetch(`/provider/retract_work_appointment/${appointmentId}`, {
+        method: "POST",
+        headers: { "X-CSRFToken": csrfToken },
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          calendar.refetchEvents();
+          const modalElem = document.getElementById("appointmentDetailsModal");
+          const modalInstance = bootstrap.Modal.getInstance(modalElem);
+          if (modalInstance) modalInstance.hide();
+        } else {
+          alert("Error: " + data.message);
+        }
+      });
+    };
 
     window.updateStatus = function (appointmentId, status) {
       let confirmMsg = `Change status to ${status}?`;
@@ -379,13 +430,14 @@
     };
 
     function getStatusText(status) {
+      const price = parseFloat(currentEventPrice) || 0;
       const statuses = {
-        scheduled: "Pending Request",
-        confirmed: "Accepted (Unpaid)",
-        confirmed_paid: "Paid - Ready to Start",
-        work_submitted: "Work Submitted (Pending Approval)",
-        completed: "Completed & Paid",
-        cancelled: "Cancelled",
+        scheduled: "{{ _('Pending Request') }}",
+        confirmed: "{{ _('Accepted (Awaiting Payment)') }}",
+        confirmed_paid: price > 0 ? "{{ _('Paid - Ready to Start') }}" : "{{ _('Confirmed - Ready to Start') }}",
+        work_submitted: "{{ _('Work Submitted (Pending Approval)') }}",
+        completed: price > 0 ? "{{ _('Completed & Paid') }}" : "{{ _('Completed') }}",
+        cancelled: "{{ _('Cancelled') }}",
       };
       return statuses[status] || status;
     }

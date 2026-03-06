@@ -1,92 +1,80 @@
 {% extends "base.html" %}
 {% block content %}
 
+<div class="main-wrapper">
 
-<div class="greeting-header">
-  <div style="max-width: 1200px; margin: 0 auto;">
+<div class="greeting-section">
+  <div class="custom-container text-center">
     <h2>{{ _("Hi") }}, {{ current_user.full_name if current_user.full_name else current_user.username}}!</h2>
     <div class="hero-subtitle">{{ _("Find the perfect service for your needs") }}</div>
     {% set lvl = current_user.player_level_info %}
-    <div class="player-badge mt-2">
-      <span class="player-icon">{{ lvl.icon }}</span>
-      <span class="player-title">{{ lvl.title }}</span>
-      <span class="player-orders">{{ lvl.count }} {{ _("orders") }}</span>
+    <div class="player-badge mt-2" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);padding:6px 16px;border-radius:20px;font-size:0.85rem;">
+      <span style="font-size:1.2rem;">{{ lvl.icon }}</span>
+      <span style="font-weight:700;">{{ lvl.title }}</span>
+      <span style="opacity:0.8;font-size:0.8rem;">{{ lvl.count }} {{ _("orders") }}</span>
       {% if lvl.next_title %}
-      <div class="player-progress-wrapper">
-        <div class="player-progress-bar" style="width: {{ lvl.progress }}%"></div>
+      <div style="width:60px;height:6px;background:rgba(255,255,255,0.2);border-radius:3px;overflow:hidden;">
+        <div style="height:100%;background:#fbbf24;border-radius:3px;width:{{ lvl.progress }}%;"></div>
       </div>
-      <span class="player-next">{{ _("Next:") }} {{ lvl.next_icon }} {{ lvl.next_title }} ({{ lvl.next_threshold }})</span>
+      <span style="font-size:0.75rem;opacity:0.7;">{{ _("Next:") }} {{ lvl.next_icon }} {{ lvl.next_title }} ({{ lvl.next_threshold }})</span>
       {% else %}
-      <span class="player-max">{{ _("Max Level!") }}</span>
+      <span style="font-size:0.75rem;color:#fbbf24;font-weight:700;">{{ _("Max Level!") }}</span>
       {% endif %}
     </div>
   </div>
 </div>
 
-<div class="sticky-toolbar">
-  <div class="toolbar-container">
-
-    <form class="top-search-bar" method="GET" action="{{ request.path }}">
-      <input type="text" name="q" value="{{ search_query|default('') }}" placeholder="{{ _('What service are you looking for?') }}" class="search-input"/>
-      <button type="submit" class="search-btn">{{ _("Search") }}</button>
-    </form>
-
-    <div class="dashboard-options">
-      {% if current_user.is_owner %}<a href="{{ url_for('owner.dashboard') }}" class="btn" style="color:#f59e0b;font-weight:700;"><i class="fas fa-crown"></i> Owner Panel</a>{% endif %}
-      <a href="{{ url_for('client.profile') }}" class="btn">
+<div class="sticky-toolbar-wrapper">
+  <div class="custom-container">
+    <div class="toolbar-inner d-flex justify-content-center align-items-center flex-wrap gap-2">
+      {% if current_user.is_owner %}<a href="{{ url_for('owner.dashboard') }}" class="btn-tool" style="color:#f59e0b;font-weight:700;"><i class="fas fa-crown"></i> Owner Panel</a>{% endif %}
+      <a href="{{ url_for('client.profile') }}" class="btn-tool">
         <i class="fa-solid fa-circle-user"></i> {{ _("Profile") }}
       </a>
-
-      <a href="{{ url_for('client.appointments') }}" class="btn">
-        <i class="fas fa-calendar"></i> {{ _("My Appointments") }}
+      <a href="{{ url_for('client.appointments') }}" class="btn-tool">
+        <i class="fas fa-calendar"></i> {{ _("Calendar") }}
       </a>
-
-      <a href="{{ url_for('main.chats') }}" class="btn" style="position:relative;" id="chatsBtn">
+      <a href="{{ url_for('main.chats') }}" class="btn-tool" style="position:relative;" id="chatsBtn">
         <i class="fas fa-comments"></i> {{ _("Chats") }}
         <span id="unreadBadge" class="badge bg-danger rounded-pill" style="display:none;position:absolute;top:-4px;right:-4px;font-size:10px;min-width:18px;padding:3px 5px;"></span>
       </a>
-
-      <a href="{{ url_for('client.history') }}" class="btn">
+      <a href="{{ url_for('client.history') }}" class="btn-tool">
         <i class="fas fa-clock-rotate-left"></i> {{ _("History") }}
       </a>
-
-      <button id="location-btn" class="btn">
+      <button id="location-btn" class="btn-tool text-primary">
         <i class="fas fa-map-marker-alt"></i> {{ _("Update Location") }}
       </button>
-
-      <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#createRequestModal">
+      <button class="btn-tool" style="background:var(--primary-green);color:#fff;border-color:var(--primary-green);" data-bs-toggle="modal" data-bs-target="#createRequestModal">
         <i class="fas fa-plus"></i> {{ _("Post a Request") }}
       </button>
-
-      <form action="{{url_for('auth.logout')}}" method="post" style="display: inline">
+      <form action="{{url_for('auth.logout')}}" method="post" style="display:inline">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <button type="submit" class="btn">
-          <i class="fas fa-sign-out-alt"></i>
-        </button>
+        <button type="submit" class="btn-icon text-danger" title="{{ _('Exit') }}"><i class="fas fa-sign-out-alt"></i></button>
       </form>
     </div>
-
-    <div id="status-message" style="text-align: center; font-size: 0.9rem;"></div>
+    <div id="status-message" class="text-center mt-2 small fw-bold"></div>
   </div>
 </div>
 
-<div class="client-dashboard">
+<div class="custom-container pb-5">
   <div class="row g-4">
 
-      <!-- Left: Map (always visible) -->
-      <div class="col-lg-8 col-md-7">
-        <div class="content-card map-card-wrapper">
+      <!-- Left: Map -->
+      <div class="col-lg-8">
+        <div class="content-card h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                  <h5 class="premium-title mb-0">{{ _("Available Services Nearby") }}</h5>
-                  <span class="text-muted small">{{ _("Based on your location") }}</span>
+                  <h5 class="mb-0 fw-bold text-dark">{{ _("Map View") }}</h5>
+                  <div>
+                    <span class="badge bg-light text-dark border me-2" id="route-info"></span>
+                    <span class="badge bg-light text-dark border">{{ _("Real-time") }}</span>
+                  </div>
             </div>
-
-            <div id="providersMap" style="height: 600px; width: 100%; background: #e0e0e0; border-radius: 8px;"></div>
+            <div id="providersMap" style="height: 600px; width: 100%; border-radius: 8px; border: 1px solid #e5e7eb; background: #f5dfe2;"></div>
         </div>
       </div>
 
       <!-- Right: Tabs -->
-      <div class="col-lg-4 col-md-5">
+      <div class="col-lg-4">
 
         <!-- Tracking banner (hidden by default) -->
         <div id="trackingBanner" class="d-none mb-3 p-3 rounded-3 shadow-sm" style="background:linear-gradient(135deg,#1dbf73 0%,#0ea5e9 100%);color:#fff;">
@@ -97,24 +85,70 @@
             <div id="trackingInfo" class="small" style="opacity:0.9;"></div>
         </div>
 
-        <!-- Tab buttons -->
-        <div class="nav nav-pills nav-fill p-1 bg-white border rounded-pill mb-3 shadow-sm" role="tablist">
+        <!-- Big "Find Provider" button on top -->
+        <button class="find-provider-btn w-100 mb-2" id="tab-find" onclick="switchTab('find')">
+            <i class="fas fa-search me-2"></i>{{ _("Find a Provider") }}
+        </button>
+
+        <!-- Smaller tabs below: Active / Accepted / Past -->
+        <div class="nav nav-pills nav-fill p-1 bg-white border rounded-pill mb-2 shadow-sm" role="tablist">
           <button class="nav-link rounded-pill active fw-bold small py-2" id="tab-active" onclick="switchTab('active')">
             <i class="fas fa-clock me-1"></i>{{ _("Active") }} <span id="activeBadge" class="badge bg-warning text-dark ms-1 d-none"></span>
           </button>
           <button class="nav-link rounded-pill fw-bold small py-2" id="tab-accepted" onclick="switchTab('accepted')">
             <i class="fas fa-check-circle me-1"></i>{{ _("Accepted") }} <span id="acceptedBadge" class="badge bg-success ms-1 d-none"></span>
           </button>
-          <button class="nav-link rounded-pill fw-bold small py-2" id="tab-find" onclick="switchTab('find')">
-            <i class="fas fa-search me-1"></i>{{ _("Providers") }}
+          <button class="nav-link rounded-pill fw-bold small py-2" id="tab-past" onclick="switchTab('past')">
+            <i class="fas fa-history me-1"></i>{{ _("Past") }} <span id="pastBadge" class="badge bg-secondary ms-1 d-none"></span>
           </button>
         </div>
+
+        <!-- Providers Filters: shown only on Providers tab -->
+        <div id="providersFilters" style="display:none;background:rgba(255,255,255,0.9);backdrop-filter:blur(8px);border:1px solid #e5e7eb;border-radius:10px;padding:10px;margin-bottom:8px;">
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;align-items:center;">
+                <span style="font-size:0.8rem;color:#6b7280;"><i class="fas fa-route"></i></span>
+                <button id="prov-rad-all"  onclick="setProvRadiusFilter(null)" class="filter-pill filter-pill-dist active">{{ _("All") }}</button>
+                <button id="prov-rad-5"    onclick="setProvRadiusFilter(5)"    class="filter-pill filter-pill-dist">5 km</button>
+                <button id="prov-rad-10"   onclick="setProvRadiusFilter(10)"   class="filter-pill filter-pill-dist">10 km</button>
+                <button id="prov-rad-20"   onclick="setProvRadiusFilter(20)"   class="filter-pill filter-pill-dist">20 km</button>
+                <button id="prov-rad-50"   onclick="setProvRadiusFilter(50)"   class="filter-pill filter-pill-dist">50 km</button>
+            </div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;align-items:center;">
+                <span style="font-size:0.8rem;color:#6b7280;"><i class="fas fa-circle"></i></span>
+                <button id="prov-status-all"    onclick="setProvStatusFilter('all')"    class="filter-pill filter-pill-status active">{{ _("All") }}</button>
+                <button id="prov-status-online"  onclick="setProvStatusFilter('online')"  class="filter-pill filter-pill-status">{{ _("Online") }}</button>
+                <button id="prov-status-offline" onclick="setProvStatusFilter('offline')" class="filter-pill filter-pill-status">{{ _("Offline") }}</button>
+            </div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;align-items:center;">
+                <span style="font-size:0.8rem;color:#6b7280;"><i class="fas fa-star"></i></span>
+                <button id="prov-rating-all" onclick="setProvRatingFilter(null)" class="filter-pill filter-pill-rating active">{{ _("All") }}</button>
+                <button id="prov-rating-3"   onclick="setProvRatingFilter(3)"    class="filter-pill filter-pill-rating">3+</button>
+                <button id="prov-rating-4"   onclick="setProvRatingFilter(4)"    class="filter-pill filter-pill-rating">4+</button>
+                <button id="prov-rating-45"  onclick="setProvRatingFilter(4.5)"  class="filter-pill filter-pill-rating">4.5+</button>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;align-items:center;">
+                <span style="font-size:0.8rem;color:#6b7280;"><i class="fas fa-sort"></i></span>
+                <select id="provSortSelect" onchange="applyProviderFilters()" class="filter-select">
+                    <option value="nearest">{{ _("Nearest first") }}</option>
+                    <option value="rating">{{ _("Highest rated") }}</option>
+                    <option value="name_asc">{{ _("Name A-Z") }}</option>
+                    <option value="reviews">{{ _("Most reviewed") }}</option>
+                </select>
+            </div>
+            <input type="text" id="provSearchInput" oninput="applyProviderFilters()"
+                   placeholder="{{ _('Search by name or service...') }}"
+                   class="filter-search-input">
+        </div>
+
+        <!-- Tab content areas -->
+        <div class="requests-scroll-area">
 
         <!-- Tab 1: Active Requests (pending) -->
         <div id="activeContent">
           <div id="activeRequestsList">
-            <div class="text-center p-3 text-muted" style="border: 1px dashed #ccc; border-radius: 8px; background: rgba(255,255,255,0.6);">
-              <small>{{ _("Loading...") }}</small>
+            <div class="text-center p-3 text-muted" style="border: 1px dashed #d1d5db; border-radius: 8px; background: rgba(255,255,255,0.6);">
+              <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+              <small class="ms-2">{{ _("Loading...") }}</small>
             </div>
           </div>
         </div>
@@ -122,58 +156,37 @@
         <!-- Tab 2: Accepted Requests -->
         <div id="acceptedContent" class="d-none">
           <div id="acceptedRequestsList">
-            <div class="text-center p-3 text-muted" style="border: 1px dashed #ccc; border-radius: 8px; background: rgba(255,255,255,0.6);">
-              <small>{{ _("Loading...") }}</small>
+            <div class="text-center p-3 text-muted" style="border: 1px dashed #d1d5db; border-radius: 8px; background: rgba(255,255,255,0.6);">
+              <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+              <small class="ms-2">{{ _("Loading...") }}</small>
             </div>
           </div>
         </div>
 
-        <!-- Tab 3: Found Providers -->
-        <div id="findContent" class="d-none">
-          <div class="providers-scroll-area">
-
-            {% if providers %}
-              {% for provider in providers %}
-              <div class="card provider-item" onclick="calculateRoute({{provider.latitude or 'null'}},{{provider.longitude or 'null'}},'{{provider.user_name}}')">
-                <div class="card-body">
-                  <div class="d-flex justify-content-between align-items-start">
-                      <div>
-                          <h6 class="mb-1 fw-bold">{{ provider.full_name or provider.user_name }}</h6>
-                          <div class="small text-muted mb-2">
-                               <i class="fas fa-map-marker-alt text-muted"></i> {{ provider.address or _('No address') }}
-                          </div>
-                      </div>
-                      {% if provider.online %}
-                          <span class="badge badge-online">{{ _("Online") }}</span>
-                      {% else %}
-                          <span class="badge badge-offline">{{ _("Offline") }}</span>
-                      {% endif %}
-                  </div>
-
-                 <div class="d-flex gap-2 mt-2">
-                    <a href="{{ url_for('client.provider_detail', provider_id=provider.id) }}" class="btn btn-outline-secondary flex-grow-1" style="font-size: 0.9rem; font-weight: 600;">
-                        {{ _("View Profile") }}
-                    </a>
-
-                    <button onclick="openBookingModal('{{ provider.id }}','{{ provider.full_name }}')" class="btn btn-success flex-grow-1" style="font-size: 0.9rem; font-weight: 600;">
-                        {{ _("Book") }}
-                    </button>
-                </div>
-                </div>
-              </div>
-              {% endfor %}
-            {% else %}
-              <div class="text-center py-5 text-muted">
-                  <i class="fas fa-search fa-2x mb-3" style="color:#ddd"></i>
-                  <p>{{ _("No services found in this area.") }}</p>
-              </div>
-            {% endif %}
-
+        <!-- Tab 3: Past Requests -->
+        <div id="pastContent" class="d-none">
+          <div id="pastRequestsList">
+            <div class="text-center p-3 text-muted" style="border: 1px dashed #d1d5db; border-radius: 8px; background: rgba(255,255,255,0.6);">
+              <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+              <small class="ms-2">{{ _("Loading...") }}</small>
+            </div>
           </div>
         </div>
 
+        <!-- Tab 4: Found Providers (AJAX loaded) -->
+        <div id="findContent" class="d-none">
+          <div id="providersList">
+            <div class="text-center p-3 text-muted" style="border: 1px dashed #d1d5db; border-radius: 8px; background: rgba(255,255,255,0.6);">
+              <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+              <small class="ms-2">{{ _("Loading providers...") }}</small>
+            </div>
+          </div>
+        </div>
+
+        </div>
       </div>
   </div>
+</div>
 </div>
 
 <div class="modal fade" id="bookingModal" tabindex="-1" aria-hidden="true">
@@ -277,27 +290,59 @@
 
 <style>
     .leaflet-routing-container { display: none !important; }
+    .custom-container { max-width: 1400px; margin: 0 auto; padding: 0 20px; width: 100%; }
+    .greeting-section { padding: 40px 0 20px; }
+    .greeting-section h2 { font-weight: 800; color: #1f2937; }
+    .sticky-toolbar-wrapper { position: sticky; top: 0; z-index: 1000; padding: 15px 0; background: rgba(248, 250, 252, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.06); margin-bottom: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+    .toolbar-inner { width: 100%; }
+    .btn-tool { background: white; border: 1px solid #e5e7eb; color: #4b5563; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .btn-tool:hover { background: #f9fafb; color: #111827; border-color: #d1d5db; transform: translateY(-1px); }
+    .btn-icon { background: white; border: 1px solid #e5e7eb; padding: 10px 14px; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .btn-icon:hover { background: #fee2e2; border-color: #fca5a5; transform: translateY(-1px); }
+    .content-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .requests-scroll-area { flex: 1 1 0; min-height: 100px; max-height: 520px; overflow-y: auto; padding-right: 5px; }
 
-    /* Player level badge */
-    .player-badge {
-        display: inline-flex; align-items: center; gap: 8px;
-        background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
-        padding: 6px 16px; border-radius: 20px; font-size: 0.85rem;
+    /* Tab pills */
+    .nav-pills .nav-link { color: #6b7280; border-radius: 50rem; transition: 0.2s; }
+    .nav-pills .nav-link.active { background-color: var(--primary-green, #3f4a36); color: white; }
+
+    /* Big "Find Provider" button */
+    .find-provider-btn {
+        background: var(--primary-green, #3f4a36);
         color: #fff;
+        border: none;
+        padding: 14px 24px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(63, 74, 54, 0.25);
+        letter-spacing: 0.3px;
     }
-    .player-icon { font-size: 1.2rem; }
-    .player-title { font-weight: 700; }
-    .player-orders { opacity: 0.8; font-size: 0.8rem; }
-    .player-progress-wrapper {
-        width: 60px; height: 6px; background: rgba(255,255,255,0.2);
-        border-radius: 3px; overflow: hidden;
+    .find-provider-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(63, 74, 54, 0.35);
+        background: #4a5740;
     }
-    .player-progress-bar {
-        height: 100%; background: #fbbf24; border-radius: 3px;
-        transition: width 0.5s ease;
+    .find-provider-btn.active {
+        background: #2d3526;
+        box-shadow: 0 2px 8px rgba(63, 74, 54, 0.4), inset 0 2px 4px rgba(0,0,0,0.1);
     }
-    .player-next { font-size: 0.75rem; opacity: 0.7; }
-    .player-max { font-size: 0.75rem; color: #fbbf24; font-weight: 700; }
+
+    /* Provider cards in Providers tab */
+    .provider-card-item { background: white; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 10px; transition: all 0.2s; cursor: pointer; position: relative; overflow: hidden; }
+    .provider-card-item:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-color: #bfdbfe; }
+    .provider-card-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--primary-green, #3f4a36); }
+
+    /* Filter pills */
+    .filter-pill { padding: 2px 8px; font-size: 0.75rem; border: 1px solid #6b7280; border-radius: 20px; background: #fff; color: #374151; cursor: pointer; transition: all 0.15s; }
+    .filter-pill:hover { opacity: 0.85; }
+    .filter-pill-dist.active { background: #1f2937; color: #fff; border-color: #1f2937; }
+    .filter-pill-status.active { background: var(--primary-green, #3f4a36); color: #fff; border-color: var(--primary-green, #3f4a36); }
+    .filter-pill-rating.active { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+    .filter-select { padding: 2px 8px; font-size: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; }
+    .filter-search-input { width: 100%; padding: 4px 8px; font-size: 0.8rem; border: 1px solid #d1d5db; border-radius: 6px; }
 
     /* Stars celebration animation */
     @keyframes starFall {
@@ -306,70 +351,30 @@
         90% { opacity: 1; }
         100% { transform: translateY(100vh) rotate(720deg) scale(0.5); opacity: 0; }
     }
-    .celebration-star {
-        position: fixed;
-        top: 0;
-        z-index: 99999;
-        pointer-events: none;
-        animation: starFall linear forwards;
-        font-size: 24px;
-    }
-    .celebration-overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        z-index: 99998; pointer-events: none;
-        background: radial-gradient(circle at center, rgba(255,215,0,0.1) 0%, transparent 70%);
-        animation: celebrationGlow 2s ease-out forwards;
-    }
-    @keyframes celebrationGlow {
-        0% { opacity: 0; }
-        30% { opacity: 1; }
-        100% { opacity: 0; }
-    }
+    .celebration-star { position: fixed; top: 0; z-index: 99999; pointer-events: none; animation: starFall linear forwards; font-size: 24px; }
+    .celebration-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99998; pointer-events: none; background: radial-gradient(circle at center, rgba(255,215,0,0.1) 0%, transparent 70%); animation: celebrationGlow 2s ease-out forwards; }
+    @keyframes celebrationGlow { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
 
     /* Pulsing dot for tracking banner */
-    .tracking-pulse-dot {
-        width: 10px; height: 10px; border-radius: 50%;
-        background: #fff; flex-shrink: 0;
-        animation: pulse-dot 1.5s ease-in-out infinite;
-    }
-    @keyframes pulse-dot {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
-        50% { box-shadow: 0 0 0 8px rgba(255,255,255,0); }
-    }
+    .tracking-pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: #fff; flex-shrink: 0; animation: pulse-dot 1.5s ease-in-out infinite; }
+    @keyframes pulse-dot { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.7); } 50% { box-shadow: 0 0 0 8px rgba(255,255,255,0); } }
 
     /* Animated provider marker on map */
-    .provider-tracking-marker {
-        width: 36px; height: 36px; position: relative;
-    }
-    .provider-tracking-marker .marker-icon {
-        width: 36px; height: 36px; border-radius: 50%;
-        background: #1dbf73; border: 3px solid #fff;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        display: flex; align-items: center; justify-content: center;
-        color: #fff; font-size: 16px; z-index: 2; position: relative;
-    }
-    .provider-tracking-marker .marker-pulse {
-        position: absolute; top: -6px; left: -6px;
-        width: 48px; height: 48px; border-radius: 50%;
-        background: rgba(29, 191, 115, 0.3);
-        animation: marker-pulse 2s ease-out infinite;
-    }
-    @keyframes marker-pulse {
-        0% { transform: scale(0.8); opacity: 1; }
-        100% { transform: scale(2); opacity: 0; }
-    }
+    .provider-tracking-marker { width: 36px; height: 36px; position: relative; }
+    .provider-tracking-marker .marker-icon { width: 36px; height: 36px; border-radius: 50%; background: #1dbf73; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; z-index: 2; position: relative; }
+    .provider-tracking-marker .marker-pulse { position: absolute; top: -6px; left: -6px; width: 48px; height: 48px; border-radius: 50%; background: rgba(29, 191, 115, 0.3); animation: marker-pulse 2s ease-out infinite; }
+    @keyframes marker-pulse { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
 
     /* Highlighted provider marker */
-    .provider-highlight-marker {
-        width: 28px; height: 28px; border-radius: 50%;
-        background: #f59e0b; border: 3px solid #fff;
-        box-shadow: 0 0 0 4px rgba(245,158,11,0.3), 0 2px 8px rgba(0,0,0,0.3);
-        animation: highlight-bounce 0.6s ease-out;
-    }
-    @keyframes highlight-bounce {
-        0% { transform: scale(0); }
-        60% { transform: scale(1.3); }
-        100% { transform: scale(1); }
+    .provider-highlight-marker { width: 28px; height: 28px; border-radius: 50%; background: #f59e0b; border: 3px solid #fff; box-shadow: 0 0 0 4px rgba(245,158,11,0.3), 0 2px 8px rgba(0,0,0,0.3); animation: highlight-bounce 0.6s ease-out; }
+    @keyframes highlight-bounce { 0% { transform: scale(0); } 60% { transform: scale(1.3); } 100% { transform: scale(1); } }
+
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+        .sticky-toolbar-wrapper { padding: 10px 0; }
+        .toolbar-inner { overflow-x: auto; white-space: nowrap; justify-content: flex-start !important; padding-bottom: 5px; }
+        .btn-tool { padding: 8px 12px; font-size: 0.8rem; }
+        .requests-scroll-area { max-height: 400px; }
     }
 </style>
 
@@ -481,16 +486,38 @@
       }, 10000);
   });
 
+  // --- PROVIDER FILTER STATE ---
+  let _allProviders = [];
+  let _provRadius = null;
+  let _provStatus = 'all';
+  let _provMinRating = null;
+  let _providersLoaded = false;
+
   // --- TAB SWITCHING ---
   window.switchTab = function(mode) {
       currentTab = mode;
-      document.getElementById('tab-active').classList.toggle('active', mode === 'active');
-      document.getElementById('tab-accepted').classList.toggle('active', mode === 'accepted');
+
+      // Toggle content visibility
+      ['active', 'accepted', 'past', 'find'].forEach(t => {
+          document.getElementById(t + 'Content').classList.toggle('d-none', mode !== t);
+      });
+
+      // The 3 small tabs (active/accepted/past)
+      ['active', 'accepted', 'past'].forEach(t => {
+          document.getElementById('tab-' + t).classList.toggle('active', mode === t);
+      });
+
+      // Big "Find Provider" button active state
       document.getElementById('tab-find').classList.toggle('active', mode === 'find');
 
-      document.getElementById('activeContent').classList.toggle('d-none', mode !== 'active');
-      document.getElementById('acceptedContent').classList.toggle('d-none', mode !== 'accepted');
-      document.getElementById('findContent').classList.toggle('d-none', mode !== 'find');
+      // If switching to a small tab, remove active from small tabs if find is active
+      if (mode !== 'find') {
+          // Deselect none of the small tabs — already handled above
+      }
+
+      // Filters visibility
+      document.getElementById('providersFilters').style.display = (mode === 'find') ? 'block' : 'none';
+      if (mode === 'find' && !_providersLoaded) loadProvidersList();
   };
 
   function showStatus(message, isError = false) {
@@ -655,6 +682,7 @@
           const summary = e.routes[0].summary;
           const distance = (summary.totalDistance / 1000).toFixed(1) + " km";
           const time = Math.round(summary.totalTime / 60) + " min";
+          document.getElementById('route-info').textContent = `${providerName}: ${distance}, ~${time}`;
           showStatus(`${providerName}: ${distance}, ~${time}`);
 
           // Fit map to show both points
@@ -722,6 +750,25 @@
           } else {
               alert(data.error || 'Failed to create payment session');
           }
+      });
+  };
+
+  window.payCashForRequest = async function(reqId) {
+      const ok = await confirmAction("{{ _('Pay by cash directly to the provider?') }}", {
+          title: "{{ _('Cash Payment') }}",
+          btnText: "{{ _('Yes, pay by cash') }}",
+          btnClass: 'btn-success',
+          icon: 'fa-money-bill-wave',
+          iconColor: '#198754'
+      });
+      if (!ok) return;
+      fetch('/client/pay_cash_request', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+          body: JSON.stringify({request_id: reqId})
+      }).then(r => r.json()).then(data => {
+          if (data.success) location.reload();
+          else alert(data.message || 'Error');
       });
   };
 
@@ -926,6 +973,71 @@
         }).catch(() => alert('Network error'));
   };
 
+  window.undoStep = async function(id) {
+      const ok = await confirmAction("{{ _('Go back to the previous step?') }}", {
+        title: "{{ _('Go Back') }}",
+        btnText: "{{ _('Yes, Go Back') }}",
+        btnClass: 'btn-warning',
+        icon: 'fa-arrow-left',
+        iconColor: '#f59e0b'
+      });
+      if (!ok) return;
+      fetch(`/client/undo_step/${id}`, {method:'POST', headers:{'X-CSRFToken': csrfToken}})
+        .then(r=>r.json()).then(res=>{
+            if(res.success) {
+                loadMyRequests();
+                showStatus(res.message || "{{ _('Returned to previous step') }}");
+            } else {
+                alert(res.message || res.error || 'Error');
+            }
+        }).catch(() => alert('Network error'));
+  };
+
+  window.undoCancelRequest = async function(id) {
+      const ok = await confirmAction("{{ _('Restore this request? It will be returned to pending status and providers can send new offers.') }}", {
+        title: "{{ _('Restore Request') }}",
+        btnText: "{{ _('Yes, Restore') }}",
+        btnClass: 'btn-success',
+        icon: 'fa-undo',
+        iconColor: '#198754'
+      });
+      if (!ok) return;
+      fetch(`/client/undo_cancel_request/${id}`, {method:'POST', headers:{'X-CSRFToken': csrfToken}})
+        .then(r=>r.json()).then(res=>{
+            if(res.success) {
+                loadMyRequests();
+                showStatus(res.message || "{{ _('Request restored') }}");
+            } else {
+                alert(res.message || res.error || 'Error');
+            }
+        }).catch(() => alert('Network error'));
+  };
+
+  window.approveRequestWork = async function(reqId, price) {
+      const isFree = !price || price <= 0;
+      const ok = await confirmAction(
+        isFree ? "{{ _('Confirm that the work has been completed?') }}" : "{{ _('Are you sure? This will release the held funds to the provider.') }}", {
+        title: isFree ? "{{ _('Confirm Completion') }}" : "{{ _('Release Payment') }}",
+        btnText: isFree ? "{{ _('Yes, Confirm') }}" : "{{ _('Yes, Release Funds') }}",
+        btnClass: 'btn-success',
+        icon: 'fa-check-circle',
+        iconColor: '#198754'
+      });
+      if (!ok) return;
+      fetch('/client/complete_request_appointment', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+          body: JSON.stringify({request_id: reqId})
+      }).then(r=>r.json()).then(res=>{
+          if(res.success) {
+              loadMyRequests();
+              showStatus(res.message || (isFree ? "{{ _('Service completed!') }}" : "{{ _('Payment released! Service completed.') }}"));
+          } else {
+              alert(res.message || res.error || 'Error');
+          }
+      }).catch(() => alert('Network error'));
+  };
+
   async function updateLocation() {
       if (!navigator.geolocation) return alert("{{ _('Geolocation not supported') }}");
       showStatus("{{ _('Locating...') }}");
@@ -1048,21 +1160,158 @@
       }
   }
 
+  // --- PROVIDER FILTER FUNCTIONS ---
+  function setProvRadiusFilter(km) {
+      _provRadius = km;
+      document.querySelectorAll('.filter-pill-dist').forEach(b => b.classList.remove('active'));
+      document.getElementById(km === null ? 'prov-rad-all' : `prov-rad-${km}`).classList.add('active');
+      applyProviderFilters();
+  }
+
+  function setProvStatusFilter(status) {
+      _provStatus = status;
+      document.querySelectorAll('.filter-pill-status').forEach(b => b.classList.remove('active'));
+      document.getElementById(`prov-status-${status}`).classList.add('active');
+      applyProviderFilters();
+  }
+
+  function setProvRatingFilter(min) {
+      _provMinRating = min;
+      document.querySelectorAll('.filter-pill-rating').forEach(b => b.classList.remove('active'));
+      const id = min === null ? 'prov-rating-all' : `prov-rating-${String(min).replace('.', '')}`;
+      document.getElementById(id).classList.add('active');
+      applyProviderFilters();
+  }
+
+  function applyProviderFilters() {
+      const search = (document.getElementById('provSearchInput').value || '').toLowerCase().trim();
+      let filtered = _allProviders;
+
+      if (_provRadius !== null) {
+          filtered = filtered.filter(p => p.distance_km !== null && p.distance_km <= _provRadius);
+      }
+      if (_provStatus === 'online') {
+          filtered = filtered.filter(p => p.online);
+      } else if (_provStatus === 'offline') {
+          filtered = filtered.filter(p => !p.online);
+      }
+      if (_provMinRating !== null) {
+          filtered = filtered.filter(p => p.avg_rating !== null && p.avg_rating >= _provMinRating);
+      }
+      if (search) {
+          filtered = filtered.filter(p =>
+              (p.name || '').toLowerCase().includes(search) ||
+              (p.username || '').toLowerCase().includes(search) ||
+              (p.service_names || []).some(s => s.toLowerCase().includes(search))
+          );
+      }
+
+      const sort = document.getElementById('provSortSelect').value;
+      filtered = [...filtered];
+      if (sort === 'nearest') {
+          filtered.sort((a, b) => (a.distance_km === null ? 9999 : a.distance_km) - (b.distance_km === null ? 9999 : b.distance_km));
+      } else if (sort === 'rating') {
+          filtered.sort((a, b) => (b.avg_rating || 0) - (a.avg_rating || 0));
+      } else if (sort === 'name_asc') {
+          filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      } else if (sort === 'reviews') {
+          filtered.sort((a, b) => (b.review_count || 0) - (a.review_count || 0));
+      }
+
+      renderProvidersList(filtered);
+  }
+
+  function loadProvidersList() {
+      fetch('/client/get_providers_list').then(r => r.json()).then(data => {
+          if (data.success) {
+              _allProviders = data.providers || [];
+              _providersLoaded = true;
+              applyProviderFilters();
+          }
+      });
+  }
+
+  function renderProvidersList(providers) {
+      const container = document.getElementById('providersList');
+      if (providers.length === 0) {
+          container.innerHTML = `
+          <div class="text-center py-4 text-muted" style="border: 1px dashed #d1d5db; border-radius: 8px; background: rgba(255,255,255,0.6);">
+              <i class="fas fa-search fa-2x mb-2" style="color:#d1d5db;"></i>
+              <p class="mb-0">{{ _("No providers found") }}</p>
+          </div>`;
+          return;
+      }
+
+      container.innerHTML = providers.map(p => {
+          const photo = p.photo
+              ? `<img src="${p.photo}" class="rounded-circle" style="width:40px;height:40px;object-fit:cover;flex-shrink:0;">`
+              : `<div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width:40px;height:40px;flex-shrink:0;font-size:15px;background:var(--primary-green,#3f4a36);">${(p.name||'?')[0].toUpperCase()}</div>`;
+          const statusBadge = p.online
+              ? `<span class="badge" style="background:#e8f7f0;color:#059669;font-size:11px;">{{ _("Online") }}</span>`
+              : `<span class="badge" style="background:#f3f4f6;color:#6b7280;font-size:11px;">{{ _("Offline") }}</span>`;
+          const rating = p.avg_rating
+              ? `<span class="small" style="color:#f59e0b;"><i class="fas fa-star"></i> ${p.avg_rating}</span> <span class="small text-muted">(${p.review_count})</span>`
+              : `<span class="small text-muted">{{ _("No reviews") }}</span>`;
+          const distance = p.distance_km !== null
+              ? `<span class="small text-muted"><i class="fas fa-route me-1"></i>${p.distance_km} km</span>`
+              : '';
+          const verified = p.verified ? ' <i class="fas fa-check-circle text-success" style="font-size:11px;" title="{{ _("Verified") }}"></i>' : '';
+
+          return `
+          <div class="provider-card-item" onclick="calculateRoute(${p.latitude || 'null'}, ${p.longitude || 'null'}, '${(p.name||'').replace(/'/g, "\\'")}')">
+              <div class="p-3">
+                  <div class="d-flex align-items-center gap-2 mb-2">
+                      ${photo}
+                      <div class="flex-grow-1">
+                          <div class="fw-bold" style="font-size:14px;">${p.name}${verified}</div>
+                          <div class="small text-muted"><i class="fas fa-map-marker-alt me-1"></i>${p.address || '{{ _("No address") }}'}</div>
+                      </div>
+                      ${statusBadge}
+                  </div>
+                  <div class="d-flex align-items-center gap-3 mb-2">
+                      ${rating}
+                      ${distance}
+                      <span class="small text-muted"><i class="fas fa-list-ul me-1"></i>${p.services_count} {{ _("services") }}</span>
+                  </div>
+                  <div class="d-flex gap-2">
+                      <a href="/client/provider/${p.id}" class="btn btn-sm btn-outline-secondary flex-grow-1" style="font-size:0.8rem;font-weight:600;" onclick="event.stopPropagation();">
+                          <i class="fas fa-id-card me-1"></i>{{ _("Profile") }}
+                      </a>
+                      <button onclick="event.stopPropagation();openBookingModal('${p.id}','${(p.name||'').replace(/'/g, "\\'")}')" class="btn btn-sm flex-grow-1" style="font-size:0.8rem;font-weight:600;background:var(--primary-green,#3f4a36);color:#fff;">
+                          <i class="fas fa-calendar-plus me-1"></i>{{ _("Book") }}
+                      </button>
+                  </div>
+              </div>
+          </div>`;
+      }).join('');
+  }
+
   // --- RENDER REQUEST CARD (shared between tabs) ---
   function renderRequestCard(req) {
       const isCompleted  = req.status === 'completed' || req.status === 'confirmed_paid';
+      const isCancelled  = req.status === 'cancelled';
+      const isWorkSubmitted = req.status === 'work_submitted';
       const isAuthorized = req.status === 'authorized';
       const isAccepted   = req.status === 'accepted';
-      const isBooked     = isAccepted || isAuthorized || isCompleted;
-      const hasOffers    = !isBooked && req.offers && req.offers.length > 0;
+      const isBooked     = isAccepted || isAuthorized || isCompleted || isWorkSubmitted;
+      const hasOffers    = !isBooked && !isCancelled && req.offers && req.offers.length > 0;
 
       const daysUntil = (new Date(req.appointment_start_time) - new Date()) / (1000 * 3600 * 24);
       const canPayNow = daysUntil <= 7;
 
       let borderColor, badge;
-      if (isCompleted) {
+      if (isCancelled) {
+          borderColor = '#ef4444';
+          badge = `<span class="badge bg-danger" style="height:fit-content">{{ _("Cancelled") }}</span>`;
+      } else if (isCompleted) {
           borderColor = '#10b981';
           badge = `<span class="badge bg-success" style="height:fit-content">{{ _("Completed") }}</span>`;
+      } else if (isWorkSubmitted) {
+          borderColor = '#0ea5e9';
+          const reqPrice = parseFloat(req.payment) || 0;
+          badge = reqPrice > 0
+              ? `<span class="badge" style="height:fit-content;background:#0ea5e9;color:#fff;">{{ _("Approve & Pay") }}</span>`
+              : `<span class="badge" style="height:fit-content;background:#0ea5e9;color:#fff;">{{ _("Confirm") }}</span>`;
       } else if (isAuthorized) {
           borderColor = '#8b5cf6';
           badge = `<span class="badge" style="height:fit-content;background:#8b5cf6;color:#fff;">{{ _("Payment held") }}</span>`;
@@ -1091,6 +1340,31 @@
               ${req.payment ? `<div class="small text-success fw-bold mt-1">${req.payment}</div>` : ''}
               <div class="d-flex gap-2 mt-2 flex-wrap">`;
 
+      if (isCancelled) {
+          const canRestore = new Date(req.appointment_start_time) > new Date();
+          if (canRestore) {
+              html += `<button onclick="undoCancelRequest(${req.id})" class="btn btn-sm btn-outline-success" style="font-size:12px">
+                  <i class="fas fa-undo me-1"></i>{{ _("Restore") }}
+              </button>`;
+          }
+      }
+      if (isCompleted) {
+          html += `<a href="/client/receipt/request/${req.id}" target="_blank" class="btn btn-sm btn-outline-secondary" style="font-size:12px;border-radius:8px;">
+              <i class="fas fa-file-invoice me-1"></i>{{ _("Receipt") }}
+          </a>`;
+      }
+      if (isWorkSubmitted) {
+          const wsPrice = parseFloat(req.payment) || 0;
+          html += `
+          <div class="w-100 mb-2 p-2 rounded" style="background:#e0f2fe;border:1px solid #7dd3fc;font-size:12px;">
+              <i class="fas fa-check-circle text-info me-1"></i>
+              <strong>{{ _("The provider has completed the service.") }}</strong><br>
+              <span class="text-muted">${wsPrice > 0 ? "{{ _('Please approve to release the payment.') }}" : "{{ _('Please confirm the completion.') }}"}</span>
+          </div>
+          <button onclick="approveRequestWork(${req.id}, ${wsPrice})" class="btn btn-sm btn-success flex-grow-1" style="font-size:12px">
+              ${wsPrice > 0 ? '<i class="fas fa-hand-holding-usd me-1"></i>{{ _("Approve & Release Payment") }}' : '<i class="fas fa-check me-1"></i>{{ _("Confirm Completion") }}'}
+          </button>`;
+      }
       if (isBooked && req.accepted_provider) {
           html += `<button onclick="toggleProviderCard(${req.id})" class="btn btn-sm btn-primary flex-grow-1" style="font-size:12px">
               <i class="fas fa-user-md me-1"></i>{{ _("View Provider") }}
@@ -1101,6 +1375,9 @@
           if (price > 0) {
               html += `<button onclick="payForRequest(${req.id}, ${price})" class="btn btn-sm btn-success flex-grow-1" style="font-size:12px">
                   <i class="fas fa-lock me-1"></i>{{ _("Hold payment") }} €${parseFloat(price).toFixed(2)}
+              </button>`;
+              html += `<button onclick="payCashForRequest(${req.id})" class="btn btn-sm btn-outline-secondary" style="font-size:12px">
+                  <i class="fas fa-money-bill-wave me-1"></i>{{ _("Cash") }}
               </button>`;
           }
       }
@@ -1114,7 +1391,10 @@
               <i class="fas fa-list me-1"></i>{{ _("View Offers") }} (${req.offers.length})
           </button>`;
       }
-      if (!isCompleted) {
+      if ((isAccepted || isAuthorized || isWorkSubmitted) && !isCompleted && !isCancelled) {
+          html += `<button onclick="undoStep(${req.id})" class="btn btn-sm btn-outline-warning" style="font-size:12px"><i class="fas fa-arrow-left me-1"></i>{{ _("Go Back") }}</button>`;
+      }
+      if (!isCompleted && !isCancelled) {
           html += `<button onclick="cancelRequest(${req.id})" class="btn btn-sm btn-outline-danger" style="font-size:12px"><i class="fas fa-times me-1"></i>{{ _("Cancel") }}</button>`;
       }
       html += `</div>`;
@@ -1213,11 +1493,14 @@
         .then(r => r.json())
         .then(data => {
             checkForNewOffers(data.requests);
-            const allReqs = (data.requests || []).filter(r => r.status !== 'cancelled');
-
-            // Split into active (pending) and accepted (booked)
-            const activeReqs = allReqs.filter(r => ['pending', 'has_offers'].includes(r.status));
-            const acceptedReqs = allReqs.filter(r => ['accepted', 'authorized', 'completed', 'confirmed_paid'].includes(r.status));
+            const allReqs = data.requests || [];
+            const now = new Date();
+            // Past = completed or cancelled
+            const pastReqs = allReqs.filter(r => r.status === 'completed' || r.status === 'cancelled');
+            // Active = pending/has_offers and date not passed
+            const activeReqs = allReqs.filter(r => ['pending', 'has_offers'].includes(r.status) && new Date(r.appointment_start_time) >= now);
+            // Accepted = accepted/authorized/confirmed_paid/work_submitted and date not passed
+            const acceptedReqs = allReqs.filter(r => ['accepted', 'authorized', 'confirmed_paid', 'work_submitted'].includes(r.status) && new Date(r.appointment_start_time) >= now);
 
             // Render active requests
             const activeContainer = document.getElementById('activeRequestsList');
@@ -1246,6 +1529,18 @@
                 acceptedContainer.innerHTML = acceptedReqs.map(renderRequestCard).join('');
             }
 
+            // Render past requests
+            const pastContainer = document.getElementById('pastRequestsList');
+            if (pastReqs.length === 0) {
+                pastContainer.innerHTML = `
+                <div class="text-center p-4 text-muted" style="border: 1px dashed #d1d5db; border-radius: 8px; background: rgba(255,255,255,0.6);">
+                    <i class="fas fa-history fa-2x mb-2" style="color:#d1d5db;"></i>
+                    <p class="mb-0">{{ _("No past requests") }}</p>
+                </div>`;
+            } else {
+                pastContainer.innerHTML = pastReqs.map(renderRequestCard).join('');
+            }
+
             // Update badges
             const activeBadge = document.getElementById('activeBadge');
             if (activeReqs.length > 0) {
@@ -1261,6 +1556,14 @@
                 acceptedBadge.classList.remove('d-none');
             } else {
                 acceptedBadge.classList.add('d-none');
+            }
+
+            const pastBadge = document.getElementById('pastBadge');
+            if (pastReqs.length > 0) {
+                pastBadge.textContent = pastReqs.length;
+                pastBadge.classList.remove('d-none');
+            } else {
+                pastBadge.classList.add('d-none');
             }
         });
   }

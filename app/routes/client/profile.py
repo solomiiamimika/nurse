@@ -55,7 +55,9 @@ def profile():
             current_user.phone_number = request.form.get('phone_number')
             current_user.about_me = request.form.get('about_me')
             current_user.address = request.form.get('address')
-            current_user.password_hash = request.form.get('password')
+            new_password = request.form.get('password', '').strip()
+            if new_password:
+                current_user.password_hash = bcrypt.generate_password_hash(new_password).decode('utf-8')
 
             date_birth = request.form.get('date_birth')
             if date_birth:

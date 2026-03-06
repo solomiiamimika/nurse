@@ -41,6 +41,28 @@ def dashboard():
     return resp
 
 
+@provider_bp.route('/client/<int:client_id>')
+@login_required
+def client_profile(client_id):
+    if current_user.role != 'provider':
+        return redirect(url_for('auth.login'))
+    client = User.query.get_or_404(client_id)
+    if client.role != 'client':
+        return redirect(url_for('provider.dashboard'))
+
+    # Get shared appointment history
+    history = ServiceHistory.query.filter_by(
+        provider_id=current_user.id, client_id=client_id
+    ).order_by(ServiceHistory.appointment_time.desc()).all()
+
+    # Get reviews left by this client for this provider
+    reviews = Review.query.filter_by(
+        patient_id=client_id, provider_id=current_user.id, review_direction='client_to_provider'
+    ).all()
+
+    return render_template('provider/client_profile.html', client=client, history=history, reviews=reviews)
+
+
 @provider_bp.route('/get_clients_locations')
 @login_required
 def get_clients_locations():

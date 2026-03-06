@@ -42,20 +42,7 @@ def dashboard():
     if current_user.role != 'client':
         return redirect(url_for('auth.login'))
 
-    search_query = request.args.get('q', '').strip()
-    providers = []
-
-    if search_query:
-        providers = User.query.filter(User.role == 'provider').outerjoin(ProviderService).filter(
-            (User.full_name.ilike(f'%{search_query}%')) |
-            (User.user_name.ilike(f'%{search_query}%')) |
-            (ProviderService.name.ilike(f'%{search_query}%')) |
-            (User.address.ilike(f'%{search_query}%'))
-        ).distinct().all()
-    else:
-        providers = User.query.filter_by(role='provider').all()
-
-    return render_template('client/dashboard.html', providers=providers, search_query=search_query, stripe_public_key=stripe_public_key)
+    return render_template('client/dashboard.html', stripe_public_key=stripe_public_key)
 
 
 @client_bp.route('/get_providers_locations')
@@ -83,6 +70,62 @@ def get_providers_locations():
         })
 
     return jsonify(providers_data)
+
+
+@client_bp.route('/get_providers_list')
+@login_required
+def get_providers_list():
+    """Return providers with distance, rating, services count for filtered search."""
+    if current_user.role != 'client':
+        return jsonify({'error': 'Access denied'}), 403
+
+    from math import radians, cos, sin, asin, sqrt
+
+    providers = User.query.filter_by(role='provider').all()
+    client_lat = current_user.latitude
+    client_lng = current_user.longitude
+
+    providers_data = []
+    for p in providers:
+        distance_km = None
+        if client_lat and client_lng and p.latitude and p.longitude:
+            lat1, lon1, lat2, lon2 = map(radians, [client_lat, client_lng, p.latitude, p.longitude])
+            dlat = lat2 - lat1
+            dlon = lon2 - lon1
+            a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+            distance_km = round(2 * 6371 * asin(sqrt(a)), 1)
+
+        services = ProviderService.query.filter_by(provider_id=p.id, is_available=True).all()
+        service_names = [s.name for s in services if s.name]
+
+        reviews = Review.query.filter_by(provider_id=p.id).all()
+        avg_rating = round(sum(r.rating for r in reviews) / len(reviews), 1) if reviews else None
+
+        photo_url = None
+        if p.photo:
+            try:
+                photo_url = get_file_url(p.photo, buckets['profile_pictures'])
+            except Exception:
+                pass
+
+        providers_data.append({
+            'id': p.id,
+            'name': p.full_name or p.user_name,
+            'username': p.user_name,
+            'address': p.address,
+            'online': p.online,
+            'latitude': p.latitude,
+            'longitude': p.longitude,
+            'distance_km': distance_km,
+            'services_count': len(services),
+            'service_names': service_names,
+            'avg_rating': avg_rating,
+            'review_count': len(reviews),
+            'photo': photo_url,
+            'verified': p.is_verified,
+        })
+
+    return jsonify({'success': True, 'providers': providers_data})
 
 
 @client_bp.route('/update_location', methods=['POST'])

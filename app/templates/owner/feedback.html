@@ -1,0 +1,121 @@
+{% extends "owner/base_owner.html" %}
+{% block page_title %}Feedback{% endblock %}
+{% block owner_content %}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-val">{{ feedbacks|length }}</div>
+                    <div class="stat-lbl">Total</div>
+                </div>
+                <div class="stat-icon" style="background:#dbeafe;color:#1d4ed8;"><i class="fas fa-comment-dots"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-val">{{ feedbacks|selectattr('status','equalto','new')|list|length }}</div>
+                    <div class="stat-lbl">New</div>
+                </div>
+                <div class="stat-icon" style="background:#fef3c7;color:#92400e;"><i class="fas fa-exclamation-circle"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-val">{{ feedbacks|selectattr('category','equalto','bug')|list|length }}</div>
+                    <div class="stat-lbl">Bugs</div>
+                </div>
+                <div class="stat-icon" style="background:#fee2e2;color:#dc2626;"><i class="fas fa-bug"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if feedbacks %}
+<div style="background:white;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;">
+    <table class="table owner-table mb-0">
+        <thead>
+            <tr>
+                <th style="padding:14px 20px;">Date</th>
+                <th>User</th>
+                <th>Category</th>
+                <th>Message</th>
+                <th>Page</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fb in feedbacks %}
+            <tr id="fb-row-{{ fb.id }}">
+                <td style="padding:14px 20px;white-space:nowrap;">{{ fb.created_at.strftime('%d.%m.%Y %H:%M') if fb.created_at else '' }}</td>
+                <td>
+                    {% if fb.user %}
+                        <span class="fw-semibold">{{ fb.user.full_name or fb.user.user_name }}</span>
+                    {% else %}
+                        <span class="text-muted">Anonymous</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if fb.category == 'bug' %}
+                        <span style="background:#fee2e2;color:#dc2626;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;"><i class="fas fa-bug me-1"></i>Bug</span>
+                    {% else %}
+                        <span style="background:#dbeafe;color:#1d4ed8;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;"><i class="fas fa-lightbulb me-1"></i>Idea</span>
+                    {% endif %}
+                </td>
+                <td style="max-width:300px;">
+                    <div style="white-space:pre-wrap;word-break:break-word;">{{ fb.message }}</div>
+                </td>
+                <td><code class="small">{{ fb.page_url or '' }}</code></td>
+                <td>
+                    <span id="fb-status-{{ fb.id }}" class="badge
+                        {% if fb.status == 'new' %}bg-warning text-dark
+                        {% elif fb.status == 'reviewed' %}bg-info
+                        {% else %}bg-success{% endif %}">
+                        {{ fb.status }}
+                    </span>
+                </td>
+                <td>
+                    {% if fb.status == 'new' %}
+                    <button class="btn btn-sm btn-outline-primary" onclick="updateFbStatus({{ fb.id }}, 'reviewed')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    {% endif %}
+                    {% if fb.status != 'resolved' %}
+                    <button class="btn btn-sm btn-outline-success" onclick="updateFbStatus({{ fb.id }}, 'resolved')">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+    <p class="text-muted">No feedback yet</p>
+</div>
+{% endif %}
+
+<script>
+async function updateFbStatus(fbId, status) {
+    const csrf = document.querySelector('meta[name="csrf-token"]').content;
+    const resp = await fetch(`/owner/feedback/${fbId}/status`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf},
+        body: JSON.stringify({status})
+    });
+    if (resp.ok) location.reload();
+}
+</script>
+
+{% endblock %}

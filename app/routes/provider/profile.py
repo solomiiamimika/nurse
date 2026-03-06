@@ -10,7 +10,7 @@ import os
 from werkzeug.utils import secure_filename
 from math import radians, sin, cos, sqrt, atan2
 import stripe
-from app.extensions import socketio, db
+from app.extensions import socketio, db, bcrypt
 from flask import current_app, request
 from flask_socketio import join_room, leave_room, emit
 from app.models import Message, db, User
@@ -45,7 +45,9 @@ def profile():
             current_user.phone_number = request.form.get('phone_number')
             current_user.about_me = request.form.get('about_me')
             current_user.address = request.form.get('address')
-            current_user.password_hash = request.form.get('password')
+            new_password = request.form.get('password', '').strip()
+            if new_password:
+                current_user.password_hash = bcrypt.generate_password_hash(new_password).decode('utf-8')
 
             date_birth_str = request.form.get('date_birth')
             if date_birth_str:

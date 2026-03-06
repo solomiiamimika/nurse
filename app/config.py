@@ -36,6 +36,12 @@ class Config:
     STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY')
     STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 
+    # ── Telegram notifications ───────────────────────────────────────
+    TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+    TELEGRAM_CHAT_ID   = os.getenv('TELEGRAM_CHAT_ID')
+    TELEGRAM_BOT_NAME  = os.getenv('TELEGRAM_BOT_NAME')   # without @
+    BASE_URL           = os.getenv('BASE_URL', 'http://127.0.0.1:5000')
+
     # ── JWT (mobile API) ───────────────────────────────────────────
     JWT_SECRET_KEY           = os.getenv('JWT_SECRET_KEY', 'change-jwt-secret')
     JWT_ACCESS_TOKEN_EXPIRES = 86400   # 24 hours

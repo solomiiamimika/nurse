@@ -566,6 +566,42 @@ msgstr "Bist du sicher? Die Zahlung wird an den Anbieter freigegeben."
 msgid "Payment Released! Thank you."
 msgstr "Zahlung freigegeben! Vielen Dank."
 
+msgid "Free service — no payment required."
+msgstr "Kostenloser Service — keine Zahlung erforderlich."
+
+msgid "Pay by cash"
+msgstr "Barzahlung"
+
+msgid "Pay by cash directly to the provider?"
+msgstr "Bar direkt an den Anbieter zahlen?"
+
+msgid "Cash Payment"
+msgstr "Barzahlung"
+
+msgid "Yes, pay by cash"
+msgstr "Ja, bar bezahlen"
+
+msgid "Cash"
+msgstr "Bar"
+
+msgid "Past"
+msgstr "Vergangene"
+
+msgid "No past requests"
+msgstr "Keine vergangenen Anfragen"
+
+msgid "Member since"
+msgstr "Mitglied seit"
+
+msgid "Service History"
+msgstr "Servicehistorie"
+
+msgid "No shared service history yet."
+msgstr "Noch keine gemeinsame Servicehistorie."
+
+msgid "No reviews from this client yet."
+msgstr "Noch keine Bewertungen von diesem Kunden."
+
 #: app/templates/client/dashboard.html:7
 msgid "Hi"
 msgstr "Hallo"
@@ -1557,3 +1593,53 @@ msgstr "Gegenangebot akzeptieren"
 #: app/templates/provider/dashboard.html
 msgid "Revise Price"
 msgstr "Preis überarbeiten"
+
+#: app/templates/base.html - feedback widget
+msgid "Feedback"
+msgstr "Feedback"
+
+msgid "Bug"
+msgstr "Fehler"
+
+msgid "Suggestion"
+msgstr "Vorschlag"
+
+msgid "Describe the issue or your idea..."
+msgstr "Beschreiben Sie das Problem oder Ihre Idee..."
+
+msgid "Send feedback"
+msgstr "Feedback senden"
+
+msgid "Thank you!"
+msgstr "Vielen Dank!"
+
+msgid "Your feedback has been sent."
+msgstr "Ihr Feedback wurde gesendet."
+
+#: app/templates/auth/telegram_complete.html
+msgid "Complete Registration"
+msgstr "Registrierung abschliessen"
+
+msgid "Choose your role to finish."
+msgstr "Wahlen Sie Ihre Rolle aus."
+
+msgid "Hello"
+msgstr "Hallo"
+
+msgid "Client"
+msgstr "Kunde"
+
+msgid "Provider"
+msgstr "Anbieter"
+
+msgid "optional"
+msgstr "optional"
+
+msgid "your@email.com"
+msgstr "ihre@email.com"
+
+msgid "If you already have an account, enter the same email to link it."
+msgstr "Wenn Sie bereits ein Konto haben, geben Sie dieselbe E-Mail ein."
+
+msgid "or sign up with Telegram"
+msgstr "oder mit Telegram registrieren"

@@ -20,6 +20,8 @@ class User(db.Model, UserMixin):
     email         = Column(Text(), unique=True, nullable=False, name='uq_user_email')
     password_hash = Column(Text, nullable=True)
     google_id     = Column(String(100), unique=True, nullable=True)
+    telegram_id            = Column(db.BigInteger, unique=True, nullable=True)
+    telegram_notifications = Column(Boolean, default=True)
 
     role          = Column(Text)           # 'client' or 'provider'
     full_name     = Column(String)

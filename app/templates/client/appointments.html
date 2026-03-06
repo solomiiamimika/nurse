@@ -65,8 +65,11 @@
           </div>
           
           <div id="paymentSection" class="mb-3" style="display: none">
-            <button id="payNowBtn" class="btn btn-success w-100 fw-bold py-2">
+            <button id="payNowBtn" class="btn btn-success w-100 fw-bold py-2 mb-2">
               <i class="fas fa-credit-card"></i> {{ _("Make a payment now") }}
+            </button>
+            <button id="payCashBtn" class="btn btn-outline-secondary w-100 fw-bold py-2">
+              <i class="fas fa-money-bill-wave"></i> {{ _("Pay by cash") }}
             </button>
           </div>
           
@@ -206,6 +209,7 @@
 
 <script>
   let currentAppointmentId = null;
+  let currentAppointmentAmount = 0;
   const stripe = Stripe("{{ stripe_public_key }}");
   const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
@@ -245,6 +249,7 @@
 
       eventClick: function (info) {
         currentAppointmentId = info.event.id;
+        currentAppointmentAmount = parseFloat(info.event.extendedProps.amount) || 0;
         const props = info.event.extendedProps;
 
         // 1. Set Basic Info
@@ -290,7 +295,15 @@
         } 
         else if (props.status === "confirmed") {
             // State: Approved, Need to Pay
-            paymentSection.style.display = "block"; 
+            const amount = parseFloat(props.amount) || 0;
+            if (amount > 0) {
+                paymentSection.style.display = "block";
+            } else {
+                // Free service — no payment needed
+                paymentStatus.style.display = "block";
+                paymentStatus.className = "alert alert-success";
+                paymentStatus.innerHTML = '<i class="fas fa-check-circle"></i> {{ _("Free service — no payment required.") }}';
+            }
             
             actionsContainer.innerHTML = `
                 <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(${info.event.id})">
@@ -299,26 +312,65 @@
             `;
         } 
         else if (props.status === "confirmed_paid") {
-            // State: Paid, Waiting for Work
+            // State: Confirmed/Paid, Waiting for Work
+            const amtPaid = parseFloat(props.amount) || 0;
             paymentStatus.style.display = "block";
             paymentStatus.className = "alert alert-success";
-            paymentStatus.innerHTML = '<i class="fas fa-shield-alt"></i> {{ _("Payment held securely. Waiting for provider.") }}';
+            if (amtPaid > 0) {
+                paymentStatus.innerHTML = '<i class="fas fa-shield-alt"></i> {{ _("Payment held securely. Waiting for provider.") }}';
+            } else {
+                paymentStatus.innerHTML = '<i class="fas fa-check-circle"></i> {{ _("Confirmed. Waiting for provider to complete.") }}';
+            }
+            actionsContainer.innerHTML = `
+                <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(${info.event.id})">
+                    {{ _("Cancel appointment") }}
+                </button>
+            `;
         }
         else if (props.status === "work_submitted") {
             // State: Work Done, Need Approval
+            const amtWork = parseFloat(props.amount) || 0;
             actionsContainer.innerHTML = `
                 <div class="alert alert-warning w-100 text-center">
                     <i class="fas fa-check-circle"></i> <strong>{{ _("Job Done?") }}</strong><br>
                     {{ _("The provider has marked this job as finished.") }}
                 </div>
-                <button class="btn btn-success fw-bold w-100 py-2" onclick="approveAndPay(${info.event.id})">
-                    <i class="fas fa-hand-holding-usd"></i> {{ _("Approve & Release Payment") }}
+                <button class="btn btn-success fw-bold w-100 py-2 mb-2" onclick="approveAndPay(${info.event.id})">
+                    <i class="fas fa-check"></i> ${amtWork > 0 ? "{{ _('Approve & Release Payment') }}" : "{{ _('Confirm Completion') }}"}
+                </button>
+                <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(${info.event.id})">
+                    {{ _("Cancel appointment") }}
                 </button>
             `;
         }
         else if (props.status === "completed") {
-             // State: Finished, Show Reviews
+             // State: Finished, Show Reviews + Receipt
+             actionsContainer.innerHTML = `
+                <a href="/client/receipt/appointment/${info.event.id}" target="_blank" class="btn btn-outline-secondary w-100 mb-2" style="border-radius:10px;">
+                    <i class="fas fa-file-invoice me-1"></i> {{ _("Download Receipt") }}
+                </a>
+             `;
              checkReviewStatus(currentAppointmentId);
+        }
+        else if (props.status === "cancelled") {
+             // State: Cancelled, Offer Undo
+             const apptDate = new Date(info.event.start);
+             if (apptDate > new Date()) {
+                 actionsContainer.innerHTML = `
+                    <div class="alert alert-danger w-100 text-center mb-2">
+                        <i class="fas fa-times-circle"></i> {{ _("This appointment was cancelled.") }}
+                    </div>
+                    <button class="btn btn-outline-success w-100" onclick="undoCancelAppointment(${info.event.id})">
+                        <i class="fas fa-undo me-1"></i> {{ _("Restore Appointment") }}
+                    </button>
+                 `;
+             } else {
+                 actionsContainer.innerHTML = `
+                    <div class="alert alert-danger w-100 text-center">
+                        <i class="fas fa-times-circle"></i> {{ _("This appointment was cancelled.") }}
+                    </div>
+                 `;
+             }
         }
 
         const modal = new bootstrap.Modal(document.getElementById("appointmentDetailsModal"));
@@ -372,6 +424,38 @@
               btn.disabled = false;
               btn.innerHTML = '<i class="fas fa-credit-card"></i> {{ _("Make a payment now") }}';
             });
+        });
+    }
+
+    // --- CASH PAYMENT HANDLER ---
+    const cashBtn = document.getElementById("payCashBtn");
+    if(cashBtn) {
+        cashBtn.addEventListener("click", async function () {
+            if (!currentAppointmentId) return;
+            const ok = await confirmAction("{{ _('Pay by cash directly to the provider?') }}", {
+                title: "{{ _('Cash Payment') }}",
+                btnText: "{{ _('Yes, pay by cash') }}",
+                btnClass: 'btn-success',
+                icon: 'fa-money-bill-wave',
+                iconColor: '#198754'
+            });
+            if (!ok) return;
+
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ _("Processing...") }}';
+
+            fetch("/client/pay_cash", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+                body: JSON.stringify({ appointment_id: currentAppointmentId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) location.reload();
+                else { alert(data.message); btn.disabled = false; btn.innerHTML = '<i class="fas fa-money-bill-wave"></i> {{ _("Pay by cash") }}'; }
+            })
+            .catch(err => { console.error(err); btn.disabled = false; btn.innerHTML = '<i class="fas fa-money-bill-wave"></i> {{ _("Pay by cash") }}'; });
         });
     }
 
@@ -479,8 +563,8 @@
   function getStatusText(status) {
     const statuses = {
       scheduled: "{{ _('Scheduled') }}",
-      confirmed: "{{ _('Approved (Unpaid)') }}",
-      confirmed_paid: "{{ _('Paid & Confirmed') }}",
+      confirmed: "{{ _('Approved (Awaiting Payment)') }}",
+      confirmed_paid: currentAppointmentAmount > 0 ? "{{ _('Paid & Confirmed') }}" : "{{ _('Confirmed') }}",
       work_submitted: "{{ _('Work Submitted (Action Required)') }}",
       completed: "{{ _('Completed') }}",
       cancelled: "{{ _('Cancelled') }}"
@@ -512,6 +596,30 @@
         "X-CSRFToken": csrfToken,
       },
       body: JSON.stringify({ appointment_id: appointmentId }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert("{{ _('Error:') }} " + data.message);
+        }
+      });
+  }
+
+  async function undoCancelAppointment(appointmentId) {
+    const ok = await confirmAction("{{ _('Restore this appointment? It will return to scheduled status.') }}", {
+      title: "{{ _('Restore Appointment') }}",
+      btnText: "{{ _('Yes, Restore') }}",
+      btnClass: 'btn-success',
+      icon: 'fa-undo',
+      iconColor: '#198754'
+    });
+    if (!ok) return;
+
+    fetch(`/client/undo_cancel_appointment/${appointmentId}`, {
+      method: "POST",
+      headers: { "X-CSRFToken": csrfToken },
     })
       .then((response) => response.json())
       .then((data) => {
@@ -574,11 +682,13 @@
     return stars;
   }
 
-  // --- NEW: APPROVE AND PAY FUNCTION ---
+  // --- APPROVE AND PAY / CONFIRM COMPLETION ---
   window.approveAndPay = async function(appointmentId) {
-    const ok = await confirmAction("{{ _('Are you sure? This will release the funds to the provider.') }}", {
-      title: "{{ _('Release Payment') }}",
-      btnText: "{{ _('Yes, Release Funds') }}",
+    const isFree = currentAppointmentAmount <= 0;
+    const ok = await confirmAction(
+      isFree ? "{{ _('Confirm that the work has been completed?') }}" : "{{ _('Are you sure? This will release the funds to the provider.') }}", {
+      title: isFree ? "{{ _('Confirm Completion') }}" : "{{ _('Release Payment') }}",
+      btnText: isFree ? "{{ _('Yes, Confirm') }}" : "{{ _('Yes, Release Funds') }}",
       btnClass: 'btn-success',
       icon: 'fa-check-circle',
       iconColor: '#198754'
@@ -596,7 +706,7 @@
     .then(r => r.json())
     .then(data => {
         if(data.success) {
-            alert("{{ _('Payment Released! Thank you.') }}");
+            alert(isFree ? "{{ _('Completed! Thank you.') }}" : "{{ _('Payment Released! Thank you.') }}");
             location.reload();
         } else {
             alert("{{ _('Error:') }} " + data.message);

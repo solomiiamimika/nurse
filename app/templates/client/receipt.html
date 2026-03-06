@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt #{{ receipt_number }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 16px;
+        }
+        .receipt-wrapper {
+            width: 100%;
+            max-width: 520px;
+        }
+        .actions-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .actions-bar a {
+            color: #3f4a36;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .actions-bar a:hover { opacity: 0.7; }
+        .btn-download {
+            background: #3f4a36;
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .btn-download:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(63,74,54,0.25);
+        }
+        .receipt-card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        .receipt-header {
+            background: linear-gradient(135deg, #3f4a36 0%, #5a6b4e 100%);
+            color: #fff;
+            padding: 32px 32px 28px;
+            text-align: center;
+        }
+        .receipt-header .logo {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+        .receipt-header .receipt-label {
+            font-size: 13px;
+            opacity: 0.75;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .receipt-number {
+            display: inline-block;
+            margin-top: 12px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(4px);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .receipt-body {
+            padding: 32px;
+        }
+        .amount-section {
+            text-align: center;
+            padding: 24px 0;
+            margin-bottom: 24px;
+            border-bottom: 1px dashed #e5e7eb;
+        }
+        .amount-label {
+            font-size: 13px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .amount-value {
+            font-size: 42px;
+            font-weight: 800;
+            color: #3f4a36;
+            letter-spacing: -1px;
+        }
+        .amount-value .currency {
+            font-size: 22px;
+            font-weight: 600;
+            vertical-align: super;
+            margin-right: 2px;
+        }
+        .amount-free {
+            font-size: 28px;
+            font-weight: 700;
+            color: #10b981;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 12px;
+        }
+        .status-completed { background: #d1fae5; color: #065f46; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+        .status-other { background: #e0f2fe; color: #075985; }
+        .detail-grid {
+            display: grid;
+            gap: 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 14px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label {
+            font-size: 13px;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+        .detail-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a2e;
+            text-align: right;
+            max-width: 60%;
+        }
+        .receipt-footer {
+            background: #f9fafb;
+            padding: 20px 32px;
+            text-align: center;
+            font-size: 12px;
+            color: #9ca3af;
+            border-top: 1px solid #f3f4f6;
+        }
+        .receipt-footer strong { color: #6b7280; }
+
+        /* Print styles */
+        @media print {
+            body { background: #fff; padding: 0; }
+            .actions-bar { display: none !important; }
+            .receipt-card { box-shadow: none; border-radius: 0; }
+            .receipt-wrapper { max-width: 100%; }
+        }
+        @media (max-width: 480px) {
+            body { padding: 16px 12px; }
+            .receipt-header { padding: 24px 20px; }
+            .receipt-body { padding: 24px 20px; }
+            .amount-value { font-size: 34px; }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="receipt-wrapper">
+        <div class="actions-bar">
+            <a href="javascript:history.back()">
+                <i class="fas fa-arrow-left"></i> {{ _("Back") }}
+            </a>
+            <button class="btn-download" onclick="window.print()">
+                <i class="fas fa-download"></i> {{ _("Save PDF") }}
+            </button>
+        </div>
+
+        <div class="receipt-card">
+            <div class="receipt-header">
+                <div class="logo">Human-me</div>
+                <div class="receipt-label">{{ _("Service Receipt") }}</div>
+                <div class="receipt-number">#{{ receipt_number }}</div>
+            </div>
+
+            <div class="receipt-body">
+                <div class="amount-section">
+                    <div class="amount-label">{{ _("Total") }}</div>
+                    {% if price > 0 %}
+                        <div class="amount-value">
+                            <span class="currency">€</span>{{ "%.2f"|format(price) }}
+                        </div>
+                    {% else %}
+                        <div class="amount-free">{{ _("Free") }}</div>
+                    {% endif %}
+                    {% if status == 'completed' %}
+                        <span class="status-badge status-completed"><i class="fas fa-check-circle"></i> {{ _("Completed") }}</span>
+                    {% elif status == 'cancelled' %}
+                        <span class="status-badge status-cancelled"><i class="fas fa-times-circle"></i> {{ _("Cancelled") }}</span>
+                    {% else %}
+                        <span class="status-badge status-other"><i class="fas fa-clock"></i> {{ status }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="detail-grid">
+                    <div class="detail-row">
+                        <span class="detail-label">{{ _("Service") }}</span>
+                        <span class="detail-value">{{ service_name }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{{ _("Provider") }}</span>
+                        <span class="detail-value">{{ provider_name }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{{ _("Client") }}</span>
+                        <span class="detail-value">{{ client_name }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{{ _("Date") }}</span>
+                        <span class="detail-value">{{ service_date }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{{ _("Time") }}</span>
+                        <span class="detail-value">{{ service_time }}</span>
+                    </div>
+                    {% if price > 0 %}
+                    <div class="detail-row">
+                        <span class="detail-label">{{ _("Currency") }}</span>
+                        <span class="detail-value">{{ currency }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="receipt-footer">
+                <strong>Human-me</strong> — {{ _("your place to breathe") }}<br>
+                {{ _("Generated on") }} {{ now.strftime('%d.%m.%Y %H:%M') if now else '' }}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

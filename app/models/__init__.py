@@ -19,6 +19,7 @@ from .appointment import Appointment, ClientSelfCreatedAppointment, RequestOffer
 from .payment     import Payment
 from .messaging   import Message
 from .medical     import MedicalRecord, Prescription, Review
+from .feedback    import Feedback
 
 # Backward-compatible alias (old code may still use NurseService)
 NurseService = ProviderService

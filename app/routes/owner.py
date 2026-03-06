@@ -1,9 +1,11 @@
 from functools import wraps
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, abort
+import requests as http_requests
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, abort, current_app
 from flask_login import login_required, current_user
-from app.models import User, Appointment, Service, db
+from app.models import User, Appointment, Service, Feedback, InvitationToken, db
 from sqlalchemy import func
 from datetime import datetime, timedelta
+import secrets
 
 owner_bp = Blueprint('owner', __name__, url_prefix='/owner')
 
@@ -166,3 +168,190 @@ def unverify_user(user_id):
     user.verification_date = None
     db.session.commit()
     return jsonify({'success': True, 'is_verified': False})
+
+
+# ── Feedback ─────────────────────────────────────────────────────────────────
+
+@owner_bp.route('/feedback')
+@owner_required
+def feedback():
+    all_feedback = Feedback.query.order_by(Feedback.created_at.desc()).all()
+    return render_template('owner/feedback.html', feedbacks=all_feedback)
+
+
+@owner_bp.route('/feedback/<int:fb_id>/status', methods=['POST'])
+@owner_required
+def update_feedback_status(fb_id):
+    fb = Feedback.query.get_or_404(fb_id)
+    new_status = (request.get_json() or {}).get('status', 'reviewed')
+    if new_status not in ('new', 'reviewed', 'resolved'):
+        return jsonify({'success': False}), 400
+    fb.status = new_status
+    db.session.commit()
+    return jsonify({'success': True, 'status': fb.status})
+
+
+# ── Telegram Panel ────────────────────────────────────────────────────────────
+
+@owner_bp.route('/telegram')
+@owner_required
+def telegram_panel():
+    bot_token = current_app.config.get('TELEGRAM_BOT_TOKEN')
+    bot_name = current_app.config.get('TELEGRAM_BOT_NAME')
+
+    # Bot status
+    bot_info = None
+    if bot_token:
+        try:
+            resp = http_requests.get(
+                f"https://api.telegram.org/bot{bot_token}/getMe", timeout=5
+            )
+            if resp.ok:
+                bot_info = resp.json().get('result', {})
+        except Exception:
+            pass
+
+    # Users with Telegram linked
+    tg_users = User.query.filter(User.telegram_id.isnot(None)).order_by(User.created_at.desc()).all()
+    tg_notifications_on = sum(1 for u in tg_users if u.telegram_notifications)
+
+    # All users (for invitation dropdown)
+    all_users = User.query.filter(User.is_active == True).order_by(User.full_name).all()
+
+    return render_template('owner/telegram.html',
+                           bot_info=bot_info,
+                           bot_name=bot_name,
+                           bot_token_set=bool(bot_token),
+                           tg_users=tg_users,
+                           tg_notifications_on=tg_notifications_on,
+                           all_users=all_users)
+
+
+@owner_bp.route('/telegram/send_message', methods=['POST'])
+@owner_required
+def telegram_send_message():
+    """Send a message to a specific user via Telegram bot."""
+    data = request.get_json() or {}
+    user_id = data.get('user_id')
+    message = data.get('message', '').strip()
+
+    if not message:
+        return jsonify({'success': False, 'error': 'Message is required'}), 400
+
+    bot_token = current_app.config.get('TELEGRAM_BOT_TOKEN')
+    if not bot_token:
+        return jsonify({'success': False, 'error': 'Bot not configured'}), 400
+
+    user = User.query.get(user_id)
+    if not user or not user.telegram_id:
+        return jsonify({'success': False, 'error': 'User has no Telegram linked'}), 400
+
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    payload = {'chat_id': user.telegram_id, 'text': message, 'parse_mode': 'HTML'}
+    try:
+        resp = http_requests.post(url, json=payload, timeout=5)
+        if resp.ok:
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'error': 'Telegram API error'}), 500
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@owner_bp.route('/telegram/send_invite', methods=['POST'])
+@owner_required
+def telegram_send_invite():
+    """Create an invitation link and send it to a user or chat_id via Telegram."""
+    data = request.get_json() or {}
+    target = data.get('target', '').strip()       # user_id or raw telegram chat_id
+    role_hint = data.get('role_hint', '')          # 'client', 'provider', or ''
+    custom_text = data.get('custom_text', '').strip()
+
+    bot_token = current_app.config.get('TELEGRAM_BOT_TOKEN')
+    if not bot_token:
+        return jsonify({'success': False, 'error': 'Bot not configured'}), 400
+
+    if not target:
+        return jsonify({'success': False, 'error': 'Target is required'}), 400
+
+    # Resolve chat_id
+    chat_id = None
+    try:
+        uid = int(target)
+        user = User.query.get(uid)
+        if user and user.telegram_id:
+            chat_id = user.telegram_id
+        else:
+            # Maybe it's a raw chat_id
+            chat_id = uid
+    except (ValueError, TypeError):
+        return jsonify({'success': False, 'error': 'Invalid target'}), 400
+
+    # Create invitation token
+    token = secrets.token_urlsafe(32)
+    inv = InvitationToken(
+        token=token,
+        created_by=current_user.id,
+        role_hint=role_hint if role_hint in ('client', 'provider') else None,
+    )
+    db.session.add(inv)
+    db.session.commit()
+
+    invite_url = url_for('auth.invite_landing', token=token, _external=True)
+    role_label = f" as a {role_hint}" if role_hint else ""
+
+    message = custom_text or f"You're invited to join Human-me{role_label}!"
+    message += f"\n\nRegister here:\n{invite_url}"
+
+    url_api = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    payload = {'chat_id': chat_id, 'text': message, 'parse_mode': 'HTML'}
+    try:
+        resp = http_requests.post(url_api, json=payload, timeout=5)
+        if resp.ok:
+            return jsonify({'success': True, 'invite_url': invite_url})
+        error_data = resp.json() if resp.headers.get('content-type', '').startswith('application/json') else {}
+        return jsonify({'success': False, 'error': error_data.get('description', 'Telegram API error')}), 500
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@owner_bp.route('/telegram/broadcast', methods=['POST'])
+@owner_required
+def telegram_broadcast():
+    """Send a message to all users who have Telegram linked and notifications on."""
+    data = request.get_json() or {}
+    message = data.get('message', '').strip()
+    role_filter = data.get('role', '')  # 'client', 'provider', or '' (all)
+
+    if not message:
+        return jsonify({'success': False, 'error': 'Message is required'}), 400
+
+    bot_token = current_app.config.get('TELEGRAM_BOT_TOKEN')
+    if not bot_token:
+        return jsonify({'success': False, 'error': 'Bot not configured'}), 400
+
+    query = User.query.filter(
+        User.telegram_id.isnot(None),
+        User.telegram_notifications == True,
+        User.is_active == True,
+    )
+    if role_filter in ('client', 'provider'):
+        query = query.filter_by(role=role_filter)
+
+    users = query.all()
+    sent = 0
+    failed = 0
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+
+    for u in users:
+        try:
+            resp = http_requests.post(url, json={
+                'chat_id': u.telegram_id, 'text': message, 'parse_mode': 'HTML'
+            }, timeout=5)
+            if resp.ok:
+                sent += 1
+            else:
+                failed += 1
+        except Exception:
+            failed += 1
+
+    return jsonify({'success': True, 'sent': sent, 'failed': failed, 'total': len(users)})

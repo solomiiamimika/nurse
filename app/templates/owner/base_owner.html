@@ -69,6 +69,12 @@
             <a href="{{ url_for('owner.verification') }}" class="sidebar-link {% if request.endpoint == 'owner.verification' %}active{% endif %}">
                 <i class="fas fa-shield-alt"></i> Verification
             </a>
+            <a href="{{ url_for('owner.feedback') }}" class="sidebar-link {% if request.endpoint == 'owner.feedback' %}active{% endif %}">
+                <i class="fas fa-comment-dots"></i> Feedback
+            </a>
+            <a href="{{ url_for('owner.telegram_panel') }}" class="sidebar-link {% if request.endpoint == 'owner.telegram_panel' %}active{% endif %}">
+                <i class="fab fa-telegram"></i> Telegram
+            </a>
             <a href="{{ url_for('auth.invite_manager') }}" class="sidebar-link">
                 <i class="fas fa-paper-plane"></i> Invites
             </a>

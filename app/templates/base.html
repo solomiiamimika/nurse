@@ -98,6 +98,9 @@
 
   <body>
     <div class="ambient-background"></div>
+    <div style="position:fixed;top:18px;left:20px;z-index:2000;">
+      <span style="background:#3f4a36;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:1px;">BETA</span>
+    </div>
     <div class="language-switcher">
         <div class="lang-pill">
             <i class="fas fa-globe lang-icon"></i>
@@ -190,6 +193,115 @@
     </script>
 
     {% block scripts %}{% endblock %}
+
+    <!-- Feedback Widget -->
+    {% if current_user and current_user.is_authenticated %}
+    <button id="feedbackBtn" style="position:fixed;bottom:24px;right:24px;z-index:1999;width:48px;height:48px;border-radius:50%;background:#3f4a36;color:#fff;border:none;font-size:20px;box-shadow:0 4px 12px rgba(0,0,0,0.15);cursor:pointer;transition:transform .2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+      <i class="fas fa-comment-dots"></i>
+    </button>
+
+    <div id="feedbackOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2100;" onclick="closeFeedback()"></div>
+    <div id="feedbackPanel" style="display:none;position:fixed;bottom:24px;right:24px;z-index:2200;width:360px;max-width:calc(100vw - 48px);background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.18);overflow:hidden;">
+      <div style="padding:20px 20px 0;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0"><i class="fas fa-comment-dots me-2" style="color:#3f4a36;"></i>{{ _("Feedback") }}</h6>
+          <button onclick="closeFeedback()" style="background:none;border:none;font-size:18px;color:#999;cursor:pointer;">&times;</button>
+        </div>
+        <div class="d-flex gap-2 mb-3">
+          <button id="fbCatBug" class="btn btn-sm btn-outline-secondary flex-fill fw-semibold" onclick="setFbCategory('bug')" style="border-radius:10px;">
+            <i class="fas fa-bug me-1"></i>{{ _("Bug") }}
+          </button>
+          <button id="fbCatSuggestion" class="btn btn-sm btn-outline-secondary flex-fill fw-semibold" onclick="setFbCategory('suggestion')" style="border-radius:10px;">
+            <i class="fas fa-lightbulb me-1"></i>{{ _("Suggestion") }}
+          </button>
+        </div>
+        <textarea id="feedbackText" rows="4" class="form-control mb-3" placeholder="{{ _('Describe the issue or your idea...') }}" style="border-radius:10px;resize:none;"></textarea>
+      </div>
+      <div style="padding:0 20px 20px;">
+        <button id="feedbackSubmitBtn" onclick="submitFeedback()" class="btn w-100 fw-bold" style="background:#3f4a36;color:#fff;border-radius:10px;" disabled>
+          {{ _("Send feedback") }}
+        </button>
+      </div>
+      <div id="feedbackSuccess" style="display:none;padding:40px 20px;text-align:center;">
+        <i class="fas fa-check-circle fa-3x mb-3" style="color:#3f4a36;"></i>
+        <p class="fw-bold mb-1">{{ _("Thank you!") }}</p>
+        <p class="text-muted small">{{ _("Your feedback has been sent.") }}</p>
+      </div>
+    </div>
+
+    <script>
+    (function(){
+      let fbCategory = '';
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+      document.getElementById('feedbackBtn').addEventListener('click', function(){
+        document.getElementById('feedbackOverlay').style.display = 'block';
+        document.getElementById('feedbackPanel').style.display = 'block';
+        document.getElementById('feedbackBtn').style.display = 'none';
+      });
+
+      window.closeFeedback = function(){
+        document.getElementById('feedbackOverlay').style.display = 'none';
+        document.getElementById('feedbackPanel').style.display = 'none';
+        document.getElementById('feedbackBtn').style.display = '';
+        // Reset form
+        fbCategory = '';
+        document.getElementById('feedbackText').value = '';
+        document.getElementById('feedbackSubmitBtn').disabled = true;
+        document.getElementById('fbCatBug').classList.remove('active');
+        document.getElementById('fbCatSuggestion').classList.remove('active');
+        document.getElementById('fbCatBug').style.background = '';
+        document.getElementById('fbCatBug').style.color = '';
+        document.getElementById('fbCatSuggestion').style.background = '';
+        document.getElementById('fbCatSuggestion').style.color = '';
+        document.getElementById('feedbackSuccess').style.display = 'none';
+        document.querySelector('#feedbackPanel > div:first-child').style.display = '';
+        document.querySelector('#feedbackPanel > div:nth-child(2)').style.display = '';
+      };
+
+      window.setFbCategory = function(cat){
+        fbCategory = cat;
+        const bugBtn = document.getElementById('fbCatBug');
+        const sugBtn = document.getElementById('fbCatSuggestion');
+        bugBtn.style.background = cat === 'bug' ? '#3f4a36' : '';
+        bugBtn.style.color = cat === 'bug' ? '#fff' : '';
+        sugBtn.style.background = cat === 'suggestion' ? '#3f4a36' : '';
+        sugBtn.style.color = cat === 'suggestion' ? '#fff' : '';
+        checkFbReady();
+      };
+
+      document.getElementById('feedbackText').addEventListener('input', checkFbReady);
+
+      function checkFbReady(){
+        const text = document.getElementById('feedbackText').value.trim();
+        document.getElementById('feedbackSubmitBtn').disabled = !fbCategory || !text;
+      }
+
+      window.submitFeedback = async function(){
+        const text = document.getElementById('feedbackText').value.trim();
+        if (!fbCategory || !text) return;
+        const btn = document.getElementById('feedbackSubmitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>';
+        try {
+          const resp = await fetch('/api/feedback', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+            body: JSON.stringify({category: fbCategory, message: text, page_url: window.location.href})
+          });
+          if (resp.ok) {
+            document.querySelector('#feedbackPanel > div:first-child').style.display = 'none';
+            document.querySelector('#feedbackPanel > div:nth-child(2)').style.display = 'none';
+            document.getElementById('feedbackSuccess').style.display = 'block';
+            setTimeout(closeFeedback, 2000);
+          }
+        } catch(e) {}
+        btn.disabled = false;
+        btn.innerHTML = '{{ _("Send feedback") }}';
+      };
+    })();
+    </script>
+    {% endif %}
 
     <div class="top-glass-bg"></div>
   </body>

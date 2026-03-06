@@ -642,7 +642,7 @@
                       <h6 class="fw-bold text-dark mb-0">${item.service_name || 'Service'}</h6>
                       <span class="badge rounded-pill" style="background:${cfg.bg}; color:${cfg.color}; border:1px solid ${cfg.border};">${cfg.label}</span>
                   </div>
-                  <div class="small text-muted mb-1"><i class="fas fa-user me-1"></i> ${item.patient_name || 'Client'}</div>
+                  <div class="small text-muted mb-1"><i class="fas fa-user me-1"></i> ${item.patient_id ? `<a href="/provider/client/${item.patient_id}" onclick="event.stopPropagation()" class="text-primary text-decoration-none fw-semibold">${item.patient_name || 'Client'}</a>` : (item.patient_name || 'Client')}</div>
                   <div class="small text-muted mb-2"><i class="fas fa-clock me-1"></i> ${time}</div>
                   <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                       <div>
@@ -668,8 +668,9 @@
                           <button class="btn btn-success btn-sm fw-bold" onclick="event.stopPropagation();markRequestDone(${item.req_id})">
                               <i class="fas fa-check me-1"></i>{{ _("Mark Done") }}
                           </button>` : ''}
+                      ${item.offer_status === 'accepted' && item.req_status === 'accepted' && (item.payment || 0) > 0 ? `
+                          <span class="small text-warning"><i class="fas fa-clock me-1"></i>{{ _("Waiting for client payment") }}</span>` : ''}
                       ${item.offer_status === 'accepted' && item.req_status === 'accepted' ? `
-                          <span class="small text-warning"><i class="fas fa-clock me-1"></i>{{ _("Waiting for client payment") }}</span>
                           <button class="btn btn-outline-danger btn-sm" onclick="event.stopPropagation();cancelAcceptedRequest(${item.req_id})" style="font-size:11px;">
                               <i class="fas fa-times me-1"></i>{{ _("Cancel") }}
                           </button>` : ''}
@@ -677,7 +678,15 @@
                           <button class="btn btn-outline-danger btn-sm" onclick="event.stopPropagation();cancelAcceptedRequest(${item.req_id})" style="font-size:11px;">
                               <i class="fas fa-times me-1"></i>{{ _("Cancel") }}
                           </button>` : ''}
-                      ${item.offer_status === 'accepted' && item.req_status === 'completed' ? `<span class="small text-success"><i class="fas fa-check-circle me-1"></i>{{ _("Completed") }}</span>` : ''}
+                      ${item.offer_status === 'accepted' && item.req_status === 'work_submitted' ? `<span class="small text-info"><i class="fas fa-hourglass-half me-1"></i>{{ _("Waiting for client approval") }}</span>
+                          <button class="btn btn-outline-warning btn-sm" onclick="event.stopPropagation();retractWorkRequest(${item.req_id})" style="font-size:11px;">
+                              <i class="fas fa-arrow-left me-1"></i>{{ _("Retract") }}
+                          </button>` : ''}
+                      ${item.offer_status === 'accepted' && item.req_status === 'completed' ? `<span class="small text-success"><i class="fas fa-check-circle me-1"></i>{{ _("Completed") }}</span>
+                          <a href="/provider/receipt/request/${item.req_id}" target="_blank" class="btn btn-outline-secondary btn-sm" style="font-size:11px;border-radius:8px;">
+                              <i class="fas fa-file-invoice me-1"></i>{{ _("Receipt") }}
+                          </a>` : ''}
+                      ${item.offer_status === 'accepted' && item.req_status === 'cancelled' ? `<span class="small text-danger"><i class="fas fa-times-circle me-1"></i>{{ _("Cancelled") }}</span>` : ''}
                       ${item.offer_status === 'pending' && !hasClientCounter ? `
                           <span class="small text-warning"><i class="fas fa-hourglass-half me-1"></i>{{ _("Awaiting client") }}</span>` : ''}
                       ${item.offer_status === 'pending' ? `
@@ -698,7 +707,12 @@
 
   window.showOfferModal = function(item) {
       currentRequestId = item.id;
-      document.getElementById('detailPatientName').textContent = item.patient_name || 'Unknown';
+      const offerNameEl = document.getElementById('detailPatientName');
+      if (item.patient_id) {
+          offerNameEl.innerHTML = `<a href="/provider/client/${item.patient_id}" class="text-primary text-decoration-none fw-semibold">${item.patient_name || 'Unknown'}</a>`;
+      } else {
+          offerNameEl.textContent = item.patient_name || 'Unknown';
+      }
       document.getElementById('detailServiceName').textContent = item.service_name || 'Service';
       document.getElementById('detailDateTime').textContent = new Date(item.appointment_start_time).toLocaleString('uk-UA');
       document.getElementById('detailNotes').textContent = item.notes || i18n.noNotesProvided;
@@ -779,7 +793,7 @@
                       <h6 class="fw-bold text-dark mb-0">${item.service_name || item.service}</h6>
                       <span class="badge bg-secondary bg-opacity-10 text-dark">${item.payment || item.price || 0} €</span>
                   </div>
-                  <div class="small text-muted mb-1"><i class="fas fa-user me-1"></i> ${item.patient_name || item.client_name || 'Client'}</div>
+                  <div class="small text-muted mb-1"><i class="fas fa-user me-1"></i> ${(item.client_id || item.patient_id) ? `<a href="/provider/client/${item.client_id || item.patient_id}" onclick="event.stopPropagation()" class="text-primary text-decoration-none fw-semibold">${item.patient_name || item.client_name || 'Client'}</a>` : (item.patient_name || item.client_name || 'Client')}</div>
                   <div class="small text-muted mb-1"><i class="fas fa-clock me-1"></i> ${time}</div>
                   ${item.distance_km != null ? `<div class="small text-primary mb-2"><i class="fas fa-map-marker-alt me-1"></i> ${item.distance_km} km</div>` : ''}
                   <button class="view-request-btn ${btnClass}">${btnText}</button>
@@ -814,7 +828,13 @@
 
   window.showDetailsModal = function(item) {
       currentRequestId = item.id;
-      document.getElementById('detailPatientName').textContent = item.patient_name || item.client_name || 'Unknown';
+      const nameEl = document.getElementById('detailPatientName');
+      const clientId = item.client_id || item.patient_id;
+      if (clientId) {
+          nameEl.innerHTML = `<a href="/provider/client/${clientId}" class="text-primary text-decoration-none fw-semibold">${item.patient_name || item.client_name || 'Unknown'}</a>`;
+      } else {
+          nameEl.textContent = item.patient_name || item.client_name || 'Unknown';
+      }
       document.getElementById('detailServiceName').textContent = item.service_name || item.service || 'Service';
       document.getElementById('detailDateTime').textContent = new Date(item.appointment_start_time || item.appointment_time).toLocaleString('uk-UA');
       document.getElementById('detailNotes').textContent = item.notes || i18n.noNotesProvided;
@@ -870,7 +890,7 @@
   }
 
   window.markRequestDone = function(reqId) {
-      confirmAction('{{ _("Confirm service completed? Payment will be captured and sent to your account.") }}', {
+      confirmAction('{{ _("Confirm that the service has been completed?") }}', {
           title: '{{ _("Confirm Completion") }}',
           btnText: '{{ _("Yes, Complete") }}',
           btnClass: 'btn-success',
@@ -883,7 +903,30 @@
               headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken}
           }).then(r => r.json()).then(data => {
               if (data.success) {
-                  showStatus('{{ _("Service completed! Payment processed.") }}');
+                  showStatus('{{ _("Work submitted! Waiting for client approval.") }}');
+                  loadMyOffers();
+              } else {
+                  alert(data.message || 'Error');
+              }
+          });
+      });
+  };
+
+  window.retractWorkRequest = function(reqId) {
+      confirmAction('{{ _("Retract your work submission? This will go back to the previous step.") }}', {
+          title: '{{ _("Retract Work") }}',
+          btnText: '{{ _("Yes, Retract") }}',
+          btnClass: 'btn-warning',
+          icon: 'fa-arrow-left',
+          iconColor: '#f59e0b'
+      }).then(ok => {
+          if (!ok) return;
+          fetch(`/provider/retract_work_submitted/${reqId}`, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken}
+          }).then(r => r.json()).then(data => {
+              if (data.success) {
+                  showStatus('{{ _("Work submission retracted.") }}');
                   loadMyOffers();
               } else {
                   alert(data.message || 'Error');

@@ -23,9 +23,15 @@ class Appointment(db.Model):
     appointment_time = Column(DateTime, nullable=False)
     end_time         = Column(DateTime, nullable=False)
     status           = Column(String(20), default='scheduled')
+    previous_status  = Column(String(20), nullable=True)
     # Possible statuses: scheduled → confirmed → confirmed_paid → work_submitted → completed | cancelled
     notes   = Column(Text)
     payment = relationship('Payment', backref='appointment', uselist=False)
+
+    def set_status(self, new_status):
+        """Set status while remembering previous one."""
+        self.previous_status = self.status
+        self.status = new_status
 
 
 class ClientSelfCreatedAppointment(db.Model):
@@ -41,6 +47,7 @@ class ClientSelfCreatedAppointment(db.Model):
     appointment_start_time = Column(DateTime, nullable=False)
     end_time             = Column(DateTime, nullable=False)
     status               = Column(String(20), default='scheduled')
+    previous_status      = Column(String(20), nullable=True)
     notes                = Column(Text)
     payment              = Column(Float)
     nurse_service_id     = Column(Integer, ForeignKey('provider_service.id'), nullable=True)
@@ -56,6 +63,11 @@ class ClientSelfCreatedAppointment(db.Model):
     provider      = relationship('User', foreign_keys=[provider_id])
     provider_service = relationship('ProviderService')
     offers        = relationship('RequestOfferResponse', backref='appointment_requests')
+
+    def set_status(self, new_status):
+        """Set status while remembering previous one."""
+        self.previous_status = self.status
+        self.status = new_status
 
 
 class RequestOfferResponse(db.Model):

@@ -267,14 +267,8 @@
 
         <div class="hero-content-wrapper">
             <div class="hero-text">
-                <h1 class="hero-title">{{ _("Care at your door.") }} <br><span>{{ _("Whenever.") }}</span> 🏠</h1>
-                <p class="hero-subtitle">{{ _("Medical help & everyday care — from trusted locals, right at home.") }}</p>
-                
-                <div class="d-flex gap-3 align-items-center mb-4 justify-content-center justify-content-lg-start">
-                    <div class="d-flex align-items-center gap-2"><i class="fas fa-star text-warning"></i><strong>4.9/5</strong> <span class="text-muted small">{{ _("Happiness Score") }}</span></div>
-                    <div style="width: 1px; height: 20px; background: #ddd;"></div>
-                    <div class="d-flex align-items-center gap-2"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/2560px-Flag_of_Germany.svg.png" style="width: 20px; border-radius: 2px;"><span class="text-muted small">{{ _("Munich based") }}</span></div>
-                </div>
+                <h1 class="hero-title">Human-me</h1>
+                <p class="hero-subtitle">{{ _("це твоє місце щоб видихнути") }}</p>
             </div>
 
             <div class="hero-widget-container">
@@ -593,28 +587,110 @@
 
     // --- CRYSTAL BALL ---
     const CRYSTAL_QUOTES = [
+        // --- Literature & Philosophy ---
         { q: "All we have to decide is what to do with the time that is given us.", src: "J.R.R. Tolkien — The Lord of the Rings" },
-        { q: "It does not do to dwell on dreams and forget to live.", src: "J.K. Rowling — Harry Potter and the Philosopher's Stone" },
+        { q: "It does not do to dwell on dreams and forget to live.", src: "J.K. Rowling — Harry Potter" },
         { q: "Not all those who wander are lost.", src: "J.R.R. Tolkien — The Lord of the Rings" },
         { q: "The only way out of the labyrinth of suffering is to forgive.", src: "John Green — Looking for Alaska" },
         { q: "When you want something, all the universe conspires in helping you to achieve it.", src: "Paulo Coelho — The Alchemist" },
-        { q: "It is our choices that show what we truly are, far more than our abilities.", src: "J.K. Rowling — Harry Potter and the Chamber of Secrets" },
+        { q: "It is our choices that show what we truly are, far more than our abilities.", src: "J.K. Rowling — Harry Potter" },
         { q: "You can't go back and change the beginning, but you can start where you are and change the ending.", src: "C.S. Lewis" },
         { q: "The mystery of life is not a problem to be solved, but a reality to be experienced.", src: "Frank Herbert — Dune" },
-        { q: "Yesterday is history, tomorrow is a mystery, today is a gift — that is why it is called the present.", src: "Eleanor Roosevelt / Kung Fu Panda" },
+        { q: "Yesterday is history, tomorrow is a mystery, today is a gift — that is why it is called the present.", src: "Eleanor Roosevelt" },
         { q: "Every person has two lives, and the second begins when they realize they only have one.", src: "Confucius" },
-        { q: "The most important thing is to enjoy your life — to be happy — it's all that matters.", src: "Audrey Hepburn" },
-        { q: "A reader lives a thousand lives before they die. One who never reads lives only one.", src: "George R.R. Martin — A Dance with Dragons" },
+        { q: "A reader lives a thousand lives before they die. One who never reads lives only one.", src: "George R.R. Martin" },
         { q: "To live is the rarest thing in the world. Most people just exist.", src: "Oscar Wilde" },
-        { q: "In the middle of difficulty lies opportunity.", src: "Albert Einstein" },
-        { q: "The journey of a thousand miles begins with one step.", src: "Lao Tzu — Tao Te Ching" },
-        { q: "Magic is believing in yourself. If you can make that happen, you can make anything happen.", src: "Johann Wolfgang von Goethe" },
         { q: "Even the darkest night will end and the sun will rise.", src: "Victor Hugo — Les Misérables" },
         { q: "Do not go gentle into that good night. Rage, rage against the dying of the light.", src: "Dylan Thomas" },
         { q: "We accept the love we think we deserve.", src: "Stephen Chbosky — The Perks of Being a Wallflower" },
+        { q: "So we beat on, boats against the current, borne back ceaselessly into the past.", src: "F. Scott Fitzgerald — The Great Gatsby" },
+        { q: "Whatever you are, be a good one.", src: "Abraham Lincoln" },
+        { q: "One must imagine Sisyphus happy.", src: "Albert Camus — The Myth of Sisyphus" },
+        { q: "The only true wisdom is in knowing you know nothing.", src: "Socrates" },
+        { q: "Happiness can be found even in the darkest of times, if one only remembers to turn on the light.", src: "J.K. Rowling — Harry Potter" },
+        { q: "And those who were seen dancing were thought to be insane by those who could not hear the music.", src: "Friedrich Nietzsche" },
+        { q: "There is no greater agony than bearing an untold story inside you.", src: "Maya Angelou" },
+        { q: "The wound is the place where the Light enters you.", src: "Rumi" },
+        { q: "Be yourself; everyone else is already taken.", src: "Oscar Wilde" },
+        { q: "I think, therefore I am.", src: "René Descartes" },
+        { q: "He who has a why to live can bear almost any how.", src: "Friedrich Nietzsche" },
+        { q: "The unexamined life is not worth living.", src: "Socrates" },
+        { q: "I have not failed. I've just found 10,000 ways that won't work.", src: "Thomas Edison" },
+        // --- Wisdom & Motivation ---
+        { q: "In the middle of difficulty lies opportunity.", src: "Albert Einstein" },
+        { q: "The journey of a thousand miles begins with one step.", src: "Lao Tzu — Tao Te Ching" },
         { q: "It always seems impossible until it's done.", src: "Nelson Mandela" },
+        { q: "The most important thing is to enjoy your life — to be happy — it's all that matters.", src: "Audrey Hepburn" },
+        { q: "Magic is believing in yourself. If you can make that happen, you can make anything happen.", src: "Goethe" },
+        { q: "The best time to plant a tree was 20 years ago. The second best time is now.", src: "Chinese Proverb" },
+        { q: "Life is what happens to you while you're busy making other plans.", src: "John Lennon" },
+        { q: "Turn your wounds into wisdom.", src: "Oprah Winfrey" },
+        { q: "Everything you've ever wanted is on the other side of fear.", src: "George Addair" },
+        { q: "The only impossible journey is the one you never begin.", src: "Tony Robbins" },
+        { q: "What lies behind us and what lies before us are tiny matters compared to what lies within us.", src: "Ralph Waldo Emerson" },
+        { q: "Stars can't shine without darkness.", src: "D.H. Sidebottom" },
+        { q: "The secret of getting ahead is getting started.", src: "Mark Twain" },
+        { q: "Difficult roads often lead to beautiful destinations.", src: "Zig Ziglar" },
+        { q: "Don't count the days. Make the days count.", src: "Muhammad Ali" },
+        { q: "If you want to go fast, go alone. If you want to go far, go together.", src: "African Proverb" },
+        { q: "Act as if what you do makes a difference. It does.", src: "William James" },
+        { q: "You miss 100% of the shots you don't take.", src: "Wayne Gretzky" },
+        { q: "The mind is everything. What you think you become.", src: "Buddha" },
+        { q: "We do not remember days, we remember moments.", src: "Cesare Pavese" },
+        { q: "Knowing yourself is the beginning of all wisdom.", src: "Aristotle" },
+        { q: "No one can make you feel inferior without your consent.", src: "Eleanor Roosevelt" },
+        // --- Art, Science & Culture ---
+        { q: "Imagination is more important than knowledge.", src: "Albert Einstein" },
+        { q: "Creativity is intelligence having fun.", src: "Albert Einstein" },
+        { q: "Logic will get you from A to B. Imagination will take you everywhere.", src: "Albert Einstein" },
+        { q: "Art is not what you see, but what you make others see.", src: "Edgar Degas" },
+        { q: "Every child is an artist. The problem is how to remain an artist once we grow up.", src: "Pablo Picasso" },
+        { q: "Music expresses that which cannot be said and on which it is impossible to be silent.", src: "Victor Hugo" },
+        { q: "The earth has music for those who listen.", src: "William Shakespeare" },
+        { q: "If you can dream it, you can do it.", src: "Walt Disney" },
+        { q: "Stay hungry, stay foolish.", src: "Steve Jobs" },
+        { q: "The people who are crazy enough to think they can change the world are the ones who do.", src: "Steve Jobs" },
+        // --- Love & Kindness ---
+        { q: "Where there is love there is life.", src: "Mahatma Gandhi" },
+        { q: "Be the change you wish to see in the world.", src: "Mahatma Gandhi" },
+        { q: "In a gentle way, you can shake the world.", src: "Mahatma Gandhi" },
+        { q: "Kindness is a language which the deaf can hear and the blind can see.", src: "Mark Twain" },
+        { q: "Love all, trust a few, do wrong to none.", src: "William Shakespeare" },
+        { q: "We rise by lifting others.", src: "Robert Ingersoll" },
+        { q: "The best and most beautiful things in the world cannot be seen or even touched — they must be felt with the heart.", src: "Helen Keller" },
+        { q: "People will forget what you said, people will forget what you did, but people will never forget how you made them feel.", src: "Maya Angelou" },
+        { q: "You yourself, as much as anybody in the entire universe, deserve your love and affection.", src: "Buddha" },
+        { q: "To love and be loved is to feel the sun from both sides.", src: "David Viscott" },
+        // --- Ukrainian Wisdom ---
+        { q: "Де згода — там і вода.", src: "Ukrainian Proverb" },
+        { q: "Хто рано встає, тому Бог дає.", src: "Ukrainian Proverb" },
+        { q: "Не все те золото, що блищить.", src: "Ukrainian Proverb" },
+        { q: "Очі бояться, а руки роблять.", src: "Ukrainian Proverb" },
+        { q: "Без труда нема плода.", src: "Ukrainian Proverb" },
+        { q: "Слово — срібло, мовчання — золото.", src: "Ukrainian Proverb" },
+        { q: "Друзі пізнаються в біді.", src: "Ukrainian Proverb" },
+        { q: "Краще пізно, ніж ніколи.", src: "Ukrainian Proverb" },
+        { q: "Де є воля, там є шлях.", src: "Ukrainian Proverb" },
+        { q: "Терпіння і труд все перетруть.", src: "Ukrainian Proverb" },
+        // --- Humor & Light ---
+        { q: "I'm not lazy. I'm on energy saving mode.", src: "Anonymous" },
+        { q: "Life is short. Smile while you still have teeth.", src: "Mallory Hopkins" },
+        { q: "Be a voice, not an echo.", src: "Albert Einstein" },
+        { q: "I have nothing to declare except my genius.", src: "Oscar Wilde" },
+        { q: "Well-behaved women seldom make history.", src: "Laurel Thatcher Ulrich" },
     ];
-    let lastQuoteIndex = -1;
+    // Shuffle deck so every quote shows once before repeating
+    let quotesDeck = [];
+    function getNextQuote() {
+        if (quotesDeck.length === 0) {
+            quotesDeck = [...Array(CRYSTAL_QUOTES.length).keys()];
+            for (let i = quotesDeck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [quotesDeck[i], quotesDeck[j]] = [quotesDeck[j], quotesDeck[i]];
+            }
+        }
+        return quotesDeck.pop();
+    }
 
     function askCrystalBall() {
         const ball = document.getElementById('crystalBall');
@@ -632,10 +708,7 @@
 
         setTimeout(() => {
             ball.classList.add('glowing');
-            let idx;
-            do { idx = Math.floor(Math.random() * CRYSTAL_QUOTES.length); } while (idx === lastQuoteIndex);
-            lastQuoteIndex = idx;
-            const { q, src } = CRYSTAL_QUOTES[idx];
+            const { q, src } = CRYSTAL_QUOTES[getNextQuote()];
             quoteEl.textContent = '"' + q + '"';
             sourceEl.textContent = '— ' + src;
             quoteEl.classList.add('visible');

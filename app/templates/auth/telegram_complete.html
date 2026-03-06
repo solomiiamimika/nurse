@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>{{ _("Complete Registration") }}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+        :root {
+            --primary-green: #3f4a36;
+            --primary-hover: #19a463;
+            --text-dark: #404145;
+            --bg-pink: #fff0f3;
+        }
+
+        body {
+            font-family: "Macan", system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-pink);
+            background-image: linear-gradient(180deg, #fff0f3 0%, #ffffff 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .card-container {
+            background: #fff;
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+
+        .btn-role {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            background: #fff;
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .btn-role:hover { border-color: var(--primary-green); }
+        .btn-role.selected {
+            border-color: var(--primary-green);
+            background: var(--primary-green);
+            color: #fff;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: var(--primary-green);
+            color: #fff;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-submit:hover { background: var(--primary-hover); }
+
+        .styled-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .styled-input:focus { border-color: var(--primary-green); }
+    </style>
+  </head>
+
+  <body>
+    <div class="card-container">
+      <div class="text-center mb-4">
+        <i class="fab fa-telegram fa-3x" style="color:#0088cc;"></i>
+        <h4 class="fw-bold mt-2">{{ _("Complete Registration") }}</h4>
+        <p class="text-muted small">
+          {{ _("Hello") }}, <b>{{ pending.first_name }} {{ pending.last_name }}</b>!
+          {{ _("Choose your role to finish.") }}
+        </p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      {% for category, message in messages %}
+      <div class="alert alert-{{ category }} small mb-3">{{ message }}</div>
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
+
+      <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="role" id="roleInput" value="" />
+
+        <div class="d-flex gap-3 mb-3">
+          <button type="button" class="btn-role" onclick="selectRole('client', this)">
+            <i class="fas fa-user"></i> {{ _("Client") }}
+          </button>
+          <button type="button" class="btn-role" onclick="selectRole('provider', this)">
+            <i class="fas fa-briefcase"></i> {{ _("Provider") }}
+          </button>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-muted">{{ _("Email") }} <span class="text-muted">({{ _("optional") }})</span></label>
+          <input type="email" name="email" class="styled-input" placeholder="{{ _('your@email.com') }}" />
+          <div class="form-text small">{{ _("If you already have an account, enter the same email to link it.") }}</div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn" disabled>
+          {{ _("Create Account") }}
+        </button>
+      </form>
+    </div>
+
+    <script>
+    function selectRole(role, btn) {
+      document.getElementById('roleInput').value = role;
+      document.querySelectorAll('.btn-role').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('submitBtn').disabled = false;
+    }
+    </script>
+  </body>
+</html>

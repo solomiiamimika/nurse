@@ -17,23 +17,19 @@
 
     <!-- Tabs -->
     <div class="nav nav-pills nav-fill p-1 bg-white border rounded-pill mb-3 shadow-sm" role="tablist">
-      <button class="nav-link rounded-pill active fw-bold small py-2" id="htab-appointments" onclick="switchHistoryTab('appointments')">
-        <i class="fas fa-calendar-check me-1"></i>{{ _("Services") }}
+      <button class="nav-link rounded-pill active fw-bold small py-2" id="htab-all" onclick="switchHistoryTab('all')">
+        <i class="fas fa-list me-1"></i>{{ _("All") }} <span class="badge bg-secondary ms-1" id="count-all">0</span>
       </button>
-      <button class="nav-link rounded-pill fw-bold small py-2" id="htab-requests" onclick="switchHistoryTab('requests')">
-        <i class="fas fa-clipboard-list me-1"></i>{{ _("Requests") }}
+      <button class="nav-link rounded-pill fw-bold small py-2" id="htab-completed" onclick="switchHistoryTab('completed')">
+        <i class="fas fa-check-circle me-1"></i>{{ _("Completed") }} <span class="badge bg-success ms-1" id="count-completed">0</span>
+      </button>
+      <button class="nav-link rounded-pill fw-bold small py-2" id="htab-cancelled" onclick="switchHistoryTab('cancelled')">
+        <i class="fas fa-times-circle me-1"></i>{{ _("Cancelled") }} <span class="badge bg-danger ms-1" id="count-cancelled">0</span>
       </button>
     </div>
 
-    <!-- Tab 1: Appointments (services) -->
-    <div id="appointmentsHistoryContent">
-      <div class="text-center py-4">
-        <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
-      </div>
-    </div>
-
-    <!-- Tab 2: Requests -->
-    <div id="requestsHistoryContent" class="d-none">
+    <!-- Content -->
+    <div id="historyContent">
       <div class="text-center py-4">
         <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
       </div>
@@ -46,22 +42,98 @@
 
 {% block scripts %}
 <script>
-  window.switchHistoryTab = function(mode) {
-      document.getElementById('htab-appointments').classList.toggle('active', mode === 'appointments');
-      document.getElementById('htab-requests').classList.toggle('active', mode === 'requests');
-      document.getElementById('appointmentsHistoryContent').classList.toggle('d-none', mode !== 'appointments');
-      document.getElementById('requestsHistoryContent').classList.toggle('d-none', mode !== 'requests');
+  let allItems = [];
+  let currentTab = 'all';
+
+  window.switchHistoryTab = function(tab) {
+      currentTab = tab;
+      ['all', 'completed', 'cancelled'].forEach(t => {
+          document.getElementById('htab-' + t).classList.toggle('active', t === tab);
+      });
+      renderItems();
   };
+
+  function getFilteredItems() {
+      if (currentTab === 'all') return allItems;
+      if (currentTab === 'completed') return allItems.filter(i => i.status === 'completed' || i.status === 'confirmed_paid');
+      if (currentTab === 'cancelled') return allItems.filter(i => i.status === 'cancelled');
+      return allItems;
+  }
 
   function getStatusBadge(status) {
       const map = {
-          'completed': { bg: '#10b981', text: '{{ _("Completed") }}' },
-          'confirmed_paid': { bg: '#22c55e', text: '{{ _("Paid") }}' },
-          'cancelled': { bg: '#ef4444', text: '{{ _("Cancelled") }}' },
-          'work_submitted': { bg: '#3b82f6', text: '{{ _("Work submitted") }}' },
+          'completed': { bg: '#10b981', icon: 'fa-check-circle', text: '{{ _("Completed") }}' },
+          'confirmed_paid': { bg: '#22c55e', icon: 'fa-check-circle', text: '{{ _("Paid") }}' },
+          'cancelled': { bg: '#ef4444', icon: 'fa-times-circle', text: '{{ _("Cancelled") }}' },
+          'work_submitted': { bg: '#3b82f6', icon: 'fa-clock', text: '{{ _("Work submitted") }}' },
       };
-      const info = map[status] || { bg: '#6b7280', text: status };
-      return `<span class="badge" style="background:${info.bg};color:#fff;height:fit-content;">${info.text}</span>`;
+      const info = map[status] || { bg: '#6b7280', icon: 'fa-question-circle', text: status };
+      return `<span class="badge" style="background:${info.bg};color:#fff;font-size:11px;padding:5px 10px;border-radius:20px;">
+          <i class="fas ${info.icon} me-1"></i>${info.text}
+      </span>`;
+  }
+
+  function renderItems() {
+      const items = getFilteredItems();
+      const container = document.getElementById('historyContent');
+
+      if (items.length === 0) {
+          container.innerHTML = `
+          <div class="text-center py-5 text-muted" style="background:#f8f9fa;border-radius:16px;border:1px dashed #d1d5db;">
+              <i class="fas fa-inbox fa-2x mb-3" style="color:#d1d5db;"></i>
+              <p class="mb-0">{{ _("Nothing here yet") }}</p>
+          </div>`;
+          return;
+      }
+
+      let html = '';
+      items.forEach(item => {
+          const date = item.date ? new Date(item.date).toLocaleString('uk-UA', {day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit'}) : '';
+          const isCompleted = item.status === 'completed' || item.status === 'confirmed_paid';
+          const isCancelled = item.status === 'cancelled';
+          const borderColor = isCancelled ? '#ef4444' : (isCompleted ? '#10b981' : '#3b82f6');
+          const typeLabel = item.type === 'appointment'
+              ? '<span style="background:#e0e7ff;color:#4338ca;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;">{{ _("Booking") }}</span>'
+              : '<span style="background:#fef3c7;color:#92400e;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;">{{ _("Request") }}</span>';
+
+          const receiptBtn = isCompleted
+              ? `<a href="/client/receipt/${item.type}/${item.id}" class="btn btn-sm btn-outline-secondary" style="font-size:11px;border-radius:8px;" target="_blank">
+                    <i class="fas fa-file-invoice me-1"></i>{{ _("Receipt") }}
+                 </a>`
+              : '';
+
+          const canRestore = isCancelled && item.date && new Date(item.date) > new Date();
+          const restoreBtn = canRestore
+              ? `<button onclick="undoCancel('${item.type}', ${item.id})" class="btn btn-sm btn-outline-success" style="font-size:11px;border-radius:8px;">
+                    <i class="fas fa-undo me-1"></i>{{ _("Restore") }}
+                 </button>`
+              : '';
+
+          html += `
+          <div class="card mb-2 history-card" style="border-left:4px solid ${borderColor};border-radius:12px;overflow:hidden;transition:transform 0.15s;">
+              <div class="card-body p-3">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                      <div>
+                          <div class="d-flex align-items-center gap-2 mb-1">
+                              <strong style="font-size:15px;">${item.service_name}</strong>
+                              ${typeLabel}
+                          </div>
+                          ${item.provider_name ? `<div class="small text-muted"><i class="fas fa-user me-1"></i>${item.provider_name}</div>` : ''}
+                      </div>
+                      ${getStatusBadge(item.status)}
+                  </div>
+                  <div class="d-flex justify-content-between align-items-end mt-2">
+                      <div>
+                          <div class="small text-muted"><i class="fas fa-calendar me-1"></i>${date}</div>
+                          ${item.price > 0 ? `<div class="small fw-bold mt-1" style="color:#3f4a36;">€${item.price.toFixed(2)}</div>` : `<div class="small mt-1" style="color:#10b981;font-weight:600;">{{ _("Free") }}</div>`}
+                      </div>
+                      <div class="d-flex gap-2">${receiptBtn}${restoreBtn}</div>
+                  </div>
+                  ${item.notes ? `<div class="small text-muted mt-2 fst-italic" style="border-top:1px solid #f3f4f6;padding-top:8px;">${item.notes}</div>` : ''}
+              </div>
+          </div>`;
+      });
+      container.innerHTML = html;
   }
 
   function loadHistory() {
@@ -69,75 +141,40 @@
         .then(r => r.json())
         .then(data => {
             if (!data.success) return;
+            allItems = data.items || [];
 
-            // Render appointments
-            const appoContainer = document.getElementById('appointmentsHistoryContent');
-            if (data.appointments.length === 0) {
-                appoContainer.innerHTML = `
-                <div class="text-center py-5 text-muted" style="background:#f8f9fa;border-radius:12px;border:1px dashed #d1d5db;">
-                    <i class="fas fa-calendar fa-2x mb-3" style="color:#d1d5db;"></i>
-                    <p class="mb-0">{{ _("No completed services yet") }}</p>
-                </div>`;
-            } else {
-                let html = '';
-                data.appointments.forEach(a => {
-                    const date = a.appointment_time ? new Date(a.appointment_time).toLocaleString('uk-UA', {day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit'}) : '';
-                    const borderColor = a.status === 'cancelled' ? '#ef4444' : '#10b981';
-                    html += `
-                    <div class="card mb-2" style="border-left:4px solid ${borderColor};">
-                        <div class="card-body p-3">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <strong>${a.service_name}</strong>
-                                    <div class="small text-muted mt-1"><i class="fas fa-user-md me-1"></i>${a.provider_name}</div>
-                                </div>
-                                ${getStatusBadge(a.status)}
-                            </div>
-                            <div class="small text-muted mt-2"><i class="fas fa-clock me-1"></i>${date}</div>
-                            ${a.notes ? `<div class="small text-muted mt-1 fst-italic">${a.notes}</div>` : ''}
-                        </div>
-                    </div>`;
-                });
-                appoContainer.innerHTML = html;
-            }
+            // Update badge counts
+            const completed = allItems.filter(i => i.status === 'completed' || i.status === 'confirmed_paid').length;
+            const cancelled = allItems.filter(i => i.status === 'cancelled').length;
+            document.getElementById('count-all').textContent = allItems.length;
+            document.getElementById('count-completed').textContent = completed;
+            document.getElementById('count-cancelled').textContent = cancelled;
 
-            // Render requests
-            const reqContainer = document.getElementById('requestsHistoryContent');
-            if (data.requests.length === 0) {
-                reqContainer.innerHTML = `
-                <div class="text-center py-5 text-muted" style="background:#f8f9fa;border-radius:12px;border:1px dashed #d1d5db;">
-                    <i class="fas fa-clipboard-list fa-2x mb-3" style="color:#d1d5db;"></i>
-                    <p class="mb-0">{{ _("No past requests") }}</p>
-                </div>`;
-            } else {
-                let html = '';
-                data.requests.forEach(r => {
-                    const date = r.appointment_start_time ? new Date(r.appointment_start_time).toLocaleString('uk-UA', {day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit'}) : '';
-                    const created = r.created_appo ? new Date(r.created_appo).toLocaleDateString('uk-UA', {day:'numeric', month:'long', year:'numeric'}) : '';
-                    const borderColor = r.status === 'cancelled' ? '#ef4444' : '#10b981';
-                    html += `
-                    <div class="card mb-2" style="border-left:4px solid ${borderColor};">
-                        <div class="card-body p-3">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <strong>${r.service_name}</strong>
-                                    ${r.provider_name ? `<div class="small text-muted mt-1"><i class="fas fa-user-md me-1"></i>${r.provider_name}</div>` : ''}
-                                </div>
-                                ${getStatusBadge(r.status)}
-                            </div>
-                            <div class="d-flex gap-3 mt-2">
-                                <div class="small text-muted"><i class="fas fa-clock me-1"></i>${date}</div>
-                                ${r.payment ? `<div class="small text-success fw-bold">${r.payment}</div>` : ''}
-                            </div>
-                            ${created ? `<div class="small text-muted mt-1">{{ _("Created") }}: ${created}</div>` : ''}
-                        </div>
-                    </div>`;
-                });
-                reqContainer.innerHTML = html;
-            }
+            renderItems();
         });
   }
 
+  window.undoCancel = function(type, id) {
+      if (!confirm("{{ _('Restore this item? It will return to pending status.') }}")) return;
+      const url = type === 'request'
+          ? `/client/undo_cancel_request/${id}`
+          : `/client/undo_cancel_appointment/${id}`;
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      fetch(url, {method:'POST', headers:{'X-CSRFToken': csrfToken}})
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                loadHistory();
+            } else {
+                alert(res.message || 'Error');
+            }
+        }).catch(() => alert('Network error'));
+  };
+
   document.addEventListener('DOMContentLoaded', loadHistory);
 </script>
+
+<style>
+  .history-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+</style>
 {% endblock %}

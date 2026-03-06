@@ -565,13 +565,13 @@ def update_appointment_status():
         if appointment.status != 'confirmed_paid':
             return jsonify({'success': False, 'message': 'Cannot submit work for unpaid appointment'}), 400
         
-        appointment.status = 'work_submitted'
+        appointment.set_status('work_submitted')
         db.session.commit()
         return jsonify({'success': True, 'message': 'Work submitted! Waiting for client approval.'})
-    
+
     # Logic: Nurse Accepts/Declines
     elif new_status in ['confirmed', 'cancelled']:
-        appointment.status = new_status
+        appointment.set_status(new_status)
         db.session.commit()
         return jsonify({'success': True})
 
@@ -802,7 +802,7 @@ def nurse_accept_request(request_id):
         if req.status != 'pending':
             return jsonify({'success': False, 'message': 'Request already processed'}), 400
         
-        req.status = 'accepted'
+        req.set_status('accepted')
         req.provider_id = current_user.id
 
         new_offer=RequestOfferResponse(request_id=req.id, provider_id=current_user.id, proposed_price=price)

@@ -33,11 +33,78 @@ def calendar_appointment_color(Status):
     colors_dictionary = {
         'scheduled': 'gray',
         'request_sended': 'yellow',
+        'confirmed': '#f59e0b',
+        'confirmed_paid': 'green',
         'provider_confirmed': 'green',
+        'work_submitted': '#0ea5e9',
         'completed': 'blue',
         'cancelled': 'red'
     }
     return colors_dictionary.get(Status)
+
+
+def _find_linked_request(appointment):
+    """Find the ClientSelfCreatedAppointment linked to an Appointment.
+    Uses ServiceHistory.request_id first, then direct field matching as fallback."""
+    # Try via ServiceHistory
+    sh = ServiceHistory.query.filter_by(
+        provider_id=appointment.provider_id,
+        client_id=appointment.client_id,
+    ).filter(
+        ServiceHistory.request_id.isnot(None)
+    ).all()
+    for s in sh:
+        if s.appointment_time == appointment.appointment_time:
+            req = ClientSelfCreatedAppointment.query.get(s.request_id)
+            if req:
+                return req
+    # Fallback: direct field matching
+    req = ClientSelfCreatedAppointment.query.filter_by(
+        patient_id=appointment.client_id,
+        provider_id=appointment.provider_id,
+        appointment_start_time=appointment.appointment_time
+    ).first()
+    return req
+
+
+def _find_linked_appointment(req):
+    """Find the Appointment linked to a ClientSelfCreatedAppointment."""
+    appt = Appointment.query.filter_by(
+        provider_id=req.provider_id,
+        client_id=req.patient_id,
+        appointment_time=req.appointment_start_time
+    ).first()
+    return appt
+
+
+def sync_appointment_request_status(appointment, new_status):
+    """Sync Appointment status → linked Request. Only syncs meaningful statuses."""
+    if new_status not in ('work_submitted', 'completed', 'cancelled', 'confirmed_paid', 'authorized'):
+        return
+    req = _find_linked_request(appointment)
+    if req:
+        req.set_status(new_status)
+        # Also sync ServiceHistory
+        sh = ServiceHistory.query.filter_by(
+            provider_id=appointment.provider_id,
+            client_id=appointment.client_id,
+            appointment_time=appointment.appointment_time
+        ).first()
+        if sh:
+            sh.status = new_status
+
+
+def sync_request_appointment_status(req, new_status):
+    """Sync Request status → linked Appointment. Only syncs meaningful statuses."""
+    if new_status not in ('work_submitted', 'completed', 'cancelled', 'confirmed_paid', 'authorized'):
+        return
+    appt = _find_linked_appointment(req)
+    if appt:
+        appt.set_status(new_status)
+        # Also sync ServiceHistory
+        sh = ServiceHistory.query.filter_by(request_id=req.id).first()
+        if sh:
+            sh.status = new_status
 
 
 @provider_bp.route('/appointments')
@@ -73,19 +140,31 @@ def get_appointments():
                 print(f"Error parsing date format: {e}")
 
         appointments = query.all()
+
+        # Fallback: get service names from ServiceHistory when provider_service is None
+        sh_lookup = {}
+        for sh in ServiceHistory.query.filter_by(provider_id=current_user.id).all():
+            sh_lookup[(sh.client_id, sh.appointment_time)] = sh.service_name
+
         result = []
 
         for app in appointments:
-            service_name = app.provider_service.name if app.provider_service else "Service"
+            if app.provider_service:
+                service_name = app.provider_service.name
+            else:
+                service_name = sh_lookup.get((app.client_id, app.appointment_time)) or "Service"
+            client_name = app.client.full_name or app.client.user_name
             result.append({
                 'id': app.id,
-                'title': f"{service_name} - {app.client.user_name}",
+                'title': f"{service_name} - {client_name}",
                 'start': app.appointment_time.isoformat(),
                 'end': app.end_time.isoformat(),
                 'color': calendar_appointment_color(app.status),
                 'extendedProps': {
-                    'client_name': app.client.user_name,
-                    'provider_name': app.provider.user_name,
+                    'client_name': app.client.full_name or app.client.user_name,
+                    'provider_name': app.provider.full_name or app.provider.user_name,
+                    'service_name': service_name,
+                    'price': app.provider_service.price if app.provider_service else 0,
                     'status': app.status,
                     'notes': app.notes,
                     'photo': app.client.photo if app.client.photo else None
@@ -112,7 +191,7 @@ def get_my_appointments():
         appointments = Appointment.query.filter(
             Appointment.provider_id == current_user.id,
             Appointment.appointment_time >= datetime.utcnow(),
-            Appointment.status.in_(['confirmed', 'confirmed_paid', 'scheduled'])  # Додайте ваші статуси
+            Appointment.status.in_(['confirmed', 'confirmed_paid', 'scheduled', 'work_submitted'])
         ).order_by(Appointment.appointment_time.asc()).all()
 
         result = []
@@ -155,16 +234,41 @@ def update_appointment_status():
 
     # Logic: Provider Marks Job as Done
     if new_status == 'work_submitted':
-        if appointment.status != 'confirmed_paid':
+        if appointment.status not in ('confirmed_paid', 'confirmed'):
             return jsonify({'success': False, 'message': 'Cannot submit work for unpaid appointment'}), 400
 
-        appointment.status = 'work_submitted'
+        # Allow work_submitted from 'confirmed' only if free or cash
+        if appointment.status == 'confirmed':
+            price = appointment.provider_service.price if appointment.provider_service else 0
+            if price > 0:
+                return jsonify({'success': False, 'message': 'Cannot submit work for unpaid appointment'}), 400
+
+        appointment.set_status('work_submitted')
+        sync_appointment_request_status(appointment, 'work_submitted')
         db.session.commit()
+
+        try:
+            from app.telegram.notifications import notify_status_change
+            svc = appointment.provider_service.name if appointment.provider_service else 'Service'
+            notify_status_change(appointment.client_id, svc, 'confirmed_paid', 'work_submitted')
+        except Exception:
+            pass
+
         return jsonify({'success': True, 'message': 'Work submitted! Waiting for client approval.'})
 
     # Logic: Provider Accepts/Declines
     elif new_status in ['confirmed', 'cancelled']:
-        appointment.status = new_status
+        if new_status == 'confirmed':
+            # If free service, skip payment step entirely
+            price = appointment.provider_service.price if appointment.provider_service else 0
+            if price == 0:
+                appointment.set_status('confirmed_paid')
+                db.session.commit()
+                return jsonify({'success': True, 'status': 'confirmed_paid'})
+        appointment.set_status(new_status)
+        # Only sync cancelled to the linked request (confirmed is appointment-specific)
+        if new_status == 'cancelled':
+            sync_appointment_request_status(appointment, 'cancelled')
         db.session.commit()
         return jsonify({'success': True})
 
@@ -211,6 +315,7 @@ def provider_get_requests():
 
             result.append({
                 'id': req.id,
+                'patient_id': req.patient_id,
                 'patient_name': req.patient.full_name if req.patient else "Client",
                 'service_name': req.service_name,
                 'appointment_start_time': req.appointment_start_time.isoformat(),
@@ -263,11 +368,18 @@ def provider_accept_request(request_id):
             return jsonify({'success': False, 'message': 'You already sent an offer for this request'}), 400
 
         # Mark request as having offers (stays visible to other providers)
-        req.status = 'has_offers'
+        req.set_status('has_offers')
 
         new_offer = RequestOfferResponse(request_id=req.id, provider_id=current_user.id, proposed_price=price)
         db.session.add(new_offer)
         db.session.commit()
+
+        try:
+            from app.telegram.notifications import notify_new_offer
+            notify_new_offer(req, new_offer)
+        except Exception:
+            pass
+
         return jsonify({'success': True})
 
     except Exception as e:
@@ -306,7 +418,7 @@ def withdraw_offer(offer_id):
                 RequestOfferResponse.status == 'pending'
             ).count()
             if remaining == 0:
-                req.status = 'pending'
+                req.set_status('pending')
 
         db.session.commit()
         return jsonify({'success': True, 'message': 'Offer withdrawn'})
@@ -385,6 +497,7 @@ def provider_get_accepted_requests():
                 'id': req.id,
                 'offer_id': offer.id,
                 'offer_status': offer.status,   # pending | accepted | rejected
+                'patient_id': req.patient_id,
                 'patient_name': req.patient.full_name if req.patient else '',
                 'service_name': req.service_name,
                 'status': req.status,
@@ -480,7 +593,7 @@ def send_service_receipt_email(client, provider, service_name, amount, currency,
 @provider_bp.route('/complete_request/<int:request_id>', methods=['POST'])
 @login_required
 def complete_request(request_id):
-    """Provider marks service as done → capture payment + transfer to provider."""
+    """Provider marks service as done → work_submitted (client must approve to release payment)."""
     if current_user.role != 'provider':
         return jsonify({'success': False, 'message': 'Access denied'}), 403
 
@@ -492,89 +605,138 @@ def complete_request(request_id):
         if not req:
             return jsonify({'success': False, 'message': 'Request not found'}), 404
 
-        is_free = (req.payment or 0) == 0
+        if req.status not in ('accepted', 'authorized'):
+            return jsonify({'success': False, 'message': 'Request not in valid state'}), 400
 
-        if is_free:
-            # Free service — no payment needed, just mark complete
-            if req.status not in ('accepted', 'authorized'):
-                return jsonify({'success': False, 'message': 'Request not in valid state'}), 400
-
-            req.status = 'completed'
-            db.session.commit()
-
-            # Send receipt email for free service
-            try:
-                client = User.query.get(req.patient_id)
-                if client and client.email:
-                    send_service_receipt_email(
-                        client=client,
-                        provider=current_user,
-                        service_name=req.service_name or 'Service',
-                        amount=0,
-                        currency='EUR',
-                        service_date=req.appointment_start_time.strftime('%d.%m.%Y'),
-                        service_time=req.appointment_start_time.strftime('%H:%M'),
-                        receipt_number=f"REQ-{request_id}"
-                    )
-            except Exception as e:
-                current_app.logger.error(f"Receipt email error: {str(e)}")
-
-            return jsonify({'success': True})
-
-        # Paid service — must be authorized first
-        if req.status != 'authorized':
-            return jsonify({'success': False, 'message': 'Payment not yet authorized by client'}), 400
-
-        if not req.payment_intent_id:
-            return jsonify({'success': False, 'message': 'No payment intent found'}), 400
-
-        if not current_user.stripe_account_id:
-            return jsonify({'success': False, 'message': 'Provider Stripe account not connected'}), 400
-
-        # 1. Capture the authorized payment
-        pi = stripe.PaymentIntent.capture(req.payment_intent_id)
-        amount_cents = pi.amount_received
-        platform_fee_cents = int(round(amount_cents * 0.10))
-        payout_cents = amount_cents - platform_fee_cents
-
-        # 2. Transfer to provider minus platform fee
-        stripe.Transfer.create(
-            amount=payout_cents,
-            currency='eur',
-            destination=current_user.stripe_account_id,
-            transfer_group=f"req_{request_id}",
-            metadata={'request_id': str(request_id)},
-            idempotency_key=f"complete_req_{request_id}",
-        )
-
-        req.status = 'completed'
+        req.set_status('work_submitted')
+        sync_request_appointment_status(req, 'work_submitted')
         db.session.commit()
 
-        # Send receipt email to client
+        # Notify client
         try:
-            client = User.query.get(req.patient_id)
-            if client and client.email:
-                send_service_receipt_email(
-                    client=client,
-                    provider=current_user,
-                    service_name=req.service_name or 'Service',
-                    amount=float(amount_cents) / 100,
-                    currency='EUR',
-                    service_date=req.appointment_start_time.strftime('%d.%m.%Y'),
-                    service_time=req.appointment_start_time.strftime('%H:%M'),
-                    receipt_number=f"REQ-{request_id}"
-                )
-        except Exception as e:
-            current_app.logger.error(f"Receipt email error: {str(e)}")
+            from app.telegram.notifications import notify_status_change
+            notify_status_change(
+                req.patient_id,
+                req.service_name or 'Service',
+                'authorized', 'work_submitted'
+            )
+        except Exception:
+            pass
 
-        return jsonify({'success': True})
+        return jsonify({'success': True, 'message': 'Work submitted! Waiting for client approval.'})
 
-    except stripe.StripeError as e:
-        current_app.logger.error(f"Stripe error completing request {request_id}: {str(e)}")
-        return jsonify({'success': False, 'message': str(e)}), 500
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Error completing request {request_id}: {str(e)}")
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
+
+
+@provider_bp.route('/receipt/<receipt_type>/<int:item_id>')
+@login_required
+def provider_view_receipt(receipt_type, item_id):
+    """Render a print-friendly receipt page for provider."""
+    if current_user.role != 'provider':
+        return redirect(url_for('auth.login'))
+
+    now = datetime.now()
+
+    if receipt_type == 'appointment':
+        a = Appointment.query.filter_by(id=item_id, provider_id=current_user.id).first_or_404()
+        client = User.query.get(a.client_id)
+        service = ProviderService.query.get(a.nurse_service_id) if a.nurse_service_id else None
+        service_name = service.name if service and service.name else 'Service'
+        price = service.price if service else 0
+        return render_template('client/receipt.html',
+            receipt_number=f"APPT-{a.id}",
+            client_name=(client.full_name or client.user_name) if client else 'Unknown',
+            provider_name=current_user.full_name or current_user.user_name,
+            service_name=service_name,
+            price=price,
+            currency='EUR',
+            service_date=a.appointment_time.strftime('%d.%m.%Y') if a.appointment_time else '',
+            service_time=a.appointment_time.strftime('%H:%M') if a.appointment_time else '',
+            status=a.status,
+            now=now,
+        )
+    elif receipt_type == 'request':
+        req = ClientSelfCreatedAppointment.query.filter_by(id=item_id, provider_id=current_user.id).first_or_404()
+        client = User.query.get(req.patient_id)
+        return render_template('client/receipt.html',
+            receipt_number=f"REQ-{req.id}",
+            client_name=(client.full_name or client.user_name) if client else 'Unknown',
+            provider_name=current_user.full_name or current_user.user_name,
+            service_name=req.service_name or 'Service',
+            price=float(req.payment or 0),
+            currency='EUR',
+            service_date=req.appointment_start_time.strftime('%d.%m.%Y') if req.appointment_start_time else '',
+            service_time=req.appointment_start_time.strftime('%H:%M') if req.appointment_start_time else '',
+            status=req.status,
+            now=now,
+        )
+    else:
+        from flask import abort
+        abort(404)
+
+
+@provider_bp.route('/retract_work_submitted/<int:request_id>', methods=['POST'])
+@login_required
+def retract_work_submitted(request_id):
+    """Provider retracts work_submitted → go back to previous status."""
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    try:
+        req = ClientSelfCreatedAppointment.query.filter_by(
+            id=request_id, provider_id=current_user.id
+        ).first()
+
+        if not req:
+            return jsonify({'success': False, 'message': 'Request not found'}), 404
+
+        if req.status != 'work_submitted':
+            return jsonify({'success': False, 'message': 'Request is not in work_submitted state'}), 400
+
+        restore_to = req.previous_status or 'authorized'
+        req.set_status(restore_to)
+        sync_request_appointment_status(req, restore_to)
+        db.session.commit()
+
+        return jsonify({'success': True, 'message': 'Work submission retracted'})
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error retracting work submitted: {str(e)}")
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
+
+
+@provider_bp.route('/retract_work_appointment/<int:appointment_id>', methods=['POST'])
+@login_required
+def retract_work_appointment(appointment_id):
+    """Provider retracts work_submitted on appointment → go back to previous status."""
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    try:
+        appointment = Appointment.query.filter_by(
+            id=appointment_id, provider_id=current_user.id
+        ).first()
+
+        if not appointment:
+            return jsonify({'success': False, 'message': 'Appointment not found'}), 404
+
+        if appointment.status != 'work_submitted':
+            return jsonify({'success': False, 'message': 'Appointment is not in work_submitted state'}), 400
+
+        restore_to = appointment.previous_status or 'confirmed_paid'
+        appointment.set_status(restore_to)
+        sync_appointment_request_status(appointment, restore_to)
+        db.session.commit()
+
+        return jsonify({'success': True, 'message': 'Work submission retracted'})
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error retracting work submitted: {str(e)}")
         return jsonify({'success': False, 'message': 'Internal server error'}), 500
 
 
@@ -596,7 +758,8 @@ def provider_cancel_request(request_id):
         if req.payment_intent_id and req.status == 'authorized':
             stripe.PaymentIntent.cancel(req.payment_intent_id)
 
-        req.status = 'cancelled'
+        req.set_status('cancelled')
+        sync_request_appointment_status(req, 'cancelled')
         db.session.commit()
         return jsonify({'success': True})
 

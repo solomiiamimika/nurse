@@ -1,0 +1,305 @@
+{% extends "owner/base_owner.html" %}
+{% block page_title %}Telegram{% endblock %}
+{% block owner_content %}
+
+<!-- Bot Status -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-val" style="font-size:1.3rem;">
+                        {% if bot_info %}
+                            <span style="color:#22c55e;">Connected</span>
+                        {% elif bot_token_set %}
+                            <span style="color:#f59e0b;">Offline</span>
+                        {% else %}
+                            <span style="color:#ef4444;">Not set</span>
+                        {% endif %}
+                    </div>
+                    <div class="stat-lbl">Bot Status</div>
+                </div>
+                <div class="stat-icon" style="background:#e0e7ff;color:#4338ca;"><i class="fab fa-telegram"></i></div>
+            </div>
+            {% if bot_info %}
+            <div class="mt-2" style="font-size:0.8rem;color:#6b7280;">@{{ bot_info.username }}</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-val">{{ tg_users|length }}</div>
+                    <div class="stat-lbl">Linked Users</div>
+                </div>
+                <div class="stat-icon" style="background:#dbeafe;color:#1d4ed8;"><i class="fas fa-link"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-val">{{ tg_notifications_on }}</div>
+                    <div class="stat-lbl">Notifications On</div>
+                </div>
+                <div class="stat-icon" style="background:#d1fae5;color:#065f46;"><i class="fas fa-bell"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-val">{{ tg_users|length - tg_notifications_on }}</div>
+                    <div class="stat-lbl">Notifications Off</div>
+                </div>
+                <div class="stat-icon" style="background:#fee2e2;color:#dc2626;"><i class="fas fa-bell-slash"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions Row -->
+<div class="row g-3 mb-4">
+    <!-- Send Message -->
+    <div class="col-md-6">
+        <div style="background:white;border-radius:12px;border:1px solid #e5e7eb;padding:24px;">
+            <h6 style="font-weight:700;margin-bottom:16px;"><i class="fas fa-paper-plane me-2" style="color:#4338ca;"></i>Send Message</h6>
+            <div class="mb-3">
+                <label class="form-label small fw-semibold">Recipient</label>
+                <select id="msg-user" class="form-select form-select-sm">
+                    <option value="">-- Select user --</option>
+                    {% for u in tg_users %}
+                    <option value="{{ u.id }}">{{ u.full_name or u.user_name }} ({{ u.role }}) — TG:{{ u.telegram_id }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-semibold">Message</label>
+                <textarea id="msg-text" class="form-control form-control-sm" rows="3" placeholder="Type your message..."></textarea>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="sendMessage()">
+                <i class="fas fa-paper-plane me-1"></i> Send
+            </button>
+            <span id="msg-status" class="ms-2 small"></span>
+        </div>
+    </div>
+
+    <!-- Send Invitation -->
+    <div class="col-md-6">
+        <div style="background:white;border-radius:12px;border:1px solid #e5e7eb;padding:24px;">
+            <h6 style="font-weight:700;margin-bottom:16px;"><i class="fas fa-user-plus me-2" style="color:#059669;"></i>Send Invitation</h6>
+            <div class="mb-3">
+                <label class="form-label small fw-semibold">Send to</label>
+                <select id="inv-target" class="form-select form-select-sm">
+                    <option value="">-- Select user or enter Chat ID --</option>
+                    {% for u in tg_users %}
+                    <option value="{{ u.id }}">{{ u.full_name or u.user_name }} — TG:{{ u.telegram_id }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" id="inv-chat-id" class="form-control form-control-sm mt-2" placeholder="Or enter Telegram Chat ID directly">
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-semibold">Role</label>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary inv-role-btn active" data-role="" onclick="setInvRole(this, '')">Any</button>
+                    <button class="btn btn-sm btn-outline-primary inv-role-btn" data-role="client" onclick="setInvRole(this, 'client')">Client</button>
+                    <button class="btn btn-sm btn-outline-success inv-role-btn" data-role="provider" onclick="setInvRole(this, 'provider')">Provider</button>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-semibold">Custom text (optional)</label>
+                <input type="text" id="inv-text" class="form-control form-control-sm" placeholder="You're invited to join Human-me!">
+            </div>
+            <button class="btn btn-sm btn-success" onclick="sendInvite()">
+                <i class="fas fa-paper-plane me-1"></i> Send Invite
+            </button>
+            <span id="inv-status" class="ms-2 small"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Broadcast -->
+<div style="background:white;border-radius:12px;border:1px solid #e5e7eb;padding:24px;margin-bottom:24px;">
+    <h6 style="font-weight:700;margin-bottom:16px;"><i class="fas fa-bullhorn me-2" style="color:#f59e0b;"></i>Broadcast Message</h6>
+    <div class="row g-3">
+        <div class="col-md-8">
+            <textarea id="bc-text" class="form-control form-control-sm" rows="3" placeholder="Message to all users with Telegram notifications on..."></textarea>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small fw-semibold">Audience</label>
+            <select id="bc-role" class="form-select form-select-sm mb-2">
+                <option value="">All users</option>
+                <option value="client">Clients only</option>
+                <option value="provider">Providers only</option>
+            </select>
+            <button class="btn btn-sm btn-warning w-100" onclick="sendBroadcast()">
+                <i class="fas fa-bullhorn me-1"></i> Send to All
+            </button>
+            <div id="bc-status" class="small mt-2"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Linked Users Table -->
+{% if tg_users %}
+<div style="background:white;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;">
+    <div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;">
+        <h6 style="font-weight:700;margin:0;"><i class="fas fa-users me-2"></i>Linked Telegram Users</h6>
+    </div>
+    <table class="table owner-table mb-0">
+        <thead>
+            <tr>
+                <th style="padding:14px 20px;">User</th>
+                <th>Role</th>
+                <th>Telegram ID</th>
+                <th>Notifications</th>
+                <th>Joined</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in tg_users %}
+            <tr>
+                <td style="padding:14px 20px;">
+                    <span class="fw-semibold">{{ u.full_name or u.user_name }}</span>
+                    <br><span class="text-muted small">{{ u.email }}</span>
+                </td>
+                <td>
+                    {% if u.role == 'client' %}
+                        <span class="role-badge-client">Client</span>
+                    {% elif u.role == 'provider' %}
+                        <span class="role-badge-provider">Provider</span>
+                    {% endif %}
+                </td>
+                <td><code>{{ u.telegram_id }}</code></td>
+                <td>
+                    {% if u.telegram_notifications %}
+                        <span style="color:#22c55e;"><i class="fas fa-check-circle"></i> On</span>
+                    {% else %}
+                        <span style="color:#ef4444;"><i class="fas fa-times-circle"></i> Off</span>
+                    {% endif %}
+                </td>
+                <td style="white-space:nowrap;">{{ u.created_at.strftime('%d.%m.%Y') if u.created_at else '' }}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="quickMsg({{ u.id }}, '{{ (u.full_name or u.user_name)|e }}')" title="Send message">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="fab fa-telegram fa-3x text-muted mb-3"></i>
+    <p class="text-muted">No users have linked Telegram yet</p>
+</div>
+{% endif %}
+
+<script>
+const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+let invRole = '';
+
+function setInvRole(btn, role) {
+    invRole = role;
+    document.querySelectorAll('.inv-role-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+function quickMsg(userId, name) {
+    const sel = document.getElementById('msg-user');
+    sel.value = userId;
+    document.getElementById('msg-text').focus();
+    document.getElementById('msg-text').placeholder = `Message to ${name}...`;
+    sel.scrollIntoView({behavior: 'smooth', block: 'center'});
+}
+
+async function sendMessage() {
+    const userId = document.getElementById('msg-user').value;
+    const message = document.getElementById('msg-text').value.trim();
+    const status = document.getElementById('msg-status');
+
+    if (!userId || !message) {
+        status.innerHTML = '<span class="text-danger">Select user and enter message</span>';
+        return;
+    }
+
+    status.innerHTML = '<span class="text-muted">Sending...</span>';
+    const resp = await fetch('/owner/telegram/send_message', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf},
+        body: JSON.stringify({user_id: parseInt(userId), message})
+    });
+    const data = await resp.json();
+    if (data.success) {
+        status.innerHTML = '<span class="text-success"><i class="fas fa-check"></i> Sent!</span>';
+        document.getElementById('msg-text').value = '';
+    } else {
+        status.innerHTML = `<span class="text-danger">${data.error || 'Failed'}</span>`;
+    }
+}
+
+async function sendInvite() {
+    let target = document.getElementById('inv-target').value;
+    const chatId = document.getElementById('inv-chat-id').value.trim();
+    const customText = document.getElementById('inv-text').value.trim();
+    const status = document.getElementById('inv-status');
+
+    if (chatId) target = chatId;
+    if (!target) {
+        status.innerHTML = '<span class="text-danger">Select user or enter Chat ID</span>';
+        return;
+    }
+
+    status.innerHTML = '<span class="text-muted">Sending...</span>';
+    const resp = await fetch('/owner/telegram/send_invite', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf},
+        body: JSON.stringify({target, role_hint: invRole, custom_text: customText})
+    });
+    const data = await resp.json();
+    if (data.success) {
+        status.innerHTML = '<span class="text-success"><i class="fas fa-check"></i> Invite sent!</span>';
+        document.getElementById('inv-chat-id').value = '';
+        document.getElementById('inv-text').value = '';
+    } else {
+        status.innerHTML = `<span class="text-danger">${data.error || 'Failed'}</span>`;
+    }
+}
+
+async function sendBroadcast() {
+    const message = document.getElementById('bc-text').value.trim();
+    const role = document.getElementById('bc-role').value;
+    const status = document.getElementById('bc-status');
+
+    if (!message) {
+        status.innerHTML = '<span class="text-danger">Enter a message</span>';
+        return;
+    }
+
+    if (!confirm('Send this message to ALL users with Telegram notifications on?')) return;
+
+    status.innerHTML = '<span class="text-muted">Sending...</span>';
+    const resp = await fetch('/owner/telegram/broadcast', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf},
+        body: JSON.stringify({message, role})
+    });
+    const data = await resp.json();
+    if (data.success) {
+        status.innerHTML = `<span class="text-success"><i class="fas fa-check"></i> Sent: ${data.sent}/${data.total}</span>`;
+        if (data.failed > 0) {
+            status.innerHTML += ` <span class="text-warning">(${data.failed} failed)</span>`;
+        }
+        document.getElementById('bc-text').value = '';
+    } else {
+        status.innerHTML = `<span class="text-danger">${data.error || 'Failed'}</span>`;
+    }
+}
+</script>
+
+{% endblock %}

@@ -59,7 +59,10 @@ def create_app():
     from app.routes.api_auth import api_auth_bp
     from app.routes.owner    import owner_bp
 
+    from app.telegram import telegram_bp
+
     csrf.exempt(api_auth_bp)   # mobile API uses JWT, not CSRF tokens
+    csrf.exempt(telegram_bp)   # Telegram webhook sends POST without CSRF
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -68,6 +71,7 @@ def create_app():
     app.register_blueprint(owner_bp)
     app.register_blueprint(google_blueprint)
     app.register_blueprint(api_auth_bp, url_prefix='/auth/api')
+    app.register_blueprint(telegram_bp)
 
     # ── 3. Tell Flask-Login how to load a user from the session ───
     from app.models import User
@@ -95,12 +99,27 @@ def create_app():
     @app.context_processor
     def inject_globals():
         return dict(
-            google_oauth_enabled=app.config.get('GOOGLE_OAUTH_CLIENT_ID') is not None
+            google_oauth_enabled=app.config.get('GOOGLE_OAUTH_CLIENT_ID') is not None,
+            telegram_bot_name=app.config.get('TELEGRAM_BOT_NAME'),
         )
 
     # ── 5. Create tables if they don't exist yet ──────────────────
     with app.app_context():
         db.create_all()
+        # Add previous_status columns if missing (no migration tool)
+        try:
+            from sqlalchemy import text, inspect
+            insp = inspect(db.engine)
+            for tbl, col in [('appointment', 'previous_status'),
+                             ('client_self_create_appointment', 'previous_status')]:
+                cols = [c['name'] for c in insp.get_columns(tbl)]
+                if col not in cols:
+                    db.session.execute(text(
+                        f'ALTER TABLE {tbl} ADD COLUMN {col} VARCHAR(20)'
+                    ))
+                    db.session.commit()
+        except Exception:
+            db.session.rollback()
 
     # ── 6. Scheduler: send payment reminder emails 7 days before service ──
     def send_payment_reminders():
@@ -145,10 +164,39 @@ def create_app():
                 except Exception as e:
                     app.logger.error(f"Email error for request {req.id}: {e}")
 
+                # Also send Telegram reminder if user has it linked
+                try:
+                    from app.telegram.notifications import notify_appointment_reminder
+                    if client.telegram_id and client.telegram_notifications:
+                        notify_appointment_reminder(
+                            client.id,
+                            req.service_name,
+                            req.appointment_start_time.strftime('%d %b %Y'),
+                            req.appointment_start_time.strftime('%H:%M'),
+                        )
+                except Exception:
+                    pass
+
     if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
         scheduler = BackgroundScheduler(daemon=True)
         scheduler.add_job(send_payment_reminders, 'cron', hour=9, minute=0)
         scheduler.start()
+
+    # ── 7. Set Telegram webhook (production only) ────────────────────
+    bot_token = app.config.get('TELEGRAM_BOT_TOKEN')
+    base_url = app.config.get('BASE_URL', '')
+    if bot_token and base_url and not base_url.startswith('http://127'):
+        import requests as _req
+        import hashlib as _hl
+        try:
+            secret = _hl.sha256(f"{bot_token}:webhook".encode()).hexdigest()[:32]
+            _req.post(
+                f"https://api.telegram.org/bot{bot_token}/setWebhook",
+                json={'url': f"{base_url}/telegram/webhook", 'secret_token': secret},
+                timeout=5,
+            )
+        except Exception:
+            pass
 
     return app
     

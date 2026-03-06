@@ -276,6 +276,18 @@
             <a href="{{ url_for('auth.google_role', role='provider') }}" class="google-btn" style="margin-bottom: 10px;">
                 <i class="fab fa-google"></i> {{ _("Sign up as Provider") }} </a>
         </div>
+        {% if telegram_bot_name %}
+        <div class="text-center mt-3">
+          <p class="small text-muted mb-2">{{ _("or sign up with Telegram") }}</p>
+          <script async src="https://telegram.org/js/telegram-widget.js?22"
+                  data-telegram-login="{{ telegram_bot_name }}"
+                  data-size="large"
+                  data-radius="10"
+                  data-auth-url="{{ url_for('telegram.login_callback', _external=True) }}"
+                  data-request-access="write">
+          </script>
+        </div>
+        {% endif %}
         <div class="login-link">
           {{ _("Already have an account?") }} <a href="{{ url_for('auth.login') }}">{{ _("Log in") }}</a>
         </div>

@@ -38,10 +38,10 @@ a { text-decoration: none; color: inherit; }
     width: 100vw;
     height: 100vh;
     z-index: -1;
-    /* М'які зелені плями на фоні */
-    background: 
-        radial-gradient(circle at 10% 20%, rgba(29, 191, 115, 0.08) 0%, transparent 40%),
-        radial-gradient(circle at 90% 60%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
+    /* М'які рожеві плями на фоні */
+    background:
+        radial-gradient(circle at 10% 20%, rgba(242, 211, 216, 0.3) 0%, transparent 40%),
+        radial-gradient(circle at 90% 60%, rgba(232, 180, 190, 0.2) 0%, transparent 40%);
     pointer-events: none;
 }
 

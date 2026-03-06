@@ -198,7 +198,7 @@ def payment_success(appointment_id):
                 )
 
                 db.session.add(payment)
-                appointment.status = 'confirmed_paid'
+                appointment.set_status('confirmed_paid')
                 db.session.commit()
 
                 # Відправка листа (код той самий)
@@ -246,7 +246,7 @@ def payment_cancel():
             if 'appointment_id' in session.metadata:
                 appointment = Appointment.query.get(session.metadata['appointment_id'])
                 if appointment and appointment.client_id == current_user.id:
-                    appointment.status = 'payment_canceled'
+                    appointment.set_status('payment_canceled')
                     db.session.commit()
 
         # Creating a record of the canceled payment
@@ -269,6 +269,26 @@ def payment_cancel():
 
     flash('Payment canceled. You can try again.', 'warning')
     return redirect(url_for('client.appointments'))
+
+
+@client_bp.route('/pay_cash_request', methods=['POST'])
+@login_required
+def pay_cash_request():
+    """Client chooses to pay by cash for a request — skip Stripe, move forward."""
+    data = request.get_json() or {}
+    request_id = data.get('request_id')
+    if not request_id:
+        return jsonify({'success': False, 'message': 'Request ID required'}), 400
+
+    req = ClientSelfCreatedAppointment.query.get_or_404(request_id)
+    if req.patient_id != current_user.id:
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+    if req.status != 'accepted':
+        return jsonify({'success': False, 'message': 'Request not in payable state'}), 400
+
+    req.set_status('authorized')
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Cash payment selected'})
 
 
 @client_bp.route('/create_request_payment_session', methods=['POST'])
@@ -337,7 +357,7 @@ def request_payment_success(request_id):
             is_success = (session.payment_status == 'paid') or (payment_intent.status == 'requires_capture')
 
             if is_success and session.metadata.get('request_id') == str(request_id):
-                req.status = 'authorized'
+                req.set_status('authorized')
                 req.payment_intent_id = session.payment_intent
                 db.session.commit()
                 flash('Payment authorized! Funds are held and will be released after the service.', 'success')
@@ -458,7 +478,7 @@ def handle_successful_payment(session):
 
         appointment = Appointment.query.get(int(appointment_id))
         if appointment:
-            appointment.status = 'confirmed_paid'
+            appointment.set_status('confirmed_paid')
 
         db.session.commit()
 

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
-from app.models import User, ProviderService, Appointment, Message, ServiceHistory
+from app.models import User, ProviderService, Appointment, Message, ServiceHistory, Feedback
 from app.extensions import db
 from sqlalchemy import or_, func, and_, desc
 from datetime import datetime, timedelta
@@ -294,6 +294,45 @@ def accept_proposal(message_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@main_bp.route('/api/feedback', methods=['POST'])
+@login_required
+def submit_feedback():
+    """Save user feedback and notify owner via Telegram."""
+    data = request.get_json(silent=True) or {}
+    category = data.get('category', '').strip()
+    message_text = data.get('message', '').strip()
+    page_url = data.get('page_url', '')
+
+    if category not in ('bug', 'suggestion') or not message_text:
+        return jsonify({'success': False, 'message': 'Invalid data'}), 400
+
+    fb = Feedback(
+        user_id=current_user.id,
+        category=category,
+        message=message_text,
+        page_url=page_url,
+    )
+    db.session.add(fb)
+    db.session.commit()
+
+    # Telegram notification
+    try:
+        from app.utils.telegram import send_telegram
+        emoji = '\U0001f41b' if category == 'bug' else '\U0001f4a1'
+        tg_msg = (
+            f"{emoji} <b>New feedback</b>\n"
+            f"<b>Category:</b> {category}\n"
+            f"<b>From:</b> @{current_user.user_name}\n"
+            f"<b>Page:</b> {page_url}\n\n"
+            f"{message_text}"
+        )
+        send_telegram(tg_msg)
+    except Exception:
+        pass
+
+    return jsonify({'success': True, 'message': 'Thank you for your feedback!'})
 
 
 @main_bp.route('/api/proposal/<int:message_id>/decline', methods=['POST'])
