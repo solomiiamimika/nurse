@@ -81,7 +81,7 @@
                   <span class="text-muted small">{{ _("Based on your location") }}</span>
             </div>
 
-            <div id="nursesMap" style="height: 600px; width: 100%; background: #e0e0e0; border-radius: 8px;"></div>
+            <div id="providersMap" style="height: 600px; width: 100%; background: #e0e0e0; border-radius: 8px;"></div>
         </div>
       </div>
 
@@ -132,18 +132,18 @@
         <div id="findContent" class="d-none">
           <div class="providers-scroll-area">
 
-            {% if nurses %}
-              {% for nurse in nurses %}
-              <div class="card nurse-item" onclick="calculateRoute({{nurse.latitude or 'null'}},{{nurse.longitude or 'null'}},'{{nurse.user_name}}')">
+            {% if providers %}
+              {% for provider in providers %}
+              <div class="card provider-item" onclick="calculateRoute({{provider.latitude or 'null'}},{{provider.longitude or 'null'}},'{{provider.user_name}}')">
                 <div class="card-body">
                   <div class="d-flex justify-content-between align-items-start">
                       <div>
-                          <h6 class="mb-1 fw-bold">{{ nurse.full_name or nurse.user_name }}</h6>
+                          <h6 class="mb-1 fw-bold">{{ provider.full_name or provider.user_name }}</h6>
                           <div class="small text-muted mb-2">
-                               <i class="fas fa-map-marker-alt text-muted"></i> {{ nurse.address or _('No address') }}
+                               <i class="fas fa-map-marker-alt text-muted"></i> {{ provider.address or _('No address') }}
                           </div>
                       </div>
-                      {% if nurse.online %}
+                      {% if provider.online %}
                           <span class="badge badge-online">{{ _("Online") }}</span>
                       {% else %}
                           <span class="badge badge-offline">{{ _("Offline") }}</span>
@@ -151,11 +151,11 @@
                   </div>
 
                  <div class="d-flex gap-2 mt-2">
-                    <a href="{{ url_for('client.provider_detail', provider_id=nurse.id) }}" class="btn btn-outline-secondary flex-grow-1" style="font-size: 0.9rem; font-weight: 600;">
+                    <a href="{{ url_for('client.provider_detail', provider_id=provider.id) }}" class="btn btn-outline-secondary flex-grow-1" style="font-size: 0.9rem; font-weight: 600;">
                         {{ _("View Profile") }}
                     </a>
 
-                    <button onclick="openBookingModal('{{ nurse.id }}','{{ nurse.full_name }}')" class="btn btn-success flex-grow-1" style="font-size: 0.9rem; font-weight: 600;">
+                    <button onclick="openBookingModal('{{ provider.id }}','{{ provider.full_name }}')" class="btn btn-success flex-grow-1" style="font-size: 0.9rem; font-weight: 600;">
                         {{ _("Book") }}
                     </button>
                 </div>
@@ -184,16 +184,16 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <p class="text-muted mb-3">{{ _("Provider:") }} <strong id="bookingNurseName" class="text-dark"></strong></p>
+        <p class="text-muted mb-3">{{ _("Provider:") }} <strong id="bookingProviderName" class="text-dark"></strong></p>
         <form id="bookingForm">
-          <input type="hidden" id="nurseIdInput" name="nurse_id" />
+          <input type="hidden" id="providerIdInput" name="provider_id" />
           <div class="mb-3">
             <label for="serviceSelect" class="form-label text-muted small fw-bold">{{ _("SELECT SERVICE") }}</label>
             <select class="form-select" id="serviceSelect" required></select>
           </div>
           <div class="mb-3">
             <label for="appointmentDate" class="form-label text-muted small fw-bold">{{ _("DATE & TIME") }}</label>
-            <input type="datetime-local" class="form-control" id="appointmentDate" required />
+            <input type="text" class="form-control flatpickr-datetime" id="appointmentDate" required placeholder="{{ _('Select date & time') }}" />
           </div>
           <div class="mb-3">
             <label for="appointmentNotes" class="form-label text-muted small fw-bold">{{ _("REQUIREMENTS") }}</label>
@@ -230,7 +230,7 @@
                   </div>
                   <div class="col-6 mb-3">
                       <label class="form-label fw-bold small text-muted">{{ _("WHEN?") }}</label>
-                      <input type="datetime-local" class="form-control" id="reqTime" required>
+                      <input type="text" class="form-control flatpickr-datetime" id="reqTime" required placeholder="{{ _('Select date & time') }}">
                   </div>
               </div>
               <div class="mb-3">
@@ -376,7 +376,7 @@
 <script>
   let map;
   let userMarker;
-  let nursesLayer = L.layerGroup();
+  let providersLayer = L.layerGroup();
   let routingControl = null;
   let currentTab = 'active';
 
@@ -408,7 +408,7 @@
   });
 
   // Provider location update
-  socket.on('nurse_location_update', (data) => {
+  socket.on('provider_location_update', (data) => {
       if (!map || !data.lat || !data.lng) return;
       const lat = data.lat, lng = data.lng;
 
@@ -419,7 +419,7 @@
                   className: '',
                   html: `<div class="provider-tracking-marker">
                       <div class="marker-pulse"></div>
-                      <div class="marker-icon"><i class="fas fa-user-nurse"></i></div>
+                      <div class="marker-icon"><i class="fas fa-user-md"></i></div>
                   </div>`,
                   iconSize: [36, 36],
                   iconAnchor: [18, 18]
@@ -509,19 +509,19 @@
           const mapCenterLat = userLat !== null ? userLat : 50.4501;
           const mapCenterLng = userLng !== null ? userLng : 30.5234;
 
-          map = L.map('nursesMap').setView([mapCenterLat, mapCenterLng], 12);
+          map = L.map('providersMap').setView([mapCenterLat, mapCenterLng], 12);
 
           L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
               attribution: '&copy; OpenStreetMap contributors'
           }).addTo(map);
 
-          nursesLayer.addTo(map);
+          providersLayer.addTo(map);
 
           if (userLat !== null && userLng !== null) {
               createUserMarker(userLat, userLng);
           }
 
-          loadNursesLocations();
+          loadProvidersLocations();
 
           // Draw control for boundary filtering
           const drawnItems = new L.FeatureGroup();
@@ -577,7 +577,7 @@
   }
 
   function filterMarkersByBoundary(layer) {
-      nursesLayer.eachLayer(marker => {
+      providersLayer.eachLayer(marker => {
           const ll = marker.getLatLng();
           if (pointInLayer(ll.lat, ll.lng, layer)) {
               marker.setOpacity(1);
@@ -590,7 +590,7 @@
   }
 
   function showAllMarkers() {
-      nursesLayer.eachLayer(marker => {
+      providersLayer.eachLayer(marker => {
           marker.setOpacity(1);
           if (marker._icon) marker._icon.style.pointerEvents = 'auto';
       });
@@ -670,31 +670,31 @@
       .addTo(map);
   };
 
-  async function loadNursesLocations() {
+  async function loadProvidersLocations() {
       try {
-          nursesLayer.clearLayers();
-          const response = await fetch('{{ url_for("client.get_nurses_locations") }}');
-          const nurses = await response.json();
+          providersLayer.clearLayers();
+          const response = await fetch('{{ url_for("client.get_providers_locations") }}');
+          const providers = await response.json();
 
-          nurses.forEach(nurse => {
-              const marker = L.marker([nurse.lat, nurse.lng], {
+          providers.forEach(provider => {
+              const marker = L.marker([provider.lat, provider.lng], {
                   icon: L.divIcon({
-                      className: 'nurse-marker',
-                      html: `<div style="background-color: ${nurse.online ? '#1dbf73' : '#b5b6ba'}; border-radius: 50%; width: 16px; height: 16px; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`
+                      className: 'provider-marker',
+                      html: `<div style="background-color: ${provider.online ? '#1dbf73' : '#b5b6ba'}; border-radius: 50%; width: 16px; height: 16px; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`
                   })
-              }).addTo(nursesLayer);
+              }).addTo(providersLayer);
 
               const popupContent = `
                   <div class="text-center">
-                      <h6 class="fw-bold mb-1">${nurse.name}</h6>
+                      <h6 class="fw-bold mb-1">${provider.name}</h6>
                       <div class="d-flex gap-2 justify-content-center mt-2">
                           <button class="btn btn-sm btn-outline-primary"
-                                  onclick="calculateRoute(${nurse.lat}, ${nurse.lng}, '${nurse.name}')"
+                                  onclick="calculateRoute(${provider.lat}, ${provider.lng}, '${provider.name}')"
                                   title="{{ _('Show Route') }}">
                               <i class="fas fa-route"></i>
                           </button>
                           <button class="btn btn-sm btn-success"
-                                  onclick="openBookingModal('${nurse.id}', '${nurse.name}')">
+                                  onclick="openBookingModal('${provider.id}', '${provider.name}')">
                               {{ _("Book") }}
                           </button>
                       </div>
@@ -735,8 +735,15 @@
       if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
   };
 
-  window.acceptOffer = function(offerId) {
-      if(!confirm("{{ _('Accept this provider?') }}")) return;
+  window.acceptOffer = async function(offerId) {
+      const ok = await confirmAction("{{ _('Accept this provider?') }}", {
+        title: "{{ _('Accept Provider') }}",
+        btnText: "{{ _('Yes, Accept') }}",
+        btnClass: 'btn-success',
+        icon: 'fa-check-circle',
+        iconColor: '#198754'
+      });
+      if (!ok) return;
       fetch(`/client/client_accept_request/${offerId}/`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
@@ -751,8 +758,15 @@
       });
   };
 
-  window.acceptAndPay = function(offerId, reqId, price) {
-      if(!confirm("{{ _('Confirm provider and proceed to payment?') }}")) return;
+  window.acceptAndPay = async function(offerId, reqId, price) {
+      const ok = await confirmAction("{{ _('Confirm provider and proceed to payment?') }}", {
+        title: "{{ _('Confirm & Pay') }}",
+        btnText: "{{ _('Yes, Proceed to Payment') }}",
+        btnClass: 'btn-success',
+        icon: 'fa-check-circle',
+        iconColor: '#198754'
+      });
+      if (!ok) return;
       fetch(`/client/client_accept_request/${offerId}/`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
@@ -768,6 +782,47 @@
 
   window.openChat = function(userId) {
       window.location.href = `/chat/${userId}`;
+  };
+
+  window.counterOffer = async function(offerId) {
+      // Create inline modal for counter-offer
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = '0';
+      input.step = '0.01';
+      input.className = 'form-control form-control-sm';
+      input.placeholder = '{{ _("Your price (EUR)") }}';
+      input.style.cssText = 'max-width:150px;display:inline-block;';
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'mt-2 d-flex gap-2 align-items-center';
+      wrapper.innerHTML = `<span class="small fw-bold">{{ _("Your price") }}:</span>`;
+      wrapper.appendChild(input);
+
+      const sendBtn = document.createElement('button');
+      sendBtn.className = 'btn btn-warning btn-sm';
+      sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+      sendBtn.onclick = async function() {
+          const price = parseFloat(input.value);
+          if (isNaN(price) || price < 0) { alert('{{ _("Please enter a valid price") }}'); return; }
+          const res = await fetch(`/client/counter_offer/${offerId}`, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+              body: JSON.stringify({counter_price: price})
+          }).then(r => r.json());
+          if (res.success) { loadMyRequests(); }
+          else { alert(res.message || res.error || 'Error'); }
+      };
+      wrapper.appendChild(sendBtn);
+
+      // Find the offer card and append
+      const btn = event.target.closest('button');
+      const card = btn.closest('.p-2');
+      const existing = card.querySelector('.counter-input-row');
+      if (existing) { existing.remove(); return; }
+      wrapper.className += ' counter-input-row';
+      card.appendChild(wrapper);
+      input.focus();
   };
 
   // Store detected coordinates
@@ -851,11 +906,24 @@
       }).catch(err => { console.error('Request error:', err); alert('Network error: ' + err); });
   });
 
-  window.cancelRequest = function(id) {
-      if(confirm("{{ _('Are you sure you want to cancel this request?') }}")) {
-          fetch(`/client/client_cancel_request/${id}`, {method:'POST', headers:{'X-CSRFToken': csrfToken}})
-            .then(r=>r.json()).then(res=>{ if(res.success) loadMyRequests(); });
-      }
+  window.cancelRequest = async function(id) {
+      const ok = await confirmAction("{{ _('Are you sure you want to cancel this request? If payment was authorized, it will be refunded.') }}", {
+        title: "{{ _('Cancel Request') }}",
+        btnText: "{{ _('Yes, Cancel') }}",
+        btnClass: 'btn-danger',
+        icon: 'fa-exclamation-triangle',
+        iconColor: '#dc3545'
+      });
+      if (!ok) return;
+      fetch(`/client/client_cancel_request/${id}`, {method:'POST', headers:{'X-CSRFToken': csrfToken}})
+        .then(r=>r.json()).then(res=>{
+            if(res.success) {
+                loadMyRequests();
+                showStatus(res.message || "{{ _('Request cancelled') }}");
+            } else {
+                alert(res.message || res.error || 'Error');
+            }
+        }).catch(() => alert('Network error'));
   };
 
   async function updateLocation() {
@@ -879,13 +947,13 @@
       });
   }
 
-  window.openBookingModal = function(nurseId, nurseName) {
-      document.getElementById('bookingNurseName').textContent = nurseName;
-      document.getElementById('nurseIdInput').value = nurseId;
+  window.openBookingModal = function(providerId, providerName) {
+      document.getElementById('bookingProviderName').textContent = providerName;
+      document.getElementById('providerIdInput').value = providerId;
       const select = document.getElementById('serviceSelect');
       select.innerHTML = '<option>{{ _("Loading services...") }}</option>';
       new bootstrap.Modal(document.getElementById('bookingModal')).show();
-      fetch(`/client/get_nurse_services?nurse_id=${nurseId}`)
+      fetch(`/client/get_provider_services?provider_id=${providerId}`)
           .then(r => r.json())
           .then(services => {
               select.innerHTML = '';
@@ -925,7 +993,7 @@
   }
 
   document.getElementById('submitBookingBtn').addEventListener('click', function() {
-      const nurseId = document.getElementById('nurseIdInput').value;
+      const providerId = document.getElementById('providerIdInput').value;
       const serviceId = document.getElementById('serviceSelect').value;
       const dateTime = document.getElementById('appointmentDate').value;
       const notes = document.getElementById('appointmentNotes').value;
@@ -933,7 +1001,7 @@
       fetch('/client/create_appointment', {
           method: 'POST',
           headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
-          body: JSON.stringify({nurse_id: nurseId, service_id: serviceId, date_time: dateTime, notes: notes})
+          body: JSON.stringify({provider_id: providerId, service_id: serviceId, date_time: dateTime, notes: notes})
       })
       .then(r => r.json())
       .then(data => {
@@ -1025,14 +1093,16 @@
 
       if (isBooked && req.accepted_provider) {
           html += `<button onclick="toggleProviderCard(${req.id})" class="btn btn-sm btn-primary flex-grow-1" style="font-size:12px">
-              <i class="fas fa-user-nurse me-1"></i>{{ _("View Provider") }}
+              <i class="fas fa-user-md me-1"></i>{{ _("View Provider") }}
           </button>`;
       }
       if (isAccepted && canPayNow && req.accepted_provider) {
-          const price = req.accepted_provider.agreed_price || req.payment;
-          html += `<button onclick="payForRequest(${req.id}, ${price})" class="btn btn-sm btn-success flex-grow-1" style="font-size:12px">
-              <i class="fas fa-lock me-1"></i>{{ _("Hold payment") }} ${price}
-          </button>`;
+          const price = req.accepted_provider.agreed_price || req.payment || 0;
+          if (price > 0) {
+              html += `<button onclick="payForRequest(${req.id}, ${price})" class="btn btn-sm btn-success flex-grow-1" style="font-size:12px">
+                  <i class="fas fa-lock me-1"></i>{{ _("Hold payment") }} €${parseFloat(price).toFixed(2)}
+              </button>`;
+          }
       }
       if (isBooked && req.accepted_provider) {
           html += `<button onclick="openChat(${req.accepted_provider.id})" class="btn btn-sm btn-outline-secondary" style="font-size:12px">
@@ -1044,13 +1114,14 @@
               <i class="fas fa-list me-1"></i>{{ _("View Offers") }} (${req.offers.length})
           </button>`;
       }
-      if (!isBooked) {
-          html += `<button onclick="cancelRequest(${req.id})" class="btn btn-sm btn-outline-danger" style="font-size:12px">{{ _("Cancel") }}</button>`;
+      if (!isCompleted) {
+          html += `<button onclick="cancelRequest(${req.id})" class="btn btn-sm btn-outline-danger" style="font-size:12px"><i class="fas fa-times me-1"></i>{{ _("Cancel") }}</button>`;
       }
       html += `</div>`;
 
-      // Payment notice
-      if (isAccepted && !canPayNow) {
+      // Payment notice (only when price > 0)
+      const reqPrice = (req.accepted_provider && req.accepted_provider.agreed_price) || req.payment || 0;
+      if (isAccepted && !canPayNow && reqPrice > 0) {
           const payDate = new Date(new Date(req.appointment_start_time).getTime() - 7*24*3600*1000);
           const payDateStr = payDate.toLocaleDateString('uk-UA', {day:'numeric', month:'long'});
           html += `
@@ -1099,21 +1170,30 @@
               const photo = offer.provider_photo
                   ? `<img src="${offer.provider_photo}" class="rounded-circle me-2" style="width:32px;height:32px;object-fit:cover;">`
                   : `<div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold me-2" style="width:32px;height:32px;flex-shrink:0;font-size:13px;">${(offer.provider_name||'?')[0].toUpperCase()}</div>`;
+              const hasCounter = offer.counter_price != null && offer.last_action_by === 'client';
+              const priceDisplay = offer.proposed_price != null ? '€' + parseFloat(offer.proposed_price).toFixed(2) : '{{ _("Price not set") }}';
               html += `
               <div class="p-2 mb-2 rounded" style="background:#f8f9fa;border:1px solid #e5e7eb;">
                   <div class="d-flex align-items-center mb-2">
                       ${photo}
-                      <div>
-                          <div class="fw-bold" style="font-size:13px;">${offer.provider_name}</div>
-                          <div class="text-success fw-bold" style="font-size:13px;">${offer.proposed_price}</div>
+                      <div class="flex-grow-1">
+                          <div class="fw-bold" style="font-size:13px;">${offer.provider_name}${offer.is_verified ? ' <i class="fas fa-check-circle text-success" title="{{ _("Verified") }}" style="font-size:11px;"></i>' : ''}</div>
+                          <div class="text-success fw-bold" style="font-size:13px;">${priceDisplay}</div>
+                          ${hasCounter ? `<div class="small text-warning"><i class="fas fa-exchange-alt me-1"></i>{{ _("Your counter") }}: €${parseFloat(offer.counter_price).toFixed(2)} <span class="text-muted">({{ _("waiting") }})</span></div>` : ''}
+                      </div>
+                      <div class="text-end">
+                          <div class="small text-muted">{{ _("Budget") }}: €${parseFloat(req.payment || 0).toFixed(2)}</div>
                       </div>
                   </div>
                   <div class="d-flex gap-1 flex-wrap">
                       <button onclick="acceptOffer(${offer.offer_id})" class="btn btn-primary btn-sm flex-grow-1" style="font-size:11px;">
                           <i class="fas fa-check me-1"></i>{{ _("Confirm") }}
                       </button>
-                      <button onclick="acceptAndPay(${offer.offer_id}, ${req.id}, ${offer.proposed_price})" class="btn btn-success btn-sm flex-grow-1" style="font-size:11px;">
+                      ${(offer.proposed_price || 0) > 0 ? `<button onclick="acceptAndPay(${offer.offer_id}, ${req.id}, ${offer.proposed_price})" class="btn btn-success btn-sm flex-grow-1" style="font-size:11px;">
                           <i class="fas fa-lock me-1"></i>{{ _("Confirm & Pay") }}
+                      </button>` : ''}
+                      <button onclick="counterOffer(${offer.offer_id})" class="btn btn-outline-warning btn-sm flex-grow-1" style="font-size:11px;">
+                          <i class="fas fa-exchange-alt me-1"></i>{{ _("Counter") }}
                       </button>
                       <button onclick="openChat(${offer.provider_id})" class="btn btn-outline-secondary btn-sm flex-grow-1" style="font-size:11px;">
                           <i class="fas fa-comment me-1"></i>{{ _("Chat") }}
@@ -1136,7 +1216,7 @@
             const allReqs = (data.requests || []).filter(r => r.status !== 'cancelled');
 
             // Split into active (pending) and accepted (booked)
-            const activeReqs = allReqs.filter(r => r.status === 'pending');
+            const activeReqs = allReqs.filter(r => ['pending', 'has_offers'].includes(r.status));
             const acceptedReqs = allReqs.filter(r => ['accepted', 'authorized', 'completed', 'confirmed_paid'].includes(r.status));
 
             // Render active requests
@@ -1202,6 +1282,20 @@
           }
       }).catch(() => {});
   }
+
+  // Initialize flatpickr date pickers
+  document.querySelectorAll('.flatpickr-datetime').forEach(el => {
+      flatpickr(el, {
+          enableTime: true,
+          dateFormat: "Y-m-dTH:i",
+          altInput: true,
+          altFormat: "d.m.Y, H:i",
+          time_24hr: true,
+          minDate: "today",
+          locale: "uk",
+          minuteIncrement: 15,
+      });
+  });
 
   document.addEventListener('DOMContentLoaded', () => {
       initMap();

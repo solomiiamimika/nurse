@@ -2,8 +2,8 @@
 User accounts and invitation tokens.
 
 Every person in the system is a User — role decides what they can do:
-  - 'client'   → books nurses
-  - 'provider' → provides nursing services
+  - 'client'   → books providers
+  - 'provider' → provides services
 """
 from app.extensions import db, bcrypt, login_manager
 from flask_login import UserMixin
@@ -41,8 +41,11 @@ class User(db.Model, UserMixin):
     referral_code     = Column(String(20), unique=True, nullable=True)
     referred_by       = Column(String(20), nullable=True)
 
-    is_owner  = Column(Boolean, default=False)
-    is_active = Column(Boolean, default=True)
+    is_owner    = Column(Boolean, default=False)
+    is_active   = Column(Boolean, default=True)
+    is_verified = Column(Boolean, default=False)
+    verification_method = Column(String(50), nullable=True)   # 'manual', 'stripe_kyc', etc.
+    verification_date   = Column(DateTime, nullable=True)
 
     terms_accepted     = Column(Boolean, default=False)
     has_insurance      = Column(Boolean, default=False)

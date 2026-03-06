@@ -44,7 +44,7 @@
                 <input type="number" id="propDuration" class="form-control form-control-sm" placeholder="{{ _('Duration (min)') }}" value="60">
             </div>
             <div class="col-12">
-                <input type="datetime-local" id="propDatetime" class="form-control form-control-sm" required>
+                <input type="text" id="propDatetime" class="form-control form-control-sm flatpickr-datetime" required placeholder="{{ _('Select date & time') }}">
             </div>
             <div class="col-12">
                 <input type="text" id="propNotes" class="form-control form-control-sm" placeholder="{{ _('Notes (optional)') }}">
@@ -102,6 +102,20 @@ const currentUserId = {{ current_user.id }};
 const otherUserId = {{ other_user.id }};
 const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 const socket = io();
+
+// Initialize flatpickr
+document.querySelectorAll('.flatpickr-datetime').forEach(el => {
+    flatpickr(el, {
+        enableTime: true,
+        dateFormat: "Y-m-dTH:i",
+        altInput: true,
+        altFormat: "d.m.Y, H:i",
+        time_24hr: true,
+        minDate: "today",
+        locale: "uk",
+        minuteIncrement: 15,
+    });
+});
 
 let allMessages = [];
 let hasMore = false;
@@ -359,11 +373,15 @@ function sendProposal() {
     toggleProposalForm();
 }
 
-function respondProposal(messageId, action) {
+async function respondProposal(messageId, action) {
     const confirmMsg = action === 'accept'
         ? "{{ _('Accept this proposal? An appointment will be created.') }}"
         : "{{ _('Decline this proposal?') }}";
-    if (!confirm(confirmMsg)) return;
+    const opts = action === 'accept'
+        ? { title: "{{ _('Accept Proposal') }}", btnText: "{{ _('Yes, Accept') }}", btnClass: 'btn-success', icon: 'fa-check-circle', iconColor: '#198754' }
+        : { title: "{{ _('Decline Proposal') }}", btnText: "{{ _('Yes, Decline') }}", btnClass: 'btn-danger', icon: 'fa-exclamation-triangle', iconColor: '#dc3545' };
+    const ok = await confirmAction(confirmMsg, opts);
+    if (!ok) return;
 
     fetch(`/api/proposal/${messageId}/${action}`, {
         method: 'POST',

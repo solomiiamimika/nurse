@@ -314,8 +314,15 @@
     });
   }
 
-  function deleteCard(pmId) {
-    if (!confirm("{{ _('Remove this card?') }}")) return;
+  async function deleteCard(pmId) {
+    const ok = await confirmAction("{{ _('Remove this card?') }}", {
+      title: "{{ _('Remove Card') }}",
+      btnText: "{{ _('Yes, Remove') }}",
+      btnClass: 'btn-danger',
+      icon: 'fa-exclamation-triangle',
+      iconColor: '#dc3545'
+    });
+    if (!ok) return;
 
     fetch(`/client/api/cards/${pmId}`, {
       method: 'DELETE',

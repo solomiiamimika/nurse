@@ -45,7 +45,7 @@ def create_app():
     def get_locale():
         if 'lang' in session:
             return session.get('lang', 'en')
-        return request.accept_languages.best_match(['en', 'uk'])
+        return request.accept_languages.best_match(['en', 'de', 'uk'])
     babel.init_app(app, locale_selector=get_locale)
 
     JWTManager(app)

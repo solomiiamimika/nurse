@@ -48,8 +48,8 @@ def get_clients_locations():
         return jsonify({'error': 'Access denied'}), 403
 
     try:
-        nurse_lat = current_user.latitude
-        nurse_lng = current_user.longitude
+        provider_lat = current_user.latitude
+        provider_lng = current_user.longitude
 
         # Показуємо тільки клієнтів з відкритими запитами (pending)
         open_request_patient_ids = db.session.query(
@@ -68,8 +68,8 @@ def get_clients_locations():
         clients_data = []
         for client in clients:
             # Фільтр по радіусу (якщо знаємо де провайдер)
-            if nurse_lat and nurse_lng:
-                dist = haversine_distance(nurse_lat, nurse_lng, client.latitude, client.longitude)
+            if provider_lat and provider_lng:
+                dist = haversine_distance(provider_lat, provider_lng, client.latitude, client.longitude)
                 if dist > CLIENTS_MAP_RADIUS_KM:
                     continue
 
@@ -205,13 +205,13 @@ def handle_send_message(data):
 def handle_start_trip(data):
     # data = {'appointment_id': 123, 'client_id': 45}
     client_id = data.get('client_id')
-    print(f"Nurse {current_user.id} started trip to Client {client_id}")
+    print(f"Provider {current_user.id} started trip to Client {client_id}")
 
     # Відправляємо клієнту сигнал, що медсестра виїхала
     emit('trip_started', {
         'message': f"{current_user.full_name} is on the way!",
-        'nurse_id': current_user.id
-    }, room=f"user_{client_id}")  # Переконайтесь, що клієнт приєднався до кімнати "user_ID"
+        'provider_id': current_user.id
+    }, room=f"user_{client_id}")
 
 
 @socketio.on('update_location')
@@ -220,7 +220,7 @@ def handle_location_update(data):
     client_id = data.get('client_id')
 
     # Пересилаємо точні координати клієнту
-    emit('nurse_location_update', {
+    emit('provider_location_update', {
         'lat': data['lat'],
         'lng': data['lng']
     }, room=f"user_{client_id}")

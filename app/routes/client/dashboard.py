@@ -43,47 +43,46 @@ def dashboard():
         return redirect(url_for('auth.login'))
 
     search_query = request.args.get('q', '').strip()
-    nurses = []
+    providers = []
 
     if search_query:
-        nurses = User.query.filter(User.role == 'provider').outerjoin(ProviderService).filter(
+        providers = User.query.filter(User.role == 'provider').outerjoin(ProviderService).filter(
             (User.full_name.ilike(f'%{search_query}%')) |
             (User.user_name.ilike(f'%{search_query}%')) |
             (ProviderService.name.ilike(f'%{search_query}%')) |
             (User.address.ilike(f'%{search_query}%'))
         ).distinct().all()
     else:
-        nurses = User.query.filter_by(role='provider').all()
+        providers = User.query.filter_by(role='provider').all()
 
-    return render_template('client/dashboard.html', nurses=nurses, search_query=search_query, stripe_public_key=stripe_public_key)
+    return render_template('client/dashboard.html', providers=providers, search_query=search_query, stripe_public_key=stripe_public_key)
 
 
-@client_bp.route('/get_nurses_locations')
+@client_bp.route('/get_providers_locations')
 @login_required
-def get_nurses_locations():
+def get_providers_locations():
     if current_user.role != 'client':
         return jsonify({'error': 'Entrance not allowed'}), 403
 
-    nurses = User.query.filter(
+    providers = User.query.filter(
         User.role == 'provider',
         User.location_approved == True,
         User.latitude.isnot(None),
         User.longitude.isnot(None)
     ).all()
 
-    nurses_data = []
-    for nurse in nurses:
-        # Фаззимо ±100м — клієнт бачить район де живе медсестра, не точну адресу
-        f_lat, f_lng = fuzz_coordinates(nurse.latitude, nurse.longitude, meters=100)
-        nurses_data.append({
-            'id': nurse.id,
-            'name': nurse.user_name,
+    providers_data = []
+    for provider in providers:
+        f_lat, f_lng = fuzz_coordinates(provider.latitude, provider.longitude, meters=100)
+        providers_data.append({
+            'id': provider.id,
+            'name': provider.user_name,
             'lat': f_lat,
             'lng': f_lng,
-            'online': nurse.online
+            'online': provider.online
         })
 
-    return jsonify(nurses_data)
+    return jsonify(providers_data)
 
 
 @client_bp.route('/update_location', methods=['POST'])
@@ -118,18 +117,18 @@ def working_hours():
     if current_user.role != 'client':
         return jsonify({'error': 'access denied'}), 403
 
-    nurse_id = request.args.get('nurse_id')
+    provider_id = request.args.get('provider_id')
     service_id = request.args.get('service_id')
     date_work = request.args.get('date')
-    if not service_id or service_id or nurse_id:
+    if not service_id or service_id or provider_id:
         return jsonify({'error': 'data is not here'}), 400
 
     service = ProviderService.query.get(service_id)
     date = datetime.strptime(date_work, '%Y-%m-%d').date()
-    start_working_hours_nurse = 9
-    end_working_hours_nurse = 17
+    start_working_hours = 9
+    end_working_hours = 17
 
-    appointments_active = Appointment.query.filter(Appointment.nurse_id == nurse_id, db.func.date(Appointment.appointment_time) == date).all()
+    appointments_active = Appointment.query.filter(Appointment.provider_id == provider_id, db.func.date(Appointment.appointment_time) == date).all()
 
 
 @client_bp.route('/get_available_times')
@@ -138,18 +137,18 @@ def get_available_times():
     if current_user.role != 'client':
         return jsonify({'error': 'access denied'}), 403
 
-    nurse_id = request.args.get('nurse_id')
+    provider_id = request.args.get('provider_id')
     service_id = request.args.get('service_id')
     date_str = request.args.get('date')
 
-    if not all([nurse_id, service_id, date_str]):
+    if not all([provider_id, service_id, date_str]):
         return jsonify({'error': 'Service provider, service and date must be specified'}), 400
 
     try:
         date = datetime.strptime(date_str, '%Y-%m-%d').date()
         service = ProviderService.query.get(service_id)
 
-        if not service or service.provider_id != int(nurse_id):
+        if not service or service.provider_id != int(provider_id):
             return jsonify({'error': 'Service provider not found'}), 404
 
         # working hours
@@ -158,7 +157,7 @@ def get_available_times():
 
         # getting all scheduled appointments for this day
         appointments = Appointment.query.filter(
-            Appointment.provider_id == nurse_id,
+            Appointment.provider_id == provider_id,
             db.func.date(Appointment.appointment_time) == date,
             Appointment.status.in_(['scheduled', 'confirmed'])
         ).all()
@@ -202,7 +201,7 @@ def provider_detail(provider_id):
     reviews = Review.query.filter_by(provider_id=provider.id).order_by(
         Review.created_at.desc()
     ).all()
-    servises = ProviderService.query.filter_by(nurse_id=provider.id, is_available=True).all()
+    servises = ProviderService.query.filter_by(provider_id=provider.id, is_available=True).all()
     photo = None
     if provider.photo:
         photo = get_file_url(provider.photo, buckets['profile_pictures'])
@@ -230,19 +229,19 @@ def history():
     return render_template('client/history.html')
 
 
-@client_bp.route('/get_nurse_services')
+@client_bp.route('/get_provider_services')
 @login_required
-def get_nurse_services():
+def get_provider_services():
     if current_user.role != 'client':
         return jsonify({'error': 'access denied'}), 403
 
-    nurse_id = request.args.get('nurse_id')
-    if not nurse_id:
+    provider_id = request.args.get('provider_id')
+    if not provider_id:
         return jsonify({'error': 'No services specified'}), 400
 
     try:
         services = ProviderService.query.filter_by(
-            provider_id=nurse_id,
+            provider_id=provider_id,
             is_available=True
         ).all()
 
@@ -256,7 +255,7 @@ def get_nurse_services():
 
         return jsonify(services_data)
     except Exception as e:
-        current_app.logger.error(f"Error getting nurse services: {str(e)}")
+        current_app.logger.error(f"Error getting provider services: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
 

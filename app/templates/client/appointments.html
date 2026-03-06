@@ -277,10 +277,10 @@
         // 4. Handle Specific Status States
         
         if (props.status === "scheduled") {
-            // State: Waiting for Nurse
+            // State: Waiting for Provider
             paymentStatus.style.display = "block";
             paymentStatus.className = "alert alert-info";
-            paymentStatus.innerHTML = '<i class="fas fa-clock"></i> {{ _("Waiting for nurse approval.") }}';
+            paymentStatus.innerHTML = '<i class="fas fa-clock"></i> {{ _("Waiting for provider approval.") }}';
             
             actionsContainer.innerHTML = `
                 <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(${info.event.id})">
@@ -302,14 +302,14 @@
             // State: Paid, Waiting for Work
             paymentStatus.style.display = "block";
             paymentStatus.className = "alert alert-success";
-            paymentStatus.innerHTML = '<i class="fas fa-shield-alt"></i> {{ _("Payment held securely. Waiting for nurse.") }}';
+            paymentStatus.innerHTML = '<i class="fas fa-shield-alt"></i> {{ _("Payment held securely. Waiting for provider.") }}';
         }
         else if (props.status === "work_submitted") {
             // State: Work Done, Need Approval
             actionsContainer.innerHTML = `
                 <div class="alert alert-warning w-100 text-center">
                     <i class="fas fa-check-circle"></i> <strong>{{ _("Job Done?") }}</strong><br>
-                    {{ _("The nurse has marked this job as finished.") }}
+                    {{ _("The provider has marked this job as finished.") }}
                 </div>
                 <button class="btn btn-success fw-bold w-100 py-2" onclick="approveAndPay(${info.event.id})">
                     <i class="fas fa-hand-holding-usd"></i> {{ _("Approve & Release Payment") }}
@@ -495,25 +495,32 @@
     paymentStatus.textContent = "{{ _('Payment error:') }} " + message;
   }
 
-  function cancelAppointment(appointmentId) {
-    if (confirm("{{ _('Are you sure you want to cancel this appointment?') }}")) {
-      fetch("/client/cancel_appointment", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrfToken,
-        },
-        body: JSON.stringify({ appointment_id: appointmentId }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.success) {
-            location.reload();
-          } else {
-            alert("{{ _('Error:') }} " + data.message);
-          }
-        });
-    }
+  async function cancelAppointment(appointmentId) {
+    const ok = await confirmAction("{{ _('Are you sure you want to cancel this appointment?') }}", {
+      title: "{{ _('Cancel Appointment') }}",
+      btnText: "{{ _('Yes, Cancel') }}",
+      btnClass: 'btn-danger',
+      icon: 'fa-exclamation-triangle',
+      iconColor: '#dc3545'
+    });
+    if (!ok) return;
+
+    fetch("/client/cancel_appointment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
+      },
+      body: JSON.stringify({ appointment_id: appointmentId }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert("{{ _('Error:') }} " + data.message);
+        }
+      });
   }
 
   function checkReviewStatus(appointmentId) {
@@ -568,8 +575,15 @@
   }
 
   // --- NEW: APPROVE AND PAY FUNCTION ---
-  window.approveAndPay = function(appointmentId) {
-    if (!confirm("{{ _('Are you sure? This will release the funds to the nurse.') }}")) return;
+  window.approveAndPay = async function(appointmentId) {
+    const ok = await confirmAction("{{ _('Are you sure? This will release the funds to the provider.') }}", {
+      title: "{{ _('Release Payment') }}",
+      btnText: "{{ _('Yes, Release Funds') }}",
+      btnClass: 'btn-success',
+      icon: 'fa-check-circle',
+      iconColor: '#198754'
+    });
+    if (!ok) return;
 
     fetch("/client/complete_appointment", {
         method: "POST",

@@ -34,7 +34,7 @@ def manage_services():
         return redirect(url_for('auth.login'))
 
     standard_services = Service.query.filter_by(is_standart=True).all()
-    nurse_services = ProviderService.query.filter_by(provider_id=current_user.id).all()
+    provider_services = ProviderService.query.filter_by(provider_id=current_user.id).all()
 
     if request.method == 'POST':
         try:
@@ -133,7 +133,7 @@ def manage_services():
 
     return render_template('provider/services.html',
                            standard_services=standard_services,
-                           nurse_services=nurse_services)
+                           provider_services=provider_services)
 
 
 @provider_bp.route('/service_history', methods=['GET'])
@@ -215,7 +215,7 @@ def promote_from_history(history_id):
         return jsonify({
             'success': True,
             'message': 'Service added to your permanent services',
-            'nurse_service_id': new_service.id
+            'provider_service_id': new_service.id
         }), 201
 
     except Exception as e:

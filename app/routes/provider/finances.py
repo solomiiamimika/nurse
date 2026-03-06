@@ -27,16 +27,16 @@ os.makedirs(DOCUMENTS_FOLDER, exist_ok=True)
 os.makedirs(PROFILE_PICTURES_FOLDER, exist_ok=True)
 
 
-def notify_nurses_about_new_appointment(appointment):
+def notify_providers_about_new_appointment(appointment):
     """Notify service provider about a new request"""
-    # Find all services nearby
-    nurses = User.query.filter_by(role='provider').all()
+    # Find all providers nearby
+    providers = User.query.filter_by(role='provider').all()
 
-    for nurse in nurses:
-        if nurse.latitude and nurse.longitude:
+    for provider in providers:
+        if provider.latitude and provider.longitude:
             # Calculate distance
             distance = calculate_distance(
-                nurse.latitude, nurse.longitude,
+                provider.latitude, provider.longitude,
                 appointment.latitude, appointment.longitude
             )
 
@@ -192,11 +192,11 @@ def cancellation_policy():
 
 @provider_bp.route('/stats')
 @login_required
-def nurse_stats():
+def provider_stats():
     if current_user.role != 'provider':
         return jsonify({'error': 'Access denied'}), 403
 
-    accepted_statuses = ['confirmed', 'confirmed_paid', 'nurse_confirmed']
+    accepted_statuses = ['confirmed', 'confirmed_paid', 'provider_confirmed']
     accepted_count = Appointment.query.filter(
         Appointment.provider_id == current_user.id,
         Appointment.status.in_(accepted_statuses)
@@ -207,8 +207,8 @@ def nurse_stats():
         Appointment.status == 'completed'
     ).count()
 
-    avg_rating = current_user.average_nurse_rating  # with hybrid_property
-    reviews_count = current_user.reviews_nurse_count
+    avg_rating = current_user.average_rating
+    reviews_count = current_user.review_count
 
     # Additionally: how many upcoming active requests
     upcoming_count = Appointment.query.filter(
@@ -218,7 +218,7 @@ def nurse_stats():
     ).count()
 
     return jsonify({
-        'nurse_id': current_user.id,
+        'provider_id': current_user.id,
         'accepted': accepted_count,
         'completed': completed_count,
         'upcoming': upcoming_count,

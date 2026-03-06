@@ -20,7 +20,7 @@
                             <img src="{{ photo }}" class="provider-avatar-lg shadow-sm">
                         {% else %}
                             <div class="provider-avatar-lg shadow-sm bg-light d-flex align-items-center justify-content-center text-muted">
-                                <i class="fas fa-user-nurse fa-3x"></i>
+                                <i class="fas fa-user-md fa-3x"></i>
                             </div>
                         {% endif %}
                         
@@ -45,10 +45,12 @@
                                 <span class="fw-bold text-dark">{{ reviews|length }}</span>
                                 <span class="text-muted small">{{ _("Reviews") }}</span>
                             </div>
+                            {% if provider.is_verified %}
                             <div class="stat-item border-start ps-3">
                                 <span class="fw-bold text-dark">{{ _("Verified") }}</span>
                                 <span class="text-success small"><i class="fas fa-check-circle"></i> {{ _("Identity") }}</span>
                             </div>
+                            {% endif %}
                         </div>
 
                         <div class="about-section">
@@ -181,9 +183,9 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <p class="text-muted mb-3">{{ _("Provider:") }} <strong id="bookingNurseName" class="text-dark"></strong></p>
+        <p class="text-muted mb-3">{{ _("Provider:") }} <strong id="bookingProviderName" class="text-dark"></strong></p>
         <form id="bookingForm">
-          <input type="hidden" id="nurseIdInput" name="nurse_id" />
+          <input type="hidden" id="providerIdInput" name="provider_id" />
           
           <div class="mb-3">
             <label for="serviceSelect" class="form-label text-muted small fw-bold">{{ _("SERVICE") }}</label>
@@ -192,7 +194,7 @@
           
           <div class="mb-3">
             <label for="appointmentDate" class="form-label text-muted small fw-bold">{{ _("DATE & TIME") }}</label>
-            <input type="datetime-local" class="form-control" id="appointmentDate" required />
+            <input type="text" class="form-control flatpickr-datetime" id="appointmentDate" required placeholder="{{ _('Select date & time') }}" />
           </div>
           <div class="mb-3">
             <label for="appointmentNotes" class="form-label text-muted small fw-bold">{{ _("REQUIREMENTS") }}</label>
@@ -282,10 +284,24 @@
 <script>
     const csrfToken = "{{ csrf_token() }}";
 
+    // Initialize flatpickr
+    document.querySelectorAll('.flatpickr-datetime').forEach(el => {
+        flatpickr(el, {
+            enableTime: true,
+            dateFormat: "Y-m-dTH:i",
+            altInput: true,
+            altFormat: "d.m.Y, H:i",
+            time_24hr: true,
+            minDate: "today",
+            locale: "uk",
+            minuteIncrement: 15,
+        });
+    });
+
     // Логіка відкриття модалки (трохи модифікована, щоб приймати serviceId)
-    window.openBookingModal = function(nurseId, nurseName, preselectedServiceId = null) {
-        document.getElementById('bookingNurseName').textContent = nurseName;
-        document.getElementById('nurseIdInput').value = nurseId;
+    window.openBookingModal = function(providerId, providerName, preselectedServiceId = null) {
+        document.getElementById('bookingProviderName').textContent = providerName;
+        document.getElementById('providerIdInput').value = providerId;
         
         const select = document.getElementById('serviceSelect');
         select.innerHTML = '<option>{{ _("Loading services...") }}</option>';
@@ -293,7 +309,7 @@
         const modal = new bootstrap.Modal(document.getElementById('bookingModal'));
         modal.show();
 
-        fetch(`/client/get_nurse_services?nurse_id=${nurseId}`)
+        fetch(`/client/get_provider_services?provider_id=${providerId}`)
             .then(r => r.json())
             .then(services => {
                 select.innerHTML = '';
@@ -335,7 +351,7 @@
     }
 
     document.getElementById('submitBookingBtn').addEventListener('click', function() {
-        const nurseId = document.getElementById('nurseIdInput').value;
+        const providerId = document.getElementById('providerIdInput').value;
         const serviceId = document.getElementById('serviceSelect').value;
         const dateTime = document.getElementById('appointmentDate').value;
         const notes = document.getElementById('appointmentNotes').value;
@@ -349,7 +365,7 @@
         fetch('/client/create_appointment', {
             method: 'POST',
             headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
-            body: JSON.stringify({nurse_id: nurseId, service_id: serviceId, date_time: dateTime, notes: notes})
+            body: JSON.stringify({provider_id: providerId, service_id: serviceId, date_time: dateTime, notes: notes})
         })
         .then(r => r.json())
         .then(data => {

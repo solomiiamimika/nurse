@@ -1,6 +1,6 @@
 <div class="payment-container">
-    <h4>{{ _("Payment for:") }} {{ appointment.nurse_service.name }}</h4>
-    <p>{{ _("Amount:") }} {{ "%.2f"|format(appointment.nurse_service.price) }} UAH</p>
+    <h4>{{ _("Payment for:") }} {{ appointment.provider_service.name }}</h4>
+    <p>{{ _("Amount:") }} {{ "%.2f"|format(appointment.provider_service.price) }} UAH</p>
     
     <button id="pay-button" class="btn btn-primary">
         <i class="fas fa-credit-card"></i> {{ _("Pay Now") }}

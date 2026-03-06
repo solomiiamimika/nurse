@@ -30,10 +30,10 @@ def dashboard():
         Appointment.status.in_(['confirmed', 'confirmed_paid', 'scheduled'])
     ).count()
 
-    avg_rating = db.session.query(func.avg(User.average_nurse_rating)).filter(
-        User.role == 'provider',
-        User.average_nurse_rating.isnot(None)
-    ).scalar()
+    # average_rating is a Python property — compute in Python
+    all_providers = User.query.filter_by(role='provider').all()
+    ratings = [p.average_rating for p in all_providers if p.average_rating]
+    avg_rating = round(sum(ratings) / len(ratings), 1) if ratings else None
 
     recent_users = User.query.order_by(User.created_at.desc()).limit(10).all()
 
@@ -42,7 +42,7 @@ def dashboard():
                            total_providers=total_providers,
                            total_completed=total_completed,
                            total_active=total_active,
-                           avg_rating=round(float(avg_rating), 1) if avg_rating else None,
+                           avg_rating=avg_rating,
                            recent_users=recent_users)
 
 
@@ -131,3 +131,38 @@ def delete_service(service_id):
     db.session.delete(svc)
     db.session.commit()
     return jsonify({'success': True})
+
+
+# ── Verification ─────────────────────────────────────────────────────────────
+
+@owner_bp.route('/verification')
+@owner_required
+def verification():
+    unverified = User.query.filter_by(role='provider', is_verified=False).order_by(User.created_at.desc()).all()
+    verified = User.query.filter_by(role='provider', is_verified=True).order_by(User.verification_date.desc()).all()
+    return render_template('owner/verification.html', unverified=unverified, verified=verified)
+
+
+@owner_bp.route('/users/<int:user_id>/verify', methods=['POST'])
+@owner_required
+def verify_user(user_id):
+    user = User.query.get_or_404(user_id)
+    data = request.get_json() or {}
+    method = data.get('method', 'manual')
+
+    user.is_verified = True
+    user.verification_method = method
+    user.verification_date = datetime.utcnow()
+    db.session.commit()
+    return jsonify({'success': True, 'is_verified': True})
+
+
+@owner_bp.route('/users/<int:user_id>/unverify', methods=['POST'])
+@owner_required
+def unverify_user(user_id):
+    user = User.query.get_or_404(user_id)
+    user.is_verified = False
+    user.verification_method = None
+    user.verification_date = None
+    db.session.commit()
+    return jsonify({'success': True, 'is_verified': False})

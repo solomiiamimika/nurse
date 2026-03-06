@@ -15,7 +15,7 @@ if __name__ == '__main__':
     port = 5000
     url = f"http://{host}:{port}"
     print(">>> SocketIO async_mode:", socketio.async_mode)
-    print(f"🚀 Server running at {url}")
+    print(f"Server running at {url}")
     print("Press CTRL+C to quit")
     # URL=ngrok.connect(5000).public_url
     # print(URL)

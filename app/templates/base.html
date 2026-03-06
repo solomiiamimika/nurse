@@ -10,9 +10,14 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css">
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/uk.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/de.js"></script>
 
     <style>
         /* Стилізація перемикача мови */
@@ -96,9 +101,11 @@
     <div class="language-switcher">
         <div class="lang-pill">
             <i class="fas fa-globe lang-icon"></i>
-            <a href="{{ url_for('auth.set_language', lang_code='en') }}" class="lang-link">EN</a>
+            <a href="{{ url_for('auth.set_language', lang_code='en') }}" class="lang-link {{ 'active' if session.get('lang','en') == 'en' }}">EN</a>
             <span class="lang-divider">|</span>
-            <a href="{{ url_for('auth.set_language', lang_code='uk') }}" class="lang-link">UA</a>
+            <a href="{{ url_for('auth.set_language', lang_code='de') }}" class="lang-link {{ 'active' if session.get('lang') == 'de' }}">DE</a>
+            <span class="lang-divider">|</span>
+            <a href="{{ url_for('auth.set_language', lang_code='uk') }}" class="lang-link {{ 'active' if session.get('lang') == 'uk' }}">UA</a>
         </div>
     </div>
 
@@ -117,12 +124,73 @@
     
     {% block content %}{% endblock %}
 
+    <!-- Reusable Confirmation Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border:none;border-radius:16px;overflow:hidden;">
+          <div class="modal-body text-center py-4 px-4">
+            <div id="confirmModalIcon" class="mb-3">
+              <i class="fas fa-question-circle fa-3x" style="color:#3f4a36;"></i>
+            </div>
+            <h5 class="fw-bold mb-2" id="confirmModalTitle"></h5>
+            <p class="text-muted mb-0" id="confirmModalMessage"></p>
+          </div>
+          <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+            <button type="button" class="btn btn-light flex-fill fw-bold" data-bs-dismiss="modal" style="border-radius:10px;">
+              {{ _("Cancel") }}
+            </button>
+            <button type="button" class="btn flex-fill fw-bold" id="confirmModalBtn" style="border-radius:10px;">
+              {{ _("Confirm") }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
-        // Тут можна додати скрипти
+    /**
+     * Show a Bootstrap confirmation modal instead of ugly confirm().
+     * @param {string} message - The question to display
+     * @param {object} options - { title, btnText, btnClass, icon, iconColor }
+     * @returns {Promise<boolean>}
+     */
+    function confirmAction(message, options = {}) {
+        return new Promise((resolve) => {
+            const title = options.title || '{{ _("Are you sure?") }}';
+            const btnText = options.btnText || '{{ _("Confirm") }}';
+            const btnClass = options.btnClass || 'btn-success';
+            const icon = options.icon || 'fa-question-circle';
+            const iconColor = options.iconColor || '#3f4a36';
+
+            document.getElementById('confirmModalTitle').textContent = title;
+            document.getElementById('confirmModalMessage').textContent = message;
+            document.getElementById('confirmModalIcon').innerHTML = `<i class="fas ${icon} fa-3x" style="color:${iconColor};"></i>`;
+
+            const btn = document.getElementById('confirmModalBtn');
+            btn.className = `btn flex-fill fw-bold ${btnClass}`;
+            btn.style.borderRadius = '10px';
+            btn.textContent = btnText;
+
+            const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+
+            // Clean up old listeners
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            newBtn.id = 'confirmModalBtn';
+
+            newBtn.addEventListener('click', () => { modal.hide(); resolve(true); });
+            document.getElementById('confirmModal').addEventListener('hidden.bs.modal', function handler() {
+                this.removeEventListener('hidden.bs.modal', handler);
+                resolve(false);
+            });
+
+            modal.show();
+        });
+    }
     </script>
 
     {% block scripts %}{% endblock %}
-    
+
     <div class="top-glass-bg"></div>
   </body>
 </html>

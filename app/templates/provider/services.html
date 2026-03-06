@@ -43,16 +43,16 @@
               <td>{{ service.base_price }} €</td>
               <td>{{ service.base_duration }} {{ _("min") }}</td>
               <td class="text-end">
-                {% set nurse_service = nurse_services|selectattr("service_id", "equalto", service.id)|first %}
-                {% if nurse_service %}
+                {% set provider_service = provider_services|selectattr("service_id", "equalto", service.id)|first %}
+                {% if provider_service %}
                 <div class="btn-group">
                     <button
                         class="btn btn-sm btn-outline-primary edit-service-btn"
                         data-service-id="{{ service.id }}"
-                        data-price="{{ nurse_service.price }}"
-                        data-duration="{{ nurse_service.duration }}"
-                        data-description="{{ nurse_service.description }}"
-                        data-available="{{ nurse_service.is_available }}"
+                        data-price="{{ provider_service.price }}"
+                        data-duration="{{ provider_service.duration }}"
+                        data-description="{{ provider_service.description }}"
+                        data-available="{{ provider_service.is_available }}"
                         title="{{ _('Edit details') }}"
                     >
                         <i class="fas fa-edit"></i> {{ _("Edit") }}
@@ -108,7 +108,7 @@
             </tr>
           </thead>
           <tbody>
-            {% for service in nurse_services if not service.service_id %}
+            {% for service in provider_services if not service.service_id %}
             <tr>
               <td class="fw-bold text-dark">{{ service.name }}</td>
               <td class="text-muted small">{{ service.description }}</td>

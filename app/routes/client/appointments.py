@@ -50,7 +50,7 @@ def calendar_appointment_color(Status):
     colors_dictionary = {
         'scheduled': 'gray',
         'request_sended': 'yellow',
-        'nurse_confirmed': 'green',
+        'provider_confirmed': 'green',
         'completed': 'blue',
         'cancelled': 'red'
     }
@@ -92,19 +92,19 @@ def get_appointments():
 
         result = []
         for app in appointments:
-            service_name = app.nurse_service.name if app.nurse_service else "Service"
-            nurse_name = app.nurse.user_name if app.nurse else "Nurse"
+            service_name = app.provider_service.name if app.provider_service else "Service"
+            provider_name = app.provider.user_name if app.provider else "Provider"
 
             result.append({
                 'id': app.id,
-                'title': f"{service_name} - {nurse_name}",
+                'title': f"{service_name} - {provider_name}",
                 'start': app.appointment_time.isoformat(),
                 'end': app.end_time.isoformat(),
                 'color': get_appointment_color(app.status),
                 'extendedProps': {
                     'status': app.status,
                     'notes': app.notes or '',
-                    'nurse_name': nurse_name,
+                    'provider_name': provider_name,
                     'service_name': service_name
                 }
             })
@@ -124,27 +124,27 @@ def create_appointment():
 
     try:
         data = request.get_json()
-        nurse_id = data.get('nurse_id')
+        provider_id = data.get('provider_id')
         service_id = data.get('service_id')
         date_time = data.get('date_time')
         notes = data.get('notes')
 
-        if not all([nurse_id, service_id, date_time]):
+        if not all([provider_id, service_id, date_time]):
             return jsonify({'success': False, 'message': 'All fields must be filled'}), 400
 
-        nurse = User.query.get(nurse_id)
-        if not nurse or nurse.role != 'provider':
+        provider = User.query.get(provider_id)
+        if not provider or provider.role != 'provider':
             return jsonify({'success': False, 'message': 'Service provider not found'}), 404
 
         service = ProviderService.query.get(service_id)
-        if not service or service.provider_id != int(nurse_id):
+        if not service or service.provider_id != int(provider_id):
             return jsonify({'success': False, 'message': 'Service not found'}), 404
 
         appointment_time = datetime.strptime(date_time, '%Y-%m-%dT%H:%M')
         end_time = appointment_time + timedelta(minutes=service.duration)
 
         conflicting_appointments = Appointment.query.filter(
-            Appointment.provider_id == nurse_id,
+            Appointment.provider_id == provider_id,
             Appointment.status == 'scheduled',
             ((Appointment.appointment_time <= appointment_time) & (Appointment.end_time > appointment_time)) |
             ((Appointment.appointment_time < end_time) & (Appointment.end_time >= end_time)) |
@@ -156,7 +156,7 @@ def create_appointment():
 
         new_appointment = Appointment(
             client_id=current_user.id,
-            provider_id=nurse_id,
+            provider_id=provider_id,
             nurse_service_id=service_id,
             appointment_time=appointment_time,
             end_time=end_time,
@@ -335,6 +335,9 @@ def client_get_requests():
                         'provider_name': p.full_name or p.user_name if p else 'Unknown',
                         'provider_photo': p.photo if p else None,
                         'proposed_price': offer.proposed_price,
+                        'counter_price': offer.counter_price,
+                        'last_action_by': offer.last_action_by,
+                        'is_verified': p.is_verified if p else False,
                     })
 
             # For accepted requests, include the accepted provider info
@@ -399,18 +402,43 @@ def client_cancel_request(request_id):
         return jsonify({'success': False, 'message': 'Access denied'}), 403
 
     try:
-        request = ClientSelfCreatedAppointment.query.filter_by(
+        req = ClientSelfCreatedAppointment.query.filter_by(
             id=request_id,
             patient_id=current_user.id
         ).first()
 
-        if not request:
+        if not req:
             return jsonify({'success': False, 'message': 'Request not found'}), 404
 
-        if request.status not in ['pending', 'accepted']:
+        cancellable = ['pending', 'has_offers', 'accepted', 'authorized']
+        if req.status not in cancellable:
             return jsonify({'success': False, 'message': 'Cannot cancel this request'}), 400
 
-        request.status = 'cancelled'
+        # If payment was authorized, cancel the Stripe PaymentIntent
+        if req.status == 'authorized' and req.payment_intent_id:
+            try:
+                stripe.PaymentIntent.cancel(req.payment_intent_id)
+            except stripe.StripeError as e:
+                current_app.logger.error(f'Stripe cancel error: {str(e)}')
+                return jsonify({'success': False, 'message': 'Payment cancellation failed'}), 500
+
+        # Reject all pending/accepted offers for this request
+        RequestOfferResponse.query.filter(
+            RequestOfferResponse.request_id == req.id,
+            RequestOfferResponse.status.in_(['pending', 'accepted'])
+        ).update({'status': 'rejected'}, synchronize_session=False)
+
+        # Cancel associated Appointment if one was created
+        if req.status in ('accepted', 'authorized') and req.provider_id:
+            appt = Appointment.query.filter_by(
+                client_id=current_user.id,
+                provider_id=req.provider_id,
+                appointment_time=req.appointment_start_time,
+            ).filter(Appointment.status != 'cancelled').first()
+            if appt:
+                appt.status = 'cancelled'
+
+        req.status = 'cancelled'
         db.session.commit()
 
         return jsonify({'success': True, 'message': 'Request cancelled'}), 200
@@ -430,21 +458,27 @@ def client_accept_request(offer_id):
     try:
         provider_offer = RequestOfferResponse.query.get(offer_id)
 
-        if not provider_offer or provider_offer.status != 'pending':  #тут змінити якщо ми хочемо бачити після прийняття запропонованих провайдерів
-            return jsonify({'success': False, 'message': 'Request not found'}), 404  # обробка коли не виводити
+        if not provider_offer or provider_offer.status != 'pending':
+            return jsonify({'success': False, 'message': 'Offer not found or already processed'}), 404
 
         req = ClientSelfCreatedAppointment.query.get(provider_offer.request_id)
 
-        if not req or provider_offer.status != 'pending':
+        if not req:
             return jsonify({'success': False, 'message': 'Request not found'}), 404
 
         if req.patient_id != current_user.id:
-            return jsonify({'success': False, 'message': 'Request not found'}), 404
+            return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+        if req.status not in ('pending', 'has_offers'):
+            return jsonify({'success': False, 'message': 'Request already accepted'}), 400
+
+        # Safe price — handle NULL proposed_price
+        offer_price = float(provider_offer.proposed_price) if provider_offer.proposed_price is not None else 0.0
 
         provider_offer.status = 'accepted'
         req.status = 'accepted'
         req.provider_id = provider_offer.provider_id
-        req.payment = provider_offer.proposed_price
+        req.payment = offer_price
 
         # Reject all other pending offers for this request
         RequestOfferResponse.query.filter(
@@ -453,7 +487,7 @@ def client_accept_request(offer_id):
             RequestOfferResponse.status == 'pending'
         ).update({'status': 'rejected'}, synchronize_session=False)
 
-        # Створюємо Appointment
+        # Create Appointment
         appointment = Appointment(
             client_id=current_user.id,
             provider_id=provider_offer.provider_id,
@@ -464,16 +498,16 @@ def client_accept_request(offer_id):
             notes=req.notes
         )
         db.session.add(appointment)
-        db.session.flush()  # отримуємо appointment.id до commit
+        db.session.flush()
 
-        # Створюємо запис в ServiceHistory
+        # Create ServiceHistory
         service_history = ServiceHistory(
             provider_id=provider_offer.provider_id,
             client_id=current_user.id,
             request_id=req.id,
             service_name=req.service_name,
             service_description=req.service_description,
-            price=provider_offer.proposed_price,
+            price=offer_price,
             appointment_time=req.appointment_start_time,
             end_time=req.end_time,
             status='scheduled'
@@ -485,7 +519,42 @@ def client_accept_request(offer_id):
 
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f"Error accepting offer: {str(e)}")
+        current_app.logger.error(f"Error accepting offer {offer_id}: {str(e)}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@client_bp.route('/counter_offer/<int:offer_id>', methods=['POST'])
+@login_required
+def counter_offer(offer_id):
+    """Client sends a counter-offer price."""
+    if current_user.role != 'client':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+    try:
+        data = request.get_json() or {}
+        counter_price = data.get('counter_price')
+        try:
+            counter_price = float(counter_price)
+            if counter_price < 0:
+                return jsonify({'success': False, 'message': 'Price must be positive'}), 400
+        except (ValueError, TypeError):
+            return jsonify({'success': False, 'message': 'Invalid price'}), 400
+
+        offer = RequestOfferResponse.query.get(offer_id)
+        if not offer or offer.status != 'pending':
+            return jsonify({'success': False, 'message': 'Offer not found'}), 404
+
+        req = ClientSelfCreatedAppointment.query.get(offer.request_id)
+        if not req or req.patient_id != current_user.id:
+            return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+        offer.counter_price = counter_price
+        offer.last_action_by = 'client'
+        db.session.commit()
+
+        return jsonify({'success': True, 'message': 'Counter-offer sent'})
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error sending counter-offer: {str(e)}")
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 
@@ -537,10 +606,10 @@ def leave_review():
     return jsonify({'success': True, 'message': 'Thank you for your review!'})
 
 
-@client_bp.route('/get_reviews/<int:nurse_id>')
+@client_bp.route('/get_reviews/<int:provider_id>')
 @login_required
-def get_reviews(nurse_id):
-    reviews = Review.query.filter_by(provider_id=nurse_id).order_by(
+def get_reviews(provider_id):
+    reviews = Review.query.filter_by(provider_id=provider_id).order_by(
         Review.created_at.desc()
     ).all()
 
@@ -672,7 +741,7 @@ def client_get_history():
         appointments_list = []
         for a in appos:
             provider = User.query.get(a.provider_id)
-            service = ProviderService.query.get(a.nurse_service_id) if a.nurse_service_id else None
+            service = ProviderService.query.get(a.nurse_service_id) if a.nurse_service_id else None  # nurse_service_id is DB column name
             service_name = service.name if service and service.name else (service.base_service.name if service and service.base_service else 'Service')
             appointments_list.append({
                 'id': a.id,

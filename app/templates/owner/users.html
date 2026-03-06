@@ -29,6 +29,7 @@
                     <th>Email</th>
                     <th>Role</th>
                     <th>Joined</th>
+                    <th>Verified</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -58,6 +59,15 @@
                         {% if u.is_owner %}<span class="role-badge-owner ms-1">Owner</span>{% endif %}
                     </td>
                     <td class="text-muted small">{{ u.created_at.strftime('%d.%m.%Y') if u.created_at else '—' }}</td>
+                    <td id="verified-{{ u.id }}">
+                        {% if u.is_verified %}
+                            <span class="badge bg-success-subtle text-success"><i class="fas fa-check-circle"></i> Yes</span>
+                        {% elif u.role == 'provider' %}
+                            <span class="badge bg-warning-subtle text-warning">No</span>
+                        {% else %}
+                            <span class="text-muted small">—</span>
+                        {% endif %}
+                    </td>
                     <td id="status-{{ u.id }}">
                         {% if u.is_active %}
                             <span class="badge bg-success-subtle text-success">Active</span>
@@ -66,6 +76,7 @@
                         {% endif %}
                     </td>
                     <td>
+                        <div class="d-flex gap-1">
                         {% if not u.is_owner and u.id != current_user.id %}
                         <button class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
                                 id="toggle-btn-{{ u.id }}"
@@ -73,6 +84,14 @@
                             {% if u.is_active %}Ban{% else %}Unban{% endif %}
                         </button>
                         {% endif %}
+                        {% if u.role == 'provider' %}
+                        <button class="btn btn-sm {% if u.is_verified %}btn-outline-secondary{% else %}btn-outline-success{% endif %}"
+                                id="verify-btn-{{ u.id }}"
+                                onclick="toggleVerify({{ u.id }}, {{ 'true' if u.is_verified else 'false' }})">
+                            {% if u.is_verified %}Unverify{% else %}Verify{% endif %}
+                        </button>
+                        {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -111,6 +130,30 @@ function changeRole(userId, newRole) {
         body: JSON.stringify({ role: newRole })
     }).then(r => r.json()).then(data => {
         if (!data.success) alert(data.message);
+    });
+}
+
+function toggleVerify(userId, currentlyVerified) {
+    const endpoint = currentlyVerified ? 'unverify' : 'verify';
+    fetch(`/owner/users/${userId}/${endpoint}`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ method: 'manual' })
+    }).then(r => r.json()).then(data => {
+        if (!data.success) { alert(data.message); return; }
+        const verEl = document.getElementById(`verified-${userId}`);
+        const btn = document.getElementById(`verify-btn-${userId}`);
+        if (data.is_verified) {
+            verEl.innerHTML = '<span class="badge bg-success-subtle text-success"><i class="fas fa-check-circle"></i> Yes</span>';
+            btn.textContent = 'Unverify';
+            btn.className = 'btn btn-sm btn-outline-secondary';
+            btn.setAttribute('onclick', `toggleVerify(${userId}, true)`);
+        } else {
+            verEl.innerHTML = '<span class="badge bg-warning-subtle text-warning">No</span>';
+            btn.textContent = 'Verify';
+            btn.className = 'btn btn-sm btn-outline-success';
+            btn.setAttribute('onclick', `toggleVerify(${userId}, false)`);
+        }
     });
 }
 </script>

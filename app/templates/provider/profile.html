@@ -274,13 +274,21 @@ function uploadInsuranceDoc(input) {
 }
 
 function deleteInsuranceDoc() {
-    if (!confirm('Remove the insurance document?')) return;
-    fetch('/provider/delete_insurance_doc', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': _csrf }
-    }).then(r => r.json()).then(data => {
-        if (data.success) location.reload();
-        else alert(data.message || 'Error');
+    confirmAction('{{ _("Remove the insurance document?") }}', {
+        title: '{{ _("Delete Document") }}',
+        btnText: '{{ _("Yes, Remove") }}',
+        btnClass: 'btn-danger',
+        icon: 'fa-exclamation-triangle',
+        iconColor: '#dc3545'
+    }).then(ok => {
+        if (!ok) return;
+        fetch('/provider/delete_insurance_doc', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': _csrf }
+        }).then(r => r.json()).then(data => {
+            if (data.success) location.reload();
+            else alert(data.message || 'Error');
+        });
     });
 }
 
@@ -343,22 +351,30 @@ function addPortfolioItemToGrid(item) {
 }
 
 function deletePortfolioItem(filename) {
-    if (!confirm("{{ _('Remove this item?') }}")) return;
+    confirmAction("{{ _('Remove this item?') }}", {
+        title: '{{ _("Delete Item") }}',
+        btnText: '{{ _("Yes, Remove") }}',
+        btnClass: 'btn-danger',
+        icon: 'fa-exclamation-triangle',
+        iconColor: '#dc3545'
+    }).then(ok => {
+        if (!ok) return;
 
-    fetch('/provider/portfolio/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': _csrf },
-        body: JSON.stringify({ filename: filename })
-    }).then(r => r.json()).then(data => {
-        if (data.success) {
-            const el = document.querySelector(`.portfolio-item[data-filename="${filename}"]`);
-            if (el) el.remove();
-            if (!document.querySelectorAll('.portfolio-item').length) {
-                document.getElementById('portfolioEmpty').classList.remove('d-none');
+        fetch('/provider/portfolio/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': _csrf },
+            body: JSON.stringify({ filename: filename })
+        }).then(r => r.json()).then(data => {
+            if (data.success) {
+                const el = document.querySelector(`.portfolio-item[data-filename="${filename}"]`);
+                if (el) el.remove();
+                if (!document.querySelectorAll('.portfolio-item').length) {
+                    document.getElementById('portfolioEmpty').classList.remove('d-none');
+                }
+            } else {
+                alert(data.message || 'Error');
             }
-        } else {
-            alert(data.message || 'Error');
-        }
+        });
     });
 }
 </script>

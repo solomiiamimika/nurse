@@ -118,8 +118,15 @@ function addService() {
     });
 }
 
-function deleteService(id) {
-    if (!confirm('Delete this service?')) return;
+async function deleteService(id) {
+    const ok = await confirmAction('Delete this service?', {
+        title: 'Delete Service',
+        btnText: 'Yes, Delete',
+        btnClass: 'btn-danger',
+        icon: 'fa-exclamation-triangle',
+        iconColor: '#dc3545'
+    });
+    if (!ok) return;
     fetch(`/owner/services/${id}/delete`, {
         method: 'POST',
         headers: { 'X-CSRFToken': csrf }

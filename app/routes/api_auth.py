@@ -30,7 +30,7 @@ def register():
     if not password or len(password) < 6:
         errors.append('Password must be at least 6 characters long')
     if role not in ['client', 'provider']:
-        errors.append('Invalid role (must be client or nurse)')
+        errors.append('Invalid role (must be client or provider)')
         
     if User.query.filter_by(user_name=username).first():
         errors.append('User already exists')

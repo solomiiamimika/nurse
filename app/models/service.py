@@ -22,7 +22,7 @@ class Service(db.Model):
     base_duration = Column(Integer, nullable=False)   # minutes
     is_standart   = Column(Boolean, default=True)
 
-    nurse_services = relationship('ProviderService', backref='base_service', lazy=True)
+    provider_services = relationship('ProviderService', backref='base_service', lazy=True)
 
 
 class ProviderService(db.Model):
@@ -38,7 +38,7 @@ class ProviderService(db.Model):
     description  = Column(Text)
     is_available = Column(Boolean, default=True)
 
-    appointments = relationship('Appointment', backref='nurse_service', lazy=True)
+    appointments = relationship('Appointment', backref='provider_service', lazy=True)
 
 
 class CancellationPolicy(db.Model):

@@ -56,11 +56,11 @@ class Review(db.Model):
     response_at    = Column(DateTime)      # when the response was written
     created_at     = Column(DateTime, default=datetime.now)
 
-    patient  = relationship('User', foreign_keys=[patient_id])
-    provider = relationship('User', foreign_keys=[provider_id])
+    patient  = relationship('User', foreign_keys=[patient_id], overlaps="reviews_received,provider_profile")
+    provider = relationship('User', foreign_keys=[provider_id], overlaps="reviews_received,provider_profile")
 
     @hybrid_property
-    def average_nurse_rating(self):
+    def average_provider_rating(self):
         return (
             db.session.query(func.avg(Review.rating))
             .filter(Review.provider_id == self.id)
@@ -68,5 +68,5 @@ class Review(db.Model):
         )
 
     @hybrid_property
-    def reviews_nurse_count(self):
+    def reviews_provider_count(self):
         return Review.query.filter_by(provider_id=self.id).count()

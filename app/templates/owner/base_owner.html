@@ -66,6 +66,9 @@
             <a href="{{ url_for('owner.services') }}" class="sidebar-link {% if request.endpoint == 'owner.services' %}active{% endif %}">
                 <i class="fas fa-list-ul"></i> Services
             </a>
+            <a href="{{ url_for('owner.verification') }}" class="sidebar-link {% if request.endpoint == 'owner.verification' %}active{% endif %}">
+                <i class="fas fa-shield-alt"></i> Verification
+            </a>
             <a href="{{ url_for('auth.invite_manager') }}" class="sidebar-link">
                 <i class="fas fa-paper-plane"></i> Invites
             </a>

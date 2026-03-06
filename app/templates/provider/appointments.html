@@ -293,7 +293,7 @@
             </div>
             `;
         }
-        // 3. Paid: Allow Nurse to "Submit Work"
+        // 3. Paid: Allow Provider to "Submit Work"
         else if (props.status === "confirmed_paid") {
           actionsContainer.innerHTML = `
             <div class="alert alert-info w-100 text-center mb-2 small">
@@ -338,33 +338,44 @@
 
     window.updateStatus = function (appointmentId, status) {
       let confirmMsg = `Change status to ${status}?`;
-      if(status === 'work_submitted') confirmMsg = "Are you sure you have finished the work? The client will be notified to approve.";
+      let confirmOpts = { title: '{{ _("Confirm") }}', btnText: '{{ _("Yes") }}', btnClass: 'btn-primary', icon: 'fa-question-circle', iconColor: '#0d6efd' };
 
-      if (!confirm(confirmMsg)) return;
+      if (status === 'work_submitted') {
+        confirmMsg = "{{ _('Are you sure you have finished the work? The client will be notified to approve.') }}";
+        confirmOpts = { title: '{{ _("Submit Work") }}', btnText: '{{ _("Yes, Submit") }}', btnClass: 'btn-success', icon: 'fa-check-circle', iconColor: '#198754' };
+      } else if (status === 'confirmed') {
+        confirmOpts = { title: '{{ _("Accept Request") }}', btnText: '{{ _("Yes, Accept") }}', btnClass: 'btn-success', icon: 'fa-check-circle', iconColor: '#198754' };
+      } else if (status === 'cancelled') {
+        confirmOpts = { title: '{{ _("Cancel Appointment") }}', btnText: '{{ _("Yes, Cancel") }}', btnClass: 'btn-danger', icon: 'fa-exclamation-triangle', iconColor: '#dc3545' };
+      }
 
-      fetch("/provider/update_appointment_status", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrfToken,
-        },
-        body: JSON.stringify({
-          appointment_id: appointmentId,
-          status: status,
-        }),
-      })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          calendar.refetchEvents();
-          const modalElem = document.getElementById("appointmentDetailsModal");
-          const modalInstance = bootstrap.Modal.getInstance(modalElem);
-          if (modalInstance) modalInstance.hide();
-        } else {
-          alert("Error: " + data.message);
-        }
-      })
-      .catch(err => console.error("Fetch error:", err));
+      confirmAction(confirmMsg, confirmOpts).then(ok => {
+        if (!ok) return;
+
+        fetch("/provider/update_appointment_status", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+          },
+          body: JSON.stringify({
+            appointment_id: appointmentId,
+            status: status,
+          }),
+        })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            calendar.refetchEvents();
+            const modalElem = document.getElementById("appointmentDetailsModal");
+            const modalInstance = bootstrap.Modal.getInstance(modalElem);
+            if (modalInstance) modalInstance.hide();
+          } else {
+            alert("Error: " + data.message);
+          }
+        })
+        .catch(err => console.error("Fetch error:", err));
+      });
     };
 
     function getStatusText(status) {

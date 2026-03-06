@@ -73,7 +73,7 @@ def create_payment_session():
     if appointment.status == 'confirmed_paid':
         return jsonify({'error': 'Appointment already paid'}), 400
 
-    amount_cents = int(round(appointment.nurse_service.price * 100))
+    amount_cents = int(round(appointment.provider_service.price * 100))
     transfer_group = f"appt_{appointment_id}"
 
     # Use saved Stripe customer if available
@@ -88,7 +88,7 @@ def create_payment_session():
         line_items=[{
             'price_data': {
                 'currency': 'eur',
-                'product_data': {'name': appointment.nurse_service.name},
+                'product_data': {'name': appointment.provider_service.name},
                 'unit_amount': amount_cents,
             },
             'quantity': 1,
@@ -133,9 +133,9 @@ def create_apple_pay_session():
                 'price_data': {
                     'currency': 'eur',
                     'product_data': {
-                        'name': appointment.nurse_service.name,
+                        'name': appointment.provider_service.name,
                     },
-                    'unit_amount': int(appointment.nurse_service.price * 100),  # in cents
+                    'unit_amount': int(appointment.provider_service.price * 100),  # in cents
                 },
                 'quantity': 1,
             }],
@@ -205,7 +205,7 @@ def payment_success(appointment_id):
                 send_payment_confirmation_email(
                     user_email=current_user.email,
                     user_name=current_user.full_name or current_user.user_name,
-                    service_name=appointment.nurse_service.name if appointment.nurse_service else "Service",
+                    service_name=appointment.provider_service.name if appointment.provider_service else "Service",
                     amount=payment.amount,
                     currency=payment.currency.upper(),
                     appointment_date=appointment.appointment_time.strftime('%Y-%m-%d'),
@@ -368,7 +368,7 @@ def payout_after_completion(appointment_id):
     if not payment:
         return jsonify({"error": "No paid payment found"}), 400
 
-    provider = User.query.get_or_404(appt.nurse_id)  # адаптуй під свою модель
+    provider = User.query.get_or_404(appt.provider_id)
     if not provider.stripe_account_id:
         return jsonify({"error": "Provider not connected to Stripe"}), 400
 
@@ -467,7 +467,7 @@ def handle_successful_payment(session):
             send_payment_confirmation_email(
                 user_email=user.email,
                 user_name=user.full_name or user.user_name,
-                service_name=appointment.nurse_service.name if appointment.nurse_service else "Service",
+                service_name=appointment.provider_service.name if appointment.provider_service else "Service",
                 amount=payment.amount,
                 currency=currency.upper(),
                 appointment_date=appointment.appointment_time.strftime('%Y-%m-%d'),

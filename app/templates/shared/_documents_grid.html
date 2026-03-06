@@ -48,7 +48,14 @@
 
         const docItem = deleteBtn.closest('.client-doc-item');
         const filename = docItem.dataset.filename;
-        if (!confirm(`{{ _("Delete document") }} "${filename}"?`)) return;
+        const ok = await confirmAction(`{{ _("Delete document") }} "${filename}"?`, {
+            title: '{{ _("Delete Document") }}',
+            btnText: '{{ _("Yes, Delete") }}',
+            btnClass: 'btn-danger',
+            icon: 'fa-exclamation-triangle',
+            iconColor: '#dc3545'
+        });
+        if (!ok) return;
 
         try {
             const resp = await fetch(DELETE_URL, {

@@ -234,8 +234,8 @@
     .status-indicator { width: 8px; height: 8px; border-radius: 50%; background-color: currentColor; display: inline-block; }
     .content-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
     .requests-scroll-area { flex: 1 1 0; min-height: 100px; max-height: 480px; overflow-y: auto; padding-right: 5px; }
-    .nurse-item { background: white; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 15px; transition: all 0.2s; cursor: pointer; position: relative; overflow: hidden; }
-    .nurse-item:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-color: #bfdbfe; }
+    .provider-item { background: white; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 15px; transition: all 0.2s; cursor: pointer; position: relative; overflow: hidden; }
+    .provider-item:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-color: #bfdbfe; }
     .item-request::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #ef4444; }
     .item-appointment::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #10b981; }
     .view-request-btn { width: 100%; margin-top: 10px; padding: 8px; font-size: 0.85rem; font-weight: 600; border-radius: 6px; transition: 0.2s; border: 1px solid transparent;}
@@ -401,10 +401,10 @@
 
   function initMap() {
       try {
-          const nurseLat = {{ current_user.latitude if current_user.latitude is not none else 50.4501 }};
-          const nurseLng = {{ current_user.longitude if current_user.longitude is not none else 30.5234}};
+          const providerLat = {{ current_user.latitude if current_user.latitude is not none else 50.4501 }};
+          const providerLng = {{ current_user.longitude if current_user.longitude is not none else 30.5234}};
 
-          map = L.map('combinedMap').setView([nurseLat, nurseLng], 12);
+          map = L.map('combinedMap').setView([providerLat, providerLng], 12);
           L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
               attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
           }).addTo(map);
@@ -441,10 +441,10 @@
               showAllMarkers();
           });
 
-          if (nurseLat && nurseLng) {
-              userMarker = L.marker([nurseLat, nurseLng], {
+          if (providerLat && providerLng) {
+              userMarker = L.marker([providerLat, providerLng], {
                   icon: L.divIcon({
-                      className: 'nurse-marker',
+                      className: 'provider-marker',
                       html: '<div style="background-color: #8b5cf6; border-radius: 50%; width: 24px; height: 24px; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>'
                   })
               }).addTo(map).bindPopup('<b>You are here</b>');
@@ -518,9 +518,9 @@
       if (!userMarker) return alert("Please update your location first.");
       if (routingControl) map.removeControl(routingControl);
 
-      const nurseLatLng = userMarker.getLatLng();
+      const providerLatLng = userMarker.getLatLng();
       routingControl = L.Routing.control({
-          waypoints: [ L.latLng(nurseLatLng.lat, nurseLatLng.lng), L.latLng(clientLat, clientLng) ],
+          waypoints: [ L.latLng(providerLatLng.lat, providerLatLng.lng), L.latLng(clientLat, clientLng) ],
           routeWhileDragging: false, draggableWaypoints: false, addWaypoints: false,
           createMarker: function() { return null; },
           lineOptions: { styles: [{color: currentMode === 'requests' ? '#ef4444' : '#10b981', opacity: 0.7, weight: 5}] },
@@ -579,7 +579,7 @@
   // --- LOADERS ---
   function loadRequests() {
       if(currentMode !== 'requests') return;
-      fetch('/provider/nurse_get_requests').then(r => r.json()).then(data => {
+      fetch('/provider/provider_get_requests').then(r => r.json()).then(data => {
           if (data.success) {
               _allRequests = data.requests || [];
               applyRequestFilters();
@@ -597,7 +597,7 @@
   }
 
   function loadMyOffers() {
-      fetch('/provider/nurse_get_accepted_requests').then(r => r.json()).then(data => {
+      fetch('/provider/provider_get_accepted_requests').then(r => r.json()).then(data => {
           if(!data.success) return;
           const offers = data.requests || [];
           renderOffers(offers);
@@ -635,23 +635,55 @@
           const time = new Date(item.appointment_start_time).toLocaleString('uk-UA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
           const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
           const opacity = item.offer_status === 'rejected' ? 'opacity: 0.6;' : '';
+          const hasClientCounter = item.counter_price != null && item.last_action_by === 'client';
           container.innerHTML += `
-              <div class="nurse-item p-3" style="border-left: 4px solid ${cfg.color}; ${opacity}" onclick="handleOfferClick(${itemJson})">
+              <div class="provider-item p-3" style="border-left: 4px solid ${cfg.color}; ${opacity}" onclick="handleOfferClick(${itemJson})">
                   <div class="d-flex justify-content-between align-items-start mb-1">
                       <h6 class="fw-bold text-dark mb-0">${item.service_name || 'Service'}</h6>
                       <span class="badge rounded-pill" style="background:${cfg.bg}; color:${cfg.color}; border:1px solid ${cfg.border};">${cfg.label}</span>
                   </div>
                   <div class="small text-muted mb-1"><i class="fas fa-user me-1"></i> ${item.patient_name || 'Client'}</div>
                   <div class="small text-muted mb-2"><i class="fas fa-clock me-1"></i> ${time}</div>
+                  <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
+                      <div>
+                          <span class="small text-muted">{{ _("Your price:") }}</span> <span class="fw-bold text-success">${item.payment || 0} €</span>
+                          ${item.client_budget != null ? `<span class="ms-2 small text-muted">{{ _("Budget:") }} ${item.client_budget} €</span>` : ''}
+                      </div>
+                  </div>
+                  ${hasClientCounter ? `
+                  <div class="d-flex align-items-center gap-2 mb-2 p-2 rounded" style="background:#fff3cd;border:1px solid #ffc107;">
+                      <i class="fas fa-hand-holding-usd text-warning"></i>
+                      <span class="small fw-bold">{{ _("Client counter:") }} ${item.counter_price} €</span>
+                      <div class="ms-auto d-flex gap-1">
+                          <button class="btn btn-success btn-sm" onclick="event.stopPropagation();acceptCounter(${item.offer_id})" style="font-size:11px;">
+                              <i class="fas fa-check me-1"></i>{{ _("Accept") }}
+                          </button>
+                          <button class="btn btn-outline-primary btn-sm" onclick="event.stopPropagation();showRevisePrice(${item.offer_id}, this)" style="font-size:11px;">
+                              <i class="fas fa-edit me-1"></i>{{ _("Revise") }}
+                          </button>
+                      </div>
+                  </div>` : ''}
                   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                      <span class="fw-bold text-success">${item.payment || 0} €</span>
-                      ${item.offer_status === 'accepted' && item.req_status === 'authorized' ? `
+                      ${item.offer_status === 'accepted' && (item.req_status === 'authorized' || (item.req_status === 'accepted' && (item.payment || 0) == 0)) ? `
                           <button class="btn btn-success btn-sm fw-bold" onclick="event.stopPropagation();markRequestDone(${item.req_id})">
                               <i class="fas fa-check me-1"></i>{{ _("Mark Done") }}
                           </button>` : ''}
-                      ${item.offer_status === 'accepted' && item.req_status === 'accepted' ? `<span class="small text-warning"><i class="fas fa-clock me-1"></i>{{ _("Waiting for client payment") }}</span>` : ''}
+                      ${item.offer_status === 'accepted' && item.req_status === 'accepted' ? `
+                          <span class="small text-warning"><i class="fas fa-clock me-1"></i>{{ _("Waiting for client payment") }}</span>
+                          <button class="btn btn-outline-danger btn-sm" onclick="event.stopPropagation();cancelAcceptedRequest(${item.req_id})" style="font-size:11px;">
+                              <i class="fas fa-times me-1"></i>{{ _("Cancel") }}
+                          </button>` : ''}
+                      ${item.offer_status === 'accepted' && item.req_status === 'authorized' ? `
+                          <button class="btn btn-outline-danger btn-sm" onclick="event.stopPropagation();cancelAcceptedRequest(${item.req_id})" style="font-size:11px;">
+                              <i class="fas fa-times me-1"></i>{{ _("Cancel") }}
+                          </button>` : ''}
                       ${item.offer_status === 'accepted' && item.req_status === 'completed' ? `<span class="small text-success"><i class="fas fa-check-circle me-1"></i>{{ _("Completed") }}</span>` : ''}
-                      ${item.offer_status === 'pending' ? `<span class="small text-warning"><i class="fas fa-hourglass-half me-1"></i>{{ _("Awaiting client") }}</span>` : ''}
+                      ${item.offer_status === 'pending' && !hasClientCounter ? `
+                          <span class="small text-warning"><i class="fas fa-hourglass-half me-1"></i>{{ _("Awaiting client") }}</span>` : ''}
+                      ${item.offer_status === 'pending' ? `
+                          <button class="btn btn-outline-danger btn-sm" onclick="event.stopPropagation();withdrawOffer(${item.offer_id})" style="font-size:11px;">
+                              <i class="fas fa-undo me-1"></i>{{ _("Withdraw") }}
+                          </button>` : ''}
                   </div>
               </div>`;
       });
@@ -682,15 +714,43 @@
           addressRow.style.display = 'none';
       }
 
+      const hasClientCounter = item.counter_price != null && item.last_action_by === 'client';
       const footer = document.getElementById('modalActions');
       if (item.offer_status === 'accepted') {
           const clientId = item.patient_id || item.client_id;
           const isTripping = (watchId !== null && activeTripClientId === clientId);
           const btnClass = isTripping ? 'btn-danger tracking-active' : 'btn-primary';
           const btnText = isTripping ? '<i class="fas fa-satellite-dish fa-spin"></i> ' + i18n.stopSharing : '<i class="fas fa-car-side"></i> ' + i18n.imOnMyWay;
-          footer.innerHTML = `<button type="button" id="tripBtn" class="btn ${btnClass} fw-bold w-100" onclick="toggleTrip(${clientId}, ${item.id})">${btnText}</button>`;
+          footer.innerHTML = `<button type="button" id="tripBtn" class="btn ${btnClass} fw-bold w-100 mb-2" onclick="toggleTrip(${clientId}, ${item.id})">${btnText}</button>`;
+          // Add cancel button if request is not yet completed
+          if (['accepted', 'authorized'].includes(item.req_status)) {
+              footer.innerHTML += `<button type="button" class="btn btn-outline-danger fw-bold w-100" onclick="cancelAcceptedRequest(${item.req_id})">
+                  <i class="fas fa-times me-1"></i>{{ _("Cancel Request") }}
+              </button>`;
+          }
       } else if (item.offer_status === 'pending') {
-          footer.innerHTML = `<div class="alert alert-warning py-2 small mb-0"><i class="fas fa-hourglass-half me-1"></i>{{ _("Waiting for the client to accept your offer...") }}</div>`;
+          let counterHtml = '';
+          if (hasClientCounter) {
+              counterHtml = `
+              <div class="alert alert-warning py-2 small mb-2">
+                  <i class="fas fa-hand-holding-usd me-1"></i>{{ _("Client proposed a counter-offer:") }} <strong>${item.counter_price} €</strong>
+                  <span class="text-muted ms-1">({{ _("Your price:") }} ${item.payment} €)</span>
+              </div>
+              <div class="d-flex gap-2 mb-2">
+                  <button type="button" class="btn btn-success fw-bold flex-fill" onclick="acceptCounter(${item.offer_id})">
+                      <i class="fas fa-check me-1"></i>{{ _("Accept Counter") }}
+                  </button>
+                  <button type="button" class="btn btn-outline-primary fw-bold flex-fill" onclick="showRevisePriceModal(${item.offer_id})">
+                      <i class="fas fa-edit me-1"></i>{{ _("Revise Price") }}
+                  </button>
+              </div>`;
+          } else {
+              counterHtml = `<div class="alert alert-warning py-2 small mb-2"><i class="fas fa-hourglass-half me-1"></i>{{ _("Waiting for the client to accept your offer...") }}</div>`;
+          }
+          footer.innerHTML = counterHtml + `
+              <button type="button" class="btn btn-outline-danger fw-bold w-100" onclick="withdrawOffer(${item.offer_id})">
+                  <i class="fas fa-undo me-1"></i>{{ _("Withdraw Offer") }}
+              </button>`;
       } else {
           footer.innerHTML = `<div class="alert alert-secondary py-2 small mb-0"><i class="fas fa-times-circle me-1"></i>{{ _("The client selected another provider.") }}</div>`;
       }
@@ -714,7 +774,7 @@
           if (currentMode === 'appointments') btnText = "Manage Appointment";
 
           container.innerHTML += `
-              <div class="nurse-item p-3 ${itemClass}" onclick="handleItemClick(${itemJson})">
+              <div class="provider-item p-3 ${itemClass}" onclick="handleItemClick(${itemJson})">
                   <div class="d-flex justify-content-between align-items-start mb-2">
                       <h6 class="fw-bold text-dark mb-0">${item.service_name || item.service}</h6>
                       <span class="badge bg-secondary bg-opacity-10 text-dark">${item.payment || item.price || 0} €</span>
@@ -776,8 +836,14 @@
       footer.innerHTML = ''; // Clear
 
       if (currentMode === 'requests') {
-          // Mode 1: New Requests -> "Accept"
-          footer.innerHTML = `<button type="button" class="btn btn-success fw-bold w-100" onclick="acceptRequest(${item.id})">${i18n.acceptRequest}</button>`;
+          // Mode 1: New Requests -> "Accept" with price input
+          const defaultPrice = item.payment || '';
+          footer.innerHTML = `
+              <div class="mb-2">
+                  <label class="form-label small fw-bold text-muted mb-1">{{ _("Your price (EUR)") }}</label>
+                  <input type="number" id="offerPrice" class="form-control" value="${defaultPrice}" min="1" step="0.01" placeholder="{{ _('Enter your price') }}">
+              </div>
+              <button type="button" class="btn btn-success fw-bold w-100" onclick="acceptRequest(${item.id})">${i18n.acceptRequest}</button>`;
       } else {
           // Mode 2: My Appointments -> "I'm on my way"
           // Перевіряємо, чи є ID клієнта (для сокетів)
@@ -804,34 +870,178 @@
   }
 
   window.markRequestDone = function(reqId) {
-      if (!confirm('{{ _("Confirm service completed? Payment will be captured and sent to your account.") }}')) return;
-      fetch(`/provider/complete_request/${reqId}`, {
+      confirmAction('{{ _("Confirm service completed? Payment will be captured and sent to your account.") }}', {
+          title: '{{ _("Confirm Completion") }}',
+          btnText: '{{ _("Yes, Complete") }}',
+          btnClass: 'btn-success',
+          icon: 'fa-check-circle',
+          iconColor: '#198754'
+      }).then(ok => {
+          if (!ok) return;
+          fetch(`/provider/complete_request/${reqId}`, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken}
+          }).then(r => r.json()).then(data => {
+              if (data.success) {
+                  showStatus('{{ _("Service completed! Payment processed.") }}');
+                  loadMyOffers();
+              } else {
+                  alert(data.message || 'Error');
+              }
+          });
+      });
+  };
+
+  window.withdrawOffer = function(offerId) {
+      confirmAction('{{ _("Are you sure you want to withdraw this offer?") }}', {
+          title: '{{ _("Withdraw Offer") }}',
+          btnText: '{{ _("Yes, Withdraw") }}',
+          btnClass: 'btn-warning',
+          icon: 'fa-exclamation-circle',
+          iconColor: '#ffc107'
+      }).then(ok => {
+          if (!ok) return;
+          fetch(`/provider/withdraw_offer/${offerId}`, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken}
+          }).then(r => r.json()).then(data => {
+              if (data.success) {
+                  const modal = bootstrap.Modal.getInstance(document.getElementById('requestDetailsModal'));
+                  if (modal) modal.hide();
+                  showStatus('{{ _("Offer withdrawn successfully") }}');
+                  loadMyOffers();
+                  if (currentMode === 'requests') loadRequests();
+              } else {
+                  alert(data.message || 'Error');
+              }
+          }).catch(() => alert('Network error'));
+      });
+  };
+
+  window.cancelAcceptedRequest = function(reqId) {
+      confirmAction('{{ _("Are you sure you want to cancel this accepted request?") }}', {
+          title: '{{ _("Cancel Request") }}',
+          btnText: '{{ _("Yes, Cancel") }}',
+          btnClass: 'btn-danger',
+          icon: 'fa-exclamation-triangle',
+          iconColor: '#dc3545'
+      }).then(ok => {
+          if (!ok) return;
+          fetch(`/provider/cancel_accepted_request/${reqId}`, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken}
+          }).then(r => r.json()).then(data => {
+              if (data.success) {
+                  const modal = bootstrap.Modal.getInstance(document.getElementById('requestDetailsModal'));
+                  if (modal) modal.hide();
+                  showStatus('{{ _("Request cancelled") }}');
+                  loadMyOffers();
+              } else {
+                  alert(data.message || 'Error');
+              }
+          }).catch(() => alert('Network error'));
+      });
+  };
+
+  window.acceptCounter = function(offerId) {
+      confirmAction('{{ _("Accept the client counter-offer price?") }}', {
+          title: '{{ _("Accept Counter-Offer") }}',
+          btnText: '{{ _("Yes, Accept") }}',
+          btnClass: 'btn-success',
+          icon: 'fa-handshake',
+          iconColor: '#198754'
+      }).then(ok => {
+          if (!ok) return;
+          fetch(`/provider/respond_to_counter/${offerId}`, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+              body: JSON.stringify({action: 'accept_counter'})
+          }).then(r => r.json()).then(data => {
+              if (data.success) {
+                  const modal = bootstrap.Modal.getInstance(document.getElementById('requestDetailsModal'));
+                  if (modal) modal.hide();
+                  showStatus('{{ _("Counter-offer accepted! Price updated.") }}');
+                  loadMyOffers();
+              } else {
+                  alert(data.message || 'Error');
+              }
+          }).catch(() => alert('Network error'));
+      });
+  };
+
+  window.showRevisePrice = function(offerId, btn) {
+      // Inline revise in offer card
+      const parent = btn.closest('.d-flex');
+      parent.innerHTML = `
+          <input type="number" class="form-control form-control-sm" id="reviseInput_${offerId}" min="0" step="0.01" placeholder="{{ _('New price') }}" style="width:100px;">
+          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();submitRevise(${offerId})" style="font-size:11px;">
+              <i class="fas fa-paper-plane"></i>
+          </button>
+      `;
+      event.stopPropagation();
+  };
+
+  window.showRevisePriceModal = function(offerId) {
+      // Revise from modal
+      const footer = document.getElementById('modalActions');
+      const existingRevise = document.getElementById('reviseModalInput');
+      if (existingRevise) return; // already shown
+      const reviseHtml = `
+          <div id="reviseModalBlock" class="mb-2">
+              <div class="input-group">
+                  <input type="number" class="form-control" id="reviseModalInput" min="0" step="0.01" placeholder="{{ _('Enter new price') }}">
+                  <span class="input-group-text">€</span>
+                  <button class="btn btn-primary" onclick="submitRevise(${offerId})">
+                      <i class="fas fa-paper-plane me-1"></i>{{ _("Send") }}
+                  </button>
+              </div>
+          </div>`;
+      footer.insertAdjacentHTML('afterbegin', reviseHtml);
+  };
+
+  window.submitRevise = function(offerId) {
+      let priceInput = document.getElementById(`reviseInput_${offerId}`) || document.getElementById('reviseModalInput');
+      const price = parseFloat(priceInput?.value);
+      if (isNaN(price) || price < 0) {
+          alert('{{ _("Please enter a valid price") }}');
+          return;
+      }
+      fetch(`/provider/respond_to_counter/${offerId}`, {
           method: 'POST',
-          headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken}
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+          body: JSON.stringify({action: 'revise', price: price})
       }).then(r => r.json()).then(data => {
           if (data.success) {
-              showStatus('{{ _("Service completed! Payment processed.") }}');
+              const modal = bootstrap.Modal.getInstance(document.getElementById('requestDetailsModal'));
+              if (modal) modal.hide();
+              showStatus('{{ _("Price revised and sent to client.") }}');
               loadMyOffers();
           } else {
               alert(data.message || 'Error');
           }
-      });
+      }).catch(() => alert('Network error'));
   };
 
   window.acceptRequest = function(id) {
-      const btn = document.querySelector('#modalActions button');
+      const priceInput = document.getElementById('offerPrice');
+      const price = priceInput ? parseFloat(priceInput.value) : null;
+      if (price === null || isNaN(price) || price < 0) {
+          alert('{{ _("Please enter a valid price") }}');
+          return;
+      }
+      const btn = document.querySelector('#modalActions .btn-success');
       btn.disabled = true; btn.textContent = i18n.processing;
-      fetch(`/provider/nurse_accept_request/${id}`, {
+      fetch(`/provider/provider_accept_request/${id}`, {
           method: 'POST',
           headers: {'X-CSRFToken': csrfToken, 'Content-Type': 'application/json'},
-          body: JSON.stringify({})
+          body: JSON.stringify({price: price})
       })
       .then(r => r.json())
       .then(data => {
           if (data.success) {
               bootstrap.Modal.getInstance(document.getElementById('requestDetailsModal')).hide();
-              loadRequests();
               showStatus(i18n.requestAccepted);
+              switchTab('offers');
           } else {
               btn.disabled = false;
               btn.textContent = i18n.acceptRequest;
@@ -891,7 +1101,7 @@
   });
 
   function refreshOffersBadge() {
-      fetch('/provider/nurse_get_accepted_requests').then(r => r.json()).then(data => {
+      fetch('/provider/provider_get_accepted_requests').then(r => r.json()).then(data => {
           if(!data.success) return;
           const pendingCount = (data.requests || []).filter(o => o.offer_status === 'pending').length;
           const badge = document.getElementById('offersCountBadge');

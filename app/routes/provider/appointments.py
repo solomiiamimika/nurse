@@ -10,12 +10,14 @@ import os
 from werkzeug.utils import secure_filename
 from math import radians, sin, cos, sqrt, atan2
 import stripe
-from app.extensions import socketio, db
+from app.extensions import socketio, db, mail
 from flask import current_app, request
 from flask_socketio import join_room, leave_room, emit
 from app.models import Message, db, User
 from datetime import datetime
 from sqlalchemy import func
+from flask_mail import Message as MailMessage
+from threading import Thread
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'uploads')
 DOCUMENTS_FOLDER = os.path.join(UPLOAD_FOLDER, 'documents')
@@ -31,7 +33,7 @@ def calendar_appointment_color(Status):
     colors_dictionary = {
         'scheduled': 'gray',
         'request_sended': 'yellow',
-        'nurse_confirmed': 'green',
+        'provider_confirmed': 'green',
         'completed': 'blue',
         'cancelled': 'red'
     }
@@ -49,7 +51,7 @@ def appointments():
 @provider_bp.route('/get_appointments')
 @login_required
 def get_appointments():
-    print("Received request to /nurse/get_appointments")  # Logging
+    print("Received request to /provider/get_appointments")  # Logging
     if current_user.role != 'provider':
         return jsonify({'error': 'Access denied'}), 403
 
@@ -74,7 +76,7 @@ def get_appointments():
         result = []
 
         for app in appointments:
-            service_name = app.nurse_service.name if app.nurse_service else "Service"
+            service_name = app.provider_service.name if app.provider_service else "Service"
             result.append({
                 'id': app.id,
                 'title': f"{service_name} - {app.client.user_name}",
@@ -83,7 +85,7 @@ def get_appointments():
                 'color': calendar_appointment_color(app.status),
                 'extendedProps': {
                     'client_name': app.client.user_name,
-                    'nurse_name': app.provider.user_name,
+                    'provider_name': app.provider.user_name,
                     'status': app.status,
                     'notes': app.notes,
                     'photo': app.client.photo if app.client.photo else None
@@ -116,8 +118,8 @@ def get_my_appointments():
         result = []
         for app in appointments:
             # Отримуємо назву сервісу та ціну
-            service_name = app.nurse_service.name if app.nurse_service else "Service"
-            price = app.nurse_service.price if app.nurse_service else 0
+            service_name = app.provider_service.name if app.provider_service else "Service"
+            price = app.provider_service.price if app.provider_service else 0
 
             result.append({
                 'id': app.id,
@@ -151,7 +153,7 @@ def update_appointment_status():
     if appointment.provider_id != current_user.id:
         return jsonify({'success': False, 'message': 'Unauthorized'}), 403
 
-    # Logic: Nurse Marks Job as Done
+    # Logic: Provider Marks Job as Done
     if new_status == 'work_submitted':
         if appointment.status != 'confirmed_paid':
             return jsonify({'success': False, 'message': 'Cannot submit work for unpaid appointment'}), 400
@@ -160,24 +162,24 @@ def update_appointment_status():
         db.session.commit()
         return jsonify({'success': True, 'message': 'Work submitted! Waiting for client approval.'})
 
-    # Logic: Nurse Accepts/Declines
+    # Logic: Provider Accepts/Declines
     elif new_status in ['confirmed', 'cancelled']:
         appointment.status = new_status
         db.session.commit()
         return jsonify({'success': True})
 
-    return jsonify({'success': False, 'message': 'Invalid status update for Nurse'}), 400
+    return jsonify({'success': False, 'message': 'Invalid status update for Provider'}), 400
 
 
-@provider_bp.route('/nurse_get_requests', methods=['GET'])
+@provider_bp.route('/provider_get_requests', methods=['GET'])
 @login_required
-def nurse_get_requests():
+def provider_get_requests():
     if current_user.role != 'provider':
         return jsonify({'success': False, 'message': 'Access denied'}), 403
 
     try:
-        nurse_lat = current_user.latitude
-        nurse_lng = current_user.longitude
+        provider_lat = current_user.latitude
+        provider_lng = current_user.longitude
 
         # Already-bid request IDs for this provider
         already_bid_ids = {
@@ -200,9 +202,9 @@ def nurse_get_requests():
             # Для перегляду запиту: відстань + розмиті координати для карти
             # Точна адреса буде видна тільки після прийняття
             distance_km = None
-            if nurse_lat and nurse_lng:
+            if provider_lat and provider_lng:
                 distance_km = round(haversine_distance(
-                    nurse_lat, nurse_lng, req.latitude, req.longitude
+                    provider_lat, provider_lng, req.latitude, req.longitude
                 ), 1)
 
             f_lat, f_lng = fuzz_coordinates(req.latitude, req.longitude, meters=300)
@@ -229,15 +231,21 @@ def nurse_get_requests():
         return jsonify({'success': False, 'error': 'Server Error'}), 500
 
 
-@provider_bp.route('/nurse_accept_request/<int:request_id>', methods=['POST'])
+@provider_bp.route('/provider_accept_request/<int:request_id>', methods=['POST'])
 @login_required
-def nurse_accept_request(request_id):
+def provider_accept_request(request_id):
     if current_user.role != 'provider':
         return jsonify({'success': False, 'message': 'Access denied'}), 403
 
     try:
         data = request.get_json() or {}
         price = data.get('price')
+
+        # Validate price
+        try:
+            price = float(price) if price is not None else 0
+        except (ValueError, TypeError):
+            price = 0
 
         req = ClientSelfCreatedAppointment.query.get(request_id)
 
@@ -268,9 +276,95 @@ def nurse_accept_request(request_id):
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 
-@provider_bp.route('/nurse_get_accepted_requests', methods=['GET'])
+@provider_bp.route('/withdraw_offer/<int:offer_id>', methods=['POST'])
 @login_required
-def nurse_get_accepted_requests():
+def withdraw_offer(offer_id):
+    """Provider withdraws their pending offer before client accepts."""
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    try:
+        offer = RequestOfferResponse.query.filter_by(
+            id=offer_id,
+            provider_id=current_user.id
+        ).first()
+
+        if not offer:
+            return jsonify({'success': False, 'message': 'Offer not found'}), 404
+
+        if offer.status != 'pending':
+            return jsonify({'success': False, 'message': 'Can only withdraw pending offers'}), 400
+
+        offer.status = 'rejected'
+
+        # If no other pending offers remain, revert request status to pending
+        req = ClientSelfCreatedAppointment.query.get(offer.request_id)
+        if req and req.status == 'has_offers':
+            remaining = RequestOfferResponse.query.filter(
+                RequestOfferResponse.request_id == req.id,
+                RequestOfferResponse.id != offer.id,
+                RequestOfferResponse.status == 'pending'
+            ).count()
+            if remaining == 0:
+                req.status = 'pending'
+
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Offer withdrawn'})
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error withdrawing offer: {str(e)}")
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
+
+
+@provider_bp.route('/respond_to_counter/<int:offer_id>', methods=['POST'])
+@login_required
+def respond_to_counter(offer_id):
+    """Provider responds to client's counter-offer: accept or revise."""
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+    try:
+        data = request.get_json() or {}
+        action = data.get('action')  # 'accept_counter' or 'revise'
+
+        offer = RequestOfferResponse.query.filter_by(
+            id=offer_id, provider_id=current_user.id
+        ).first()
+        if not offer or offer.status != 'pending':
+            return jsonify({'success': False, 'message': 'Offer not found'}), 404
+
+        if action == 'accept_counter':
+            if offer.counter_price is None:
+                return jsonify({'success': False, 'message': 'No counter to accept'}), 400
+            offer.proposed_price = offer.counter_price
+            offer.counter_price = None
+            offer.last_action_by = 'provider'
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Counter accepted'})
+
+        elif action == 'revise':
+            new_price = data.get('price')
+            try:
+                new_price = float(new_price)
+                if new_price < 0:
+                    raise ValueError
+            except (ValueError, TypeError):
+                return jsonify({'success': False, 'message': 'Invalid price'}), 400
+            offer.proposed_price = new_price
+            offer.counter_price = None
+            offer.last_action_by = 'provider'
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Price revised'})
+        else:
+            return jsonify({'success': False, 'message': 'Invalid action'}), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+
+@provider_bp.route('/provider_get_accepted_requests', methods=['GET'])
+@login_required
+def provider_get_accepted_requests():
     if current_user.role != 'provider':
         return jsonify({'success': False, 'message': 'Access denied'}), 403
 
@@ -301,6 +395,9 @@ def nurse_get_accepted_requests():
                 'address': req.address if show_address else None,
                 'notes': req.notes,
                 'payment': offer.proposed_price,
+                'counter_price': offer.counter_price,
+                'last_action_by': offer.last_action_by,
+                'client_budget': req.payment,
                 'req_status': req.status,
                 'req_id': req.id,
             })
@@ -310,6 +407,74 @@ def nurse_get_accepted_requests():
     except Exception as e:
         current_app.logger.error(f"Error retrieving accepted requests: {str(e)}")
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+
+def send_service_receipt_email(client, provider, service_name, amount, currency, service_date, service_time, receipt_number):
+    """Send a formal service receipt email for insurance/tax reimbursement."""
+    flask_app = current_app._get_current_object()
+    client_name = client.full_name or client.user_name
+    provider_name = provider.full_name or provider.user_name
+
+    msg = MailMessage(
+        subject=f"Service Receipt #{receipt_number}",
+        sender=os.getenv('MAIL_DEFAULT_SENDER'),
+        recipients=[client.email]
+    )
+    msg.html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+        <div style="text-align:center;margin-bottom:30px;">
+            <h2 style="color:#3f4a36;margin:0;">Service Receipt</h2>
+            <p style="color:#6b7280;margin:5px 0;">Receipt #{receipt_number}</p>
+        </div>
+
+        <div style="background:#f9fafb;border-radius:12px;padding:20px;margin-bottom:20px;">
+            <table style="width:100%;border-collapse:collapse;">
+                <tr>
+                    <td style="padding:8px 0;color:#6b7280;width:40%;">Client:</td>
+                    <td style="padding:8px 0;font-weight:600;">{client_name}</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0;color:#6b7280;">Service Provider:</td>
+                    <td style="padding:8px 0;font-weight:600;">{provider_name}</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0;color:#6b7280;">Service:</td>
+                    <td style="padding:8px 0;font-weight:600;">{service_name}</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0;color:#6b7280;">Date:</td>
+                    <td style="padding:8px 0;font-weight:600;">{service_date}</td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 0;color:#6b7280;">Time:</td>
+                    <td style="padding:8px 0;font-weight:600;">{service_time}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="background:#3f4a36;color:#fff;border-radius:12px;padding:20px;text-align:center;margin-bottom:20px;">
+            <p style="margin:0;font-size:14px;opacity:0.8;">Amount Paid</p>
+            <p style="margin:5px 0;font-size:28px;font-weight:700;">{amount:.2f} {currency}</p>
+        </div>
+
+        <p style="color:#6b7280;font-size:13px;text-align:center;">
+            This receipt can be used for insurance reimbursement (Krankenkasse) or tax deduction purposes.
+            <br>Generated on {datetime.now().strftime('%d.%m.%Y %H:%M')}
+        </p>
+
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;">
+        <p style="color:#9ca3af;font-size:12px;text-align:center;">Human-me Platform</p>
+    </div>
+    """
+
+    def _send(app, m):
+        with app.app_context():
+            try:
+                mail.send(m)
+            except Exception as e:
+                app.logger.error(f"Receipt email error: {str(e)}")
+
+    Thread(target=_send, args=(flask_app, msg)).start()
 
 
 @provider_bp.route('/complete_request/<int:request_id>', methods=['POST'])
@@ -327,6 +492,36 @@ def complete_request(request_id):
         if not req:
             return jsonify({'success': False, 'message': 'Request not found'}), 404
 
+        is_free = (req.payment or 0) == 0
+
+        if is_free:
+            # Free service — no payment needed, just mark complete
+            if req.status not in ('accepted', 'authorized'):
+                return jsonify({'success': False, 'message': 'Request not in valid state'}), 400
+
+            req.status = 'completed'
+            db.session.commit()
+
+            # Send receipt email for free service
+            try:
+                client = User.query.get(req.patient_id)
+                if client and client.email:
+                    send_service_receipt_email(
+                        client=client,
+                        provider=current_user,
+                        service_name=req.service_name or 'Service',
+                        amount=0,
+                        currency='EUR',
+                        service_date=req.appointment_start_time.strftime('%d.%m.%Y'),
+                        service_time=req.appointment_start_time.strftime('%H:%M'),
+                        receipt_number=f"REQ-{request_id}"
+                    )
+            except Exception as e:
+                current_app.logger.error(f"Receipt email error: {str(e)}")
+
+            return jsonify({'success': True})
+
+        # Paid service — must be authorized first
         if req.status != 'authorized':
             return jsonify({'success': False, 'message': 'Payment not yet authorized by client'}), 400
 
@@ -354,6 +549,24 @@ def complete_request(request_id):
 
         req.status = 'completed'
         db.session.commit()
+
+        # Send receipt email to client
+        try:
+            client = User.query.get(req.patient_id)
+            if client and client.email:
+                send_service_receipt_email(
+                    client=client,
+                    provider=current_user,
+                    service_name=req.service_name or 'Service',
+                    amount=float(amount_cents) / 100,
+                    currency='EUR',
+                    service_date=req.appointment_start_time.strftime('%d.%m.%Y'),
+                    service_time=req.appointment_start_time.strftime('%H:%M'),
+                    receipt_number=f"REQ-{request_id}"
+                )
+        except Exception as e:
+            current_app.logger.error(f"Receipt email error: {str(e)}")
+
         return jsonify({'success': True})
 
     except stripe.StripeError as e:

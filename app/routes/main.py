@@ -12,8 +12,8 @@ def home():
     return render_template('home.html')
 
 
-@main_bp.route('/search_nurses')
-def search_nurses():
+@main_bp.route('/search_providers_by_rating')
+def search_providers_by_rating():
     # filters: minimum rating and/or part of the name
     min_rating = request.args.get('min_rating', type=float)
     q = request.args.get('q', '', type=str).strip()
@@ -26,11 +26,10 @@ def search_nurses():
             (User.full_name.isnot(None) & User.full_name.ilike(f'%{q}%'))
         ))
 
-    nurses = query.all()
+    providers = query.all()
 
-    # We’ll apply the filter by average rating at the Python level (we could also do it via a hybrid property, but this is simpler).
     results = []
-    for n in nurses:
+    for n in providers:
         avg = n.average_rating
         if min_rating is not None and (avg is None or avg < min_rating):
             continue
@@ -60,10 +59,10 @@ def search_providers():
             User.about_me.ilike(f'%{q}%'),
         ))
 
-    nurses = query.limit(20).all()
+    providers = query.limit(20).all()
 
     results = []
-    for n in nurses:
+    for n in providers:
         services = ProviderService.query.filter_by(
             provider_id=n.id, is_available=True
         ).limit(3).all()
@@ -94,14 +93,14 @@ def search_providers():
 def platform_stats():
     providers = User.query.filter_by(role='provider').count()
     completed = Appointment.query.filter_by(status='completed').count()
-    avg = db.session.query(func.avg(User.average_nurse_rating)).filter(
-        User.role == 'provider',
-        User.average_nurse_rating.isnot(None)
-    ).scalar()
+    # average_rating is a Python property — compute in Python
+    all_providers = User.query.filter_by(role='provider').all()
+    ratings = [p.average_rating for p in all_providers if p.average_rating]
+    avg = round(sum(ratings) / len(ratings), 1) if ratings else None
     return jsonify({
         'providers': providers,
         'tasks_completed': completed,
-        'avg_rating': round(float(avg), 1) if avg else None
+        'avg_rating': avg
     })
 
 

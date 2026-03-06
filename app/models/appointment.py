@@ -54,7 +54,7 @@ class ClientSelfCreatedAppointment(db.Model):
 
     patient       = relationship('User', foreign_keys=[patient_id])
     provider      = relationship('User', foreign_keys=[provider_id])
-    nurse_service = relationship('ProviderService')
+    provider_service = relationship('ProviderService')
     offers        = relationship('RequestOfferResponse', backref='appointment_requests')
 
 
@@ -65,7 +65,9 @@ class RequestOfferResponse(db.Model):
     id             = Column(Integer, primary_key=True)
     request_id     = Column(Integer, ForeignKey('client_self_create_appointment.id'))
     provider_id    = Column(Integer, ForeignKey('user.id'))
-    proposed_price = Column(Float)
+    proposed_price = Column(Float, default=0.0)
+    counter_price  = Column(Float, nullable=True)          # client's counter-offer
+    last_action_by = Column(String(10), default='provider') # 'provider' or 'client'
     status         = Column(Text, default='pending')   # pending | accepted | rejected
     created_at     = Column(DateTime, default=datetime.now)
 
