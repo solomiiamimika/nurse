@@ -174,6 +174,7 @@ def _process_register(cm, telegram_id, text, bot_token, chat_id, session):
         menu = keyboards.client_menu() if d['role'] == 'client' else keyboards.provider_menu()
         send_message(bot_token, chat_id,
                      f"Account created! Welcome, <b>@{d['username']}</b> ({d['role']}).\n"
+                     f"You can switch role anytime with /switch_role.\n"
                      f"Use /help for commands.",
                      menu)
 

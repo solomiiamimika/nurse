@@ -6,8 +6,8 @@
 <style>
     /* --- 1. GLOBAL THEME --- */
     body {
-        background-color: #fff0f3;
-        background-image: linear-gradient(180deg, #fff0f3 0%, #ffffff 100%);
+        background-color: #fef7f0;
+        background-image: linear-gradient(180deg, #fff0f3 0%, #fef7f0 20%, #f0f7ee 60%, #e8f5e9 100%);
         background-attachment: fixed;
         overflow-x: hidden;
     }
@@ -58,25 +58,54 @@
     /* --- 3. HERO SECTION --- */
     .hero-section {
         position: relative;
-        /* Збільшили відступ зверху, щоб кнопки не налізали на заголовок */
-        padding: 140px 20px 80px; 
+        padding: 140px 20px 80px;
         min-height: 85vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M22 18 V42 M38 18 V42 M22 30 H38' stroke='%23000000' stroke-width='1.5' fill='none' opacity='0.04'/%3E%3C/svg%3E");
+        overflow: hidden;
     }
-    .hero-content-wrapper { display: flex; flex-direction: column; align-items: center; gap: 40px; max-width: 1200px; width: 100%; z-index: 2; }
+    /* Floating flowers in hero */
+    .hero-flower {
+        position: absolute; pointer-events: none; z-index: 0;
+        font-size: 1.8rem; opacity: 0.15;
+        animation: floatFlower var(--dur, 8s) ease-in-out infinite;
+        animation-delay: var(--delay, 0s);
+    }
+    @keyframes floatFlower {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        33% { transform: translateY(-12px) rotate(8deg); }
+        66% { transform: translateY(6px) rotate(-5deg); }
+    }
+    .hero-content-wrapper { display: flex; flex-direction: column; align-items: center; gap: 40px; max-width: 1200px; width: 100%; z-index: 2; position: relative; }
     .hero-title { font-size: 3.5rem; font-weight: 800; color: var(--text-dark); line-height: 1.1; margin-bottom: 20px; }
     .hero-title span { color: var(--primary-green); text-decoration: underline; text-decoration-thickness: 5px; text-underline-offset: 5px; }
     .hero-subtitle { font-size: 1.25rem; color: var(--text-gray); margin-bottom: 30px; line-height: 1.6; }
 
     /* --- 4. WIDGET --- */
-    .hero-widget-container { width: 100%; max-width: 450px; position: relative; z-index: 10; }
+    .hero-search-row { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; max-width: 450px; }
+    .hero-search-row.has-results { flex-direction: row-reverse; align-items: flex-start; max-width: 900px; gap: 24px; }
+    .hero-widget-container { width: 100%; max-width: 450px; position: relative; z-index: 10; flex-shrink: 0; }
+    .hero-search-row.has-results .hero-widget-container { max-width: 340px; }
     .booking-widget { background: white; border-radius: 24px; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.05); position: relative; overflow: hidden; transition: all 0.4s ease; }
-    .widget-tabs { display: flex; margin-bottom: 20px; border-bottom: 1px solid #eee; }
-    .widget-tab { padding: 10px 20px; cursor: pointer; font-weight: 700; color: var(--text-gray); border-bottom: 3px solid transparent; transition: 0.3s; flex: 1; text-align: center; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px; }
-    .widget-tab.active { color: var(--text-dark); border-bottom-color: var(--primary-green); }
+    /* Results panel */
+    .hero-results-panel {
+        flex: 1; min-width: 0; background: rgba(255,255,255,0.85); backdrop-filter: blur(12px);
+        border-radius: 20px; padding: 24px; border: 1px solid rgba(0,0,0,0.06);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.06);
+        animation: panelSlideIn 0.4s cubic-bezier(0.25,0.8,0.25,1) forwards;
+        max-height: 500px; overflow-y: auto;
+    }
+    @keyframes panelSlideIn {
+        from { opacity: 0; transform: translateX(-30px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .results-footer { text-align: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.06); }
+    @media (max-width: 768px) {
+        .hero-search-row.has-results { flex-direction: column; max-width: 450px; }
+        .hero-search-row.has-results .hero-widget-container { max-width: 100%; }
+    }
     .input-group-styled { background: #f8f9fa; border-radius: 12px; padding: 12px 15px; margin-bottom: 15px; border: 1px solid transparent; transition: 0.3s; display: flex; align-items: center; gap: 12px; }
     .input-group-styled:focus-within { background: white; border-color: var(--text-dark); box-shadow: 0 0 0 4px rgba(0,0,0,0.05); }
     .input-clean { border: none; background: transparent; width: 100%; outline: none; font-weight: 600; font-size: 1rem; color: var(--text-dark); }
@@ -93,43 +122,10 @@
     .loading-overlay.active { opacity: 1; pointer-events: all; }
     .spinner-border { width: 3rem; height: 3rem; color: var(--primary-green); }
 
-    /* --- 5. MATRIX PILLS --- */
-    .matrix-section { padding: 100px 20px; text-align: center; background: white; position: relative; z-index: 10; margin-top: -1px; }
-    .matrix-title { font-weight: 800; font-size: 2.5rem; margin-bottom: 10px; color: var(--text-dark); }
-    .matrix-subtitle { color: var(--text-gray); max-width: 600px; margin: 0 auto 50px; font-size: 1.1rem; line-height: 1.5; }
-    .pills-wrapper { display: flex; justify-content: center; gap: 60px; flex-wrap: wrap; }
-    .pill-container { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.3s; }
-    .pill-container:hover { transform: translateY(-10px); }
-    .pill { width: 160px; height: 60px; border-radius: 50px; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.15); margin-bottom: 15px; overflow: hidden; }
-    .pill-text { font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: white; z-index: 2; font-size: 1rem; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
-    .pill-shine { position: absolute; top: 0; left: 10%; width: 80%; height: 50%; background: linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.1)); border-radius: 50px; z-index: 1; }
-    .pill-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); box-shadow: 0 10px 30px rgba(0, 198, 255, 0.4); }
-    .pill-red { background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%); box-shadow: 0 10px 30px rgba(255, 8, 68, 0.4); animation: pulse-red 2s infinite; }
-    .pill-desc { font-size: 0.9rem; color: #999; transition: 0.3s; }
-    .pill-container:hover .pill-desc { color: #333; }
-    @keyframes pulse-red { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 8, 68, 0.7); } 70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 8, 68, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 8, 68, 0); } }
-
-    /* --- 6. CATEGORIES --- */
+    /* --- 6. SECTIONS --- */
     .section-container { padding: 80px 20px; max-width: 1200px; margin: 0 auto; position: relative; z-index: 10; }
-    .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; }
-    .category-card { background: white; border: 1px solid #eee; border-radius: 16px; padding: 30px 20px; text-align: center; transition: 0.3s; cursor: pointer; }
-    .category-card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.08); border-color: var(--primary-green); }
-    .cat-icon-circle { width: 70px; height: 70px; background: #fff0f3; color: var(--text-dark); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; transition: 0.3s; }
-    .category-card:hover .cat-icon-circle { background: var(--primary-green); color: white; }
 
     /* --- 7. MEADOW & ANIMATIONS --- */
-    /* Rocket Animation */
-    #rocket-launcher {
-        position: fixed; bottom: -200px; left: 50%; transform: translateX(-50%);
-        width: 120px; height: auto; z-index: 9999; pointer-events: none; transition: transform 0.1s;
-    }
-    .rocket-shake { animation: rocketShake 0.5s ease-in-out infinite; }
-    .rocket-launching { animation: launchToSpace 1.5s cubic-bezier(0.5, 0, 0.5, 1) forwards; }
-    @keyframes rocketShake { 0% { transform: translateX(-52%) rotate(-2deg); } 25% { transform: translateX(-48%) rotate(2deg); } 50% { transform: translateX(-52%) rotate(-2deg); } 75% { transform: translateX(-48%) rotate(2deg); } 100% { transform: translateX(-50%) rotate(0deg); } }
-    @keyframes launchToSpace { 0% { bottom: 50px; transform: translateX(-50%) scale(1); } 100% { bottom: 150%; transform: translateX(-50%) scale(0.5); } }
-    .rocket-flame { animation: flameFlicker 0.1s infinite alternate; transform-origin: center top; }
-    @keyframes flameFlicker { 0% { transform: scaleY(1); opacity: 0.8; } 100% { transform: scaleY(1.3); opacity: 1; } }
-
     /* Meadow */
     .meadow-container { position: fixed; bottom: 0; left: 0; width: 100%; height: 250px; z-index: 1; pointer-events: none; transform: translateY(100px); transition: transform 0.1s linear; display: flex; align-items: flex-end; justify-content: center; opacity: 0.9; }
     .meadow-svg { width: 100%; min-width: 1200px; height: auto; }
@@ -145,54 +141,263 @@
     @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
 
     /* Fake Result Cards */
-    .provider-result-card { display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: 1px solid #f0f0f0; animation: slideDown 0.4s ease forwards; opacity: 0; transform: translateY(-10px); }
-    .provider-result-card:last-child { border-bottom: none; }
-    .provider-result-card:nth-child(1) { animation-delay: 0.1s; }
-    .provider-result-card:nth-child(2) { animation-delay: 0.2s; }
-    .provider-result-card:nth-child(3) { animation-delay: 0.3s; }
-    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-    .provider-avatar { width: 50px; height: 50px; background: #eee; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-    .book-btn-sm { background: white; border: 1px solid var(--text-dark); color: var(--text-dark); padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
-    .book-btn-sm:hover { background: var(--text-dark); color: white; }
+    .provider-result-card { display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease forwards; opacity: 0; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+    .provider-result-card { border-radius: 12px; padding: 12px 14px; transition: background 0.2s; }
+    .provider-result-card:hover { background: rgba(0,0,0,0.03); }
+    .provider-avatar { width: 44px; height: 44px; background: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: #198754; flex-shrink: 0; }
+    .book-btn-sm { background: var(--text-dark); color: white; border: none; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 4px; }
+    .book-btn-sm:hover { background: #000; transform: scale(1.05); }
     .hidden { display: none !important; }
 
+    /* --- EXPLAINER "VIDEO" SECTION --- */
+    .explainer-section {
+        position: relative; z-index: 10;
+        background: transparent;
+        padding: 80px 20px;
+        overflow: hidden;
+    }
+    .explainer-title {
+        text-align: center; font-weight: 800; font-size: 2.2rem; color: var(--text-dark); margin-bottom: 8px;
+    }
+    .explainer-subtitle {
+        text-align: center; color: var(--text-gray); font-size: 1.05rem; margin-bottom: 50px;
+    }
+    .explainer-stage {
+        max-width: 900px; margin: 0 auto; position: relative; min-height: 320px;
+    }
+    .explainer-slide {
+        position: absolute; top: 0; left: 0; width: 100%; opacity: 0;
+        transform: translateY(30px) scale(0.96);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+        pointer-events: none;
+        display: flex; align-items: center; justify-content: center; gap: 50px;
+    }
+    .explainer-slide.active {
+        opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; position: relative;
+    }
+    .explainer-visual {
+        flex: 0 0 280px; height: 280px; border-radius: 28px; display: flex; align-items: center; justify-content: center;
+        position: relative; overflow: hidden;
+    }
+    .explainer-visual .ev-icon {
+        font-size: 5rem; z-index: 2; animation: evPulse 3s ease-in-out infinite;
+    }
+    @keyframes evPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    .explainer-visual .ev-bg {
+        position: absolute; inset: 0; border-radius: 28px;
+    }
+    .ev-bg-1 { background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%); }
+    .ev-bg-2 { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); }
+    .ev-bg-3 { background: linear-gradient(135deg, #fff9c4 0%, #fff176 100%); }
+    .ev-bg-4 { background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%); }
+    .explainer-visual .ev-ring {
+        position: absolute; border-radius: 50%; border: 2px solid rgba(0,0,0,0.06);
+        animation: evRing 4s ease-in-out infinite;
+    }
+    .ev-ring-1 { width: 200px; height: 200px; }
+    .ev-ring-2 { width: 260px; height: 260px; animation-delay: 0.5s; }
+    .ev-ring-3 { width: 320px; height: 320px; animation-delay: 1s; }
+    @keyframes evRing { 0%,100% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.05); opacity: 0.6; } }
+    .explainer-text { flex: 1; }
+    .explainer-text .ev-step {
+        display: inline-block; background: var(--primary-green); color: white;
+        font-weight: 800; font-size: 0.85rem; padding: 4px 14px; border-radius: 20px;
+        margin-bottom: 12px; letter-spacing: 1px;
+    }
+    .explainer-text h3 { font-weight: 800; font-size: 1.8rem; color: var(--text-dark); margin-bottom: 12px; line-height: 1.2; }
+    .explainer-text p { color: var(--text-gray); font-size: 1.05rem; line-height: 1.6; margin-bottom: 0; }
+
+    /* Dots navigation */
+    .explainer-dots {
+        display: flex; justify-content: center; gap: 10px; margin-top: 40px;
+    }
+    .explainer-dot {
+        width: 12px; height: 12px; border-radius: 50%; background: #ddd; cursor: pointer;
+        transition: all 0.3s; border: none; padding: 0;
+    }
+    .explainer-dot.active { background: var(--primary-green); transform: scale(1.3); }
+
+    /* Progress bar under dots */
+    .explainer-progress {
+        width: 200px; height: 3px; background: #eee; border-radius: 3px; margin: 16px auto 0; overflow: hidden;
+    }
+    .explainer-progress-bar {
+        height: 100%; background: var(--primary-green); border-radius: 3px; width: 0%;
+        animation: evProgress 5s linear infinite;
+    }
+    @keyframes evProgress { 0% { width: 0%; } 100% { width: 100%; } }
+
+    /* Floating particles in visual */
+    .ev-particle {
+        position: absolute; border-radius: 50%; opacity: 0.4;
+        animation: evFloat 6s ease-in-out infinite;
+    }
+    @keyframes evFloat {
+        0%,100% { transform: translateY(0) translateX(0); }
+        25% { transform: translateY(-20px) translateX(10px); }
+        50% { transform: translateY(-10px) translateX(-15px); }
+        75% { transform: translateY(-25px) translateX(5px); }
+    }
+
+    @media (max-width: 768px) {
+        .explainer-slide { flex-direction: column; gap: 25px; }
+        .explainer-visual { flex: none; width: 200px; height: 200px; }
+        .explainer-text { text-align: center; }
+        .explainer-text h3 { font-size: 1.4rem; }
+    }
+
     /* --- STATS BAR --- */
-    .stats-bar { background: white; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; padding: 24px 20px; position: relative; z-index: 10; }
+    .stats-bar { background: rgba(255,255,255,0.5); backdrop-filter: blur(8px); border-top: 1px solid rgba(0,0,0,0.04); border-bottom: 1px solid rgba(0,0,0,0.04); padding: 24px 20px; position: relative; z-index: 10; }
     .stat-item { text-align: center; }
     .stat-number { font-size: 2rem; font-weight: 800; color: var(--text-dark); line-height: 1; }
     .stat-label { font-size: 0.85rem; color: var(--text-gray); margin-top: 4px; }
 
-    /* --- CRYSTAL BALL --- */
-    .crystal-section { padding: 80px 20px; text-align: center; background: linear-gradient(180deg, #f8f0ff 0%, #fff0f3 100%); position: relative; z-index: 10; }
-    .crystal-title { font-weight: 800; font-size: 2rem; margin-bottom: 8px; color: var(--text-dark); }
-    .crystal-subtitle { color: var(--text-gray); margin-bottom: 40px; font-size: 1rem; }
-    .crystal-ball-wrap { display: inline-block; cursor: pointer; position: relative; }
-    .crystal-ball {
-        width: 180px; height: 180px; border-radius: 50%; margin: 0 auto;
-        background: radial-gradient(circle at 35% 35%, #e8b4ff, #9b1dea 45%, #4a0080 80%, #1a0030);
-        box-shadow: 0 0 40px rgba(155, 29, 234, 0.4), 0 0 80px rgba(155, 29, 234, 0.2), inset 0 0 30px rgba(255,255,255,0.1);
-        transition: box-shadow 0.3s, transform 0.3s;
-        position: relative; overflow: hidden;
-        display: flex; align-items: center; justify-content: center;
+    /* --- EASTER EGG SMASH --- */
+    .egg-section {
+        padding: 80px 20px; text-align: center;
+        background: transparent;
+        position: relative; z-index: 10;
     }
-    .crystal-ball::before { content: ''; position: absolute; top: 18%; left: 22%; width: 35%; height: 25%; background: radial-gradient(ellipse, rgba(255,255,255,0.6), transparent); border-radius: 50%; }
-    .crystal-ball-inner { color: rgba(255,255,255,0.7); font-size: 2.5rem; z-index: 1; user-select: none; }
-    .crystal-ball.shaking { animation: crystalShake 0.5s ease; }
-    .crystal-ball.glowing { box-shadow: 0 0 60px rgba(155, 29, 234, 0.8), 0 0 120px rgba(155, 29, 234, 0.4); }
-    @keyframes crystalShake { 0%,100%{transform:rotate(0deg)} 20%{transform:rotate(-8deg) scale(1.05)} 40%{transform:rotate(8deg) scale(1.08)} 60%{transform:rotate(-5deg) scale(1.05)} 80%{transform:rotate(5deg)} }
-    .crystal-quote-box { max-width: 500px; margin: 30px auto 0; min-height: 80px; }
-    .crystal-quote { font-size: 1.1rem; font-style: italic; color: #4a0080; font-weight: 600; line-height: 1.5; opacity: 0; transition: opacity 0.6s; }
-    .crystal-quote.visible { opacity: 1; }
-    .crystal-source { font-size: 0.85rem; color: var(--text-gray); margin-top: 6px; opacity: 0; transition: opacity 0.6s 0.2s; }
-    .crystal-source.visible { opacity: 1; }
-    .btn-ask-again { margin-top: 20px; background: transparent; border: 2px solid #9b1dea; color: #9b1dea; padding: 10px 28px; border-radius: 50px; font-weight: 700; cursor: pointer; transition: 0.3s; display: none; }
-    .btn-ask-again:hover { background: #9b1dea; color: white; }
-    .crystal-hint { color: var(--text-gray); font-size: 0.9rem; margin-top: 16px; }
+    .egg-title { font-weight: 800; font-size: 2rem; margin-bottom: 8px; color: var(--text-dark); }
+    .egg-subtitle { color: var(--text-gray); margin-bottom: 40px; font-size: 1rem; }
+    .egg-stage {
+        position: relative; display: inline-block; user-select: none;
+        width: 260px; height: 270px; margin-bottom: 10px;
+        cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ctext x='0' y='28' font-size='28'>🔨</text%3E%3C/svg%3E") 4 28, pointer;
+    }
+    .egg-svg { transition: filter 0.1s; display: block; margin: 0 auto; position: relative; z-index: 2; }
+    .egg-svg.hit { animation: eggShake 0.3s ease; }
+    @keyframes eggShake {
+        0%,100% { transform: rotate(0); }
+        20% { transform: rotate(-6deg); }
+        40% { transform: rotate(6deg); }
+        60% { transform: rotate(-4deg); }
+        80% { transform: rotate(3deg); }
+    }
+    .egg-hammer { display: none; }
+    .egg-stage:active .egg-svg:not(.smashed) { transform: scale(0.95); }
+    /* Split halves — hidden until smash, each clips one side of the egg */
+    .egg-half {
+        position: absolute; top: 0; left: 50%; width: 200px; height: 260px;
+        transform: translateX(-50%); pointer-events: none;
+        opacity: 0; z-index: 3;
+        transition: transform 0.7s cubic-bezier(0.25,0.8,0.25,1), opacity 0.15s;
+    }
+    .egg-half .egg-svg-half { width: 200px; height: 260px; display: block; }
+    .egg-half-left { clip-path: polygon(0 0, 52% 0, 48% 100%, 0 100%); }
+    .egg-half-right { clip-path: polygon(48% 0, 100% 0, 100% 100%, 52% 100%); }
+    .egg-half.split { opacity: 1; }
+    .egg-half-left.split {
+        transform: translateX(-50%) translateX(-28px) rotate(-18deg);
+        transform-origin: 50% 100%;
+    }
+    .egg-half-right.split {
+        transform: translateX(-50%) translateX(28px) rotate(18deg);
+        transform-origin: 50% 100%;
+    }
+    /* Flying shell pieces */
+    .shell-piece {
+        position: absolute; pointer-events: none; z-index: 10;
+        animation: shellFly 0.8s ease-out forwards;
+    }
+    @keyframes shellFly {
+        0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); }
+        100% { opacity: 0; transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(0.3); }
+    }
+    /* Shell-to-star: pieces fly up, morph into stars, rain down to fortune card */
+    .shell-star {
+        position: absolute; pointer-events: none; z-index: 12;
+        font-size: 1rem; opacity: 0;
+        animation: shellToStar var(--dur) cubic-bezier(0.25,0.8,0.25,1) forwards;
+        animation-delay: var(--delay);
+    }
+    @keyframes shellToStar {
+        0% { opacity: 1; transform: translate(0, 0) scale(0.4) rotate(0deg); }
+        35% { opacity: 1; transform: translate(var(--mx), var(--my)) scale(1.2) rotate(180deg); }
+        100% { opacity: 0.7; transform: translate(var(--fx), var(--fy)) scale(0.8) rotate(360deg); }
+    }
+    .egg-sparkle {
+        position: absolute; pointer-events: none; z-index: 8; font-size: 1.5rem;
+        animation: sparkle 0.6s ease-out forwards;
+    }
+    @keyframes sparkle {
+        0% { opacity: 1; transform: translate(0, 0) scale(0.5); }
+        100% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(1.5); }
+    }
+    /* Hit counter */
+    .egg-hits { margin-top: 8px; font-size: 0.85rem; color: var(--text-gray); }
+    .egg-hits .hits-bar {
+        width: 180px; height: 5px; background: #eee; border-radius: 6px;
+        margin: 6px auto 0; overflow: hidden;
+    }
+    .egg-hits .hits-fill {
+        height: 100%; background: linear-gradient(90deg, #ffeb3b, #ff9800, #f44336);
+        border-radius: 6px; transition: width 0.3s ease;
+    }
+    /* Fortune note — overlaid where the egg was */
+    .egg-fortune {
+        position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%) scale(0.6);
+        width: 220px; z-index: 5; pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.5s ease 0.1s, transform 0.6s cubic-bezier(0.25,0.8,0.25,1) 0.1s;
+    }
+    .egg-fortune.visible {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    .egg-fortune-card {
+        background: linear-gradient(135deg, rgba(255,254,245,0.95) 0%, rgba(254,249,231,0.95) 40%, rgba(253,242,233,0.95) 100%);
+        border: 1.5px solid #e6c97a;
+        border-radius: 14px;
+        padding: 20px 22px 18px;
+        box-shadow: 0 6px 24px rgba(180,140,60,0.18), 0 2px 8px rgba(0,0,0,0.06);
+        position: relative; text-align: center;
+    }
+    .egg-fortune-card::before {
+        content: ''; position: absolute; top: -7px; left: 50%; transform: translateX(-50%);
+        width: 32px; height: 14px;
+        background: linear-gradient(135deg, #ffe082, #ffb74d);
+        border-radius: 0 0 16px 16px;
+        border: 1.5px solid #e6a040; border-top: none;
+    }
+    .egg-fortune-icon {
+        font-size: 1.3rem; margin-bottom: 6px;
+        animation: none; display: inline-block;
+    }
+    .egg-fortune.visible .egg-fortune-icon {
+        animation: iconPulse 1.5s ease-in-out infinite;
+    }
+    @keyframes iconPulse {
+        0%, 100% { transform: scale(1); filter: brightness(1); }
+        50% { transform: scale(1.15); filter: brightness(1.3); }
+    }
+    .egg-fortune-quote {
+        font-size: 0.9rem; font-style: italic; color: #5d4e00;
+        font-weight: 600; line-height: 1.45;
+        font-family: Georgia, 'Times New Roman', serif;
+    }
+    .egg-fortune-source {
+        font-size: 0.72rem; color: #a08830; margin-top: 8px;
+        font-weight: 500; letter-spacing: 0.02em;
+    }
+    .egg-fortune-divider {
+        width: 30px; height: 2px; margin: 8px auto;
+        background: linear-gradient(90deg, transparent, #dab850, transparent);
+        border-radius: 2px;
+    }
+    .btn-new-egg {
+        margin-top: 18px; background: transparent; border: 2px solid #e67e22;
+        color: #e67e22; padding: 10px 28px; border-radius: 50px;
+        font-weight: 700; cursor: pointer; transition: 0.3s; display: none;
+    }
+    .btn-new-egg:hover { background: #e67e22; color: white; }
 
     /* --- DUAL CTA --- */
     .dual-cta-section { padding: 80px 20px; position: relative; z-index: 10; }
     .cta-card { border-radius: 24px; padding: 48px 36px; height: 100%; display: flex; flex-direction: column; }
-    .cta-card-light { background: #f8fafc; border: 2px solid #e5e7eb; }
+    .cta-card-light { background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); border: 2px solid rgba(229,231,235,0.6); }
     .cta-card-dark { background: #111; color: white; }
     .cta-card-dark .text-muted { color: rgba(255,255,255,0.6) !important; }
     .cta-emoji { font-size: 3rem; margin-bottom: 20px; display: block; }
@@ -227,20 +432,6 @@
 
 <div class="landing-wrapper">
     
-    <div id="rocket-launcher">
-        <svg viewBox="0 0 512 512" width="100%" height="100%">
-            <path id="rocket-flame" class="rocket-flame" d="M256,430 c0,0, 60,10, 30,80 c-10,25, -30,60, -30,60 s-20,-35, -30,-60 c-30,-70, 30,-80, 30,-80 Z" fill="#FF5722" style="display: none;"/>
-            <path d="M256,16 C256,16 160,192 160,288 C160,341 203,384 256,384 C309,384 352,341 352,288 C352,192 256,16 256,16 Z" fill="#ECEFF1"/>
-            <path d="M256,16 C256,16 200,192 200,288 C200,341 256,384 256,384" fill="#CFD8DC"/>
-            <circle cx="256" cy="240" r="48" fill="#37474F"/>
-            <circle cx="256" cy="240" r="36" fill="#4FC3F7"/>
-            <path d="M275,225 A20,20 0 0 1 270,250" stroke="white" stroke-width="4" fill="none" opacity="0.6"/>
-            <path d="M160,288 C160,288 120,350 120,416 L190,384" fill="#DD2C00"/>
-            <path d="M352,288 C352,288 392,350 392,416 L322,384" fill="#DD2C00"/>
-            <path d="M256,384 L256,432" stroke="#DD2C00" stroke-width="20"/>
-        </svg>
-    </div>
-
     <div class="meadow-container" id="meadow">
         <svg class="meadow-svg" viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
             <path fill="#e8f5e9" fill-opacity="0.8" d="M0,256L48,229.3C96,203,192,149,288,154.7C384,160,480,224,576,218.7C672,213,768,139,864,128C960,117,1056,171,1152,197.3C1248,224,1344,224,1392,224L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
@@ -258,11 +449,22 @@
     </div>
 
     <div class="hero-section">
+        <!-- Floating flowers -->
+        <span class="hero-flower" style="top:8%; left:6%; --dur:7s; --delay:0s;">🌸</span>
+        <span class="hero-flower" style="top:15%; right:8%; --dur:9s; --delay:1.2s;">🌺</span>
+        <span class="hero-flower" style="top:35%; left:3%; --dur:10s; --delay:2s;">🌷</span>
+        <span class="hero-flower" style="top:55%; right:4%; --dur:8s; --delay:0.5s;">🌼</span>
+        <span class="hero-flower" style="top:70%; left:7%; --dur:11s; --delay:1.8s;">🌻</span>
+        <span class="hero-flower" style="top:25%; left:15%; --dur:9s; --delay:3s; font-size:1.2rem; opacity:0.1;">🌿</span>
+        <span class="hero-flower" style="top:45%; right:12%; --dur:8s; --delay:2.5s; font-size:1.3rem; opacity:0.1;">🍃</span>
+        <span class="hero-flower" style="top:80%; right:10%; --dur:7s; --delay:0.8s;">🌸</span>
+        <span class="hero-flower" style="top:60%; left:12%; --dur:12s; --delay:1s; font-size:1rem; opacity:0.08;">🌱</span>
+
         <div class="floating-badge d-none d-md-flex" style="top: 20%; left: 5%;">
             <i class="fas fa-bolt" style="color: #ffc107"></i> {{ _("Instant Help") }}
         </div>
         <div class="floating-badge d-none d-md-flex" style="bottom: 15%; right: 5%; animation-delay: 1s;">
-            <i class="fas fa-heart" style="color: #e91e63"></i> {{ _("Trusted Locals") }}
+            <i class="fas fa-heart" style="color: #e91e63"></i> {{ _("Local People") }}
         </div>
 
         <div class="hero-content-wrapper">
@@ -271,35 +473,125 @@
                 <p class="hero-subtitle">{{ _("це твоє місце щоб видихнути") }}</p>
             </div>
 
-            <div class="hero-widget-container">
-                <div class="booking-widget">
-                    
-                    <div id="step-search">
-                        <div class="widget-tabs">
-                            <div class="widget-tab active" onclick="switchTab(this, 'task')">{{ _("Delegate Task") }}</div>
+            <div class="hero-search-row" id="heroSearchRow">
+                <!-- Search form (right side) -->
+                <div class="hero-widget-container">
+                    <div class="booking-widget">
+                        <div id="step-search">
+                            <p class="text-center fw-bold mb-3" style="font-size: 1.1rem; color: var(--text-dark);">{{ _("How can we help?") }}</p>
+                            <div class="input-group-styled"><i class="fas fa-search"></i><input type="text" class="input-clean" placeholder="{{ _('e.g. walk the dog, help grandma, clean the flat...') }}" id="fakeTask" onkeydown="if(event.key==='Enter') simulateSearch()"></div>
+                            <div class="input-group-styled"><i class="fas fa-map-marker-alt"></i><input type="text" class="input-clean" placeholder="{{ _('Your area (optional)') }}" id="fakeLocation" onkeydown="if(event.key==='Enter') simulateSearch()"><i class="fas fa-location-arrow" id="geoBtn" style="font-size:0.85rem; cursor:pointer; color:var(--primary-green); padding:4px;" title="{{ _('Use my location') }}" onclick="detectLocation()"></i></div>
+                            <button type="button" class="btn-block-action" id="searchBtn" onclick="simulateSearch()">{{ _("Find Help") }} →</button>
+                            <p class="text-center mt-2 mb-0" style="font-size: 0.75rem; color: #aaa;">{{ _("Free. No sign-up needed to browse.") }}</p>
                         </div>
-                        <div class="input-group-styled"><i class="fas fa-magic"></i><select class="input-clean" id="fakeService"><option value="" disabled selected>{{ _("What do you need?") }}</option><option value="injections">{{ _("Injections & IV Drip") }}</option><option value="monitoring">{{ _("Health Check at Home") }}</option><option value="eldercare">{{ _("Elder Care") }}</option><option value="babycare">{{ _("Child Care") }}</option><option value="cleaning">{{ _("Home Cleaning & Help") }}</option><option value="errands">{{ _("Errands & Pharmacy") }}</option></select></div>
-                        <div class="input-group-styled"><i class="fas fa-map-marker-alt"></i><input type="text" class="input-clean" placeholder="{{ _('Where in Munich?') }}" id="fakeLocation"><i class="fas fa-location-arrow" style="font-size: 0.9rem; cursor: pointer; color: var(--primary-green);"></i></div>
-                        <div class="input-group-styled"><i class="fas fa-clock"></i><select class="input-clean"><option>{{ _("Right Now (ASAP)") }}</option><option>{{ _("Today, later") }}</option><option>{{ _("Tomorrow") }}</option></select></div>
-                        <button type="button" class="btn-block-action" id="searchBtn" onclick="simulateSearch()">{{ _("Delegate Now") }} ⚡️</button>
-                    </div>
-
-                    <div id="step-loading" class="loading-overlay">
-                        <div class="spinner-border mb-3" role="status"></div>
-                        <p class="fw-bold text-muted">{{ _("Scanning neighborhood...") }}</p>
-                    </div>
-
-                    <div id="step-results" class="hidden">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="mb-0 fw-bold">{{ _("Available Creators") }}</h6>
-                            <small class="text-muted" style="cursor: pointer; text-decoration: underline;" onclick="resetSearch()">{{ _("Change") }}</small>
+                        <div id="step-loading" class="loading-overlay">
+                            <div class="spinner-border mb-3" role="status"></div>
+                            <p class="fw-bold text-muted">{{ _("Looking for helpers near you...") }}</p>
                         </div>
-                        <div id="results-list"></div>
-                        <div class="text-center mt-3 pt-2 border-top"><small class="text-muted" id="results-count"></small></div>
+                    </div>
+                </div>
+
+                <!-- Results panel (left side, hidden until search) -->
+                <div class="hero-results-panel hidden" id="resultsPanel">
+                    <div class="results-header">
+                        <h5 class="mb-0 fw-bold">{{ _("Available Helpers") }}</h5>
+                        <small class="text-muted" style="cursor:pointer; text-decoration:underline;" onclick="resetSearch()">← {{ _("New search") }}</small>
+                    </div>
+                    <div id="results-list"></div>
+                    <div class="results-footer">
+                        <small class="text-muted" id="results-count"></small>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- EXPLAINER "VIDEO" — How it Works -->
+    <div class="explainer-section">
+        <h2 class="explainer-title">{{ _("How It Works") }}</h2>
+        <p class="explainer-subtitle">{{ _("From request to relaxation in 3 simple steps") }}</p>
+
+        <div class="explainer-stage" id="explainerStage">
+            <!-- Slide 1: Post -->
+            <div class="explainer-slide active" data-slide="0">
+                <div class="explainer-visual">
+                    <div class="ev-bg ev-bg-1"></div>
+                    <div class="ev-ring ev-ring-1"></div>
+                    <div class="ev-ring ev-ring-2"></div>
+                    <div class="ev-particle" style="width:12px;height:12px;background:#f48fb1;top:15%;left:20%;animation-delay:0s;"></div>
+                    <div class="ev-particle" style="width:8px;height:8px;background:#f06292;top:70%;left:75%;animation-delay:1s;"></div>
+                    <div class="ev-particle" style="width:10px;height:10px;background:#ec407a;top:40%;left:80%;animation-delay:2s;"></div>
+                    <div class="ev-icon">&#128221;</div>
+                </div>
+                <div class="explainer-text">
+                    <span class="ev-step">{{ _("STEP 1") }}</span>
+                    <h3>{{ _("Describe what you need") }}</h3>
+                    <p>{{ _("Post your task in seconds — cleaning, childcare, errands, elderly care, or anything else. Set your preferred time and budget.") }}</p>
+                </div>
+            </div>
+
+            <!-- Slide 2: Match -->
+            <div class="explainer-slide" data-slide="1">
+                <div class="explainer-visual">
+                    <div class="ev-bg ev-bg-2"></div>
+                    <div class="ev-ring ev-ring-1"></div>
+                    <div class="ev-ring ev-ring-2"></div>
+                    <div class="ev-particle" style="width:12px;height:12px;background:#81c784;top:20%;left:25%;animation-delay:0.5s;"></div>
+                    <div class="ev-particle" style="width:8px;height:8px;background:#66bb6a;top:65%;left:70%;animation-delay:1.5s;"></div>
+                    <div class="ev-particle" style="width:10px;height:10px;background:#4caf50;top:35%;left:15%;animation-delay:2.5s;"></div>
+                    <div class="ev-icon">&#129309;</div>
+                </div>
+                <div class="explainer-text">
+                    <span class="ev-step">{{ _("STEP 2") }}</span>
+                    <h3>{{ _("Get matched with a local helper") }}</h3>
+                    <p>{{ _("Verified helpers from your neighborhood respond with offers. Compare profiles, ratings and prices — then pick your favorite.") }}</p>
+                </div>
+            </div>
+
+            <!-- Slide 3: Relax -->
+            <div class="explainer-slide" data-slide="2">
+                <div class="explainer-visual">
+                    <div class="ev-bg ev-bg-3"></div>
+                    <div class="ev-ring ev-ring-1"></div>
+                    <div class="ev-ring ev-ring-2"></div>
+                    <div class="ev-particle" style="width:12px;height:12px;background:#fff176;top:25%;left:30%;animation-delay:0.3s;"></div>
+                    <div class="ev-particle" style="width:8px;height:8px;background:#ffee58;top:60%;left:65%;animation-delay:1.3s;"></div>
+                    <div class="ev-particle" style="width:10px;height:10px;background:#fdd835;top:45%;left:20%;animation-delay:2.3s;"></div>
+                    <div class="ev-icon">&#127881;</div>
+                </div>
+                <div class="explainer-text">
+                    <span class="ev-step">{{ _("STEP 3") }}</span>
+                    <h3>{{ _("Relax — it's handled") }}</h3>
+                    <p>{{ _("Your helper arrives at the agreed time. Pay securely through the app. Rate your experience and enjoy your free time!") }}</p>
+                </div>
+            </div>
+
+            <!-- Slide 4: Earn (for providers) -->
+            <div class="explainer-slide" data-slide="3">
+                <div class="explainer-visual">
+                    <div class="ev-bg ev-bg-4"></div>
+                    <div class="ev-ring ev-ring-1"></div>
+                    <div class="ev-ring ev-ring-2"></div>
+                    <div class="ev-particle" style="width:12px;height:12px;background:#81d4fa;top:18%;left:22%;animation-delay:0.7s;"></div>
+                    <div class="ev-particle" style="width:8px;height:8px;background:#4fc3f7;top:68%;left:72%;animation-delay:1.7s;"></div>
+                    <div class="ev-particle" style="width:10px;height:10px;background:#29b6f6;top:42%;left:78%;animation-delay:2.7s;"></div>
+                    <div class="ev-icon">&#128176;</div>
+                </div>
+                <div class="explainer-text">
+                    <span class="ev-step">{{ _("OR EARN") }}</span>
+                    <h3>{{ _("Help neighbors & get paid") }}</h3>
+                    <p>{{ _("Register as a helper, set your own schedule and prices. Accept tasks nearby, complete them, and receive same-day payouts.") }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="explainer-dots" id="explainerDots">
+            <button class="explainer-dot active" data-dot="0"></button>
+            <button class="explainer-dot" data-dot="1"></button>
+            <button class="explainer-dot" data-dot="2"></button>
+            <button class="explainer-dot" data-dot="3"></button>
+        </div>
+        <div class="explainer-progress"><div class="explainer-progress-bar" id="explainerProgressBar"></div></div>
     </div>
 
     <!-- STATS BAR -->
@@ -324,83 +616,62 @@
         </div>
     </div>
 
-    <div class="matrix-section">
-        <h2 class="matrix-title">{{ _("The Choice is Yours.") }}</h2>
-        <p class="matrix-subtitle">{{ _("Take the blue pill—wake up and do all on your own. Take the red pill—break the loop and see how adventurous life can really be.") }}</p>
-        
-        <div class="pills-wrapper">
-            <div class="pill-container" onclick="choosePill('blue')">
-                <div class="pill pill-blue"><span class="pill-text">{{ _("Routine") }}</span><div class="pill-shine"></div></div>
-                <p class="pill-desc">{{ _("On your own") }}</p>
-            </div>
-            <div class="pill-container" onclick="launchRocket()">
-                <div class="pill pill-red"><span class="pill-text">{{ _("Freedom") }}</span><div class="pill-shine"></div></div>
-                <p class="pill-desc fw-bold text-danger">{{ _("Life is an adventure") }}</p>
-            </div>
-        </div>
-    </div>
+    <!-- EASTER EGG SMASH -->
+    <div class="egg-section">
+        <h2 class="egg-title">{{ _("Smash the Easter Egg") }} 🥚🔨</h2>
+        <p class="egg-subtitle">{{ _("Hit the egg to crack it open and reveal your fortune!") }}</p>
 
-    <!-- CRYSTAL BALL -->
-    <div class="crystal-section">
-        <h2 class="crystal-title">{{ _("Ask the Universe") }} 🔮</h2>
-        <p class="crystal-subtitle">{{ _("Tap the ball for a prediction from the greatest books ever written.") }}</p>
-        <div class="crystal-ball-wrap" onclick="askCrystalBall()">
-            <div class="crystal-ball" id="crystalBall">
-                <span class="crystal-ball-inner">🔮</span>
+        <div class="egg-stage" id="eggStage" onclick="smashEgg(event)">
+            <div class="egg-hammer" id="eggHammer">🔨</div>
+            <!-- Left half wrapper (for split animation — content cloned at smash time) -->
+            <div class="egg-half egg-half-left" id="eggHalfLeft">
+                <svg class="egg-svg-half" viewBox="0 0 200 260" width="200" height="260"></svg>
             </div>
-        </div>
-        <p class="crystal-hint" id="crystalHint">{{ _("Tap to reveal your destiny...") }}</p>
-        <div class="crystal-quote-box">
-            <div class="crystal-quote" id="crystalQuote"></div>
-            <div class="crystal-source" id="crystalSource"></div>
-        </div>
-        <button class="btn-ask-again" id="askAgainBtn" onclick="askCrystalBall()">{{ _("Ask again") }} ✨</button>
-    </div>
-
-    <div class="section-container">
-        <h3 class="text-center mb-2" style="font-weight: 800; font-size: 2.5rem;">{{ _("Menu of Freedom") }} 🌿</h3>
-        <p class="text-center text-muted mb-5" style="font-size: 1.05rem;">{{ _("Medical care & everyday help — right at your door.") }}</p>
-        <div class="category-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
-            <div class="category-card" onclick="document.getElementById('fakeService').value='injections'; launchRocket();">
-                <div class="cat-icon-circle">💉</div><h6 class="mb-2 fw-bold">{{ _("Injections & IV") }}</h6><p class="small text-muted mb-0">{{ _("Shots, Drips, Wound Care") }}</p>
+            <!-- Right half wrapper -->
+            <div class="egg-half egg-half-right" id="eggHalfRight">
+                <svg class="egg-svg-half" viewBox="0 0 200 260" width="200" height="260"></svg>
             </div>
-            <div class="category-card" onclick="document.getElementById('fakeService').value='monitoring'; launchRocket();">
-                <div class="cat-icon-circle">❤️</div><h6 class="mb-2 fw-bold">{{ _("Health Check") }}</h6><p class="small text-muted mb-0">{{ _("Blood Pressure, Sugar, ECG") }}</p>
-            </div>
-            <div class="category-card" onclick="document.getElementById('fakeService').value='eldercare'; launchRocket();">
-                <div class="cat-icon-circle">🧓</div><h6 class="mb-2 fw-bold">{{ _("Elder Care") }}</h6><p class="small text-muted mb-0">{{ _("Home Visit, Companionship") }}</p>
-            </div>
-            <div class="category-card" onclick="document.getElementById('fakeService').value='babycare'; launchRocket();">
-                <div class="cat-icon-circle">👶</div><h6 class="mb-2 fw-bold">{{ _("Child Care") }}</h6><p class="small text-muted mb-0">{{ _("Babysitting, Nanny") }}</p>
-            </div>
-            <div class="category-card" onclick="document.getElementById('fakeService').value='cleaning'; launchRocket();">
-                <div class="cat-icon-circle"><i class="fas fa-broom"></i></div><h6 class="mb-2 fw-bold">{{ _("Home Help") }}</h6><p class="small text-muted mb-0">{{ _("Cleaning, Cooking, Laundry") }}</p>
-            </div>
-            <div class="category-card" onclick="document.getElementById('fakeService').value='errands'; launchRocket();">
-                <div class="cat-icon-circle">🛒</div><h6 class="mb-2 fw-bold">{{ _("Errands") }}</h6><p class="small text-muted mb-0">{{ _("Pharmacy, Shopping, Post") }}</p>
-            </div>
-        </div>
-    </div>
-
-    <div style="background: white; padding: 100px 0; position: relative; z-index: 10;">
-        <div class="section-container">
-            <div class="row align-items-center">
-                <div class="col-md-5">
-                    <h2 class="mb-4" style="font-weight: 800; font-size: 3rem; line-height: 1.1;">{{ _("Simple. Fast. Human.") }} ⚡️</h2>
-                    <p class="text-muted mb-4 fs-5">{{ _("No clinic wait. No complicated contracts. Real help from verified people near you.") }}</p>
-                    <a href="{{ url_for('auth.register') }}" class="btn btn-dark rounded-pill px-5 py-3 fw-bold">{{ _("Get Started") }}</a>
-                </div>
-                <div class="col-md-7">
-                     <div class="d-flex flex-column flex-md-row gap-4 mt-5 mt-md-0 justify-content-center text-center">
-                         <div style="flex: 1;"><div style="font-size: 2.5rem; margin-bottom: 15px;">📍</div><h6 class="fw-bold fs-5">{{ _("1. Post the Chaos") }}</h6><p class="small text-muted">{{ _("Describe the task.") }}</p></div>
-                         <div style="flex: 1;"><div style="font-size: 2.5rem; margin-bottom: 15px;">🤝</div><h6 class="fw-bold fs-5">{{ _("2. Pick Creator") }}</h6><p class="small text-muted">{{ _("Choose a neighbor.") }}</p></div>
-                         <div style="flex: 1;"><div style="font-size: 2.5rem; margin-bottom: 15px;">🥂</div><h6 class="fw-bold fs-5">{{ _("3. Go Live") }}</h6><p class="small text-muted">{{ _("We work. You live.") }}</p></div>
-                     </div>
+            <!-- Main egg SVG -->
+            <svg class="egg-svg" id="eggSvg" viewBox="0 0 200 260" width="200" height="260">
+                <defs>
+                    <radialGradient id="eggGrad" cx="40%" cy="35%" r="60%">
+                        <stop offset="0%" stop-color="#fff9c4"/>
+                        <stop offset="40%" stop-color="#ffe082"/>
+                        <stop offset="100%" stop-color="#ffb74d"/>
+                    </radialGradient>
+                    <radialGradient id="eggShine" cx="35%" cy="30%" r="30%">
+                        <stop offset="0%" stop-color="rgba(255,255,255,0.7)"/>
+                        <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+                    </radialGradient>
+                    <clipPath id="eggClip">
+                        <ellipse cx="100" cy="140" rx="74" ry="99"/>
+                    </clipPath>
+                </defs>
+                <ellipse cx="100" cy="250" rx="60" ry="8" fill="rgba(0,0,0,0.08)" id="eggShadow"/>
+                <ellipse id="eggBody" cx="100" cy="140" rx="75" ry="100" fill="url(#eggGrad)" stroke="#e6a040" stroke-width="1.5"/>
+                <g id="eggDecor"></g>
+                <ellipse cx="75" cy="100" rx="25" ry="35" fill="url(#eggShine)" id="eggShineEl"/>
+                <g id="eggCracks" clip-path="url(#eggClip)"></g>
+            </svg>
+            <!-- Fortune note overlaid where egg was -->
+            <div class="egg-fortune" id="eggFortune">
+                <div class="egg-fortune-card">
+                    <div class="egg-fortune-icon">🌟</div>
+                    <div class="egg-fortune-quote" id="eggQuote"></div>
+                    <div class="egg-fortune-divider"></div>
+                    <div class="egg-fortune-source" id="eggSource"></div>
                 </div>
             </div>
         </div>
+
+        <div class="egg-hits">
+            <span id="eggHitText">{{ _("Tap to smash!") }}</span>
+            <div class="hits-bar"><div class="hits-fill" id="eggHitsFill" style="width: 0%"></div></div>
+        </div>
+
+        <button class="btn-new-egg" id="newEggBtn" onclick="resetEgg()">{{ _("New Egg") }} 🥚</button>
     </div>
-    
+
     <!-- DUAL CTA -->
     <div class="dual-cta-section">
         <div class="section-container" style="padding-top: 0; padding-bottom: 0;">
@@ -445,18 +716,43 @@
 {% block scripts %}
 <script>
     // --- BASIC LOGIC ---
-    function switchTab(el, type) { document.querySelectorAll('.widget-tab').forEach(t => t.classList.remove('active')); el.classList.add('active'); }
-    
-    // --- REAL PROVIDER SEARCH ---
+
+    // --- GEOLOCATION ---
+    function detectLocation() {
+        const input = document.getElementById('fakeLocation');
+        const btn = document.getElementById('geoBtn');
+        if (!navigator.geolocation) { input.placeholder = '{{ _("Geolocation not supported") }}'; return; }
+        btn.className = 'fas fa-spinner fa-spin';
+        btn.style.pointerEvents = 'none';
+        navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+                try {
+                    const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json&zoom=16&addressdetails=1`);
+                    const data = await resp.json();
+                    const a = data.address || {};
+                    input.value = a.suburb || a.city_district || a.neighbourhood || a.city || a.town || data.display_name.split(',')[0] || '';
+                } catch { input.value = `${pos.coords.latitude.toFixed(3)}, ${pos.coords.longitude.toFixed(3)}`; }
+                btn.className = 'fas fa-check';
+                btn.style.color = '#4caf50';
+                setTimeout(() => { btn.className = 'fas fa-location-arrow'; btn.style.color = 'var(--primary-green)'; btn.style.pointerEvents = ''; }, 2000);
+            },
+            () => { btn.className = 'fas fa-location-arrow'; btn.style.pointerEvents = ''; input.placeholder = '{{ _("Location access denied") }}'; }
+        );
+    }
+
+    // --- PROVIDER SEARCH ---
     async function simulateSearch() {
         const stepSearch = document.getElementById('step-search');
         const stepLoading = document.getElementById('step-loading');
-        const stepResults = document.getElementById('step-results');
+        const row = document.getElementById('heroSearchRow');
+        const panel = document.getElementById('resultsPanel');
 
         stepSearch.classList.add('hidden');
         stepLoading.classList.add('active');
 
-        const q = document.getElementById('fakeLocation').value.trim();
+        const task = document.getElementById('fakeTask').value.trim();
+        const location = document.getElementById('fakeLocation').value.trim();
+        const q = [task, location].filter(Boolean).join(' ');
         const params = new URLSearchParams();
         if (q) params.set('q', q);
 
@@ -469,7 +765,10 @@
         }
 
         stepLoading.classList.remove('active');
-        stepResults.classList.remove('hidden');
+        stepSearch.classList.remove('hidden');
+        // Show results panel and expand layout
+        panel.classList.remove('hidden');
+        row.classList.add('has-results');
     }
 
     function renderResults(providers) {
@@ -479,37 +778,45 @@
         list.innerHTML = '';
 
         if (!providers.length) {
-            list.innerHTML = '<div class="text-center py-4 text-muted">No providers found. Try a different search.</div>';
-            countEl.textContent = 'No providers found';
+            list.innerHTML = `<div class="text-center py-4">
+                <div style="font-size:2rem; margin-bottom:8px;">🤷</div>
+                <div class="fw-bold mb-1">{{ _("No one available right now") }}</div>
+                <div class="text-muted small mb-3">{{ _("Post a request — helpers will come to you!") }}</div>
+                <a href="{{ url_for('auth.register') }}?intent=request" class="btn btn-sm btn-dark rounded-pill px-4">{{ _("Create Request") }}</a>
+                <div class="mt-2"><a href="{{ url_for('auth.register') }}" class="small text-muted" style="text-decoration:underline;">{{ _("or sign up to browse later") }}</a></div>
+            </div>`;
+            countEl.textContent = '';
             return;
         }
 
         providers.forEach((p, i) => {
             const mainService = p.services && p.services[0];
-            const priceText = mainService ? `~ ${parseFloat(mainService.price).toFixed(2)} € / task` : 'Price on request';
-            const serviceText = mainService ? mainService.name : 'General help';
-            const stars = p.average_rating ? '⭐ ' + p.average_rating : 'New';
+            const serviceText = mainService ? escapeHtml(mainService.name) : '';
+            const priceText = mainService ? `${parseFloat(mainService.price).toFixed(0)} €` : '';
+            const stars = p.average_rating ? '⭐ ' + parseFloat(p.average_rating).toFixed(1) : '🆕';
 
             const avatarHtml = p.photo
-                ? `<img src="${escapeHtml(p.photo)}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
-                : `<div class="provider-avatar" style="background:#e8f5e9;color:#198754;"><i class="fas fa-user"></i></div>`;
+                ? `<img src="${escapeHtml(p.photo)}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">`
+                : `<div class="provider-avatar"><i class="fas fa-user"></i></div>`;
 
             const card = document.createElement('div');
             card.className = 'provider-result-card';
             card.style.animationDelay = ((i + 1) * 0.1) + 's';
             card.innerHTML = `
                 ${avatarHtml}
-                <div style="flex:1;">
-                    <div class="fw-bold">${escapeHtml(p.full_name || p.user_name)}</div>
-                    <div class="small text-muted">${escapeHtml(serviceText)} • ${stars}</div>
-                    <div class="small fw-bold mt-1">${priceText}</div>
+                <div style="flex:1; min-width:0;">
+                    <div class="fw-bold" style="font-size:0.95rem;">${escapeHtml(p.full_name || p.user_name)}</div>
+                    <div class="small text-muted">${serviceText ? serviceText + ' · ' : ''}${stars}</div>
                 </div>
-                <button class="book-btn-sm" onclick="redirectToRegister('${encodeURIComponent(p.user_name)}')">Select</button>
+                <div style="text-align:right;">
+                    ${priceText ? `<div class="fw-bold" style="font-size:0.9rem;">${priceText}</div>` : ''}
+                    <button class="book-btn-sm" onclick="redirectToRegister('${encodeURIComponent(p.user_name)}')">{{ _("Book") }}</button>
+                </div>
             `;
             list.appendChild(card);
         });
 
-        countEl.textContent = `Viewing ${providers.length} available provider${providers.length !== 1 ? 's' : ''}`;
+        countEl.textContent = providers.length + ' {{ _("helpers available") }}';
     }
 
     function escapeHtml(str) {
@@ -518,33 +825,13 @@
     }
 
     function resetSearch() {
-        document.getElementById('step-results').classList.add('hidden');
+        document.getElementById('resultsPanel').classList.add('hidden');
+        document.getElementById('heroSearchRow').classList.remove('has-results');
         document.getElementById('step-loading').classList.remove('active');
         document.getElementById('step-search').classList.remove('hidden');
     }
 
     function redirectToRegister(providerName) { window.location.href = "{{ url_for('auth.register') }}?intent=delegate&provider=" + encodeURIComponent(providerName); }
-
-    // --- BLUE PILL LOGIC ---
-    function choosePill(color) {
-        if (color === 'blue') alert("Really? You want to clean the toilet yourself? 🤔\n\nTake the RED pill. Trust us.");
-    }
-
-    // --- ROCKET LAUNCH ---
-    function launchRocket() {
-        const rocket = document.getElementById('rocket-launcher');
-        const flame = document.getElementById('rocket-flame');
-        rocket.style.bottom = "50px"; 
-        rocket.classList.add('rocket-shake');
-        setTimeout(() => {
-            flame.style.display = "block";
-            rocket.classList.remove('rocket-shake');
-            rocket.classList.add('rocket-launching');
-            setTimeout(() => {
-                window.location.href = "{{ url_for('auth.register') }}";
-            }, 1200);
-        }, 500);
-    }
 
     // --- MEADOW PARALLAX ---
     window.addEventListener('scroll', () => {
@@ -585,138 +872,499 @@
         animateCount(document.getElementById('stat-rating'), data.avg_rating, true);
     }).catch(() => {});
 
-    // --- CRYSTAL BALL ---
-    const CRYSTAL_QUOTES = [
-        // --- Literature & Philosophy ---
-        { q: "All we have to decide is what to do with the time that is given us.", src: "J.R.R. Tolkien — The Lord of the Rings" },
-        { q: "It does not do to dwell on dreams and forget to live.", src: "J.K. Rowling — Harry Potter" },
-        { q: "Not all those who wander are lost.", src: "J.R.R. Tolkien — The Lord of the Rings" },
-        { q: "The only way out of the labyrinth of suffering is to forgive.", src: "John Green — Looking for Alaska" },
-        { q: "When you want something, all the universe conspires in helping you to achieve it.", src: "Paulo Coelho — The Alchemist" },
-        { q: "It is our choices that show what we truly are, far more than our abilities.", src: "J.K. Rowling — Harry Potter" },
-        { q: "You can't go back and change the beginning, but you can start where you are and change the ending.", src: "C.S. Lewis" },
-        { q: "The mystery of life is not a problem to be solved, but a reality to be experienced.", src: "Frank Herbert — Dune" },
-        { q: "Yesterday is history, tomorrow is a mystery, today is a gift — that is why it is called the present.", src: "Eleanor Roosevelt" },
-        { q: "Every person has two lives, and the second begins when they realize they only have one.", src: "Confucius" },
-        { q: "A reader lives a thousand lives before they die. One who never reads lives only one.", src: "George R.R. Martin" },
-        { q: "To live is the rarest thing in the world. Most people just exist.", src: "Oscar Wilde" },
-        { q: "Even the darkest night will end and the sun will rise.", src: "Victor Hugo — Les Misérables" },
-        { q: "Do not go gentle into that good night. Rage, rage against the dying of the light.", src: "Dylan Thomas" },
-        { q: "We accept the love we think we deserve.", src: "Stephen Chbosky — The Perks of Being a Wallflower" },
-        { q: "So we beat on, boats against the current, borne back ceaselessly into the past.", src: "F. Scott Fitzgerald — The Great Gatsby" },
-        { q: "Whatever you are, be a good one.", src: "Abraham Lincoln" },
-        { q: "One must imagine Sisyphus happy.", src: "Albert Camus — The Myth of Sisyphus" },
-        { q: "The only true wisdom is in knowing you know nothing.", src: "Socrates" },
-        { q: "Happiness can be found even in the darkest of times, if one only remembers to turn on the light.", src: "J.K. Rowling — Harry Potter" },
-        { q: "And those who were seen dancing were thought to be insane by those who could not hear the music.", src: "Friedrich Nietzsche" },
-        { q: "There is no greater agony than bearing an untold story inside you.", src: "Maya Angelou" },
-        { q: "The wound is the place where the Light enters you.", src: "Rumi" },
+    // --- EASTER EGG SMASH ---
+    const EGG_QUOTES = [
+        { q: "All we have to decide is what to do with the time that is given us.", src: "J.R.R. Tolkien" },
+        { q: "Not all those who wander are lost.", src: "J.R.R. Tolkien" },
+        { q: "When you want something, all the universe conspires in helping you.", src: "Paulo Coelho" },
         { q: "Be yourself; everyone else is already taken.", src: "Oscar Wilde" },
-        { q: "I think, therefore I am.", src: "René Descartes" },
-        { q: "He who has a why to live can bear almost any how.", src: "Friedrich Nietzsche" },
-        { q: "The unexamined life is not worth living.", src: "Socrates" },
-        { q: "I have not failed. I've just found 10,000 ways that won't work.", src: "Thomas Edison" },
-        // --- Wisdom & Motivation ---
-        { q: "In the middle of difficulty lies opportunity.", src: "Albert Einstein" },
-        { q: "The journey of a thousand miles begins with one step.", src: "Lao Tzu — Tao Te Ching" },
+        { q: "The journey of a thousand miles begins with one step.", src: "Lao Tzu" },
         { q: "It always seems impossible until it's done.", src: "Nelson Mandela" },
-        { q: "The most important thing is to enjoy your life — to be happy — it's all that matters.", src: "Audrey Hepburn" },
-        { q: "Magic is believing in yourself. If you can make that happen, you can make anything happen.", src: "Goethe" },
         { q: "The best time to plant a tree was 20 years ago. The second best time is now.", src: "Chinese Proverb" },
-        { q: "Life is what happens to you while you're busy making other plans.", src: "John Lennon" },
-        { q: "Turn your wounds into wisdom.", src: "Oprah Winfrey" },
-        { q: "Everything you've ever wanted is on the other side of fear.", src: "George Addair" },
-        { q: "The only impossible journey is the one you never begin.", src: "Tony Robbins" },
-        { q: "What lies behind us and what lies before us are tiny matters compared to what lies within us.", src: "Ralph Waldo Emerson" },
         { q: "Stars can't shine without darkness.", src: "D.H. Sidebottom" },
-        { q: "The secret of getting ahead is getting started.", src: "Mark Twain" },
-        { q: "Difficult roads often lead to beautiful destinations.", src: "Zig Ziglar" },
-        { q: "Don't count the days. Make the days count.", src: "Muhammad Ali" },
-        { q: "If you want to go fast, go alone. If you want to go far, go together.", src: "African Proverb" },
-        { q: "Act as if what you do makes a difference. It does.", src: "William James" },
-        { q: "You miss 100% of the shots you don't take.", src: "Wayne Gretzky" },
-        { q: "The mind is everything. What you think you become.", src: "Buddha" },
-        { q: "We do not remember days, we remember moments.", src: "Cesare Pavese" },
-        { q: "Knowing yourself is the beginning of all wisdom.", src: "Aristotle" },
-        { q: "No one can make you feel inferior without your consent.", src: "Eleanor Roosevelt" },
-        // --- Art, Science & Culture ---
         { q: "Imagination is more important than knowledge.", src: "Albert Einstein" },
-        { q: "Creativity is intelligence having fun.", src: "Albert Einstein" },
-        { q: "Logic will get you from A to B. Imagination will take you everywhere.", src: "Albert Einstein" },
-        { q: "Art is not what you see, but what you make others see.", src: "Edgar Degas" },
-        { q: "Every child is an artist. The problem is how to remain an artist once we grow up.", src: "Pablo Picasso" },
-        { q: "Music expresses that which cannot be said and on which it is impossible to be silent.", src: "Victor Hugo" },
-        { q: "The earth has music for those who listen.", src: "William Shakespeare" },
-        { q: "If you can dream it, you can do it.", src: "Walt Disney" },
         { q: "Stay hungry, stay foolish.", src: "Steve Jobs" },
-        { q: "The people who are crazy enough to think they can change the world are the ones who do.", src: "Steve Jobs" },
-        // --- Love & Kindness ---
-        { q: "Where there is love there is life.", src: "Mahatma Gandhi" },
         { q: "Be the change you wish to see in the world.", src: "Mahatma Gandhi" },
-        { q: "In a gentle way, you can shake the world.", src: "Mahatma Gandhi" },
-        { q: "Kindness is a language which the deaf can hear and the blind can see.", src: "Mark Twain" },
-        { q: "Love all, trust a few, do wrong to none.", src: "William Shakespeare" },
         { q: "We rise by lifting others.", src: "Robert Ingersoll" },
-        { q: "The best and most beautiful things in the world cannot be seen or even touched — they must be felt with the heart.", src: "Helen Keller" },
-        { q: "People will forget what you said, people will forget what you did, but people will never forget how you made them feel.", src: "Maya Angelou" },
-        { q: "You yourself, as much as anybody in the entire universe, deserve your love and affection.", src: "Buddha" },
-        { q: "To love and be loved is to feel the sun from both sides.", src: "David Viscott" },
-        // --- Ukrainian Wisdom ---
         { q: "Де згода — там і вода.", src: "Ukrainian Proverb" },
-        { q: "Хто рано встає, тому Бог дає.", src: "Ukrainian Proverb" },
-        { q: "Не все те золото, що блищить.", src: "Ukrainian Proverb" },
         { q: "Очі бояться, а руки роблять.", src: "Ukrainian Proverb" },
-        { q: "Без труда нема плода.", src: "Ukrainian Proverb" },
-        { q: "Слово — срібло, мовчання — золото.", src: "Ukrainian Proverb" },
-        { q: "Друзі пізнаються в біді.", src: "Ukrainian Proverb" },
-        { q: "Краще пізно, ніж ніколи.", src: "Ukrainian Proverb" },
         { q: "Де є воля, там є шлях.", src: "Ukrainian Proverb" },
-        { q: "Терпіння і труд все перетруть.", src: "Ukrainian Proverb" },
-        // --- Humor & Light ---
-        { q: "I'm not lazy. I'm on energy saving mode.", src: "Anonymous" },
+        { q: "Happiness can be found even in the darkest of times, if one only remembers to turn on the light.", src: "J.K. Rowling" },
+        { q: "In the middle of difficulty lies opportunity.", src: "Albert Einstein" },
+        { q: "The secret of getting ahead is getting started.", src: "Mark Twain" },
+        { q: "If you want to go far, go together.", src: "African Proverb" },
+        { q: "You miss 100% of the shots you don't take.", src: "Wayne Gretzky" },
+        { q: "Every child is an artist. The problem is how to remain one once we grow up.", src: "Pablo Picasso" },
+        { q: "Where there is love there is life.", src: "Mahatma Gandhi" },
+        { q: "To live is the rarest thing in the world. Most people just exist.", src: "Oscar Wilde" },
         { q: "Life is short. Smile while you still have teeth.", src: "Mallory Hopkins" },
-        { q: "Be a voice, not an echo.", src: "Albert Einstein" },
-        { q: "I have nothing to declare except my genius.", src: "Oscar Wilde" },
-        { q: "Well-behaved women seldom make history.", src: "Laurel Thatcher Ulrich" },
+        { q: "Краще пізно, ніж ніколи.", src: "Ukrainian Proverb" },
     ];
-    // Shuffle deck so every quote shows once before repeating
-    let quotesDeck = [];
-    function getNextQuote() {
-        if (quotesDeck.length === 0) {
-            quotesDeck = [...Array(CRYSTAL_QUOTES.length).keys()];
-            for (let i = quotesDeck.length - 1; i > 0; i--) {
+    let eggDeck = [];
+    function getNextEggQuote() {
+        if (eggDeck.length === 0) {
+            eggDeck = [...Array(EGG_QUOTES.length).keys()];
+            for (let i = eggDeck.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [quotesDeck[i], quotesDeck[j]] = [quotesDeck[j], quotesDeck[i]];
+                [eggDeck[i], eggDeck[j]] = [eggDeck[j], eggDeck[i]];
             }
         }
-        return quotesDeck.pop();
+        return eggDeck.pop();
     }
 
-    function askCrystalBall() {
-        const ball = document.getElementById('crystalBall');
-        const quoteEl = document.getElementById('crystalQuote');
-        const sourceEl = document.getElementById('crystalSource');
-        const hintEl = document.getElementById('crystalHint');
-        const btn = document.getElementById('askAgainBtn');
+    let eggHits = 0;
+    const MAX_HITS = 7;
+    let eggSmashed = false;
 
-        quoteEl.classList.remove('visible');
-        sourceEl.classList.remove('visible');
-        ball.classList.remove('shaking', 'glowing');
+    // --- Random egg designs (patterns/bands change each egg) ---
+    const EGG_DESIGNS = [
+        { // Classic Easter dots + zigzag bands
+            colors: ['#e91e63', '#9c27b0', '#4caf50'],
+            decor(g, ns) {
+                // Dot pattern rows
+                for (let row = 0; row < 5; row++) {
+                    const y = 80 + row * 30;
+                    for (let col = 0; col < 4; col++) {
+                        const x = 45 + col * 35 + (row % 2 ? 15 : 0);
+                        if (isInsideEgg(x, y)) {
+                            const c = document.createElementNS(ns, 'circle');
+                            c.setAttribute('cx', x); c.setAttribute('cy', y);
+                            c.setAttribute('r', 3 + Math.random() * 2);
+                            c.setAttribute('fill', this.colors[col % 3]);
+                            c.setAttribute('opacity', '0.25');
+                            g.appendChild(c);
+                        }
+                    }
+                }
+                // Zigzag band
+                const zz = document.createElementNS(ns, 'path');
+                zz.setAttribute('d', 'M30,145 L45,135 L60,145 L75,135 L90,145 L105,135 L120,145 L135,135 L150,145 L165,135');
+                zz.setAttribute('stroke', '#e91e63'); zz.setAttribute('stroke-width', '2.5');
+                zz.setAttribute('fill', 'none'); zz.setAttribute('opacity', '0.3');
+                g.appendChild(zz);
+            }
+        },
+        { // Ukrainian vyshyvanka style — cross-stitch bands
+            colors: ['#d32f2f', '#1a237e'],
+            decor(g, ns) {
+                // Top band
+                const b1 = document.createElementNS(ns, 'path');
+                b1.setAttribute('d', 'M38,100 Q70,88 100,95 Q130,102 162,95');
+                b1.setAttribute('stroke', '#d32f2f'); b1.setAttribute('stroke-width', '3');
+                b1.setAttribute('fill', 'none'); b1.setAttribute('opacity', '0.35');
+                b1.setAttribute('stroke-dasharray', '5,4');
+                g.appendChild(b1);
+                // Middle band
+                const b2 = document.createElementNS(ns, 'path');
+                b2.setAttribute('d', 'M30,140 Q65,128 100,135 Q135,142 170,135');
+                b2.setAttribute('stroke', '#1a237e'); b2.setAttribute('stroke-width', '4');
+                b2.setAttribute('fill', 'none'); b2.setAttribute('opacity', '0.2');
+                g.appendChild(b2);
+                // Diamond shapes in middle
+                const diamonds = [[70,130],[100,125],[130,130]];
+                diamonds.forEach(([dx,dy]) => {
+                    const d = document.createElementNS(ns, 'path');
+                    d.setAttribute('d', `M${dx},${dy} l8,-8 l8,8 l-8,8 Z`);
+                    d.setAttribute('fill', '#d32f2f'); d.setAttribute('opacity', '0.2');
+                    g.appendChild(d);
+                });
+                // Bottom band
+                const b3 = document.createElementNS(ns, 'path');
+                b3.setAttribute('d', 'M35,175 Q65,168 100,172 Q135,176 165,170');
+                b3.setAttribute('stroke', '#d32f2f'); b3.setAttribute('stroke-width', '2.5');
+                b3.setAttribute('fill', 'none'); b3.setAttribute('opacity', '0.3');
+                b3.setAttribute('stroke-dasharray', '3,5');
+                g.appendChild(b3);
+            }
+        },
+        { // Spring flowers
+            colors: ['#ff7043', '#66bb6a', '#ffa726'],
+            decor(g, ns) {
+                const flowers = [[60,95],[130,100],[75,170],[120,165],[100,130]];
+                flowers.forEach(([fx,fy]) => {
+                    if (!isInsideEgg(fx, fy)) return;
+                    // Petals
+                    for (let p = 0; p < 5; p++) {
+                        const angle = (p / 5) * Math.PI * 2;
+                        const pr = 7;
+                        const petal = document.createElementNS(ns, 'ellipse');
+                        petal.setAttribute('cx', fx + Math.cos(angle) * pr);
+                        petal.setAttribute('cy', fy + Math.sin(angle) * pr);
+                        petal.setAttribute('rx', '4'); petal.setAttribute('ry', '6');
+                        petal.setAttribute('fill', ['#ff7043','#ffa726','#ef5350','#ab47bc','#42a5f5'][p]);
+                        petal.setAttribute('opacity', '0.25');
+                        petal.setAttribute('transform', `rotate(${p*72},${fx + Math.cos(angle)*pr},${fy + Math.sin(angle)*pr})`);
+                        g.appendChild(petal);
+                    }
+                    // Center
+                    const ctr = document.createElementNS(ns, 'circle');
+                    ctr.setAttribute('cx', fx); ctr.setAttribute('cy', fy);
+                    ctr.setAttribute('r', '3'); ctr.setAttribute('fill', '#fdd835');
+                    ctr.setAttribute('opacity', '0.4');
+                    g.appendChild(ctr);
+                });
+            }
+        },
+        { // Geometric stripes + stars
+            colors: ['#5c6bc0', '#26a69a', '#ef5350'],
+            decor(g, ns) {
+                // Horizontal stripes
+                const ys = [90,115,140,165,190];
+                const cls = ['#5c6bc0','#26a69a','#ef5350','#5c6bc0','#26a69a'];
+                ys.forEach((y, i) => {
+                    const s = document.createElementNS(ns, 'ellipse');
+                    s.setAttribute('cx', '100'); s.setAttribute('cy', y);
+                    s.setAttribute('rx', 75 * Math.sqrt(1 - Math.pow((y-140)/100,2)));
+                    s.setAttribute('ry', '5');
+                    s.setAttribute('fill', cls[i]); s.setAttribute('opacity', '0.15');
+                    g.appendChild(s);
+                });
+                // Stars
+                const stars = [[70,105],[130,125],[85,175],[115,155]];
+                stars.forEach(([sx,sy]) => {
+                    const st = document.createElementNS(ns, 'text');
+                    st.setAttribute('x', sx); st.setAttribute('y', sy);
+                    st.setAttribute('font-size', '10'); st.setAttribute('opacity', '0.2');
+                    st.setAttribute('text-anchor', 'middle');
+                    st.textContent = '✦';
+                    g.appendChild(st);
+                });
+            }
+        },
+        { // Pastel waves + hearts
+            colors: ['#f48fb1', '#ce93d8', '#81d4fa'],
+            decor(g, ns) {
+                // Wavy bands
+                const waves = [
+                    { d: 'M28,110 Q55,95 80,110 Q105,125 130,110 Q155,95 172,110', c: '#f48fb1' },
+                    { d: 'M30,145 Q58,132 85,145 Q112,158 140,145 Q155,138 170,145', c: '#ce93d8' },
+                    { d: 'M33,178 Q58,168 85,178 Q112,188 140,178 Q155,172 167,178', c: '#81d4fa' },
+                ];
+                waves.forEach(w => {
+                    const p = document.createElementNS(ns, 'path');
+                    p.setAttribute('d', w.d); p.setAttribute('stroke', w.c);
+                    p.setAttribute('stroke-width', '3'); p.setAttribute('fill', 'none');
+                    p.setAttribute('opacity', '0.3');
+                    g.appendChild(p);
+                });
+                // Hearts
+                const hearts = [[100,95],[70,155],[130,165]];
+                hearts.forEach(([hx,hy]) => {
+                    const h = document.createElementNS(ns, 'text');
+                    h.setAttribute('x', hx); h.setAttribute('y', hy);
+                    h.setAttribute('font-size', '12'); h.setAttribute('opacity', '0.2');
+                    h.setAttribute('text-anchor', 'middle');
+                    h.textContent = '♥';
+                    g.appendChild(h);
+                });
+            }
+        }
+    ];
+    let currentEggDesign = -1;
 
-        void ball.offsetWidth; // reflow
-        ball.classList.add('shaking');
+    // Egg base color palettes (light/mid/dark gradient stops)
+    const EGG_COLORS = [
+        ['#fff9c4', '#ffe082', '#ffb74d'], // Classic gold
+        ['#fce4ec', '#f8bbd0', '#f48fb1'], // Pink
+        ['#e8f5e9', '#c8e6c9', '#a5d6a7'], // Mint green
+        ['#e3f2fd', '#bbdefb', '#90caf9'], // Sky blue
+        ['#f3e5f5', '#e1bee7', '#ce93d8'], // Lavender
+    ];
+
+    function applyEggDesign() {
+        const ns = 'http://www.w3.org/2000/svg';
+        const g = document.getElementById('eggDecor');
+        g.innerHTML = '';
+        // Pick a random design different from the last
+        let idx;
+        do { idx = Math.floor(Math.random() * EGG_DESIGNS.length); } while (idx === currentEggDesign && EGG_DESIGNS.length > 1);
+        currentEggDesign = idx;
+        // Random egg color
+        const colorSet = EGG_COLORS[Math.floor(Math.random() * EGG_COLORS.length)];
+        const grad = document.getElementById('eggGrad');
+        grad.querySelector('stop:nth-child(1)').setAttribute('stop-color', colorSet[0]);
+        grad.querySelector('stop:nth-child(2)').setAttribute('stop-color', colorSet[1]);
+        grad.querySelector('stop:nth-child(3)').setAttribute('stop-color', colorSet[2]);
+        // Apply pattern
+        EGG_DESIGNS[idx].decor(g, ns);
+    }
+
+    // Crack — radiating lines from impact point
+    function isInsideEgg(x, y) {
+        return Math.pow((x - 100) / 74, 2) + Math.pow((y - 140) / 99, 2) <= 1;
+    }
+
+    function clampToEgg(x, y) {
+        if (isInsideEgg(x, y)) return [x, y];
+        const a = Math.atan2(y - 140, x - 100);
+        return [100 + Math.cos(a) * 70, 140 + Math.sin(a) * 95];
+    }
+
+    // Generates 2-4 thin crack lines radiating outward from (cx, cy)
+    function makeCracks(cx, cy) {
+        [cx, cy] = clampToEgg(cx, cy);
+        const paths = [];
+        const numLines = 2 + Math.floor(Math.random() * 3);
+        for (let n = 0; n < numLines; n++) {
+            // Each line goes in a random direction outward from impact
+            const angle = (Math.PI * 2 / numLines) * n + (Math.random() - 0.5) * 1.2;
+            let x = cx, y = cy;
+            let d = `M${x.toFixed(1)},${y.toFixed(1)}`;
+            const len = 2 + Math.floor(Math.random() * 3);
+            for (let i = 0; i < len; i++) {
+                // Step in the general direction with small jitter
+                const step = 6 + Math.random() * 10;
+                const jitter = (Math.random() - 0.5) * 0.6;
+                const dx = Math.cos(angle + jitter) * step;
+                const dy = Math.sin(angle + jitter) * step;
+                const nx = x + dx, ny = y + dy;
+                if (!isInsideEgg(nx, ny)) break;
+                x = nx; y = ny;
+                d += ` l${dx.toFixed(1)},${dy.toFixed(1)}`;
+            }
+            paths.push(d);
+        }
+        return paths;
+    }
+
+    function spawnSparkles(stage, x, y) {
+        const emojis = ['✨', '⭐', '💫', '🌟'];
+        for (let i = 0; i < 4; i++) {
+            const sp = document.createElement('div');
+            sp.className = 'egg-sparkle';
+            sp.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            sp.style.left = x + 'px';
+            sp.style.top = y + 'px';
+            sp.style.setProperty('--sx', (Math.random() - 0.5) * 80 + 'px');
+            sp.style.setProperty('--sy', -(30 + Math.random() * 60) + 'px');
+            stage.appendChild(sp);
+            setTimeout(() => sp.remove(), 600);
+        }
+    }
+
+    function spawnShellPieces(stage) {
+        const colors = ['#ffe082', '#ffb74d', '#fff9c4', '#ffcc80', '#ffd54f'];
+        // Phase 1: shell pieces explode outward
+        for (let i = 0; i < 10; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'shell-piece';
+            piece.style.left = (100 + (Math.random() - 0.5) * 80) + 'px';
+            piece.style.top = (120 + (Math.random() - 0.5) * 60) + 'px';
+            piece.style.width = (8 + Math.random() * 14) + 'px';
+            piece.style.height = (6 + Math.random() * 10) + 'px';
+            piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+            piece.style.borderRadius = '2px';
+            piece.style.border = '1px solid #e6a040';
+            piece.style.setProperty('--tx', (Math.random() - 0.5) * 180 + 'px');
+            piece.style.setProperty('--ty', -(40 + Math.random() * 120) + 'px');
+            piece.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+            stage.appendChild(piece);
+            setTimeout(() => piece.remove(), 800);
+        }
+
+        // Phase 2: stars born from explosion, arc down towards fortune card
+        const stageRect = stage.getBoundingClientRect();
+        const eggSection = stage.closest('.egg-section');
+        const fortune = document.getElementById('eggFortune');
+        const starEmojis = ['✨', '⭐', '🌟', '💫', '✦'];
+        const fortuneTarget = fortune.getBoundingClientRect();
 
         setTimeout(() => {
-            ball.classList.add('glowing');
-            const { q, src } = CRYSTAL_QUOTES[getNextQuote()];
-            quoteEl.textContent = '"' + q + '"';
-            sourceEl.textContent = '— ' + src;
-            quoteEl.classList.add('visible');
-            sourceEl.classList.add('visible');
-            hintEl.style.display = 'none';
-            btn.style.display = 'inline-block';
-        }, 600);
+            for (let i = 0; i < 8; i++) {
+                const star = document.createElement('div');
+                star.className = 'shell-star';
+                star.textContent = starEmojis[Math.floor(Math.random() * starEmojis.length)];
+                // Start from center of egg
+                const startX = 110 + (Math.random() - 0.5) * 60;
+                const startY = 100 + (Math.random() - 0.5) * 40;
+                star.style.left = startX + 'px';
+                star.style.top = startY + 'px';
+                // Mid-point: fly up and outward
+                const midX = (Math.random() - 0.5) * 140;
+                const midY = -(60 + Math.random() * 80);
+                // End-point: arc down to where fortune card will appear
+                const endX = (Math.random() - 0.5) * 60;
+                const endY = 160 + Math.random() * 60;
+                star.style.setProperty('--mx', midX + 'px');
+                star.style.setProperty('--my', midY + 'px');
+                star.style.setProperty('--fx', endX + 'px');
+                star.style.setProperty('--fy', endY + 'px');
+                star.style.setProperty('--delay', (i * 60) + 'ms');
+                star.style.setProperty('--dur', (0.8 + Math.random() * 0.4) + 's');
+                stage.appendChild(star);
+                setTimeout(() => star.remove(), 1500);
+            }
+        }, 300);
     }
+
+    // Keep direct references to avoid duplicate-ID issues after half cloning
+    const _svg = document.getElementById('eggSvg');
+    const _cracksG = _svg.querySelector('#eggCracks');
+    const _eggBody = _svg.querySelector('#eggBody');
+
+    function smashEgg(e) {
+        if (eggSmashed) return;
+
+        const stage = document.getElementById('eggStage');
+        const svg = _svg;
+        const cracksG = _cracksG;
+        const fillBar = document.getElementById('eggHitsFill');
+        const hitText = document.getElementById('eggHitText');
+
+        // Get click position relative to SVG viewBox
+        const svgRect = svg.getBoundingClientRect();
+        const scaleX = 200 / svgRect.width;
+        const scaleY = 260 / svgRect.height;
+        const clickX = (e.clientX - svgRect.left) * scaleX;
+        const clickY = (e.clientY - svgRect.top) * scaleY;
+
+        // Click position relative to stage (for sparkles)
+        const stageRect = stage.getBoundingClientRect();
+        const stageX = e.clientX - stageRect.left;
+        const stageY = e.clientY - stageRect.top;
+
+        eggHits++;
+
+        // Shake egg
+        svg.classList.remove('hit');
+        void svg.offsetWidth;
+        svg.classList.add('hit');
+
+        // Sparkles at click point
+        spawnSparkles(stage, stageX, stageY);
+
+        // Add crack lines radiating from click point
+        const cx = Math.max(30, Math.min(170, clickX));
+        const cy = Math.max(50, Math.min(220, clickY));
+        const crackPaths = makeCracks(cx, cy);
+        crackPaths.forEach(d => {
+            const crack = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            crack.setAttribute('d', d);
+            crack.setAttribute('stroke', '#6d5520');
+            crack.setAttribute('stroke-width', (0.8 + eggHits * 0.25).toFixed(1));
+            crack.setAttribute('fill', 'none');
+            crack.setAttribute('opacity', (0.6 + eggHits * 0.05).toFixed(2));
+            crack.setAttribute('stroke-linecap', 'round');
+            cracksG.appendChild(crack);
+        });
+
+        // Progress
+        const pct = Math.min((eggHits / MAX_HITS) * 100, 100);
+        fillBar.style.width = pct + '%';
+        hitText.textContent = eggHits + ' / ' + MAX_HITS;
+
+        // Make egg body slightly more transparent as it cracks
+        _eggBody.style.opacity = Math.max(1 - (eggHits / MAX_HITS) * 0.3, 0.5);
+
+        // Final smash!
+        if (eggHits >= MAX_HITS) {
+            eggSmashed = true;
+            setTimeout(() => {
+                // Explode shell pieces
+                spawnShellPieces(stage);
+                stage.style.cursor = 'default';
+                svg.classList.add('smashed');
+
+                // Hide main egg, show split halves with same design
+                svg.style.opacity = '0';
+                svg.style.transition = 'opacity 0.15s';
+
+                // Copy current egg SVG innerHTML into the half wrappers
+                const halfLeft = document.getElementById('eggHalfLeft');
+                const halfRight = document.getElementById('eggHalfRight');
+                const svgInner = svg.innerHTML;
+                halfLeft.querySelector('.egg-svg-half').innerHTML = svgInner;
+                halfRight.querySelector('.egg-svg-half').innerHTML = svgInner;
+
+                // Show halves and trigger split animation
+                halfLeft.classList.add('split');
+                halfRight.classList.add('split');
+
+                const { q, src } = EGG_QUOTES[getNextEggQuote()];
+                document.getElementById('eggQuote').textContent = '"' + q + '"';
+                document.getElementById('eggSource').textContent = '— ' + src;
+                setTimeout(() => {
+                    document.getElementById('eggFortune').classList.add('visible');
+                    document.getElementById('newEggBtn').style.display = 'inline-block';
+                    hitText.textContent = '{{ _("Smashed!") }} 🎉';
+                }, 350);
+            }, 200);
+        }
+    }
+
+    function resetEgg() {
+        eggHits = 0;
+        eggSmashed = false;
+        const stage = document.getElementById('eggStage');
+
+        // Hide split halves and clear their content
+        const halfLeft = document.getElementById('eggHalfLeft');
+        const halfRight = document.getElementById('eggHalfRight');
+        halfLeft.classList.remove('split');
+        halfRight.classList.remove('split');
+        halfLeft.querySelector('.egg-svg-half').innerHTML = '';
+        halfRight.querySelector('.egg-svg-half').innerHTML = '';
+
+        // Show main egg again
+        _svg.style.transition = 'none';
+        _svg.style.opacity = '1';
+        _svg.classList.remove('smashed');
+        _eggBody.style.opacity = '1';
+        // Clear ALL cracks from the REAL cracksG (not a cloned one)
+        while (_cracksG.firstChild) _cracksG.removeChild(_cracksG.firstChild);
+        stage.style.cursor = '';
+
+        // Apply new random design
+        applyEggDesign();
+
+        document.getElementById('eggHitsFill').style.width = '0%';
+        document.getElementById('eggHitText').textContent = '{{ _("Tap to smash!") }}';
+        document.getElementById('eggFortune').classList.remove('visible');
+        document.getElementById('eggQuote').textContent = '';
+        document.getElementById('eggSource').textContent = '';
+        document.getElementById('newEggBtn').style.display = 'none';
+    }
+
+    // --- EXPLAINER AUTO-CYCLE ---
+    // Apply first random egg design on load
+    applyEggDesign();
+
+    (function() {
+        const slides = document.querySelectorAll('.explainer-slide');
+        const dots = document.querySelectorAll('.explainer-dot');
+        const progressBar = document.getElementById('explainerProgressBar');
+        let current = 0;
+        const INTERVAL = 5000;
+
+        function goToSlide(n) {
+            slides[current].classList.remove('active');
+            dots[current].classList.remove('active');
+            current = n;
+            slides[current].classList.add('active');
+            dots[current].classList.add('active');
+            // Restart progress bar
+            progressBar.style.animation = 'none';
+            void progressBar.offsetWidth;
+            progressBar.style.animation = `evProgress ${INTERVAL / 1000}s linear`;
+        }
+
+        dots.forEach(dot => {
+            dot.addEventListener('click', function() {
+                goToSlide(parseInt(this.dataset.dot));
+                clearInterval(autoTimer);
+                autoTimer = setInterval(() => goToSlide((current + 1) % slides.length), INTERVAL);
+            });
+        });
+
+        let autoTimer = setInterval(() => goToSlide((current + 1) % slides.length), INTERVAL);
+
+        // Pause on hover
+        const stage = document.getElementById('explainerStage');
+        stage.addEventListener('mouseenter', () => clearInterval(autoTimer));
+        stage.addEventListener('mouseleave', () => {
+            autoTimer = setInterval(() => goToSlide((current + 1) % slides.length), INTERVAL);
+        });
+    })();
 
     // --- PROVIDER AVATARS (dual CTA) ---
     fetch('/search_providers').then(r => r.json()).then(providers => {

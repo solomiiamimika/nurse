@@ -19,8 +19,10 @@ def main_menu(role):
 def unregistered_menu():
     return {
         'inline_keyboard': [
-            [{'text': 'Register', 'callback_data': 'cmd_register'}],
-            [{'text': 'Link existing account', 'callback_data': 'cmd_link'}],
+            [
+                {'text': '\U0001f4dd Register', 'callback_data': 'cmd_register'},
+                {'text': '\U0001f517 Link Account', 'callback_data': 'cmd_link'},
+            ],
         ]
     }
 
@@ -28,9 +30,10 @@ def unregistered_menu():
 def client_menu():
     return {
         'inline_keyboard': [
-            [{'text': 'My Appointments', 'callback_data': 'cmd_appointments'}],
-            [{'text': 'Create Request', 'callback_data': 'cmd_create_request'}],
-            [{'text': 'Notifications', 'callback_data': 'cmd_notifications'}],
+            [{'text': '\U0001f4cb My Appointments', 'callback_data': 'cmd_appointments'}],
+            [{'text': '\u2795 Create Request', 'callback_data': 'cmd_create_request'}],
+            [{'text': '\U0001f514 Notifications', 'callback_data': 'cmd_notifications'}],
+            [{'text': '\U0001f504 Switch to Provider', 'callback_data': 'cmd_switch_role'}],
         ]
     }
 
@@ -38,10 +41,11 @@ def client_menu():
 def provider_menu():
     return {
         'inline_keyboard': [
-            [{'text': 'My Appointments', 'callback_data': 'cmd_appointments'}],
-            [{'text': 'Open Requests', 'callback_data': 'cmd_open_requests'}],
-            [{'text': 'My Offers', 'callback_data': 'cmd_my_offers'}],
-            [{'text': 'Notifications', 'callback_data': 'cmd_notifications'}],
+            [{'text': '\U0001f4cb My Appointments', 'callback_data': 'cmd_appointments'}],
+            [{'text': '\U0001f50d Open Requests', 'callback_data': 'cmd_open_requests'}],
+            [{'text': '\U0001f4e8 My Offers', 'callback_data': 'cmd_my_offers'}],
+            [{'text': '\U0001f514 Notifications', 'callback_data': 'cmd_notifications'}],
+            [{'text': '\U0001f504 Switch to Client', 'callback_data': 'cmd_switch_role'}],
         ]
     }
 

@@ -22,3 +22,5 @@ gunicorn
 flask-babel
 eventlet
 flask_jwt_extended
+openai
+apscheduler

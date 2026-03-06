@@ -22,9 +22,11 @@ def send_message(token, chat_id, text, reply_markup=None):
     if reply_markup:
         payload['reply_markup'] = reply_markup
     try:
-        http_requests.post(url, json=payload, timeout=5)
-    except Exception:
-        pass
+        resp = http_requests.post(url, json=payload, timeout=5)
+        if not resp.ok:
+            print(f"[TG ERROR] sendMessage {resp.status_code}: {resp.text[:200]}")
+    except Exception as e:
+        print(f"[TG ERROR] sendMessage exception: {e}")
 
 
 def answer_callback(token, callback_query_id, text=''):
@@ -33,8 +35,8 @@ def answer_callback(token, callback_query_id, text=''):
         http_requests.post(url, json={
             'callback_query_id': callback_query_id, 'text': text
         }, timeout=5)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[TG ERROR] answerCallback exception: {e}")
 
 
 # ── Dispatcher ─────────────────────────────────────────────────────
@@ -71,6 +73,7 @@ def dispatch_update(update, bot_token):
         '/my_offers': handle_my_offers,
         '/notifications': handle_notifications,
         '/link': handle_link,
+        '/switch_role': handle_switch_role,
     }
 
     cmd = text.split()[0].lower() if text.startswith('/') else ''
@@ -104,6 +107,7 @@ def handle_callback_query(cq, bot_token):
         'cmd_notifications': handle_notifications,
         'cmd_register': handle_register,
         'cmd_link': handle_link,
+        'cmd_switch_role': handle_switch_role,
     }
     handler = cmd_map.get(data)
     if handler:
@@ -147,16 +151,18 @@ def handle_start(telegram_id, chat_id, bot_token, from_data):
     first_name = from_data.get('first_name', '')
 
     if user:
+        role_label = 'Client' if user.role == 'client' else 'Provider'
         menu = keyboards.main_menu(user.role)
         send_message(bot_token, chat_id,
-                     f"Welcome back, <b>{user.full_name or user.user_name}</b>! ({user.role})",
+                     f"Welcome back, <b>{user.full_name or user.user_name}</b>!\n"
+                     f"Role: <b>{role_label}</b>\n\n"
+                     f"Choose an action:",
                      menu)
     else:
         send_message(bot_token, chat_id,
-                     f"Hello, {first_name}! Welcome to the platform.\n\n"
-                     f"You don't have an account yet.\n"
-                     f"/register — Create a new account\n"
-                     f"/link — Link an existing account",
+                     f"Hello, <b>{first_name}</b>! Welcome to Human-me.\n\n"
+                     f"Find help or offer your services — all in one place.\n\n"
+                     f"To get started, register or link your existing account:",
                      keyboards.unregistered_menu())
 
 
@@ -165,26 +171,31 @@ def handle_help(telegram_id, chat_id, bot_token, from_data):
 
     if not user:
         send_message(bot_token, chat_id,
-                     "<b>Available commands:</b>\n"
+                     "<b>Available commands:</b>\n\n"
                      "/register — Create account\n"
                      "/link — Link existing account\n"
-                     "/help — This message")
+                     "/help — This message",
+                     keyboards.unregistered_menu())
         return
 
+    role_label = 'Client' if user.role == 'client' else 'Provider'
     base = (
-        "<b>Available commands:</b>\n"
+        f"<b>You are logged in as {role_label}</b>\n\n"
         "/appointments — Your upcoming appointments\n"
-        "/notifications — Toggle Telegram notifications\n"
+        "/notifications — Toggle notifications\n"
     )
     if user.role == 'client':
         base += "/create_request — Post a new service request\n"
     elif user.role == 'provider':
         base += (
-            "/open_requests — Browse open requests nearby\n"
+            "/open_requests — Browse open requests\n"
             "/my_offers — View your sent offers\n"
         )
+    base += "/switch_role — Switch between Client / Provider\n"
     base += "/help — This message"
-    send_message(bot_token, chat_id, base)
+
+    menu = keyboards.main_menu(user.role)
+    send_message(bot_token, chat_id, base, menu)
 
 
 def handle_register(telegram_id, chat_id, bot_token, from_data):
@@ -351,3 +362,19 @@ def handle_notifications(telegram_id, chat_id, bot_token, from_data):
     send_message(bot_token, chat_id,
                  f"Notifications are currently <b>{status}</b>.",
                  keyboards.notification_toggle(user.telegram_notifications))
+
+
+def handle_switch_role(telegram_id, chat_id, bot_token, from_data):
+    user = User.query.filter_by(telegram_id=telegram_id).first()
+    if not user:
+        send_message(bot_token, chat_id, "Please /register or /link first.")
+        return
+
+    new_role = 'provider' if user.role == 'client' else 'client'
+    user.role = new_role
+    db.session.commit()
+
+    menu = keyboards.main_menu(new_role)
+    send_message(bot_token, chat_id,
+                 f"Role switched to <b>{new_role}</b>!",
+                 menu)

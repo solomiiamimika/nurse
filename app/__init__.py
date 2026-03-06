@@ -121,6 +121,30 @@ def create_app():
         except Exception:
             db.session.rollback()
 
+        # Seed default base services if table is empty
+        from app.models import Service
+        if Service.query.count() == 0:
+            default_services = [
+                Service(name='Home Patient Care',        description='In-home care for sick or recovering patients',         base_price=25, base_duration=60),
+                Service(name='Elderly Care',             description='Assistance and companionship for elderly people',      base_price=20, base_duration=60),
+                Service(name='Overnight Care',           description='Overnight monitoring and care at home',                base_price=80, base_duration=480),
+                Service(name='Doctor Visit Escort',      description='Accompanying and assisting during doctor visits',      base_price=30, base_duration=120),
+                Service(name='Therapeutic Massage',      description='Professional therapeutic massage session',             base_price=40, base_duration=60),
+                Service(name='Rehabilitation Exercises', description='Guided rehabilitation and physical exercises',         base_price=35, base_duration=45),
+                Service(name='Post-Surgery Care',        description='Specialized care after surgical procedures',           base_price=30, base_duration=60),
+                Service(name='Hygiene Assistance',       description='Help with bathing, grooming, and personal hygiene',    base_price=20, base_duration=45),
+                Service(name='Meal Preparation',         description='Cooking and preparing meals at home',                  base_price=15, base_duration=60),
+                Service(name='Housekeeping',             description='Light cleaning, tidying, and household tasks',         base_price=15, base_duration=60),
+                Service(name='Errands & Shopping',       description='Grocery shopping, pharmacy runs, and other errands',   base_price=15, base_duration=60),
+                Service(name='Childcare',                description='Professional childcare and supervision',               base_price=20, base_duration=60),
+                Service(name='Babysitting',              description='Short-term babysitting by the hour',                   base_price=15, base_duration=60),
+                Service(name='Online Consultation',      description='Remote consultation via video or chat',                base_price=20, base_duration=30),
+                Service(name='Companionship',            description='Social companionship, conversation, and activities',   base_price=15, base_duration=60),
+                Service(name='Hausmeister',              description='Handyman tasks: minor repairs, furniture assembly, maintenance',  base_price=25, base_duration=60),
+            ]
+            db.session.add_all(default_services)
+            db.session.commit()
+
     # ── 6. Scheduler: send payment reminder emails 7 days before service ──
     def send_payment_reminders():
         from app.models import ClientSelfCreatedAppointment

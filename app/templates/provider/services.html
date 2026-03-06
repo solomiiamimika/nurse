@@ -1,9 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-
 <div class="main-wrapper" style="padding-top: 40px; padding-bottom: 60px;">
-
   <div class="custom-container">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -16,90 +14,27 @@
       </a>
     </div>
 
+    <!-- My Active Services -->
     <div class="content-card mb-4">
-      <div class="d-flex align-items-center mb-3 border-bottom pb-2">
-         <div class="icon-square me-2 bg-primary bg-opacity-10 text-primary">
-            <i class="fas fa-list"></i>
-         </div>
-         <h5 class="fw-bold mb-0">{{ _("Standard Platform Services") }}</h5>
-      </div>
-
-      <div class="table-responsive">
-        <table class="table table-hover align-middle">
-          <thead class="table-light">
-            <tr>
-              <th style="width: 20%">{{ _("Name") }}</th>
-              <th style="width: 30%">{{ _("Description") }}</th>
-              <th>{{ _("Base Price") }}</th>
-              <th>{{ _("Duration") }}</th>
-              <th class="text-end">{{ _("Actions") }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for service in standard_services %}
-            <tr>
-              <td class="fw-bold text-dark">{{ service.name }}</td>
-              <td class="text-muted small">{{ service.description }}</td>
-              <td>{{ service.base_price }} €</td>
-              <td>{{ service.base_duration }} {{ _("min") }}</td>
-              <td class="text-end">
-                {% set provider_service = provider_services|selectattr("service_id", "equalto", service.id)|first %}
-                {% if provider_service %}
-                <div class="btn-group">
-                    <button
-                        class="btn btn-sm btn-outline-primary edit-service-btn"
-                        data-service-id="{{ service.id }}"
-                        data-price="{{ provider_service.price }}"
-                        data-duration="{{ provider_service.duration }}"
-                        data-description="{{ provider_service.description }}"
-                        data-available="{{ provider_service.is_available }}"
-                        title="{{ _('Edit details') }}"
-                    >
-                        <i class="fas fa-edit"></i> {{ _("Edit") }}
-                    </button>
-                    <button
-                        class="btn btn-sm btn-outline-danger remove-service-btn"
-                        data-service-id="{{ service.id }}"
-                        title="{{ _('Remove from my list') }}"
-                    >
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-                {% else %}
-                <button
-                    class="btn btn-sm btn-success add-service-btn fw-bold"
-                    data-service-id="{{ service.id }}"
-                    data-name="{{ service.name }}"
-                >
-                    <i class="fas fa-plus"></i> {{ _("Add to My List") }}
-                </button>
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="content-card">
       <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-         <div class="d-flex align-items-center">
-             <div class="icon-square me-2 bg-success bg-opacity-10 text-success">
-                <i class="fas fa-magic"></i>
-             </div>
-             <h5 class="fw-bold mb-0">{{ _("My Custom Services") }}</h5>
-         </div>
-         <button class="btn btn-primary btn-sm fw-bold" id="addCustomServiceBtn">
-           <i class="fas fa-plus"></i> {{ _("Create New Service") }}
-         </button>
+        <div class="d-flex align-items-center">
+          <div class="icon-square me-2 bg-primary bg-opacity-10 text-primary">
+            <i class="fas fa-briefcase"></i>
+          </div>
+          <h5 class="fw-bold mb-0">{{ _("My Services") }}</h5>
+        </div>
+        <button class="btn btn-primary btn-sm fw-bold" id="addServiceBtn">
+          <i class="fas fa-plus"></i> {{ _("Add Service") }}
+        </button>
       </div>
 
+      {% set my_services = provider_services|list %}
+      {% if my_services %}
       <div class="table-responsive">
-        <table class="table table-hover align-middle">
+        <table class="table table-hover align-middle mb-0">
           <thead class="table-light">
             <tr>
-              <th style="width: 20%">{{ _("Name") }}</th>
+              <th style="width: 25%">{{ _("Name") }}</th>
               <th style="width: 30%">{{ _("Description") }}</th>
               <th>{{ _("Price") }}</th>
               <th>{{ _("Duration") }}</th>
@@ -108,10 +43,10 @@
             </tr>
           </thead>
           <tbody>
-            {% for service in provider_services if not service.service_id %}
+            {% for service in my_services %}
             <tr>
-              <td class="fw-bold text-dark">{{ service.name }}</td>
-              <td class="text-muted small">{{ service.description }}</td>
+              <td class="fw-bold text-dark">{{ service.name or service.base_service.name }}</td>
+              <td class="text-muted small">{{ service.description or (service.base_service.description if service.base_service else '') }}</td>
               <td>{{ service.price }} €</td>
               <td>{{ service.duration }} {{ _("min") }}</td>
               <td>
@@ -123,43 +58,49 @@
               </td>
               <td class="text-end">
                 <div class="btn-group">
-                    <button
+                  <button
                     class="btn btn-sm btn-outline-primary edit-service-btn"
-                    data-service-id="{{ service.id }}"
+                    data-id="{{ service.id }}"
+                    data-service-id="{{ service.service_id or '' }}"
                     data-price="{{ service.price }}"
                     data-duration="{{ service.duration }}"
-                    data-description="{{ service.description }}"
+                    data-description="{{ service.description or '' }}"
                     data-available="{{ service.is_available }}"
-                    data-name="{{ service.name }}"
-                    data-custom="true"
-                    >
+                    data-name="{{ service.name or '' }}"
+                    data-custom="{{ 'true' if not service.service_id else 'false' }}"
+                    title="{{ _('Edit') }}"
+                  >
                     <i class="fas fa-edit"></i>
-                    </button>
-                    <button
+                  </button>
+                  <button
                     class="btn btn-sm btn-outline-danger remove-service-btn"
-                    data-service-id="{{ service.id }}"
-                    data-custom="true"
-                    >
+                    data-id="{{ service.id }}"
+                    data-service-id="{{ service.service_id or service.id }}"
+                    data-custom="{{ 'true' if not service.service_id else 'false' }}"
+                    title="{{ _('Remove') }}"
+                  >
                     <i class="fas fa-trash"></i>
-                    </button>
+                  </button>
                 </div>
               </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="6" class="text-center py-4 text-muted">
-                    {{ _("You haven't created any custom services yet.") }}
-                </td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
+      {% else %}
+      <div class="text-center py-4" style="background:#f8fafc;border-radius:12px;border:1px dashed #d1d5db;">
+        <i class="fas fa-briefcase fa-2x mb-2" style="color:#d1d5db;"></i>
+        <p class="text-muted mb-1">{{ _("You haven't added any services yet.") }}</p>
+        <p class="text-muted small mb-0">{{ _("Click 'Add Service' to get started — choose from suggestions or create your own.") }}</p>
+      </div>
+      {% endif %}
     </div>
 
   </div>
 </div>
 
+<!-- Add/Edit Service Modal -->
 <div class="modal fade" id="serviceModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -171,23 +112,28 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="service_id" id="formServiceId" />
         <input type="hidden" name="action" id="formAction" />
-        <input type="hidden" name="is_custom" id="formIsCustom" value="false" />
+        <input type="hidden" name="is_custom" id="formIsCustom" value="true" />
 
         <div class="modal-body">
-          <div class="mb-3" id="customNameField" style="display:none;">
-            <label for="name" class="form-label fw-bold small text-muted">{{ _("SERVICE NAME") }}</label>
-            <input type="text" class="form-control" id="name" name="name" required />
+          <!-- Suggestion dropdown (only for new services) -->
+          <div class="mb-3" id="suggestionField">
+            <label class="form-label fw-bold small text-muted">{{ _("SERVICE NAME") }}</label>
+            <div class="position-relative">
+              <input type="text" class="form-control" id="serviceName" name="name"
+                     placeholder="{{ _('Type or pick from suggestions...') }}" autocomplete="off" required />
+              <div id="suggestionDropdown" class="suggestion-dropdown" style="display:none;"></div>
+            </div>
           </div>
 
           <div class="row">
-              <div class="col-6 mb-3">
-                <label for="price" class="form-label fw-bold small text-muted">{{ _("PRICE (EUR)") }}</label>
-                <input type="number" step="0.01" class="form-control" id="price" name="price" required />
-              </div>
-              <div class="col-6 mb-3">
-                <label for="duration" class="form-label fw-bold small text-muted">{{ _("DURATION (MIN)") }}</label>
-                <input type="number" class="form-control" id="duration" name="duration" required />
-              </div>
+            <div class="col-6 mb-3">
+              <label for="price" class="form-label fw-bold small text-muted">{{ _("PRICE (EUR)") }}</label>
+              <input type="number" step="0.01" class="form-control" id="price" name="price" required />
+            </div>
+            <div class="col-6 mb-3">
+              <label for="duration" class="form-label fw-bold small text-muted">{{ _("DURATION (MIN)") }}</label>
+              <input type="number" class="form-control" id="duration" name="duration" required />
+            </div>
           </div>
 
           <div class="mb-3">
@@ -202,13 +148,14 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-light border" data-bs-dismiss="modal">{{ _("Cancel") }}</button>
-          <button type="submit" class="btn btn-primary fw-bold px-4">{{ _("Save Changes") }}</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4">{{ _("Save") }}</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -232,166 +179,164 @@
 
 {% block scripts %}
 <style>
-    .custom-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 20px;
-    }
-    .content-card {
-        background: white;
-        padding: 25px;
-        border-radius: 12px;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    }
-    .icon-square {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .btn-tool {
-        background: white;
-        border: 1px solid #e5e7eb;
-        color: #4b5563;
-        padding: 8px 16px;
-        border-radius: 8px;
-        font-weight: 600;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s;
-    }
-    .btn-tool:hover {
-        background: #f9fafb;
-        color: #111827;
-        border-color: #d1d5db;
-    }
+  .custom-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+  .content-card { background: white; padding: 25px; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+  .icon-square { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .btn-tool { background: white; border: 1px solid #e5e7eb; color: #4b5563; padding: 8px 16px; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
+  .btn-tool:hover { background: #f9fafb; color: #111827; border-color: #d1d5db; }
+
+  .suggestion-dropdown {
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 1050;
+    background: white; border: 1px solid #d1d5db; border-top: none;
+    border-radius: 0 0 8px 8px; max-height: 220px; overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .suggestion-item {
+    padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #f3f4f6;
+    transition: background 0.15s;
+  }
+  .suggestion-item:hover { background: #f0fdf4; }
+  .suggestion-item:last-child { border-bottom: none; }
+  .suggestion-item .s-name { font-weight: 600; font-size: 14px; color: #1f2937; }
+  .suggestion-item .s-meta { font-size: 12px; color: #6b7280; }
 </style>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // Handle Add Custom Service Button
-    document.getElementById('addCustomServiceBtn').addEventListener('click', function() {
-      document.getElementById('formAction').value = 'add_custom';
-      document.getElementById('formIsCustom').value = 'true';
-      document.getElementById('serviceModalTitle').textContent = {{ _('Create New Custom Service') | tojson }};
-      document.getElementById('customNameField').style.display = 'block';
+document.addEventListener("DOMContentLoaded", function () {
+  // Base services data for suggestions
+  const baseSuggestions = [
+    {% for s in standard_services %}
+    {
+      id: {{ s.id }},
+      name: {{ s.name | tojson }},
+      desc: {{ (s.description or '') | tojson }},
+      price: {{ s.base_price }},
+      duration: {{ s.base_duration }},
+      added: {{ 'true' if provider_services|selectattr("service_id", "equalto", s.id)|first else 'false' }}
+    }{{ ',' if not loop.last }}
+    {% endfor %}
+  ];
 
-      // Reset form
-      document.getElementById('formServiceId').value = '';
-      document.getElementById('name').value = '';
-      document.getElementById('price').value = '';
-      document.getElementById('duration').value = '';
-      document.getElementById('description').value = '';
-      document.getElementById('is_available').checked = true;
+  const nameInput = document.getElementById('serviceName');
+  const dropdown = document.getElementById('suggestionDropdown');
+  let isEditing = false;
 
-      const modal = new bootstrap.Modal(document.getElementById('serviceModal'));
-      modal.show();
-    });
+  function renderSuggestions(filter) {
+    const q = (filter || '').toLowerCase();
+    const available = baseSuggestions.filter(s => !s.added);
+    const matched = q ? available.filter(s => s.name.toLowerCase().includes(q)) : available;
 
-    // Handle Add Standard Service Button
-    document.querySelectorAll('.add-service-btn').forEach((btn) => {
-      btn.addEventListener('click', function() {
-        const serviceId = this.getAttribute('data-service-id');
-        const serviceName = this.getAttribute('data-name');
+    if (matched.length === 0) {
+      dropdown.style.display = 'none';
+      return;
+    }
 
+    dropdown.innerHTML = matched.map(s => `
+      <div class="suggestion-item" data-id="${s.id}" data-name="${s.name}" data-price="${s.price}" data-duration="${s.duration}" data-desc="${s.desc}">
+        <div class="s-name">${s.name}</div>
+        <div class="s-meta">${s.price} € · ${s.duration} {{ _("min") }}</div>
+      </div>
+    `).join('');
+    dropdown.style.display = 'block';
+
+    dropdown.querySelectorAll('.suggestion-item').forEach(item => {
+      item.addEventListener('click', function () {
+        nameInput.value = this.dataset.name;
+        document.getElementById('price').value = this.dataset.price;
+        document.getElementById('duration').value = this.dataset.duration;
+        document.getElementById('description').value = this.dataset.desc;
+        document.getElementById('formServiceId').value = this.dataset.id;
         document.getElementById('formAction').value = 'add';
         document.getElementById('formIsCustom').value = 'false';
-        document.getElementById('formServiceId').value = serviceId;
-        document.getElementById('serviceModalTitle').textContent = `{{ _('Add Service') }}: ${serviceName}`;
-        document.getElementById('customNameField').style.display = 'none';
-
-        // Reset form
-        document.getElementById('price').value = '';
-        document.getElementById('duration').value = '';
-        document.getElementById('description').value = '';
-        document.getElementById('is_available').checked = true;
-
-        const modal = new bootstrap.Modal(document.getElementById('serviceModal'));
-        modal.show();
+        nameInput.readOnly = true;
+        dropdown.style.display = 'none';
       });
     });
+  }
 
-    // Handle Edit Service Button
-    document.querySelectorAll('.edit-service-btn').forEach((btn) => {
-      btn.addEventListener('click', function() {
-        const isCustom = this.hasAttribute('data-custom');
-        const serviceId = this.getAttribute('data-service-id');
-        const price = this.getAttribute('data-price');
-        const duration = this.getAttribute('data-duration');
-        const description = this.getAttribute('data-description');
-        const available = this.getAttribute('data-available') === 'True';
+  nameInput.addEventListener('focus', function () {
+    if (!isEditing) renderSuggestions(this.value);
+  });
+  nameInput.addEventListener('input', function () {
+    nameInput.readOnly = false;
+    document.getElementById('formServiceId').value = '';
+    document.getElementById('formAction').value = 'add_custom';
+    document.getElementById('formIsCustom').value = 'true';
+    renderSuggestions(this.value);
+  });
+  document.addEventListener('click', function (e) {
+    if (!dropdown.contains(e.target) && e.target !== nameInput) {
+      dropdown.style.display = 'none';
+    }
+  });
 
-        document.getElementById('formAction').value = 'update';
-        document.getElementById('formIsCustom').value = isCustom ? 'true' : 'false';
-        document.getElementById('formServiceId').value = serviceId;
-        document.getElementById('serviceModalTitle').textContent = {{ _('Edit Service Details') | tojson }};
+  // Add Service button
+  document.getElementById('addServiceBtn').addEventListener('click', function () {
+    isEditing = false;
+    document.getElementById('formAction').value = 'add_custom';
+    document.getElementById('formIsCustom').value = 'true';
+    document.getElementById('formServiceId').value = '';
+    document.getElementById('serviceModalTitle').textContent = {{ _('Add Service') | tojson }};
+    document.getElementById('suggestionField').style.display = 'block';
+    nameInput.readOnly = false;
+    nameInput.value = '';
+    document.getElementById('price').value = '';
+    document.getElementById('duration').value = '';
+    document.getElementById('description').value = '';
+    document.getElementById('is_available').checked = true;
+    new bootstrap.Modal(document.getElementById('serviceModal')).show();
+  });
 
-        if (isCustom) {
-          const name = this.getAttribute('data-name');
-          document.getElementById('customNameField').style.display = 'block';
-          document.getElementById('name').value = name;
-        } else {
-          document.getElementById('customNameField').style.display = 'none';
-        }
+  // Edit Service buttons
+  document.querySelectorAll('.edit-service-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      isEditing = true;
+      const isCustom = this.dataset.custom === 'true';
 
-        document.getElementById('price').value = price;
-        document.getElementById('duration').value = duration;
-        document.getElementById('description').value = description;
-        document.getElementById('is_available').checked = available;
+      document.getElementById('formAction').value = 'update';
+      document.getElementById('formIsCustom').value = isCustom ? 'true' : 'false';
+      document.getElementById('formServiceId').value = isCustom ? this.dataset.id : this.dataset.serviceId;
+      document.getElementById('serviceModalTitle').textContent = {{ _('Edit Service') | tojson }};
 
-        const modal = new bootstrap.Modal(document.getElementById('serviceModal'));
-        modal.show();
-      });
-    });
-
-    // Handle Delete Service Button
-    let serviceToDelete = null;
-    let isCustomToDelete = false;
-
-    document.querySelectorAll('.remove-service-btn').forEach((btn) => {
-      btn.addEventListener('click', function() {
-        serviceToDelete = this.getAttribute('data-service-id');
-        isCustomToDelete = this.hasAttribute('data-custom');
-
-        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        modal.show();
-      });
-    });
-
-    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-      if (serviceToDelete) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '';
-
-        // Add CSRF Token
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = 'csrf_token';
-        csrfInput.value = "{{ csrf_token() }}";
-        form.appendChild(csrfInput);
-
-        const serviceIdInput = document.createElement('input');
-        serviceIdInput.type = 'hidden';
-        serviceIdInput.name = 'service_id';
-        serviceIdInput.value = serviceToDelete;
-        form.appendChild(serviceIdInput);
-
-        const actionInput = document.createElement('input');
-        actionInput.type = 'hidden';
-        actionInput.name = 'action';
-        actionInput.value = isCustomToDelete ? 'remove_custom' : 'remove';
-        form.appendChild(actionInput);
-
-        document.body.appendChild(form);
-        form.submit();
+      document.getElementById('suggestionField').style.display = isCustom ? 'block' : 'none';
+      if (isCustom) {
+        nameInput.value = this.dataset.name;
+        nameInput.readOnly = false;
       }
+      document.getElementById('price').value = this.dataset.price;
+      document.getElementById('duration').value = this.dataset.duration;
+      document.getElementById('description').value = this.dataset.description;
+      document.getElementById('is_available').checked = this.dataset.available === 'True';
+      dropdown.style.display = 'none';
+
+      new bootstrap.Modal(document.getElementById('serviceModal')).show();
     });
   });
+
+  // Delete Service buttons
+  let serviceToDelete = null;
+  let isCustomToDelete = false;
+
+  document.querySelectorAll('.remove-service-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      serviceToDelete = this.dataset.serviceId;
+      isCustomToDelete = this.dataset.custom === 'true';
+      new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    });
+  });
+
+  document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+    if (!serviceToDelete) return;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.innerHTML = `
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="service_id" value="${serviceToDelete}">
+      <input type="hidden" name="action" value="${isCustomToDelete ? 'remove_custom' : 'remove'}">
+    `;
+    document.body.appendChild(form);
+    form.submit();
+  });
+});
 </script>
 {% endblock %}

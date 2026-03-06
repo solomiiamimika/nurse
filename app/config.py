@@ -42,6 +42,11 @@ class Config:
     TELEGRAM_BOT_NAME  = os.getenv('TELEGRAM_BOT_NAME')   # without @
     BASE_URL           = os.getenv('BASE_URL', 'http://127.0.0.1:5000')
 
+    # ── Ollama (local AI search) ────────────────────────────────────
+    OLLAMA_ENABLED = os.getenv('OLLAMA_ENABLED', '').lower() in ('1', 'true', 'yes')
+    OLLAMA_URL     = os.getenv('OLLAMA_URL', 'http://localhost:11434/v1')
+    OLLAMA_MODEL   = os.getenv('OLLAMA_MODEL', 'llama3')
+
     # ── JWT (mobile API) ───────────────────────────────────────────
     JWT_SECRET_KEY           = os.getenv('JWT_SECRET_KEY', 'change-jwt-secret')
     JWT_ACCESS_TOKEN_EXPIRES = 86400   # 24 hours

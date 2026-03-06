@@ -1,10 +1,13 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, current_app
 from flask_login import login_required, current_user
 from app.models import User, ProviderService, Appointment, Message, ServiceHistory, Feedback
 from app.extensions import db
 from sqlalchemy import or_, func, and_, desc
 from datetime import datetime, timedelta
 import json
+from difflib import SequenceMatcher
+import openai
+
 
 main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
@@ -46,46 +49,258 @@ def search_providers_by_rating():
     return jsonify(results[:50])
 
 
+# ── Smart synonym groups (EN / UK / DE / PL) ────────────────────
+# Each group contains words that mean the same concept.
+# Matching ANY word triggers expansion to ALL words in that group.
+_SYNONYMS = [
+    # pets & dog walking
+    ['dog', 'dogs', 'puppy', 'pet', 'pets', 'walk', 'walking', 'gassi', 'hund', 'hunde', 'haustier', 'tier',
+     'собака', 'собаку', 'пес', 'пса', 'песик', 'цуценя', 'тварина', 'вигул', 'гуляти', 'прогулянка',
+     'pies', 'spacer', 'zwierzę'],
+    # cat care
+    ['cat', 'cats', 'kitten', 'katze', 'katzen', 'кіт', 'кішка', 'котик', 'кота', 'kot', 'kotek'],
+    # cleaning
+    ['clean', 'cleaning', 'cleaner', 'tidy', 'wash', 'housekeeping', 'maid',
+     'putzen', 'reinigung', 'sauber', 'saubermachen', 'reinigen', 'haushalt',
+     'прибирання', 'прибрати', 'прибиральниця', 'уборка', 'помити', 'мити', 'чистка', 'чистити',
+     'sprzątanie', 'sprzątać', 'mycie'],
+    # elderly / senior care
+    ['elder', 'elderly', 'senior', 'grandma', 'grandpa', 'grandmother', 'grandfather', 'old', 'aged', 'care',
+     'oma', 'opa', 'pflege', 'altenpflege', 'seniorenpflege', 'betreuen', 'betreuung',
+     'бабуся', 'бабусі', 'бабусю', 'дідусь', 'дідуся', 'літня', 'старший', 'догляд', 'доглядати', 'опіка',
+     'babcia', 'dziadek', 'opieka', 'starszy'],
+    # childcare / babysitting
+    ['child', 'children', 'baby', 'kid', 'kids', 'nanny', 'babysit', 'babysitter', 'babysitting', 'toddler',
+     'kinderbetreuung', 'babysitter', 'kinder', 'kind', 'kindermädchen', 'tagesmutter',
+     'дитина', 'дитину', 'діти', 'дітей', 'няня', 'няню', 'малюк', 'малюка', 'дитячий',
+     'dziecko', 'dzieci', 'niania', 'opiekunka'],
+    # errands / shopping / delivery
+    ['errand', 'errands', 'pharmacy', 'grocery', 'groceries', 'shop', 'shopping', 'deliver', 'delivery', 'buy', 'pick up', 'fetch',
+     'einkaufen', 'apotheke', 'besorgung', 'lieferung', 'lebensmittel', 'supermarkt',
+     'аптека', 'аптеку', 'магазин', 'продукти', 'доставка', 'купити', 'принести', 'забрати', 'закупи',
+     'apteka', 'sklep', 'zakupy', 'dostawa'],
+    # cooking / food
+    ['cook', 'cooking', 'food', 'meal', 'meals', 'chef', 'kitchen', 'lunch', 'dinner', 'breakfast',
+     'kochen', 'essen', 'mahlzeit', 'küche',
+     'готувати', 'їжа', 'їсти', 'обід', 'вечеря', 'сніданок', 'кухня', 'приготувати', 'варити',
+     'gotować', 'jedzenie', 'obiad', 'kolacja'],
+    # repair / handyman
+    ['repair', 'fix', 'handyman', 'plumber', 'electrician', 'broken', 'maintenance',
+     'reparatur', 'reparieren', 'handwerker', 'klempner', 'elektriker',
+     'ремонт', 'полагодити', 'лагодити', 'зламався', 'зламалось', 'майстер', 'сантехнік', 'електрик',
+     'naprawa', 'naprawić', 'złoty rączka', 'hydraulik'],
+    # moving / carrying
+    ['move', 'moving', 'carry', 'furniture', 'heavy', 'lift', 'transport', 'relocate',
+     'umzug', 'umziehen', 'möbel', 'tragen', 'schwer', 'transport',
+     'переїзд', 'нести', 'меблі', 'важкий', 'перенести', 'перевезти', 'вантажі',
+     'przeprowadzka', 'meble', 'nosić', 'ciężki'],
+    # garden / lawn
+    ['garden', 'gardening', 'lawn', 'plant', 'plants', 'flowers', 'mow', 'trim', 'yard', 'hedge',
+     'garten', 'gartenarbeit', 'rasen', 'pflanzen', 'blumen', 'mähen', 'hecke',
+     'сад', 'город', 'газон', 'рослини', 'квіти', 'косити', 'садівник', 'грядки', 'клумба',
+     'ogród', 'trawnik', 'rośliny', 'kwiaty'],
+    # tutoring / lessons
+    ['tutor', 'tutoring', 'lesson', 'lessons', 'teach', 'teacher', 'homework', 'study', 'math', 'english', 'language',
+     'nachhilfe', 'unterricht', 'lehrer', 'hausaufgaben', 'lernen',
+     'репетитор', 'уроки', 'вчити', 'вчитель', 'домашнє', 'навчання', 'математика', 'англійська', 'мова',
+     'korepetycje', 'lekcje', 'nauczyciel'],
+    # massage / wellness
+    ['massage', 'masseuse', 'spa', 'relax', 'relaxation', 'wellness', 'therapy', 'therapeutic',
+     'massage', 'wellness', 'entspannung', 'therapie',
+     'масаж', 'масажист', 'розслабитись', 'терапія', 'спа',
+     'masaż', 'relaks', 'terapia'],
+    # medical / nurse / health
+    ['nurse', 'nursing', 'medical', 'health', 'doctor', 'injection', 'blood pressure', 'iv', 'infusion', 'bandage', 'wound',
+     'krankenschwester', 'pfleger', 'medizinisch', 'gesundheit', 'arzt', 'spritze', 'blutdruck', 'infusion', 'verband',
+     'медсестра', 'медичний', 'здоров\'я', 'лікар', 'укол', 'тиск', 'крапельниця', 'перев\'язка', 'рана',
+     'pielęgniarka', 'medyczny', 'zdrowie', 'lekarz', 'zastrzyk'],
+    # laundry / ironing
+    ['laundry', 'iron', 'ironing', 'wash clothes', 'dry cleaning',
+     'wäsche', 'bügeln', 'waschen', 'reinigung',
+     'прання', 'прати', 'прасувати', 'білизна', 'одяг', 'хімчистка',
+     'pranie', 'prasowanie', 'ubrania'],
+    # tech help / computer
+    ['computer', 'laptop', 'phone', 'tech', 'technology', 'internet', 'wifi', 'printer', 'it', 'software',
+     'computer', 'handy', 'technik', 'drucker',
+     'комп\'ютер', 'ноутбук', 'телефон', 'технології', 'інтернет', 'принтер', 'техніка',
+     'komputer', 'telefon', 'technologia', 'drukarka'],
+    # driving / transport
+    ['drive', 'driver', 'taxi', 'ride', 'airport', 'pick up', 'drop off', 'transport',
+     'fahren', 'fahrer', 'taxi', 'flughafen', 'abholen',
+     'водій', 'таксі', 'відвезти', 'привезти', 'аеропорт', 'підвезти', 'довезти',
+     'kierowca', 'taksówka', 'lotnisko', 'podwieźć'],
+    # general help
+    ['help', 'helper', 'assist', 'assistance', 'support', 'favor', 'favour',
+     'hilfe', 'helfen', 'unterstützung', 'assistenz',
+     'допомога', 'допомогти', 'помічник', 'підмога', 'підтримка',
+     'pomoc', 'pomagać', 'wsparcie'],
+    # company / companion / loneliness
+    ['companion', 'company', 'loneliness', 'lonely', 'talk', 'conversation', 'visit', 'friend',
+     'gesellschaft', 'begleitung', 'einsam', 'einsamkeit', 'besuch', 'gespräch',
+     'компанія', 'самотність', 'поговорити', 'провідати', 'друг', 'побалакати', 'спілкування',
+     'towarzystwo', 'samotność', 'rozmowa', 'odwiedziny'],
+]
+
+# Build a flat lookup: word → index of its group (for fast matching)
+_WORD_TO_GROUP = {}
+for _gi, _group in enumerate(_SYNONYMS):
+    for _w in _group:
+        _WORD_TO_GROUP[_w.lower()] = _gi
+
+
+def _expand_query(q):
+    """Expand user query with synonyms + fuzzy matching for smarter results."""
+    q_lower = q.lower()
+    words = q_lower.split()
+    expanded = set(words)
+
+    matched_groups = set()
+
+    # 1) Exact word match → add whole synonym group
+    for w in words:
+        gi = _WORD_TO_GROUP.get(w)
+        if gi is not None:
+            matched_groups.add(gi)
+
+    # 2) Substring match: if user typed "соб" check if it's inside "собака"
+    if not matched_groups:
+        for w in words:
+            if len(w) < 3:
+                continue
+            for syn_word, gi in _WORD_TO_GROUP.items():
+                if w in syn_word or syn_word in w:
+                    matched_groups.add(gi)
+
+    # 3) Fuzzy match: catch typos and similar words (e.g. "clening" → "cleaning")
+    if not matched_groups:
+        for w in words:
+            if len(w) < 3:
+                continue
+            best_ratio = 0
+            best_gi = None
+            for syn_word, gi in _WORD_TO_GROUP.items():
+                if abs(len(w) - len(syn_word)) > 3:
+                    continue
+                ratio = SequenceMatcher(None, w, syn_word).ratio()
+                if ratio > best_ratio and ratio >= 0.7:
+                    best_ratio = ratio
+                    best_gi = gi
+            if best_gi is not None:
+                matched_groups.add(best_gi)
+
+    # Add all words from matched groups
+    for gi in matched_groups:
+        expanded.update(w.lower() for w in _SYNONYMS[gi])
+
+    return expanded
+
+
+def _ai_expand_query(q):
+    """Use Ollama (local AI) to extract search keywords from natural language."""
+    ollama_url = current_app.config.get('OLLAMA_URL', 'http://localhost:11434/v1')
+    ollama_model = current_app.config.get('OLLAMA_MODEL', 'llama3')
+    client = openai.OpenAI(base_url=ollama_url, api_key='ollama', timeout=3.0)
+    resp = client.chat.completions.create(
+        model=ollama_model,
+        messages=[
+            {
+                'role': 'system',
+                'content': (
+                    'You are a search keyword extractor for a service marketplace. '
+                    'The user is looking for a helper/provider. '
+                    'Extract relevant search keywords from their request. '
+                    'Return ONLY a JSON object: {"keywords": [...]}. '
+                    'Include synonyms in English, Ukrainian, and German. '
+                    'Be generous — e.g. "собака" should also yield "пес", "dog", "hund", "вигул", "walk". '
+                    'Return 8-15 keywords. ONLY JSON, no other text.'
+                ),
+            },
+            {'role': 'user', 'content': q},
+        ],
+        max_tokens=200,
+        temperature=0,
+    )
+    raw = resp.choices[0].message.content
+    # Extract JSON even if model wraps it in markdown
+    if '{' in raw:
+        raw = raw[raw.index('{'):raw.rindex('}') + 1]
+    data = json.loads(raw)
+    keywords = data.get('keywords', [])
+    result = set(w.lower() for w in keywords)
+    result.update(q.lower().split())
+    return result
+
+
+def _serialize_provider(n):
+    services = ProviderService.query.filter_by(
+        provider_id=n.id, is_available=True
+    ).limit(3).all()
+
+    services_list = []
+    for s in services:
+        name = s.name or (s.base_service.name if s.base_service else 'Service')
+        services_list.append({'name': name, 'price': s.price, 'duration': s.duration})
+
+    vis = json.loads(n.profile_visibility or '{}')
+
+    return {
+        'id': n.id,
+        'user_name': n.user_name,
+        'full_name': (n.full_name or n.user_name) if vis.get('full_name', True) else n.user_name,
+        'photo': n.photo if vis.get('photo', True) else None,
+        'average_rating': n.average_rating,
+        'review_count': n.review_count,
+        'about_me': n.about_me if vis.get('about_me', True) else None,
+        'services': services_list,
+    }
+
+
 @main_bp.route('/search_providers')
 def search_providers():
     q = request.args.get('q', '', type=str).strip()
 
-    query = User.query.filter(User.role == 'provider')
+    all_providers = User.query.filter(User.role == 'provider').all()
 
-    if q:
-        query = query.filter(or_(
-            User.user_name.ilike(f'%{q}%'),
-            User.full_name.ilike(f'%{q}%'),
-            User.about_me.ilike(f'%{q}%'),
-        ))
+    if not q:
+        # No query — show everyone sorted by rating
+        results = [_serialize_provider(p) for p in all_providers]
+        results.sort(key=lambda x: -(x['average_rating'] or 0))
+        return jsonify(results[:20])
 
-    providers = query.limit(20).all()
+    # Try Ollama AI first, fall back to local synonym matching
+    try:
+        if current_app.config.get('OLLAMA_ENABLED'):
+            expanded = _ai_expand_query(q)
+        else:
+            expanded = _expand_query(q)
+    except Exception:
+        expanded = _expand_query(q)
 
-    results = []
-    for n in providers:
-        services = ProviderService.query.filter_by(
-            provider_id=n.id, is_available=True
-        ).limit(3).all()
+    # Score each provider by how many keywords match
+    scored = []
+    for p in all_providers:
+        score = 0
+        # Check provider text fields
+        haystack = ' '.join([
+            p.user_name or '', p.full_name or '', p.about_me or ''
+        ]).lower()
 
-        services_list = []
+        # Check service names + descriptions
+        services = ProviderService.query.filter_by(provider_id=p.id, is_available=True).all()
         for s in services:
-            name = s.name or (s.base_service.name if s.base_service else 'Service')
-            services_list.append({'name': name, 'price': s.price, 'duration': s.duration})
+            sname = s.name or (s.base_service.name if s.base_service else '')
+            haystack += ' ' + (sname or '').lower() + ' ' + (s.description or '').lower()
 
-        vis = json.loads(n.profile_visibility or '{}')
+        for kw in expanded:
+            if kw in haystack:
+                score += 1
 
-        results.append({
-            'id': n.id,
-            'user_name': n.user_name,
-            'full_name': (n.full_name or n.user_name) if vis.get('full_name', True) else n.user_name,
-            'photo': n.photo if vis.get('photo', True) else None,
-            'average_rating': n.average_rating,
-            'review_count': n.review_count,
-            'about_me': n.about_me if vis.get('about_me', True) else None,
-            'services': services_list,
-        })
+        scored.append((p, score))
 
-    results.sort(key=lambda x: -(x['average_rating'] or 0))
+    # Sort: matched providers first (by score desc), then the rest by rating
+    scored.sort(key=lambda x: (-x[1], -(x[0].average_rating or 0)))
+
+    results = [_serialize_provider(p) for p, score in scored[:20]]
     return jsonify(results)
 
 

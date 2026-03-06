@@ -60,6 +60,8 @@ def get_providers_locations():
 
     providers_data = []
     for provider in providers:
+        if not ProviderService.query.filter_by(provider_id=provider.id, is_available=True).first():
+            continue
         f_lat, f_lng = fuzz_coordinates(provider.latitude, provider.longitude, meters=100)
         providers_data.append({
             'id': provider.id,
@@ -87,6 +89,8 @@ def get_providers_list():
 
     providers_data = []
     for p in providers:
+        if not ProviderService.query.filter_by(provider_id=p.id, is_available=True).first():
+            continue
         distance_km = None
         if client_lat and client_lng and p.latitude and p.longitude:
             lat1, lon1, lat2, lon2 = map(radians, [client_lat, client_lng, p.latitude, p.longitude])

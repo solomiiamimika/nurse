@@ -52,6 +52,13 @@ def profile():
     if request.method == 'POST':
         try:
             current_user.full_name = request.form.get('full_name')
+            new_email = request.form.get('email', '').strip()
+            if new_email and new_email != current_user.email:
+                existing = User.query.filter(User.email == new_email, User.id != current_user.id).first()
+                if existing:
+                    flash('This email is already in use', 'danger')
+                    return redirect(url_for('client.profile'))
+                current_user.email = new_email
             current_user.phone_number = request.form.get('phone_number')
             current_user.about_me = request.form.get('about_me')
             current_user.address = request.form.get('address')

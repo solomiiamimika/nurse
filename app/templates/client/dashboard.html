@@ -44,7 +44,7 @@
       <button id="location-btn" class="btn-tool text-primary">
         <i class="fas fa-map-marker-alt"></i> {{ _("Update Location") }}
       </button>
-      <button class="btn-tool" style="background:var(--primary-green);color:#fff;border-color:var(--primary-green);" data-bs-toggle="modal" data-bs-target="#createRequestModal">
+      <button class="btn-tool btn-tool-accent" data-bs-toggle="modal" data-bs-target="#createRequestModal">
         <i class="fas fa-plus"></i> {{ _("Post a Request") }}
       </button>
       <form action="{{url_for('auth.logout')}}" method="post" style="display:inline">
@@ -293,12 +293,51 @@
     .custom-container { max-width: 1400px; margin: 0 auto; padding: 0 20px; width: 100%; }
     .greeting-section { padding: 40px 0 20px; }
     .greeting-section h2 { font-weight: 800; color: #1f2937; }
-    .sticky-toolbar-wrapper { position: sticky; top: 0; z-index: 1000; padding: 15px 0; background: rgba(248, 250, 252, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.06); margin-bottom: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+    /* ── Spring Pastel Toolbar ──────────────────────────────── */
+    .sticky-toolbar-wrapper {
+      position: sticky; top: 0; z-index: 1000;
+      padding: 16px 0;
+      margin-bottom: 25px;
+      background: linear-gradient(135deg, #fce4ec 0%, #f8e8f0 25%, #e8f5e9 50%, #fff9c4 75%, #fce4ec 100%);
+      border-bottom: 2px solid rgba(236, 198, 210, 0.5);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+    }
     .toolbar-inner { width: 100%; }
-    .btn-tool { background: white; border: 1px solid #e5e7eb; color: #4b5563; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    .btn-tool:hover { background: #f9fafb; color: #111827; border-color: #d1d5db; transform: translateY(-1px); }
-    .btn-icon { background: white; border: 1px solid #e5e7eb; padding: 10px 14px; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    .btn-icon:hover { background: #fee2e2; border-color: #fca5a5; transform: translateY(-1px); }
+    .btn-tool {
+      background: rgba(255,255,255,0.85);
+      border: 1px solid rgba(200, 180, 190, 0.3);
+      color: #5a4a50;
+      padding: 10px 18px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.25s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      backdrop-filter: blur(8px);
+    }
+    .btn-tool:hover {
+      background: #fff;
+      color: #3f4a36;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    .btn-icon {
+      background: rgba(255,255,255,0.85);
+      border: 1px solid rgba(200, 180, 190, 0.3);
+      padding: 10px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.25s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .btn-icon:hover { background: #fee2e2; border-color: #fca5a5; transform: translateY(-2px); }
+    .btn-tool-accent { background: var(--primary-green, #3f4a36) !important; color: #fff !important; border-color: var(--primary-green, #3f4a36) !important; font-weight: 700 !important; }
+    .btn-tool-accent:hover { opacity: 0.9 !important; }
     .content-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
     .requests-scroll-area { flex: 1 1 0; min-height: 100px; max-height: 520px; overflow-y: auto; padding-right: 5px; }
 
@@ -371,7 +410,7 @@
 
     /* Mobile responsive */
     @media (max-width: 768px) {
-        .sticky-toolbar-wrapper { padding: 10px 0; }
+        .sticky-toolbar-wrapper { padding: 12px 0 16px; border-radius: 0 0 12px 12px; }
         .toolbar-inner { overflow-x: auto; white-space: nowrap; justify-content: flex-start !important; padding-bottom: 5px; }
         .btn-tool { padding: 8px 12px; font-size: 0.8rem; }
         .requests-scroll-area { max-height: 400px; }
@@ -1624,5 +1663,135 @@
           }, 1000);
       }
   });
+</script>
+
+<!-- Easter Egg Hunt Game -->
+<style>
+  .easter-egg {
+    position: fixed;
+    width: 38px; height: 48px;
+    cursor: pointer;
+    z-index: 9999;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.2));
+    transition: transform 0.15s;
+    animation: eggBob 2.5s ease-in-out infinite;
+  }
+  .easter-egg:hover { transform: scale(1.15); }
+  @keyframes eggBob {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50% { transform: translateY(-6px) rotate(3deg); }
+  }
+  @keyframes eggCrack {
+    0% { transform: scale(1); opacity: 1; }
+    30% { transform: scale(1.3) rotate(10deg); }
+    60% { transform: scale(1.5) rotate(-5deg); opacity: 0.7; }
+    100% { transform: scale(0) rotate(20deg); opacity: 0; }
+  }
+  .easter-egg.cracking { animation: eggCrack 0.5s ease-out forwards !important; }
+  .egg-reward {
+    position: fixed; z-index: 10000;
+    background: white; border-radius: 16px; padding: 16px 24px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    text-align: center; font-weight: 700;
+    animation: rewardPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 2px solid #fbbf24;
+  }
+  @keyframes rewardPop {
+    0% { transform: scale(0); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .egg-counter {
+    position: fixed; bottom: 20px; right: 20px; z-index: 9998;
+    background: linear-gradient(135deg, #fce4ec, #fff9c4);
+    border: 2px solid rgba(251, 191, 36, 0.4);
+    border-radius: 50px; padding: 8px 16px;
+    font-weight: 700; font-size: 0.85rem; color: #92400e;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    display: none; cursor: pointer;
+  }
+</style>
+<div class="egg-counter" id="eggCounter" title="{{ _('Easter eggs found!') }}"></div>
+<script>
+(function() {
+  const EGG_COLORS = [
+    ['#fce4ec','#f48fb1','#ec407a'],
+    ['#e8f5e9','#81c784','#43a047'],
+    ['#fff9c4','#fff176','#fdd835'],
+    ['#e3f2fd','#90caf9','#42a5f5'],
+    ['#f3e5f5','#ce93d8','#ab47bc'],
+    ['#fff3e0','#ffb74d','#fb8c00'],
+  ];
+  const REWARDS = [
+    '{{ _("Happy Easter!") }} 🐣',
+    '{{ _("You found me!") }} 🎉',
+    '{{ _("Spring vibes!") }} 🌸',
+    '{{ _("Lucky egg!") }} 🍀',
+    '{{ _("Sweet!") }} 🐰',
+    '{{ _("Wonderful!") }} 🌷',
+  ];
+  let eggsFound = parseInt(localStorage.getItem('easter_eggs_found') || '0');
+  const maxEggsPerSession = 5;
+  let sessionEggs = 0;
+
+  function updateCounter() {
+    const c = document.getElementById('eggCounter');
+    if (eggsFound > 0) {
+      c.style.display = 'block';
+      c.innerHTML = `🥚 ${eggsFound} {{ _("eggs found") }}`;
+    }
+  }
+
+  function createEggSVG(colors) {
+    const [bg, stripe, dot] = colors;
+    return `<svg viewBox="0 0 38 48" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="19" cy="26" rx="16" ry="21" fill="${bg}" stroke="${stripe}" stroke-width="1"/>
+      <path d="M5,22 Q19,18 33,22" stroke="${stripe}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M7,30 Q19,34 31,30" stroke="${stripe}" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
+      <circle cx="12" cy="18" r="2.5" fill="${dot}" opacity="0.7"/>
+      <circle cx="26" cy="20" r="2" fill="${dot}" opacity="0.5"/>
+      <circle cx="19" cy="36" r="1.8" fill="${dot}" opacity="0.6"/>
+      <ellipse cx="14" cy="12" rx="4" ry="2" fill="rgba(255,255,255,0.4)" transform="rotate(-20 14 12)"/>
+    </svg>`;
+  }
+
+  function spawnEgg() {
+    if (sessionEggs >= maxEggsPerSession) return;
+    const colors = EGG_COLORS[Math.floor(Math.random() * EGG_COLORS.length)];
+    const egg = document.createElement('div');
+    egg.className = 'easter-egg';
+    egg.innerHTML = createEggSVG(colors);
+
+    const maxX = window.innerWidth - 60;
+    const maxY = window.innerHeight - 80;
+    egg.style.left = (80 + Math.random() * (maxX - 80)) + 'px';
+    egg.style.top = (120 + Math.random() * (maxY - 120)) + 'px';
+
+    egg.addEventListener('click', function(e) {
+      e.stopPropagation();
+      egg.classList.add('cracking');
+      sessionEggs++;
+      eggsFound++;
+      localStorage.setItem('easter_eggs_found', eggsFound);
+      updateCounter();
+
+      const reward = document.createElement('div');
+      reward.className = 'egg-reward';
+      reward.style.left = (e.clientX - 60) + 'px';
+      reward.style.top = (e.clientY - 30) + 'px';
+      reward.textContent = REWARDS[Math.floor(Math.random() * REWARDS.length)];
+      document.body.appendChild(reward);
+
+      setTimeout(() => { egg.remove(); reward.remove(); }, 1500);
+      setTimeout(spawnEgg, 8000 + Math.random() * 15000);
+    });
+
+    document.body.appendChild(egg);
+    setTimeout(() => { if (egg.parentNode && !egg.classList.contains('cracking')) egg.remove(); }, 20000);
+  }
+
+  updateCounter();
+  setTimeout(spawnEgg, 3000 + Math.random() * 5000);
+  setInterval(() => { if (sessionEggs < maxEggsPerSession) spawnEgg(); }, 25000 + Math.random() * 15000);
+})();
 </script>
 {% endblock %}
