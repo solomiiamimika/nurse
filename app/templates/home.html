@@ -111,6 +111,7 @@
     .input-clean { border: none; background: transparent; width: 100%; outline: none; font-weight: 600; font-size: 1rem; color: var(--text-dark); }
     .btn-block-action { width: 100%; background: var(--text-dark); color: white; padding: 16px; border-radius: 12px; font-size: 1.1rem; font-weight: 800; border: none; cursor: pointer; transition: 0.3s; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.5px; position: relative; overflow: hidden; }
     .btn-block-action:hover { background: #000; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
+    .home-tag-pill:hover { background: #3f4a36 !important; color: #fff !important; transform: translateY(-1px); }
 
     /* LOADING STATE */
     .loading-overlay {
@@ -483,6 +484,12 @@
                             <div class="input-group-styled"><i class="fas fa-map-marker-alt"></i><input type="text" class="input-clean" placeholder="{{ _('Your area (optional)') }}" id="fakeLocation" onkeydown="if(event.key==='Enter') simulateSearch()"><i class="fas fa-location-arrow" id="geoBtn" style="font-size:0.85rem; cursor:pointer; color:var(--primary-green); padding:4px;" title="{{ _('Use my location') }}" onclick="detectLocation()"></i></div>
                             <button type="button" class="btn-block-action" id="searchBtn" onclick="simulateSearch()">{{ _("Find Help") }} →</button>
                             <p class="text-center mt-2 mb-0" style="font-size: 0.75rem; color: #aaa;">{{ _("Free. No sign-up needed to browse.") }}</p>
+                            <!-- Quick tag categories -->
+                            <div class="d-flex flex-wrap justify-content-center gap-1 mt-3">
+                              {% for cat in service_tag_categories.keys() %}
+                              <span class="home-tag-pill" onclick="searchByTag('{{ cat }}')" style="cursor:pointer;font-size:0.7rem;padding:4px 12px;border-radius:20px;background:rgba(63,74,54,0.08);color:#3f4a36;font-weight:600;border:1px solid rgba(63,74,54,0.15);transition:all 0.2s;">{{ cat }}</span>
+                              {% endfor %}
+                            </div>
                         </div>
                         <div id="step-loading" class="loading-overlay">
                             <div class="spinner-border mb-3" role="status"></div>
@@ -738,6 +745,16 @@
             },
             () => { btn.className = 'fas fa-location-arrow'; btn.style.pointerEvents = ''; input.placeholder = '{{ _("Location access denied") }}'; }
         );
+    }
+
+    // --- TAG SEARCH ---
+    function searchByTag(cat) {
+        document.getElementById('fakeTask').value = cat;
+        document.querySelectorAll('.home-tag-pill').forEach(el => {
+            el.style.background = el.textContent.trim() === cat ? '#3f4a36' : 'rgba(63,74,54,0.08)';
+            el.style.color = el.textContent.trim() === cat ? '#fff' : '#3f4a36';
+        });
+        simulateSearch();
     }
 
     // --- PROVIDER SEARCH ---

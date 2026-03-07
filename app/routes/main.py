@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify, current_app
 from flask_login import login_required, current_user
 from app.models import User, ProviderService, Appointment, Message, ServiceHistory, Feedback
+from app.models.service import SERVICE_TAG_CATEGORIES
 from app.extensions import db
 from sqlalchemy import or_, func, and_, desc
 from datetime import datetime, timedelta
@@ -12,7 +13,7 @@ import openai
 main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 def home():
-    return render_template('home.html')
+    return render_template('home.html', service_tag_categories=SERVICE_TAG_CATEGORIES)
 
 
 @main_bp.route('/search_providers_by_rating')
@@ -289,7 +290,7 @@ def search_providers():
         services = ProviderService.query.filter_by(provider_id=p.id, is_available=True).all()
         for s in services:
             sname = s.name or (s.base_service.name if s.base_service else '')
-            haystack += ' ' + (sname or '').lower() + ' ' + (s.description or '').lower()
+            haystack += ' ' + (sname or '').lower() + ' ' + (s.description or '').lower() + ' ' + (s.tags or '').lower()
 
         for kw in expanded:
             if kw in haystack:

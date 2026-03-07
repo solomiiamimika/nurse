@@ -208,7 +208,6 @@ def login():
                 flash('Your account has been deactivated. Contact support.', 'danger')
                 return redirect(url_for('auth.login'))
             login_user(user)
-            flash('You have been logged in successfully!', 'success')
             if user.is_owner:
                 return redirect(url_for('owner.dashboard'))
             return redirect(url_for(f'{user.role}.dashboard'))

@@ -97,6 +97,13 @@ def get_providers_list():
 
         services = ProviderService.query.filter_by(provider_id=p.id, is_available=True).all()
         service_names = [s.name for s in services if s.name]
+        all_tags = set()
+        for s in services:
+            if s.tags:
+                for t in s.tags.split(','):
+                    t = t.strip()
+                    if t:
+                        all_tags.add(t)
 
         reviews = Review.query.filter_by(provider_id=p.id).all()
         avg_rating = round(sum(r.rating for r in reviews) / len(reviews), 1) if reviews else None
@@ -123,6 +130,7 @@ def get_providers_list():
             'review_count': len(reviews),
             'photo': photo_url,
             'verified': p.is_verified,
+            'service_tags': list(all_tags),
         })
 
     return jsonify({'success': True, 'providers': providers_data})

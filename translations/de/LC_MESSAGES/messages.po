@@ -151,8 +151,9 @@ msgid ""
 "Post your task in seconds — cleaning, childcare, errands, elderly care, "
 "or anything else. Set your preferred time and budget."
 msgstr ""
-"Erstell deine Aufgabe in Sekunden — Putzen, Kinderbetreuung, Besorgungen,"
-" Seniorenhilfe oder was auch immer. Leg Zeit und Budget fest."
+"Stelle deine Aufgabe in Sekunden ein — Reinigung, Kinderbetreuung, "
+"Besorgungen, Seniorenbetreuung oder alles andere. Lege deine bevorzugte "
+"Zeit und dein Budget fest."
 
 #: app/templates/home.html:545
 msgid "STEP 2"
@@ -168,7 +169,7 @@ msgid ""
 "profiles, ratings and prices — then pick your favorite."
 msgstr ""
 "Verifizierte Helfer aus deiner Nachbarschaft antworten mit Angeboten. "
-"Vergleich Profile, Bewertungen und Preise — dann wähl deinen Favoriten."
+"Vergleiche Profile, Bewertungen und Preise — und wähle deinen Favoriten."
 
 #: app/templates/home.html:563
 msgid "STEP 3"
@@ -183,8 +184,8 @@ msgid ""
 "Your helper arrives at the agreed time. Pay securely through the app. "
 "Rate your experience and enjoy your free time!"
 msgstr ""
-"Dein Helfer kommt zur vereinbarten Zeit. Zahl sicher über die App. "
-"Bewerte und genieß deine Freizeit!"
+"Dein Helfer kommt zur vereinbarten Zeit. Bezahle sicher über die App. "
+"Bewerte dein Erlebnis und genieße deine Freizeit!"
 
 #: app/templates/home.html:581
 msgid "OR EARN"
@@ -199,8 +200,9 @@ msgid ""
 "Register as a helper, set your own schedule and prices. Accept tasks "
 "nearby, complete them, and receive same-day payouts."
 msgstr ""
-"Registrier dich als Helfer, leg deinen Zeitplan und Preise fest. Nimm "
-"Aufgaben an, erledige sie und bekomm noch am selben Tag dein Geld."
+"Registriere dich als Helfer, lege deinen eigenen Zeitplan und deine "
+"Preise fest. Nimm Aufgaben in der Nähe an, erledige sie und erhalte "
+"Auszahlungen am selben Tag."
 
 #: app/templates/home.html:603
 msgid "Active Providers"
@@ -1291,8 +1293,8 @@ msgid ""
 "Are you sure you want to cancel this request? If payment was authorized, "
 "it will be refunded."
 msgstr ""
-"Anfrage wirklich stornieren? Falls eine Zahlung autorisiert wurde, wird "
-"sie erstattet."
+"Bist du sicher, dass du diese Anfrage stornieren möchtest? Falls eine "
+"Zahlung autorisiert wurde, wird sie erstattet."
 
 #: app/templates/client/dashboard.html:1010
 #: app/templates/provider/dashboard.html:791
@@ -1327,8 +1329,8 @@ msgid ""
 "Restore this request? It will be returned to pending status and providers"
 " can send new offers."
 msgstr ""
-"Anfrage wiederherstellen? Status wird auf ausstehend gesetzt und Anbieter"
-" können neue Angebote senden."
+"Diese Anfrage wiederherstellen? Sie wird in den Status ‚Ausstehend' "
+"zurückversetzt und Anbieter können neue Angebote senden."
 
 #: app/templates/client/dashboard.html:1050
 msgid "Restore Request"
@@ -1482,8 +1484,8 @@ msgid ""
 "you will receive an email to authorize the payment. Funds are held "
 "securely and released only after the service."
 msgstr ""
-"du bekommst eine E-Mail zur Zahlungsautorisierung. Das Geld wird sicher "
-"gehalten und erst nach dem Service freigegeben."
+"du erhältst eine E-Mail zur Autorisierung der Zahlung. Die Mittel werden "
+"sicher verwahrt und erst nach der Dienstleistung freigegeben."
 
 #: app/templates/client/dashboard.html:1483
 msgid "agreed price"
@@ -1703,8 +1705,9 @@ msgid ""
 "Are you absolutely sure? This action cannot be undone. All your data, "
 "photos, and history will be permanently erased."
 msgstr ""
-"Wirklich sicher? Das kann nicht rückgängig gemacht werden. Alle Daten, "
-"Fotos und Verlauf werden dauerhaft gelöscht."
+"Bist du absolut sicher? Diese Aktion kann nicht rückgängig gemacht "
+"werden. Alle deine Daten, Fotos und dein Verlauf werden dauerhaft "
+"gelöscht."
 
 #: app/templates/client/profile.html:176
 msgid "Yes, Delete Everything"
@@ -2558,8 +2561,8 @@ msgid ""
 "Click 'Add Service' to get started — choose from suggestions or create "
 "your own."
 msgstr ""
-"Klick auf «Service hinzufügen» — wähl aus Vorschlägen oder erstell deinen"
-" eigenen."
+"Klicke auf ‚Dienst hinzufügen', um loszulegen — wähle aus "
+"Vorschlägen oder erstelle deinen eigenen."
 
 #: app/templates/provider/services.html:132
 msgid "SERVICE NAME"
@@ -2688,6 +2691,1155 @@ msgid ""
 "Choose what others can see on your public profile. Everything is visible "
 "by default."
 msgstr ""
-"Wähl aus was andere in deinem Profil sehen. Standardmäßig ist alles "
-"sichtbar."
+"Wähle, was andere auf deinem öffentlichen Profil sehen können. "
+"Standardmäßig ist alles sichtbar."
+
+msgid "Reuse"
+msgstr "Wiederverwenden"
+
+msgid "Sign in with Google"
+msgstr "Mit Google anmelden"
+
+msgid "Menu"
+msgstr "Menü"
+
+msgid "Settings"
+msgstr "Einstellungen"
+
+msgid "Notifications"
+msgstr "Benachrichtigungen"
+
+msgid "Help"
+msgstr "Hilfe"
+
+msgid "About"
+msgstr "Über uns"
+
+msgid "Contact"
+msgstr "Kontakt"
+
+msgid "Support"
+msgstr "Support"
+
+msgid "Please wait..."
+msgstr "Bitte warten..."
+
+msgid "Refreshing..."
+msgstr "Aktualisierung..."
+
+msgid "Show more"
+msgstr "Mehr anzeigen"
+
+msgid "Show less"
+msgstr "Weniger anzeigen"
+
+msgid "View all"
+msgstr "Alle anzeigen"
+
+msgid "See details"
+msgstr "Details ansehen"
+
+msgid "Open"
+msgstr "Öffnen"
+
+msgid "Expand"
+msgstr "Erweitern"
+
+msgid "Collapse"
+msgstr "Einklappen"
+
+msgid "Sort by"
+msgstr "Sortieren nach"
+
+msgid "Filter"
+msgstr "Filter"
+
+msgid "Search results"
+msgstr "Suchergebnisse"
+
+msgid "No results found"
+msgstr "Keine Ergebnisse gefunden"
+
+msgid "Try again"
+msgstr "Erneut versuchen"
+
+msgid "Previous page"
+msgstr "Vorherige Seite"
+
+msgid "Next page"
+msgstr "Nächste Seite"
+
+msgid "Go to page"
+msgstr "Gehe zu Seite"
+
+msgid "Scroll to top"
+msgstr "Nach oben scrollen"
+
+msgid "Refresh"
+msgstr "Aktualisieren"
+
+msgid "Reset"
+msgstr "Zurücksetzen"
+
+msgid "Clear"
+msgstr "Löschen"
+
+msgid "Done"
+msgstr "Fertig"
+
+msgid "Got it"
+msgstr "Verstanden"
+
+msgid "Learn more"
+msgstr "Mehr erfahren"
+
+msgid "Read more"
+msgstr "Weiterlesen"
+
+msgid "Dismiss"
+msgstr "Verwerfen"
+
+msgid "Not now"
+msgstr "Nicht jetzt"
+
+msgid "Later"
+msgstr "Später"
+
+msgid "Remind me"
+msgstr "Erinnere mich"
+
+msgid "Submit"
+msgstr "Absenden"
+
+msgid "Apply"
+msgstr "Anwenden"
+
+msgid "Continue"
+msgstr "Fortfahren"
+
+msgid "Proceed"
+msgstr "Weiter"
+
+msgid "Skip"
+msgstr "Überspringen"
+
+msgid "Undo"
+msgstr "Rückgängig"
+
+msgid "Redo"
+msgstr "Wiederherstellen"
+
+msgid "Copy"
+msgstr "Kopieren"
+
+msgid "Share"
+msgstr "Teilen"
+
+msgid "Download"
+msgstr "Herunterladen"
+
+msgid "Upload"
+msgstr "Hochladen"
+
+msgid "Print"
+msgstr "Drucken"
+
+msgid "Export"
+msgstr "Exportieren"
+
+msgid "Import"
+msgstr "Importieren"
+
+msgid "Add new"
+msgstr "Neu hinzufügen"
+
+msgid "Remove item"
+msgstr "Element entfernen"
+
+msgid "Create new"
+msgstr "Neu erstellen"
+
+msgid "Update"
+msgstr "Aktualisieren"
+
+msgid "Enable"
+msgstr "Aktivieren"
+
+msgid "Disable"
+msgstr "Deaktivieren"
+
+msgid "Activate"
+msgstr "Aktivieren"
+
+msgid "Deactivate"
+msgstr "Deaktivieren"
+
+msgid "Select"
+msgstr "Auswählen"
+
+msgid "Deselect"
+msgstr "Abwählen"
+
+msgid "Select all"
+msgstr "Alle auswählen"
+
+msgid "Clear selection"
+msgstr "Auswahl aufheben"
+
+msgid "Mark as read"
+msgstr "Als gelesen markieren"
+
+msgid "Mark as unread"
+msgstr "Als ungelesen markieren"
+
+msgid "Approve"
+msgstr "Genehmigen"
+
+msgid "Reject"
+msgstr "Ablehnen"
+
+msgid "Block user"
+msgstr "Benutzer blockieren"
+
+msgid "Unblock user"
+msgstr "Benutzer entsperren"
+
+msgid "Report"
+msgstr "Melden"
+
+msgid "Flag"
+msgstr "Markieren"
+
+msgid "Pin"
+msgstr "Anheften"
+
+msgid "Unpin"
+msgstr "Lösen"
+
+msgid "Bookmark"
+msgstr "Lesezeichen"
+
+msgid "Unbookmark"
+msgstr "Lesezeichen entfernen"
+
+msgid "Archive"
+msgstr "Archivieren"
+
+msgid "Inactive"
+msgstr "Inaktiv"
+
+msgid "Busy"
+msgstr "Beschäftigt"
+
+msgid "Away"
+msgstr "Abwesend"
+
+msgid "New"
+msgstr "Neu"
+
+msgid "Updated"
+msgstr "Aktualisiert"
+
+msgid "Draft"
+msgstr "Entwurf"
+
+msgid "Published"
+msgstr "Veröffentlicht"
+
+msgid "Archived"
+msgstr "Archiviert"
+
+msgid "Expired"
+msgstr "Abgelaufen"
+
+msgid "Closed"
+msgstr "Geschlossen"
+
+msgid "Resolved"
+msgstr "Gelöst"
+
+msgid "In progress"
+msgstr "In Bearbeitung"
+
+msgid "On hold"
+msgstr "Pausiert"
+
+msgid "Unverified"
+msgstr "Nicht verifiziert"
+
+msgid "Approved"
+msgstr "Genehmigt"
+
+msgid "Suspended"
+msgstr "Gesperrt"
+
+msgid "Banned"
+msgstr "Gesperrt"
+
+msgid "Connected"
+msgstr "Verbunden"
+
+msgid "Disconnected"
+msgstr "Getrennt"
+
+msgid "Synced"
+msgstr "Synchronisiert"
+
+msgid "Not synced"
+msgstr "Nicht synchronisiert"
+
+msgid "Enabled"
+msgstr "Aktiviert"
+
+msgid "Disabled"
+msgstr "Deaktiviert"
+
+msgid "Something went wrong"
+msgstr "Etwas ist schiefgelaufen"
+
+msgid "An unexpected error occurred"
+msgstr "Ein unerwarteter Fehler ist aufgetreten"
+
+msgid "Network error. Please check your connection"
+msgstr "Netzwerkfehler. Bitte überprüfe deine Verbindung"
+
+msgid "Server error. Please try again later"
+msgstr "Serverfehler. Bitte versuche es später erneut"
+
+msgid "Session expired. Please log in again"
+msgstr "Sitzung abgelaufen. Bitte melde dich erneut an"
+
+msgid "Permission denied"
+msgstr "Zugriff verweigert"
+
+msgid "Access restricted"
+msgstr "Zugriff eingeschränkt"
+
+msgid "File too large"
+msgstr "Datei zu groß"
+
+msgid "Invalid file format"
+msgstr "Ungültiges Dateiformat"
+
+msgid "Upload failed"
+msgstr "Hochladen fehlgeschlagen"
+
+msgid "Invalid email address"
+msgstr "Ungültige E-Mail-Adresse"
+
+msgid "Invalid phone number"
+msgstr "Ungültige Telefonnummer"
+
+msgid "Invalid password"
+msgstr "Ungültiges Passwort"
+
+msgid "This field is required"
+msgstr "Dieses Feld ist erforderlich"
+
+msgid "Please fill in all required fields"
+msgstr "Bitte fülle alle Pflichtfelder aus"
+
+msgid "Username already taken"
+msgstr "Benutzername bereits vergeben"
+
+msgid "Email already registered"
+msgstr "E-Mail bereits registriert"
+
+msgid "Password too short"
+msgstr "Passwort zu kurz"
+
+msgid "Passwords do not match"
+msgstr "Passwörter stimmen nicht überein"
+
+msgid "Too many requests. Please wait"
+msgstr "Zu viele Anfragen. Bitte warte"
+
+msgid "Rate limit exceeded"
+msgstr "Anfragelimit überschritten"
+
+msgid "Page not found"
+msgstr "Seite nicht gefunden"
+
+msgid "Service unavailable"
+msgstr "Dienst nicht verfügbar"
+
+msgid "Connection timeout"
+msgstr "Verbindungszeitüberschreitung"
+
+msgid "Could not load data"
+msgstr "Daten konnten nicht geladen werden"
+
+msgid "Failed to save changes"
+msgstr "Änderungen konnten nicht gespeichert werden"
+
+msgid "Invalid input"
+msgstr "Ungültige Eingabe"
+
+msgid "Operation failed"
+msgstr "Vorgang fehlgeschlagen"
+
+msgid "Please try again"
+msgstr "Bitte versuche es erneut"
+
+msgid "Error loading page"
+msgstr "Fehler beim Laden der Seite"
+
+msgid "Cannot connect to server"
+msgstr "Verbindung zum Server nicht möglich"
+
+msgid "Authentication failed"
+msgstr "Authentifizierung fehlgeschlagen"
+
+msgid "Account not found"
+msgstr "Konto nicht gefunden"
+
+msgid "Invalid verification code"
+msgstr "Ungültiger Bestätigungscode"
+
+msgid "Link expired"
+msgstr "Link abgelaufen"
+
+msgid "Token expired"
+msgstr "Token abgelaufen"
+
+msgid "Insufficient permissions"
+msgstr "Unzureichende Berechtigungen"
+
+msgid "Action not allowed"
+msgstr "Aktion nicht erlaubt"
+
+msgid "Quota exceeded"
+msgstr "Kontingent überschritten"
+
+msgid "Feature not available"
+msgstr "Funktion nicht verfügbar"
+
+msgid "Changes saved successfully"
+msgstr "Änderungen erfolgreich gespeichert"
+
+msgid "Profile updated successfully"
+msgstr "Profil erfolgreich aktualisiert"
+
+msgid "Service added successfully"
+msgstr "Dienst erfolgreich hinzugefügt"
+
+msgid "Service removed successfully"
+msgstr "Dienst erfolgreich entfernt"
+
+msgid "Message sent successfully"
+msgstr "Nachricht erfolgreich gesendet"
+
+msgid "Feedback submitted"
+msgstr "Feedback eingereicht"
+
+msgid "Account created successfully"
+msgstr "Konto erfolgreich erstellt"
+
+msgid "Password changed successfully"
+msgstr "Passwort erfolgreich geändert"
+
+msgid "Photo uploaded successfully"
+msgstr "Foto erfolgreich hochgeladen"
+
+msgid "Document uploaded successfully"
+msgstr "Dokument erfolgreich hochgeladen"
+
+msgid "Location updated successfully"
+msgstr "Standort erfolgreich aktualisiert"
+
+msgid "Settings saved"
+msgstr "Einstellungen gespeichert"
+
+msgid "Invitation sent"
+msgstr "Einladung gesendet"
+
+msgid "Notification sent"
+msgstr "Benachrichtigung gesendet"
+
+msgid "Payment successful"
+msgstr "Zahlung erfolgreich"
+
+msgid "Refund processed"
+msgstr "Rückerstattung bearbeitet"
+
+msgid "Email sent"
+msgstr "E-Mail gesendet"
+
+msgid "Copied to clipboard"
+msgstr "In die Zwischenablage kopiert"
+
+msgid "Item added"
+msgstr "Element hinzugefügt"
+
+msgid "Item removed"
+msgstr "Element entfernt"
+
+msgid "Booking confirmed"
+msgstr "Buchung bestätigt"
+
+msgid "Review submitted"
+msgstr "Bewertung eingereicht"
+
+msgid "File downloaded"
+msgstr "Datei heruntergeladen"
+
+msgid "Export complete"
+msgstr "Export abgeschlossen"
+
+msgid "Import complete"
+msgstr "Import abgeschlossen"
+
+msgid "Yesterday"
+msgstr "Gestern"
+
+msgid "This week"
+msgstr "Diese Woche"
+
+msgid "Last week"
+msgstr "Letzte Woche"
+
+msgid "Next week"
+msgstr "Nächste Woche"
+
+msgid "This month"
+msgstr "Dieser Monat"
+
+msgid "Last month"
+msgstr "Letzter Monat"
+
+msgid "Next month"
+msgstr "Nächster Monat"
+
+msgid "This year"
+msgstr "Dieses Jahr"
+
+msgid "Last year"
+msgstr "Letztes Jahr"
+
+msgid "Monday"
+msgstr "Montag"
+
+msgid "Tuesday"
+msgstr "Dienstag"
+
+msgid "Wednesday"
+msgstr "Mittwoch"
+
+msgid "Thursday"
+msgstr "Donnerstag"
+
+msgid "Friday"
+msgstr "Freitag"
+
+msgid "Saturday"
+msgstr "Samstag"
+
+msgid "Sunday"
+msgstr "Sonntag"
+
+msgid "Morning"
+msgstr "Morgen"
+
+msgid "Afternoon"
+msgstr "Nachmittag"
+
+msgid "Evening"
+msgstr "Abend"
+
+msgid "Night"
+msgstr "Nacht"
+
+msgid "hours ago"
+msgstr "Stunden zuvor"
+
+msgid "minutes ago"
+msgstr "Minuten zuvor"
+
+msgid "seconds ago"
+msgstr "Sekunden zuvor"
+
+msgid "days ago"
+msgstr "Tage zuvor"
+
+msgid "just now"
+msgstr "gerade eben"
+
+msgid "Start date"
+msgstr "Startdatum"
+
+msgid "End date"
+msgstr "Enddatum"
+
+msgid "Due date"
+msgstr "Fälligkeitsdatum"
+
+msgid "Enter your name"
+msgstr "Gib deinen Namen ein"
+
+msgid "Enter your email"
+msgstr "Gib deine E-Mail ein"
+
+msgid "Enter your phone number"
+msgstr "Gib deine Telefonnummer ein"
+
+msgid "Choose a date"
+msgstr "Wähle ein Datum"
+
+msgid "Choose a time"
+msgstr "Wähle eine Uhrzeit"
+
+msgid "Choose a location"
+msgstr "Wähle einen Standort"
+
+msgid "Write a message"
+msgstr "Nachricht schreiben"
+
+msgid "Add a comment"
+msgstr "Kommentar hinzufügen"
+
+msgid "Leave a note"
+msgstr "Notiz hinterlassen"
+
+msgid "Minimum"
+msgstr "Minimum"
+
+msgid "Maximum"
+msgstr "Maximum"
+
+msgid "Required"
+msgstr "Erforderlich"
+
+msgid "Optional"
+msgstr "Optional"
+
+msgid "Recommended"
+msgstr "Empfohlen"
+
+msgid "Characters remaining"
+msgstr "Zeichen verbleibend"
+
+msgid "File size"
+msgstr "Dateigröße"
+
+msgid "Drag and drop files here"
+msgstr "Dateien hierhin ziehen"
+
+msgid "Browse files"
+msgstr "Dateien durchsuchen"
+
+msgid "Choose file"
+msgstr "Datei auswählen"
+
+msgid "No file chosen"
+msgstr "Keine Datei ausgewählt"
+
+msgid "Type here..."
+msgstr "Hier eingeben..."
+
+msgid "Search..."
+msgstr "Suchen..."
+
+msgid "Enter amount"
+msgstr "Betrag eingeben"
+
+msgid "Enter address"
+msgstr "Adresse eingeben"
+
+msgid "Add description"
+msgstr "Beschreibung hinzufügen"
+
+msgid "Add title"
+msgstr "Titel hinzufügen"
+
+msgid "Confirm email"
+msgstr "E-Mail bestätigen"
+
+msgid "Confirm password"
+msgstr "Passwort bestätigen"
+
+msgid "Agree to terms"
+msgstr "Bedingungen akzeptieren"
+
+msgid "I accept"
+msgstr "Ich akzeptiere"
+
+msgid "My profile"
+msgstr "Mein Profil"
+
+msgid "Edit profile"
+msgstr "Profil bearbeiten"
+
+msgid "View profile"
+msgstr "Profil ansehen"
+
+msgid "Public profile"
+msgstr "Öffentliches Profil"
+
+msgid "Account settings"
+msgstr "Kontoeinstellungen"
+
+msgid "Privacy settings"
+msgstr "Datenschutzeinstellungen"
+
+msgid "Notification settings"
+msgstr "Benachrichtigungseinstellungen"
+
+msgid "Change email"
+msgstr "E-Mail ändern"
+
+msgid "Change phone"
+msgstr "Telefon ändern"
+
+msgid "Change language"
+msgstr "Sprache ändern"
+
+msgid "Log out from all devices"
+msgstr "Von allen Geräten abmelden"
+
+msgid "Deactivate account"
+msgstr "Konto deaktivieren"
+
+msgid "Last seen"
+msgstr "Zuletzt gesehen"
+
+msgid "Joined"
+msgstr "Beigetreten"
+
+msgid "Last active"
+msgstr "Zuletzt aktiv"
+
+msgid "Bio"
+msgstr "Biografie"
+
+msgid "About me"
+msgstr "Über mich"
+
+msgid "Skills"
+msgstr "Fähigkeiten"
+
+msgid "Experience"
+msgstr "Erfahrung"
+
+msgid "Qualifications"
+msgstr "Qualifikationen"
+
+msgid "Languages spoken"
+msgstr "Gesprochene Sprachen"
+
+msgid "Availability"
+msgstr "Verfügbarkeit"
+
+msgid "Working hours"
+msgstr "Arbeitszeiten"
+
+msgid "Service area"
+msgstr "Servicegebiet"
+
+msgid "Rate this service"
+msgstr "Diesen Dienst bewerten"
+
+msgid "Leave a review"
+msgstr "Bewertung hinterlassen"
+
+msgid "Write a review"
+msgstr "Bewertung schreiben"
+
+msgid "out of 5"
+msgstr "von 5"
+
+msgid "rating"
+msgstr "Bewertung"
+
+msgid "ratings"
+msgstr "Bewertungen"
+
+msgid "reviews"
+msgstr "Rezensionen"
+
+msgid "Excellent"
+msgstr "Ausgezeichnet"
+
+msgid "Very good"
+msgstr "Sehr gut"
+
+msgid "Good"
+msgstr "Gut"
+
+msgid "Average"
+msgstr "Durchschnittlich"
+
+msgid "Poor"
+msgstr "Schlecht"
+
+msgid "Helpful"
+msgstr "Hilfreich"
+
+msgid "Not helpful"
+msgstr "Nicht hilfreich"
+
+msgid "Report review"
+msgstr "Bewertung melden"
+
+msgid "Most recent"
+msgstr "Neueste"
+
+msgid "Lowest rated"
+msgstr "Am schlechtesten bewertet"
+
+msgid "No reviews yet"
+msgstr "Noch keine Bewertungen"
+
+msgid "Payment method"
+msgstr "Zahlungsmethode"
+
+msgid "Add payment method"
+msgstr "Zahlungsmethode hinzufügen"
+
+msgid "Remove payment method"
+msgstr "Zahlungsmethode entfernen"
+
+msgid "Credit card"
+msgstr "Kreditkarte"
+
+msgid "Bank transfer"
+msgstr "Banküberweisung"
+
+msgid "Invoice"
+msgstr "Rechnung"
+
+msgid "Transaction"
+msgstr "Transaktion"
+
+msgid "Transaction history"
+msgstr "Transaktionsverlauf"
+
+msgid "Subtotal"
+msgstr "Zwischensumme"
+
+msgid "Tax"
+msgstr "Steuer"
+
+msgid "Discount"
+msgstr "Rabatt"
+
+msgid "Tip"
+msgstr "Trinkgeld"
+
+msgid "Refund"
+msgstr "Rückerstattung"
+
+msgid "Partial refund"
+msgstr "Teilrückerstattung"
+
+msgid "Full refund"
+msgstr "Vollständige Rückerstattung"
+
+msgid "Transfer"
+msgstr "Überweisung"
+
+msgid "Balance"
+msgstr "Kontostand"
+
+msgid "Card number"
+msgstr "Kartennummer"
+
+msgid "Expiry date"
+msgstr "Ablaufdatum"
+
+msgid "Cardholder name"
+msgstr "Name des Karteninhabers"
+
+msgid "Payment pending"
+msgstr "Zahlung ausstehend"
+
+msgid "Payment failed"
+msgstr "Zahlung fehlgeschlagen"
+
+msgid "Payment received"
+msgstr "Zahlung erhalten"
+
+msgid "Billing address"
+msgstr "Rechnungsadresse"
+
+msgid "New message"
+msgstr "Neue Nachricht"
+
+msgid "New request"
+msgstr "Neue Anfrage"
+
+msgid "New offer"
+msgstr "Neues Angebot"
+
+msgid "New review"
+msgstr "Neue Bewertung"
+
+msgid "Request accepted"
+msgstr "Anfrage angenommen"
+
+msgid "Request declined"
+msgstr "Anfrage abgelehnt"
+
+msgid "Request cancelled"
+msgstr "Anfrage storniert"
+
+msgid "Appointment reminder"
+msgstr "Terminerinnerung"
+
+msgid "Payment reminder"
+msgstr "Zahlungserinnerung"
+
+msgid "Your request has been approved"
+msgstr "Deine Anfrage wurde genehmigt"
+
+msgid "Your offer was accepted"
+msgstr "Dein Angebot wurde angenommen"
+
+msgid "Someone viewed your profile"
+msgstr "Jemand hat dein Profil angesehen"
+
+msgid "New provider nearby"
+msgstr "Neuer Anbieter in der Nähe"
+
+msgid "Weekly summary"
+msgstr "Wochenzusammenfassung"
+
+msgid "Monthly report"
+msgstr "Monatsbericht"
+
+msgid "Unread notifications"
+msgstr "Ungelesene Benachrichtigungen"
+
+msgid "Mark all as read"
+msgstr "Alle als gelesen markieren"
+
+msgid "No notifications"
+msgstr "Keine Benachrichtigungen"
+
+msgid "Notification preferences"
+msgstr "Benachrichtigungseinstellungen"
+
+msgid "Push notifications"
+msgstr "Push-Benachrichtigungen"
+
+msgid "Current location"
+msgstr "Aktueller Standort"
+
+msgid "Set location"
+msgstr "Standort festlegen"
+
+msgid "Change location"
+msgstr "Standort ändern"
+
+msgid "City"
+msgstr "Stadt"
+
+msgid "District"
+msgstr "Bezirk"
+
+msgid "Country"
+msgstr "Land"
+
+msgid "Postal code"
+msgstr "Postleitzahl"
+
+msgid "Nearby"
+msgstr "In der Nähe"
+
+msgid "Distance"
+msgstr "Entfernung"
+
+msgid "Directions"
+msgstr "Wegbeschreibung"
+
+msgid "Use GPS"
+msgstr "GPS verwenden"
+
+msgid "Enter address manually"
+msgstr "Adresse manuell eingeben"
+
+msgid "Search address"
+msgstr "Adresse suchen"
+
+msgid "Map view"
+msgstr "Kartenansicht"
+
+msgid "Street view"
+msgstr "Straßenansicht"
+
+msgid "Zoom in"
+msgstr "Vergrößern"
+
+msgid "Zoom out"
+msgstr "Verkleinern"
+
+msgid "Your area"
+msgstr "Dein Gebiet"
+
+msgid "Location not available"
+msgstr "Standort nicht verfügbar"
+
+msgid "Type a message"
+msgstr "Nachricht eingeben"
+
+msgid "Send message"
+msgstr "Nachricht senden"
+
+msgid "Reply"
+msgstr "Antworten"
+
+msgid "Forward"
+msgstr "Weiterleiten"
+
+msgid "Typing..."
+msgstr "Tippt..."
+
+msgid "Read"
+msgstr "Gelesen"
+
+msgid "Delivered"
+msgstr "Zugestellt"
+
+msgid "Sent"
+msgstr "Gesendet"
+
+msgid "Failed to send"
+msgstr "Senden fehlgeschlagen"
+
+msgid "Delete message"
+msgstr "Nachricht löschen"
+
+msgid "Edit message"
+msgstr "Nachricht bearbeiten"
+
+msgid "Copy message"
+msgstr "Nachricht kopieren"
+
+msgid "Photo"
+msgstr "Foto"
+
+msgid "Video"
+msgstr "Video"
+
+msgid "Voice message"
+msgstr "Sprachnachricht"
+
+msgid "Start conversation"
+msgstr "Gespräch beginnen"
+
+msgid "Mute conversation"
+msgstr "Gespräch stummschalten"
+
+msgid "Two-factor authentication"
+msgstr "Zwei-Faktor-Authentifizierung"
+
+msgid "Verify email"
+msgstr "E-Mail verifizieren"
+
+msgid "Verify phone"
+msgstr "Telefon verifizieren"
+
+msgid "Security code"
+msgstr "Sicherheitscode"
+
+msgid "Verification code"
+msgstr "Bestätigungscode"
+
+msgid "Enter code"
+msgstr "Code eingeben"
+
+msgid "Suspicious activity"
+msgstr "Verdächtige Aktivität"
+
+msgid "Account locked"
+msgstr "Konto gesperrt"
+
+msgid "Reset password"
+msgstr "Passwort zurücksetzen"
+
+msgid "Terms of service"
+msgstr "Nutzungsbedingungen"
+
+msgid "Privacy policy"
+msgstr "Datenschutzerklärung"
+
+msgid "Cookie policy"
+msgstr "Cookie-Richtlinie"
+
+msgid "I agree"
+msgstr "Ich stimme zu"
+
+msgid "Accept terms"
+msgstr "Bedingungen akzeptieren"
+
+msgid "Data protection"
+msgstr "Datenschutz"
+
+msgid "Welcome"
+msgstr "Willkommen"
+
+msgid "Thank you"
+msgstr "Danke"
+
+msgid "Congratulations"
+msgstr "Herzlichen Glückwunsch"
+
+msgid "No"
+msgstr "Nein"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Maybe"
+msgstr "Vielleicht"
+
+msgid "Not sure"
+msgstr "Nicht sicher"
+
+msgid "Premium"
+msgstr "Premium"
+
+msgid "New feature"
+msgstr "Neue Funktion"
+
+msgid "Coming soon"
+msgstr "Demnächst"
+
+msgid "Under maintenance"
+msgstr "In Wartung"
+
+msgid "Beta"
+msgstr "Beta"
+
+msgid "Share your experience"
+msgstr "Teile deine Erfahrung"
+
+msgid "Tell us more"
+msgstr "Erzähl uns mehr"
+
+msgid "How was it?"
+msgstr "Wie war es?"
+
+msgid "FAQ"
+msgstr "FAQ"
+
+msgid "About us"
+msgstr "Über uns"
+
+msgid "Contact us"
+msgstr "Kontaktiere uns"
+
+msgid "Version"
+msgstr "Version"
+
+msgid "Copyright"
+msgstr "Urheberrecht"
+
+msgid "All rights reserved"
+msgstr "Alle Rechte vorbehalten"
+
+msgid "Powered by"
+msgstr "Betrieben von"
+
+msgid "Payout"
+msgstr "Auszahlung"
 

@@ -138,6 +138,20 @@
             <input type="text" id="provSearchInput" oninput="applyProviderFilters()"
                    placeholder="{{ _('Search by name or service...') }}"
                    class="filter-search-input">
+            <!-- Tag Filter -->
+            <div class="mb-2">
+              <div class="d-flex align-items-center gap-1 mb-1">
+                <i class="fas fa-tags" style="color:#9ca3af;font-size:0.8rem;"></i>
+                <span class="small text-muted fw-bold">{{ _("Tags") }}</span>
+                <span class="small text-muted" id="activeTagCount"></span>
+              </div>
+              <div class="d-flex flex-wrap gap-1" id="tagCategoryFilters">
+                {% for cat, tags in service_tag_categories.items() %}
+                <button class="filter-pill" data-cat="{{ cat }}" onclick="toggleCatFilter(this)">{{ cat }}</button>
+                {% endfor %}
+              </div>
+              <div id="tagSubFilters" class="mt-1 d-flex flex-wrap gap-1" style="display:none !important;"></div>
+            </div>
         </div>
 
         <!-- Tab content areas -->
@@ -548,12 +562,19 @@
       }, 10000);
   });
 
+  // --- TAG CATEGORIES DATA ---
+  const TAG_CATEGORIES = {{ service_tag_categories | tojson }};
+
   // --- PROVIDER FILTER STATE ---
   let _allProviders = [];
   let _provRadius = null;
   let _provStatus = 'all';
   let _provMinRating = null;
   let _providersLoaded = false;
+
+  // --- TAG FILTER STATE ---
+  let activeTagFilters = new Set();
+  let activeCatFilter = null;
 
   // --- TAB SWITCHING ---
   window.switchTab = function(mode) {
@@ -1249,6 +1270,46 @@
       applyProviderFilters();
   }
 
+  // --- TAG FILTERING ---
+  function toggleCatFilter(btn) {
+      const cat = btn.dataset.cat;
+      const subContainer = document.getElementById('tagSubFilters');
+
+      // Deselect all category buttons
+      document.querySelectorAll('#tagCategoryFilters .filter-pill').forEach(b => b.classList.remove('active'));
+
+      if (activeCatFilter === cat) {
+          activeCatFilter = null;
+          subContainer.style.display = 'none';
+          subContainer.innerHTML = '';
+          return;
+      }
+
+      activeCatFilter = cat;
+      btn.classList.add('active');
+
+      // Get sub-tags for this category from the Jinja-rendered data
+      const catTags = TAG_CATEGORIES[cat] || [];
+      subContainer.innerHTML = catTags.map(tag => {
+          const isActive = activeTagFilters.has(tag) ? 'active' : '';
+          return `<button class="filter-pill small ${isActive}" onclick="toggleTagFilter(this, '${tag}')" style="font-size:11px;padding:3px 10px;">${tag}</button>`;
+      }).join('');
+      subContainer.style.display = 'flex';
+  }
+
+  function toggleTagFilter(btn, tag) {
+      if (activeTagFilters.has(tag)) {
+          activeTagFilters.delete(tag);
+          btn.classList.remove('active');
+      } else {
+          activeTagFilters.add(tag);
+          btn.classList.add('active');
+      }
+      const countEl = document.getElementById('activeTagCount');
+      countEl.textContent = activeTagFilters.size > 0 ? `(${activeTagFilters.size})` : '';
+      applyProviderFilters();
+  }
+
   function applyProviderFilters() {
       const search = (document.getElementById('provSearchInput').value || '').toLowerCase().trim();
       let filtered = _allProviders;
@@ -1270,6 +1331,15 @@
               (p.username || '').toLowerCase().includes(search) ||
               (p.service_names || []).some(s => s.toLowerCase().includes(search))
           );
+      }
+
+      // Tag filter
+      if (activeTagFilters.size > 0) {
+          filtered = filtered.filter(p => {
+              const providerTags = p.service_tags || [];
+              const hasMatchingTag = providerTags.some(t => activeTagFilters.has(t));
+              return hasMatchingTag;
+          });
       }
 
       const sort = document.getElementById('provSortSelect').value;
@@ -1786,7 +1856,7 @@
     100% { transform: scale(1); opacity: 1; }
   }
   .egg-counter {
-    position: fixed; bottom: 20px; right: 20px; z-index: 9998;
+    position: fixed; bottom: 20px; left: 20px; z-index: 9998;
     background: linear-gradient(135deg, #fce4ec, #fff9c4);
     border: 2px solid rgba(251, 191, 36, 0.4);
     border-radius: 50px; padding: 8px 16px;

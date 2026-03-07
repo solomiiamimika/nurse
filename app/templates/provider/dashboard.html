@@ -77,6 +77,9 @@
                         <button class="nav-link rounded-pill fw-bold small py-2" id="tab-appointments" onclick="switchTab('appointments')">
                             {{ _("My Schedule") }}
                         </button>
+                        <button class="nav-link rounded-pill fw-bold small py-2" id="tab-history" onclick="switchTab('history')">
+                            {{ _("History") }}
+                        </button>
                     </div>
 
                     <!-- Filters: shown only on New Requests tab -->
@@ -136,6 +139,8 @@
                                 <div class="spinner-border text-primary" role="status"></div>
                             </div>
                         </div>
+
+                        <div id="historyList" class="d-none"></div>
                     </div>
 
             </div>
@@ -405,20 +410,77 @@
       document.getElementById('tab-requests').classList.toggle('active', mode === 'requests');
       document.getElementById('tab-offers').classList.toggle('active', mode === 'offers');
       document.getElementById('tab-appointments').classList.toggle('active', mode === 'appointments');
+      document.getElementById('tab-history').classList.toggle('active', mode === 'history');
 
       document.getElementById('requestsList').classList.toggle('d-none', mode !== 'requests');
       document.getElementById('offersList').classList.toggle('d-none', mode !== 'offers');
       document.getElementById('appointmentsList').classList.toggle('d-none', mode !== 'appointments');
+      document.getElementById('historyList').classList.toggle('d-none', mode !== 'history');
       document.getElementById('requestsFilters').style.display = (mode === 'requests') ? 'block' : 'none';
 
       if (mode === 'requests') loadRequests();
       else if (mode === 'offers') loadMyOffers();
-      else loadMyAppointments();
+      else if (mode === 'appointments') loadMyAppointments();
+      else if (mode === 'history') loadHistory();
 
       if(routingControl) {
           map.removeControl(routingControl);
           document.getElementById('route-info').textContent = '';
       }
+  }
+
+  function loadHistory() {
+      fetch('/provider/service_history')
+          .then(r => r.json())
+          .then(data => {
+              const container = document.getElementById('historyList');
+              if (!data.success || !data.history.length) {
+                  container.innerHTML = '<div class="text-center py-4 text-muted"><i class="fas fa-clock-rotate-left fa-2x mb-2 d-block" style="opacity:0.3;"></i>' + '{{ _("No service history yet") }}' + '</div>';
+                  return;
+              }
+              container.innerHTML = data.history.map(h => {
+                  const date = new Date(h.appointment_time).toLocaleDateString();
+                  const statusBadge = h.status === 'completed'
+                      ? '<span class="badge bg-success bg-opacity-10 text-success border border-success">{{ _("Completed") }}</span>'
+                      : `<span class="badge bg-secondary">${h.status}</span>`;
+                  return `
+                  <div class="content-card mb-2 p-3">
+                      <div class="d-flex justify-content-between align-items-start">
+                          <div>
+                              <div class="fw-bold">${h.service_name || '{{ _("Service") }}'}</div>
+                              <div class="small text-muted">${h.client_name || '{{ _("Client") }}'} · ${date}</div>
+                              ${h.service_description ? '<div class="small text-muted mt-1">' + h.service_description + '</div>' : ''}
+                          </div>
+                          <div class="text-end">
+                              <div class="fw-bold text-success">${h.price} &euro;</div>
+                              ${statusBadge}
+                          </div>
+                      </div>
+                      <div class="mt-2">
+                          <button class="btn btn-sm btn-outline-primary" onclick="promoteService(${h.id}, '${(h.service_name || '').replace(/'/g, "\\'")}', ${h.price})">
+                              <i class="fas fa-plus me-1"></i>{{ _("Add to My Services") }}
+                          </button>
+                      </div>
+                  </div>`;
+              }).join('');
+          });
+  }
+
+  function promoteService(historyId, name, price) {
+      fetch('/provider/promote_from_history/' + historyId, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+          body: JSON.stringify({name: name, price: price, duration: 60})
+      })
+      .then(r => r.json())
+      .then(data => {
+          if (data.success) {
+              alert(data.message || '{{ _("Service added successfully") }}');
+              loadHistory();
+          } else {
+              alert(data.message || '{{ _("Error") }}');
+          }
+      });
   }
 
   function initMap() {

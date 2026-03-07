@@ -152,8 +152,8 @@ msgid ""
 "Post your task in seconds — cleaning, childcare, errands, elderly care, "
 "or anything else. Set your preferred time and budget."
 msgstr ""
-"Створи завдання за секунди — прибирання, догляд за дітьми, доручення, "
-"допомога літнім чи що завгодно. Вкажи час і бюджет."
+"Опублікуй завдання за кілька секунд — прибирання, догляд за дітьми, "
+"доручення, допомога літнім чи будь-що інше. Вкажи бажаний час і бюджет."
 
 #: app/templates/home.html:545
 msgid "STEP 2"
@@ -168,8 +168,8 @@ msgid ""
 "Verified helpers from your neighborhood respond with offers. Compare "
 "profiles, ratings and prices — then pick your favorite."
 msgstr ""
-"Перевірені помічники з твого району відповідають пропозиціями. Порівнюй "
-"профілі, рейтинги та ціни — обирай найкращого."
+"Перевірені помічники з вашого району відгукуються пропозиціями. Порівняйте "
+"профілі, рейтинги та ціни — і оберіть найкращого."
 
 #: app/templates/home.html:563
 msgid "STEP 3"
@@ -184,8 +184,8 @@ msgid ""
 "Your helper arrives at the agreed time. Pay securely through the app. "
 "Rate your experience and enjoy your free time!"
 msgstr ""
-"Помічник приходить у домовлений час. Плати безпечно через додаток. Оціни "
-"досвід і насолоджуйся вільним часом!"
+"Помічник приходить у домовлений час. Оплатіть безпечно через додаток. "
+"Оцініть досвід і насолоджуйтесь вільним часом!"
 
 #: app/templates/home.html:581
 msgid "OR EARN"
@@ -200,8 +200,8 @@ msgid ""
 "Register as a helper, set your own schedule and prices. Accept tasks "
 "nearby, complete them, and receive same-day payouts."
 msgstr ""
-"Зареєструйся як помічник, встанови свій графік і ціни. Бери завдання "
-"поруч, виконуй їх і отримуй виплати того ж дня."
+"Зареєструйся як помічник, встанови свій графік і ціни. Приймай завдання "
+"поблизу, виконуй їх та отримуй виплати того ж дня."
 
 #: app/templates/home.html:603
 msgid "Active Providers"
@@ -1326,8 +1326,8 @@ msgid ""
 "Restore this request? It will be returned to pending status and providers"
 " can send new offers."
 msgstr ""
-"Відновити запит? Він повернеться в очікування і виконавці зможуть "
-"надіслати нові пропозиції."
+"Відновити цей запит? Його буде повернено до статусу очікування і "
+"провайдери зможуть надсилати нові пропозиції."
 
 #: app/templates/client/dashboard.html:1050
 msgid "Restore Request"
@@ -1481,8 +1481,8 @@ msgid ""
 "you will receive an email to authorize the payment. Funds are held "
 "securely and released only after the service."
 msgstr ""
-"ти отримаєш email для авторизації платежу. Кошти безпечно утримуються і "
-"переводяться тільки після послуги."
+"ви отримаєте електронний лист для авторизації оплати. Кошти зберігаються "
+"безпечно і звільняються лише після надання послуги."
 
 #: app/templates/client/dashboard.html:1483
 msgid "agreed price"
@@ -1702,8 +1702,8 @@ msgid ""
 "Are you absolutely sure? This action cannot be undone. All your data, "
 "photos, and history will be permanently erased."
 msgstr ""
-"Точно-точно? Це не можна скасувати. Всі дані, фотки та історія зникнуть "
-"назавжди."
+"Ви абсолютно впевнені? Цю дію не можна скасувати. Всі ваші дані, фото "
+"та історія будуть назавжди видалені."
 
 #: app/templates/client/profile.html:176
 msgid "Yes, Delete Everything"
@@ -2685,4 +2685,1150 @@ msgid ""
 "Choose what others can see on your public profile. Everything is visible "
 "by default."
 msgstr "Обери що інші бачитимуть у твоєму профілі. За замовчуванням все видно."
+
+msgid "Reuse"
+msgstr "Повторити"
+
+msgid "Sign in with Google"
+msgstr "Увійти через Google"
+
+msgid "Menu"
+msgstr "Меню"
+
+msgid "Settings"
+msgstr "Налаштування"
+
+msgid "Notifications"
+msgstr "Сповіщення"
+
+msgid "Help"
+msgstr "Допомога"
+
+msgid "About"
+msgstr "Про нас"
+
+msgid "Contact"
+msgstr "Контакти"
+
+msgid "Support"
+msgstr "Підтримка"
+
+msgid "Please wait..."
+msgstr "Зачекайте..."
+
+msgid "Refreshing..."
+msgstr "Оновлення..."
+
+msgid "Show more"
+msgstr "Показати більше"
+
+msgid "Show less"
+msgstr "Показати менше"
+
+msgid "View all"
+msgstr "Переглянути все"
+
+msgid "See details"
+msgstr "Детальніше"
+
+msgid "Open"
+msgstr "Відкрити"
+
+msgid "Expand"
+msgstr "Розгорнути"
+
+msgid "Collapse"
+msgstr "Згорнути"
+
+msgid "Sort by"
+msgstr "Сортувати за"
+
+msgid "Filter"
+msgstr "Фільтр"
+
+msgid "Search results"
+msgstr "Результати пошуку"
+
+msgid "No results found"
+msgstr "Нічого не знайдено"
+
+msgid "Try again"
+msgstr "Спробувати ще раз"
+
+msgid "Previous page"
+msgstr "Попередня сторінка"
+
+msgid "Next page"
+msgstr "Наступна сторінка"
+
+msgid "Go to page"
+msgstr "Перейти до сторінки"
+
+msgid "Scroll to top"
+msgstr "Прокрутити вгору"
+
+msgid "Refresh"
+msgstr "Оновити"
+
+msgid "Reset"
+msgstr "Скинути"
+
+msgid "Clear"
+msgstr "Очистити"
+
+msgid "Done"
+msgstr "Готово"
+
+msgid "Got it"
+msgstr "Зрозуміло"
+
+msgid "Learn more"
+msgstr "Дізнатися більше"
+
+msgid "Read more"
+msgstr "Читати далі"
+
+msgid "Dismiss"
+msgstr "Відхилити"
+
+msgid "Not now"
+msgstr "Не зараз"
+
+msgid "Later"
+msgstr "Пізніше"
+
+msgid "Remind me"
+msgstr "Нагадати"
+
+msgid "Submit"
+msgstr "Надіслати"
+
+msgid "Apply"
+msgstr "Застосувати"
+
+msgid "Continue"
+msgstr "Продовжити"
+
+msgid "Proceed"
+msgstr "Далі"
+
+msgid "Skip"
+msgstr "Пропустити"
+
+msgid "Undo"
+msgstr "Скасувати"
+
+msgid "Redo"
+msgstr "Повторити"
+
+msgid "Copy"
+msgstr "Копіювати"
+
+msgid "Share"
+msgstr "Поділитися"
+
+msgid "Download"
+msgstr "Завантажити"
+
+msgid "Upload"
+msgstr "Завантажити файл"
+
+msgid "Print"
+msgstr "Друкувати"
+
+msgid "Export"
+msgstr "Експорт"
+
+msgid "Import"
+msgstr "Імпорт"
+
+msgid "Add new"
+msgstr "Додати нове"
+
+msgid "Remove item"
+msgstr "Видалити елемент"
+
+msgid "Create new"
+msgstr "Створити нове"
+
+msgid "Update"
+msgstr "Оновити"
+
+msgid "Enable"
+msgstr "Увімкнути"
+
+msgid "Disable"
+msgstr "Вимкнути"
+
+msgid "Activate"
+msgstr "Активувати"
+
+msgid "Deactivate"
+msgstr "Деактивувати"
+
+msgid "Select"
+msgstr "Обрати"
+
+msgid "Deselect"
+msgstr "Зняти вибір"
+
+msgid "Select all"
+msgstr "Обрати все"
+
+msgid "Clear selection"
+msgstr "Очистити вибір"
+
+msgid "Mark as read"
+msgstr "Позначити як прочитане"
+
+msgid "Mark as unread"
+msgstr "Позначити як непрочитане"
+
+msgid "Approve"
+msgstr "Схвалити"
+
+msgid "Reject"
+msgstr "Відхилити"
+
+msgid "Block user"
+msgstr "Заблокувати користувача"
+
+msgid "Unblock user"
+msgstr "Розблокувати користувача"
+
+msgid "Report"
+msgstr "Поскаржитися"
+
+msgid "Flag"
+msgstr "Позначити"
+
+msgid "Pin"
+msgstr "Закріпити"
+
+msgid "Unpin"
+msgstr "Відкріпити"
+
+msgid "Bookmark"
+msgstr "В закладки"
+
+msgid "Unbookmark"
+msgstr "Видалити з закладок"
+
+msgid "Archive"
+msgstr "Архівувати"
+
+msgid "Inactive"
+msgstr "Неактивний"
+
+msgid "Busy"
+msgstr "Зайнятий"
+
+msgid "Away"
+msgstr "Відсутній"
+
+msgid "New"
+msgstr "Новий"
+
+msgid "Updated"
+msgstr "Оновлено"
+
+msgid "Draft"
+msgstr "Чернетка"
+
+msgid "Published"
+msgstr "Опубліковано"
+
+msgid "Archived"
+msgstr "В архіві"
+
+msgid "Expired"
+msgstr "Протерміновано"
+
+msgid "Closed"
+msgstr "Закрито"
+
+msgid "Resolved"
+msgstr "Вирішено"
+
+msgid "In progress"
+msgstr "В процесі"
+
+msgid "On hold"
+msgstr "На паузі"
+
+msgid "Unverified"
+msgstr "Не підтверджено"
+
+msgid "Approved"
+msgstr "Схвалено"
+
+msgid "Suspended"
+msgstr "Призупинено"
+
+msgid "Banned"
+msgstr "Заблоковано"
+
+msgid "Connected"
+msgstr "Підключено"
+
+msgid "Disconnected"
+msgstr "Відключено"
+
+msgid "Synced"
+msgstr "Синхронізовано"
+
+msgid "Not synced"
+msgstr "Не синхронізовано"
+
+msgid "Enabled"
+msgstr "Увімкнено"
+
+msgid "Disabled"
+msgstr "Вимкнено"
+
+msgid "Something went wrong"
+msgstr "Щось пішло не так"
+
+msgid "An unexpected error occurred"
+msgstr "Сталася неочікувана помилка"
+
+msgid "Network error. Please check your connection"
+msgstr "Помилка мережі. Перевірте підключення"
+
+msgid "Server error. Please try again later"
+msgstr "Помилка сервера. Спробуйте пізніше"
+
+msgid "Session expired. Please log in again"
+msgstr "Сесія закінчилась. Увійдіть знову"
+
+msgid "Permission denied"
+msgstr "Доступ заборонено"
+
+msgid "Access restricted"
+msgstr "Доступ обмежено"
+
+msgid "File too large"
+msgstr "Файл занадто великий"
+
+msgid "Invalid file format"
+msgstr "Невірний формат файлу"
+
+msgid "Upload failed"
+msgstr "Помилка завантаження"
+
+msgid "Invalid email address"
+msgstr "Невірна адреса електронної пошти"
+
+msgid "Invalid phone number"
+msgstr "Невірний номер телефону"
+
+msgid "Invalid password"
+msgstr "Невірний пароль"
+
+msgid "This field is required"
+msgstr "Це поле є обовʼязковим"
+
+msgid "Please fill in all required fields"
+msgstr "Будь ласка, заповніть усі обовʼязкові поля"
+
+msgid "Username already taken"
+msgstr "Це імʼя вже зайнято"
+
+msgid "Email already registered"
+msgstr "Ця пошта вже зареєстрована"
+
+msgid "Password too short"
+msgstr "Пароль занадто короткий"
+
+msgid "Passwords do not match"
+msgstr "Паролі не збігаються"
+
+msgid "Too many requests. Please wait"
+msgstr "Забагато запитів. Зачекайте"
+
+msgid "Rate limit exceeded"
+msgstr "Перевищено ліміт запитів"
+
+msgid "Page not found"
+msgstr "Сторінку не знайдено"
+
+msgid "Service unavailable"
+msgstr "Сервіс недоступний"
+
+msgid "Connection timeout"
+msgstr "Час очікування вичерпано"
+
+msgid "Could not load data"
+msgstr "Не вдалося завантажити дані"
+
+msgid "Failed to save changes"
+msgstr "Не вдалося зберегти зміни"
+
+msgid "Invalid input"
+msgstr "Невірне введення"
+
+msgid "Operation failed"
+msgstr "Операція не вдалася"
+
+msgid "Please try again"
+msgstr "Будь ласка, спробуйте ще раз"
+
+msgid "Error loading page"
+msgstr "Помилка завантаження сторінки"
+
+msgid "Cannot connect to server"
+msgstr "Не вдається підключитися до сервера"
+
+msgid "Authentication failed"
+msgstr "Помилка автентифікації"
+
+msgid "Account not found"
+msgstr "Обліковий запис не знайдено"
+
+msgid "Invalid verification code"
+msgstr "Невірний код підтвердження"
+
+msgid "Link expired"
+msgstr "Посилання прострочене"
+
+msgid "Token expired"
+msgstr "Токен прострочений"
+
+msgid "Insufficient permissions"
+msgstr "Недостатньо прав"
+
+msgid "Action not allowed"
+msgstr "Дія заборонена"
+
+msgid "Quota exceeded"
+msgstr "Квоту перевищено"
+
+msgid "Feature not available"
+msgstr "Функція недоступна"
+
+msgid "Changes saved successfully"
+msgstr "Зміни успішно збережено"
+
+msgid "Profile updated successfully"
+msgstr "Профіль успішно оновлено"
+
+msgid "Service added successfully"
+msgstr "Послугу успішно додано"
+
+msgid "Service removed successfully"
+msgstr "Послугу успішно видалено"
+
+msgid "Message sent successfully"
+msgstr "Повідомлення успішно надіслано"
+
+msgid "Feedback submitted"
+msgstr "Відгук надіслано"
+
+msgid "Account created successfully"
+msgstr "Обліковий запис успішно створено"
+
+msgid "Password changed successfully"
+msgstr "Пароль успішно змінено"
+
+msgid "Photo uploaded successfully"
+msgstr "Фото успішно завантажено"
+
+msgid "Document uploaded successfully"
+msgstr "Документ успішно завантажено"
+
+msgid "Location updated successfully"
+msgstr "Місцезнаходження успішно оновлено"
+
+msgid "Settings saved"
+msgstr "Налаштування збережено"
+
+msgid "Invitation sent"
+msgstr "Запрошення надіслано"
+
+msgid "Notification sent"
+msgstr "Сповіщення надіслано"
+
+msgid "Payment successful"
+msgstr "Оплату проведено успішно"
+
+msgid "Refund processed"
+msgstr "Повернення коштів оброблено"
+
+msgid "Email sent"
+msgstr "Лист надіслано"
+
+msgid "Copied to clipboard"
+msgstr "Скопійовано в буфер обміну"
+
+msgid "Item added"
+msgstr "Елемент додано"
+
+msgid "Item removed"
+msgstr "Елемент видалено"
+
+msgid "Booking confirmed"
+msgstr "Бронювання підтверджено"
+
+msgid "Review submitted"
+msgstr "Відгук надіслано"
+
+msgid "File downloaded"
+msgstr "Файл завантажено"
+
+msgid "Export complete"
+msgstr "Експорт завершено"
+
+msgid "Import complete"
+msgstr "Імпорт завершено"
+
+msgid "Yesterday"
+msgstr "Вчора"
+
+msgid "This week"
+msgstr "Цей тиждень"
+
+msgid "Last week"
+msgstr "Минулий тиждень"
+
+msgid "Next week"
+msgstr "Наступний тиждень"
+
+msgid "This month"
+msgstr "Цей місяць"
+
+msgid "Last month"
+msgstr "Минулий місяць"
+
+msgid "Next month"
+msgstr "Наступний місяць"
+
+msgid "This year"
+msgstr "Цей рік"
+
+msgid "Last year"
+msgstr "Минулий рік"
+
+msgid "Monday"
+msgstr "Понеділок"
+
+msgid "Tuesday"
+msgstr "Вівторок"
+
+msgid "Wednesday"
+msgstr "Середа"
+
+msgid "Thursday"
+msgstr "Четвер"
+
+msgid "Friday"
+msgstr "Пʼятниця"
+
+msgid "Saturday"
+msgstr "Субота"
+
+msgid "Sunday"
+msgstr "Неділя"
+
+msgid "Morning"
+msgstr "Ранок"
+
+msgid "Afternoon"
+msgstr "День"
+
+msgid "Evening"
+msgstr "Вечір"
+
+msgid "Night"
+msgstr "Ніч"
+
+msgid "hours ago"
+msgstr "годин тому"
+
+msgid "minutes ago"
+msgstr "хвилин тому"
+
+msgid "seconds ago"
+msgstr "секунд тому"
+
+msgid "days ago"
+msgstr "днів тому"
+
+msgid "just now"
+msgstr "щойно"
+
+msgid "Start date"
+msgstr "Дата початку"
+
+msgid "End date"
+msgstr "Дата завершення"
+
+msgid "Due date"
+msgstr "Дата виконання"
+
+msgid "Enter your name"
+msgstr "Введіть ваше імʼя"
+
+msgid "Enter your email"
+msgstr "Введіть вашу пошту"
+
+msgid "Enter your phone number"
+msgstr "Введіть номер телефону"
+
+msgid "Choose a date"
+msgstr "Оберіть дату"
+
+msgid "Choose a time"
+msgstr "Оберіть час"
+
+msgid "Choose a location"
+msgstr "Оберіть місцезнаходження"
+
+msgid "Write a message"
+msgstr "Написати повідомлення"
+
+msgid "Add a comment"
+msgstr "Додати коментар"
+
+msgid "Leave a note"
+msgstr "Залишити нотатку"
+
+msgid "Minimum"
+msgstr "Мінімум"
+
+msgid "Maximum"
+msgstr "Максимум"
+
+msgid "Required"
+msgstr "Обовʼязкове"
+
+msgid "Optional"
+msgstr "Необовʼязкове"
+
+msgid "Recommended"
+msgstr "Рекомендовано"
+
+msgid "Characters remaining"
+msgstr "Залишилось символів"
+
+msgid "File size"
+msgstr "Розмір файлу"
+
+msgid "Drag and drop files here"
+msgstr "Перетягніть файли сюди"
+
+msgid "Browse files"
+msgstr "Огляд файлів"
+
+msgid "Choose file"
+msgstr "Обрати файл"
+
+msgid "No file chosen"
+msgstr "Файл не обрано"
+
+msgid "Type here..."
+msgstr "Введіть тут..."
+
+msgid "Search..."
+msgstr "Пошук..."
+
+msgid "Enter amount"
+msgstr "Введіть суму"
+
+msgid "Enter address"
+msgstr "Введіть адресу"
+
+msgid "Add description"
+msgstr "Додати опис"
+
+msgid "Add title"
+msgstr "Додати назву"
+
+msgid "Confirm email"
+msgstr "Підтвердити пошту"
+
+msgid "Confirm password"
+msgstr "Підтвердити пароль"
+
+msgid "Agree to terms"
+msgstr "Прийняти умови"
+
+msgid "I accept"
+msgstr "Я приймаю"
+
+msgid "My profile"
+msgstr "Мій профіль"
+
+msgid "Edit profile"
+msgstr "Редагувати профіль"
+
+msgid "View profile"
+msgstr "Переглянути профіль"
+
+msgid "Public profile"
+msgstr "Публічний профіль"
+
+msgid "Account settings"
+msgstr "Налаштування акаунту"
+
+msgid "Privacy settings"
+msgstr "Налаштування конфіденційності"
+
+msgid "Notification settings"
+msgstr "Налаштування сповіщень"
+
+msgid "Change email"
+msgstr "Змінити пошту"
+
+msgid "Change phone"
+msgstr "Змінити телефон"
+
+msgid "Change language"
+msgstr "Змінити мову"
+
+msgid "Log out from all devices"
+msgstr "Вийти з усіх пристроїв"
+
+msgid "Deactivate account"
+msgstr "Деактивувати акаунт"
+
+msgid "Last seen"
+msgstr "Востаннє в мережі"
+
+msgid "Joined"
+msgstr "Приєднався"
+
+msgid "Last active"
+msgstr "Востаннє активний"
+
+msgid "Bio"
+msgstr "Біографія"
+
+msgid "About me"
+msgstr "Про мене"
+
+msgid "Skills"
+msgstr "Навички"
+
+msgid "Experience"
+msgstr "Досвід"
+
+msgid "Qualifications"
+msgstr "Кваліфікація"
+
+msgid "Languages spoken"
+msgstr "Мови"
+
+msgid "Availability"
+msgstr "Доступність"
+
+msgid "Working hours"
+msgstr "Робочі години"
+
+msgid "Service area"
+msgstr "Зона обслуговування"
+
+msgid "Rate this service"
+msgstr "Оцініть послугу"
+
+msgid "Leave a review"
+msgstr "Залишити відгук"
+
+msgid "Write a review"
+msgstr "Написати відгук"
+
+msgid "out of 5"
+msgstr "з 5"
+
+msgid "rating"
+msgstr "рейтинг"
+
+msgid "ratings"
+msgstr "оцінок"
+
+msgid "reviews"
+msgstr "відгуків"
+
+msgid "Excellent"
+msgstr "Відмінно"
+
+msgid "Very good"
+msgstr "Дуже добре"
+
+msgid "Good"
+msgstr "Добре"
+
+msgid "Average"
+msgstr "Середнє"
+
+msgid "Poor"
+msgstr "Погано"
+
+msgid "Helpful"
+msgstr "Корисно"
+
+msgid "Not helpful"
+msgstr "Некорисно"
+
+msgid "Report review"
+msgstr "Поскаржитися на відгук"
+
+msgid "Most recent"
+msgstr "Найновіші"
+
+msgid "Lowest rated"
+msgstr "За найнижчим рейтингом"
+
+msgid "No reviews yet"
+msgstr "Відгуків поки немає"
+
+msgid "Payment method"
+msgstr "Спосіб оплати"
+
+msgid "Add payment method"
+msgstr "Додати спосіб оплати"
+
+msgid "Remove payment method"
+msgstr "Видалити спосіб оплати"
+
+msgid "Credit card"
+msgstr "Кредитна картка"
+
+msgid "Bank transfer"
+msgstr "Банківський переказ"
+
+msgid "Invoice"
+msgstr "Рахунок"
+
+msgid "Transaction"
+msgstr "Транзакція"
+
+msgid "Transaction history"
+msgstr "Історія транзакцій"
+
+msgid "Subtotal"
+msgstr "Проміжний підсумок"
+
+msgid "Tax"
+msgstr "Податок"
+
+msgid "Discount"
+msgstr "Знижка"
+
+msgid "Tip"
+msgstr "Чайові"
+
+msgid "Refund"
+msgstr "Повернення"
+
+msgid "Partial refund"
+msgstr "Часткове повернення"
+
+msgid "Full refund"
+msgstr "Повне повернення"
+
+msgid "Payout"
+msgstr "Виплата"
+
+msgid "Transfer"
+msgstr "Переказ"
+
+msgid "Balance"
+msgstr "Баланс"
+
+msgid "Card number"
+msgstr "Номер картки"
+
+msgid "Expiry date"
+msgstr "Термін дії"
+
+msgid "Cardholder name"
+msgstr "Імʼя власника картки"
+
+msgid "Payment pending"
+msgstr "Оплата очікується"
+
+msgid "Payment failed"
+msgstr "Оплата не вдалася"
+
+msgid "Payment received"
+msgstr "Оплату отримано"
+
+msgid "Billing address"
+msgstr "Адреса для виставлення рахунку"
+
+msgid "New message"
+msgstr "Нове повідомлення"
+
+msgid "New request"
+msgstr "Новий запит"
+
+msgid "New offer"
+msgstr "Нова пропозиція"
+
+msgid "New review"
+msgstr "Новий відгук"
+
+msgid "Request accepted"
+msgstr "Запит прийнято"
+
+msgid "Request declined"
+msgstr "Запит відхилено"
+
+msgid "Appointment reminder"
+msgstr "Нагадування про запис"
+
+msgid "Payment reminder"
+msgstr "Нагадування про оплату"
+
+msgid "Your request has been approved"
+msgstr "Ваш запит схвалено"
+
+msgid "Your offer was accepted"
+msgstr "Вашу пропозицію прийнято"
+
+msgid "Someone viewed your profile"
+msgstr "Хтось переглянув ваш профіль"
+
+msgid "New provider nearby"
+msgstr "Новий виконавець поблизу"
+
+msgid "Weekly summary"
+msgstr "Тижневий підсумок"
+
+msgid "Monthly report"
+msgstr "Місячний звіт"
+
+msgid "Unread notifications"
+msgstr "Непрочитані сповіщення"
+
+msgid "Mark all as read"
+msgstr "Позначити все як прочитане"
+
+msgid "No notifications"
+msgstr "Немає сповіщень"
+
+msgid "Notification preferences"
+msgstr "Налаштування сповіщень"
+
+msgid "Push notifications"
+msgstr "Push-сповіщення"
+
+msgid "Current location"
+msgstr "Поточне місцезнаходження"
+
+msgid "Set location"
+msgstr "Встановити місцезнаходження"
+
+msgid "Change location"
+msgstr "Змінити місцезнаходження"
+
+msgid "City"
+msgstr "Місто"
+
+msgid "District"
+msgstr "Район"
+
+msgid "Country"
+msgstr "Країна"
+
+msgid "Postal code"
+msgstr "Поштовий індекс"
+
+msgid "Nearby"
+msgstr "Поблизу"
+
+msgid "Distance"
+msgstr "Відстань"
+
+msgid "Directions"
+msgstr "Маршрут"
+
+msgid "Use GPS"
+msgstr "Використати GPS"
+
+msgid "Enter address manually"
+msgstr "Ввести адресу вручну"
+
+msgid "Search address"
+msgstr "Пошук адреси"
+
+msgid "Map view"
+msgstr "Вигляд карти"
+
+msgid "Street view"
+msgstr "Вигляд вулиці"
+
+msgid "Zoom in"
+msgstr "Збільшити"
+
+msgid "Zoom out"
+msgstr "Зменшити"
+
+msgid "Your area"
+msgstr "Ваш район"
+
+msgid "Location not available"
+msgstr "Місцезнаходження недоступне"
+
+msgid "Type a message"
+msgstr "Введіть повідомлення"
+
+msgid "Send message"
+msgstr "Надіслати повідомлення"
+
+msgid "Reply"
+msgstr "Відповісти"
+
+msgid "Forward"
+msgstr "Переслати"
+
+msgid "Typing..."
+msgstr "Друкує..."
+
+msgid "Read"
+msgstr "Прочитано"
+
+msgid "Delivered"
+msgstr "Доставлено"
+
+msgid "Sent"
+msgstr "Надіслано"
+
+msgid "Failed to send"
+msgstr "Не вдалося надіслати"
+
+msgid "Delete message"
+msgstr "Видалити повідомлення"
+
+msgid "Edit message"
+msgstr "Редагувати повідомлення"
+
+msgid "Copy message"
+msgstr "Копіювати повідомлення"
+
+msgid "Photo"
+msgstr "Фото"
+
+msgid "Video"
+msgstr "Відео"
+
+msgid "Voice message"
+msgstr "Голосове повідомлення"
+
+msgid "Start conversation"
+msgstr "Розпочати бесіду"
+
+msgid "Mute conversation"
+msgstr "Вимкнути сповіщення бесіди"
+
+msgid "Two-factor authentication"
+msgstr "Двофакторна автентифікація"
+
+msgid "Verify email"
+msgstr "Підтвердити пошту"
+
+msgid "Verify phone"
+msgstr "Підтвердити телефон"
+
+msgid "Security code"
+msgstr "Код безпеки"
+
+msgid "Verification code"
+msgstr "Код підтвердження"
+
+msgid "Enter code"
+msgstr "Введіть код"
+
+msgid "Suspicious activity"
+msgstr "Підозріла активність"
+
+msgid "Account locked"
+msgstr "Акаунт заблоковано"
+
+msgid "Reset password"
+msgstr "Скинути пароль"
+
+msgid "Terms of service"
+msgstr "Умови використання"
+
+msgid "Privacy policy"
+msgstr "Політика конфіденційності"
+
+msgid "Cookie policy"
+msgstr "Політика файлів cookie"
+
+msgid "I agree"
+msgstr "Я погоджуюсь"
+
+msgid "Accept terms"
+msgstr "Прийняти умови"
+
+msgid "Data protection"
+msgstr "Захист даних"
+
+msgid "Welcome"
+msgstr "Ласкаво просимо"
+
+msgid "Thank you"
+msgstr "Дякуємо"
+
+msgid "Congratulations"
+msgstr "Вітаємо"
+
+msgid "No"
+msgstr "Ні"
+
+msgid "OK"
+msgstr "ОК"
+
+msgid "Maybe"
+msgstr "Можливо"
+
+msgid "Not sure"
+msgstr "Не впевнений"
+
+msgid "Premium"
+msgstr "Преміум"
+
+msgid "New feature"
+msgstr "Нова функція"
+
+msgid "Coming soon"
+msgstr "Незабаром"
+
+msgid "Under maintenance"
+msgstr "На технічному обслуговуванні"
+
+msgid "Beta"
+msgstr "Бета"
+
+msgid "Share your experience"
+msgstr "Поділіться досвідом"
+
+msgid "Tell us more"
+msgstr "Розкажіть більше"
+
+msgid "How was it?"
+msgstr "Як все пройшло?"
+
+msgid "FAQ"
+msgstr "Часті питання"
+
+msgid "About us"
+msgstr "Про нас"
+
+msgid "Contact us"
+msgstr "Звʼяжіться з нами"
+
+msgid "Version"
+msgstr "Версія"
+
+msgid "Copyright"
+msgstr "Авторське право"
+
+msgid "All rights reserved"
+msgstr "Всі права захищені"
+
+msgid "Powered by"
+msgstr "Працює на"
 
