@@ -2,6 +2,7 @@ from . import provider_bp
 from flask import Blueprint, jsonify, request, current_app, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app.models import User, Message, db, Service, ProviderService, Appointment, ClientSelfCreatedAppointment, RequestOfferResponse, ServiceHistory, CancellationPolicy, SERVICE_TAGS
+from app.models.service import SERVICE_TAG_CATEGORIES
 from app.utils import fuzz_coordinates, haversine_distance, validate_coordinates
 from datetime import datetime
 import json
@@ -137,7 +138,8 @@ def manage_services():
     return render_template('provider/services.html',
                            standard_services=standard_services,
                            provider_services=provider_services,
-                           service_tags=SERVICE_TAGS)
+                           service_tags=SERVICE_TAGS,
+                           service_tag_categories=SERVICE_TAG_CATEGORIES)
 
 
 @provider_bp.route('/service_history', methods=['GET'])

@@ -270,6 +270,22 @@
                   </div>
               </div>
               <div class="mb-3">
+                  <label class="form-label fw-bold small text-muted">{{ _("TAGS") }}</label>
+                  <input type="hidden" id="reqServiceTags" value="">
+                  <div id="tagCategoryPicker">
+                    {% for cat, tags in service_tag_categories.items() %}
+                    <div class="mb-2">
+                      <div class="fw-bold small text-muted mb-1">{{ cat }}</div>
+                      <div class="d-flex flex-wrap gap-1">
+                        {% for tag in tags %}
+                        <span class="badge tag-pill" data-tag="{{ tag }}" onclick="toggleReqTag(this)" style="cursor:pointer;background:#f0f2ec;color:#374151;border:1px solid #d1d5db;font-weight:500;font-size:11px;padding:4px 10px;border-radius:20px;">{{ tag }}</span>
+                        {% endfor %}
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+              </div>
+              <div class="mb-3">
                   <label class="form-label fw-bold small text-muted">{{ _("DESCRIPTION") }}</label>
                   <textarea class="form-control" id="reqNotes" rows="3"></textarea>
               </div>
@@ -294,9 +310,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
 <script src="https://js.stripe.com/v3/"></script>
-
-<script src="https://cdn.botpress.cloud/webchat/v3.5/inject.js"></script>
-<script src="https://files.bpcontent.cloud/2026/01/10/13/20260110130650-79OB48AX.js" defer></script>
 
 <style>
     .leaflet-routing-container { display: none !important; }
@@ -988,6 +1001,7 @@
           appointment_start_time: document.getElementById('reqTime').value,
           address: address,
           district: district,
+          service_tags: document.getElementById('reqServiceTags').value,
           latitude: latLng.lat,
           longitude: latLng.lng
       };
@@ -1392,6 +1406,16 @@
               ${req.payment ? `<div class="small text-success fw-bold mt-1">${req.payment}</div>` : ''}
               <div class="d-flex gap-2 mt-2 flex-wrap">`;
 
+      if (isCancelled || isCompleted) {
+          const reuseData = encodeURIComponent(JSON.stringify({
+              service_name: req.service_name, payment: req.payment,
+              address: req.address, district: req.district,
+              notes: req.notes, service_tags: req.service_tags
+          }));
+          html += `<button onclick="reuseRequest('${reuseData}')" class="btn btn-sm btn-outline-primary" style="font-size:12px">
+              <i class="fas fa-copy me-1"></i>{{ _("Reuse") }}
+          </button>`;
+      }
       if (isCancelled) {
           const canRestore = new Date(req.appointment_start_time) > new Date();
           if (canRestore) {
@@ -1637,6 +1661,54 @@
           }
       }).catch(() => {});
   }
+
+  // ── Tag picker logic ────────────────────────────────────
+  function toggleReqTag(el) {
+      const tag = el.dataset.tag;
+      const isActive = el.classList.contains('tag-active');
+      if (isActive) {
+          el.classList.remove('tag-active');
+          el.style.background = '#f0f2ec';
+          el.style.color = '#374151';
+          el.style.borderColor = '#d1d5db';
+      } else {
+          el.classList.add('tag-active');
+          el.style.background = '#3f4a36';
+          el.style.color = '#fff';
+          el.style.borderColor = '#3f4a36';
+      }
+      const selected = document.querySelectorAll('#tagCategoryPicker .tag-active');
+      const tags = Array.from(selected).map(s => s.dataset.tag);
+      document.getElementById('reqServiceTags').value = tags.join(',');
+  }
+
+  // ── Reuse Request ─────────────────────────────────────
+  window.reuseRequest = function(reqJson) {
+      const req = JSON.parse(decodeURIComponent(reqJson));
+      const modal = new bootstrap.Modal(document.getElementById('createRequestModal'));
+      modal.show();
+      setTimeout(() => {
+          document.getElementById('reqServiceName').value = req.service_name || '';
+          document.getElementById('reqPayment').value = req.payment || '';
+          document.getElementById('reqAddress').value = req.address || '';
+          document.getElementById('reqDistrict').value = req.district || '';
+          document.getElementById('reqNotes').value = req.notes || '';
+          // Reset and re-select tags
+          document.querySelectorAll('#tagCategoryPicker .tag-pill').forEach(el => {
+              el.classList.remove('tag-active');
+              el.style.background = '#f0f2ec';
+              el.style.color = '#374151';
+              el.style.borderColor = '#d1d5db';
+          });
+          if (req.service_tags) {
+              const tags = req.service_tags.split(',');
+              tags.forEach(tag => {
+                  const el = document.querySelector(`#tagCategoryPicker .tag-pill[data-tag="${tag.trim()}"]`);
+                  if (el) toggleReqTag(el);
+              });
+          }
+      }, 200);
+  };
 
   // Initialize flatpickr date pickers
   document.querySelectorAll('.flatpickr-datetime').forEach(el => {

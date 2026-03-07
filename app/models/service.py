@@ -42,14 +42,69 @@ class ProviderService(db.Model):
     appointments = relationship('Appointment', backref='provider_service', lazy=True)
 
 
-# Predefined service tags
-SERVICE_TAGS = [
-    'Injection', 'IV Drip', 'Wound Care', 'Blood Test',
-    'Physiotherapy', 'Massage', 'Elderly Care', 'Post-Surgery',
-    'Consultation', 'Home Visit', 'Emergency', 'Vaccination',
-    'Bandaging', 'Catheter', 'Vital Signs', 'Medication',
-    'Rehabilitation', 'Palliative Care', 'Pediatric', 'Prenatal',
-]
+# Categorized service tags
+SERVICE_TAG_CATEGORIES = {
+    'Home': [
+        'Cleaning', 'Deep Cleaning', 'Window Cleaning', 'Cooking',
+        'Laundry', 'Ironing', 'Repairs', 'Furniture Assembly',
+        'Moving Help', 'Packing', 'Garden/Balcony', 'Decluttering',
+        'Painting', 'Plumbing', 'Electrical',
+    ],
+    'Elderly Care': [
+        'Companionship', 'Mobility Help', 'Medication Reminder',
+        'Personal Hygiene', 'Night Watch', 'Doctor Accompaniment',
+        'Meal Preparation', 'Exercise Assistance',
+        'Reading/Conversation', 'Hospital Visit',
+    ],
+    'Childcare': [
+        'Babysitting', 'Tutoring', 'School Pickup/Dropoff',
+        'Newborn Care', 'Homework Help', 'Language Practice',
+        'Creative Activities', 'Overnight Care', 'Special Needs Support',
+    ],
+    'Health': [
+        'Injection', 'IV Drip', 'Wound Care', 'Physiotherapy',
+        'Blood Test', 'Massage', 'Blood Pressure Check', 'ECG',
+        'Post-Surgery Care', 'Rehabilitation Exercise',
+        'Mental Health Support',
+    ],
+    'Pets': [
+        'Dog Walking', 'Pet Sitting', 'Grooming', 'Vet Visit',
+        'Pet Feeding', 'Cat Care', 'Pet Transport',
+        'Pet Training', 'Overnight Pet Care',
+    ],
+    'Errands': [
+        'Grocery Shopping', 'Pharmacy Run', 'Delivery', 'Post Office',
+        'Package Pickup', 'Returns/Exchanges', 'Key Handover',
+        'Waiting for Delivery/Technician', 'Airport Pickup/Dropoff',
+        'Gift Shopping',
+    ],
+    'Tech Help': [
+        'WiFi/Router Setup', 'Printer Setup', 'Phone Help',
+        'Computer Help', 'Smart Home Setup', 'TV/Streaming Setup',
+        'Data Backup', 'Software Install', 'Online Account Help',
+    ],
+    'Admin & Bureaucracy': [
+        'Anmeldung Help', 'Insurance Forms', 'Tax Documents',
+        'Translation', 'Appointment Booking', 'Letter Writing',
+        'Visa Paperwork', 'Bank Account Setup',
+        'Kündigung Help', 'Bürgeramt Accompaniment',
+    ],
+    'Events': [
+        'Party Help', 'Catering', 'Decoration', 'Photography',
+        'DJ/Music', 'Event Cleanup', 'Birthday Organization',
+        'BBQ Setup', 'Moving-in Party',
+    ],
+    'Lessons & Skills': [
+        'German Language', 'English Language', 'Ukrainian Language',
+        'Music Lessons', 'Cooking Lessons', 'Yoga/Fitness',
+        'Art Lessons', 'Dance Lessons', 'Driving Practice',
+    ],
+}
+
+# Flat list for backward compatibility
+SERVICE_TAGS = []
+for _tags in SERVICE_TAG_CATEGORIES.values():
+    SERVICE_TAGS.extend(_tags)
 
 
 class CancellationPolicy(db.Model):

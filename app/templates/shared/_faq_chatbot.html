@@ -1,0 +1,361 @@
+{# FAQ Chatbot Widget — rule-based, no external AI, multilingual #}
+<style>
+.faq-toggle{position:fixed;bottom:24px;right:24px;z-index:2100;width:56px;height:56px;border-radius:50%;background:#3f4a36;color:#fff;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.18);display:flex;align-items:center;justify-content:center;font-size:24px;transition:transform .2s,background .2s}
+.faq-toggle:hover{transform:scale(1.08);background:#19a463}
+.faq-toggle .badge-dot{position:absolute;top:6px;right:6px;width:10px;height:10px;background:#f59e0b;border-radius:50%;border:2px solid #fff}
+.faq-panel{position:fixed;bottom:90px;right:24px;z-index:2100;width:370px;max-width:calc(100vw - 32px);max-height:520px;background:#fff;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.15);display:none;flex-direction:column;overflow:hidden;animation:faqSlideUp .25s ease-out}
+@keyframes faqSlideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.faq-header{background:#3f4a36;color:#fff;padding:16px 20px;display:flex;align-items:center;gap:10px}
+.faq-header-icon{width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px}
+.faq-header-text{flex:1}
+.faq-header-text h4{margin:0;font-size:14px;font-weight:700}
+.faq-header-text p{margin:0;font-size:11px;opacity:0.8}
+.faq-close{background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:4px;opacity:0.7}
+.faq-close:hover{opacity:1}
+.faq-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.faq-msg{max-width:88%;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;animation:faqFade .2s ease-out}
+@keyframes faqFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.faq-msg.bot{background:#f0f2ec;color:#1f2937;align-self:flex-start;border-bottom-left-radius:4px}
+.faq-msg.user{background:#3f4a36;color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.faq-buttons{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.faq-btn{background:#fff;border:1px solid #d1d5db;color:#374151;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;transition:all .15s;font-weight:500}
+.faq-btn:hover{border-color:#3f4a36;color:#3f4a36;background:#f0f2ec}
+.faq-input-row{padding:12px 16px;border-top:1px solid #e5e7eb;display:flex;gap:8px}
+.faq-input{flex:1;border:1px solid #d1d5db;border-radius:20px;padding:8px 14px;font-size:13px;outline:none}
+.faq-input:focus{border-color:#3f4a36}
+.faq-send{background:#3f4a36;color:#fff;border:none;border-radius:50%;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
+.faq-send:hover{background:#19a463}
+@media(max-width:480px){.faq-panel{bottom:0;right:0;width:100%;max-width:100%;max-height:100vh;border-radius:16px 16px 0 0}.faq-toggle{bottom:16px;right:16px}}
+</style>
+
+<button class="faq-toggle" id="faqToggle" title="Help">
+  <i class="fas fa-comment-dots"></i>
+  <span class="badge-dot" id="faqDot"></span>
+</button>
+
+<div class="faq-panel" id="faqPanel">
+  <div class="faq-header">
+    <div class="faq-header-icon"><i class="fas fa-robot"></i></div>
+    <div class="faq-header-text">
+      <h4>Human-me Assistant</h4>
+      <p id="faqSubtitle"></p>
+    </div>
+    <button class="faq-close" id="faqClose"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="faq-body" id="faqBody"></div>
+  <div class="faq-input-row">
+    <input type="text" class="faq-input" id="faqInput" autocomplete="off">
+    <button class="faq-send" id="faqSend"><i class="fas fa-paper-plane"></i></button>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* ── i18n content ─────────────────────────────────────── */
+  const T = {
+    en: {
+      subtitle: "How can I help you?",
+      welcome: "Hi! I'm the Human-me assistant. Choose a topic below or type your question.",
+      no_match: "I don't have an answer for that yet. Try choosing a topic from the menu or contact support.",
+      back: "Back to menu",
+      placeholder: "Type your question...",
+      cats: {
+        how:      { label: "How it works",   icon: "💡" },
+        client:   { label: "For Clients",    icon: "👤" },
+        provider: { label: "For Providers",  icon: "💼" },
+        pricing:  { label: "Pricing & Payments", icon: "💳" },
+        account:  { label: "Account",        icon: "⚙️" }
+      },
+      qa: {
+        how: [
+          ["What is Human-me?", "Human-me is a platform connecting clients who need home health and care services with verified service providers in their area."],
+          ["How do I get started?", "Register as a Client or Provider, fill in your profile, and you're ready! Clients can post requests, and providers can browse and send offers."],
+          ["Is it safe?", "Yes! Providers can upload documents and insurance. You can view profiles, reviews, and ratings before booking. Payments are processed securely through Stripe."]
+        ],
+        client: [
+          ["How to post a request?", "Go to your Dashboard and click 'Post a Request'. Fill in the service name, date, address, district, and any notes. Providers in your area will see it."],
+          ["How to choose a provider?", "When providers send offers, you'll see their price, profile, and rating. You can accept, reject, or send a counter-offer."],
+          ["How to pay?", "After accepting an offer, you can pay securely through Stripe. Add your card in Profile → Payment Methods."],
+          ["Can I cancel a booking?", "Yes, you can cancel from your Appointments page. Please cancel as early as possible to be fair to the provider."]
+        ],
+        provider: [
+          ["How to receive requests?", "Go to Dashboard → 'New Requests' to browse open requests from clients in your area. Requests show the district (exact address is revealed after confirmation)."],
+          ["How to send an offer?", "Click on a request and enter your proposed price. The client will see your offer along with your profile and rating."],
+          ["How do payouts work?", "Payments go through Stripe. Connect your bank account in Profile → Payout Settings, then earnings are transferred automatically."],
+          ["How to set up Stripe?", "Go to Profile → Payout Settings → Connect with Stripe. Select your country and follow Stripe's onboarding steps."]
+        ],
+        pricing: [
+          ["Is registration free?", "Yes! Registration is completely free for both clients and providers."],
+          ["What are the platform fees?", "A small service fee is applied to transactions to maintain the platform. You'll see the exact amount before confirming payment."],
+          ["How does payment work?", "Clients pay through Stripe (credit/debit card). Providers receive payouts to their connected bank account."]
+        ],
+        account: [
+          ["How to change my password?", "Go to your Profile page and open the 'Change Password' section. If you registered via Google or Telegram, use 'Set Password' first."],
+          ["How to switch between Client and Provider?", "You can switch roles from the sidebar menu. Your data is preserved for both roles."],
+          ["How to delete my account?", "Go to Profile → Danger Zone → Delete Account. This action is permanent and cannot be undone."],
+          ["How to connect Telegram?", "Use the Telegram Login widget on the login page, or send /start to our Telegram bot and follow the link command."]
+        ]
+      }
+    },
+    uk: {
+      subtitle: "Чим можу допомогти?",
+      welcome: "Привіт! Я асистент Human-me. Обери тему або напиши своє питання.",
+      no_match: "Поки не маю відповіді на це. Спробуй обрати тему з меню або зв'яжися з підтримкою.",
+      back: "Назад до меню",
+      placeholder: "Напиши питання...",
+      cats: {
+        how:      { label: "Як це працює",   icon: "💡" },
+        client:   { label: "Для клієнтів",   icon: "👤" },
+        provider: { label: "Для виконавців", icon: "💼" },
+        pricing:  { label: "Ціни й оплата",  icon: "💳" },
+        account:  { label: "Акаунт",         icon: "⚙️" }
+      },
+      qa: {
+        how: [
+          ["Що таке Human-me?", "Human-me — це платформа, що з'єднує клієнтів, яким потрібні медичні та доглядові послуги вдома, з перевіреними виконавцями у їхньому районі."],
+          ["Як почати?", "Зареєструйся як Клієнт або Виконавець, заповни профіль — і готово! Клієнти створюють запити, виконавці надсилають пропозиції."],
+          ["Це безпечно?", "Так! Виконавці завантажують документи та страховку. Можна переглянути профіль, відгуки та рейтинг. Платежі проходять через Stripe."]
+        ],
+        client: [
+          ["Як створити запит?", "На Dashboard натисни 'Post a Request'. Вкажи послугу, дату, адресу, район та примітки. Виконавці у твоєму районі побачать запит."],
+          ["Як обрати виконавця?", "Коли виконавці надсилають пропозиції, ти бачиш ціну, профіль і рейтинг. Можна прийняти, відхилити або надіслати зустрічну пропозицію."],
+          ["Як оплатити?", "Після прийняття пропозиції оплата проходить через Stripe. Додай картку в Профілі → Методи оплати."],
+          ["Чи можна скасувати?", "Так, скасувати можна на сторінці Записів. Скасовуй якомога раніше, щоб не підвести виконавця."]
+        ],
+        provider: [
+          ["Як отримувати запити?", "На Dashboard → 'New Requests' переглядай відкриті запити клієнтів. Видно район (точна адреса відкривається після підтвердження)."],
+          ["Як надіслати пропозицію?", "Натисни на запит і вкажи свою ціну. Клієнт побачить пропозицію разом з твоїм профілем і рейтингом."],
+          ["Як працюють виплати?", "Платежі проходять через Stripe. Підключи банківський рахунок у Профілі → Налаштування виплат."],
+          ["Як підключити Stripe?", "Профіль → Налаштування виплат → Connect with Stripe. Обери країну і пройди реєстрацію в Stripe."]
+        ],
+        pricing: [
+          ["Реєстрація безкоштовна?", "Так! Реєстрація повністю безкоштовна для клієнтів і виконавців."],
+          ["Які комісії?", "Невелика сервісна комісія стягується з транзакцій. Точну суму видно перед підтвердженням оплати."],
+          ["Як працює оплата?", "Клієнти платять через Stripe (картка). Виконавці отримують виплати на підключений банківський рахунок."]
+        ],
+        account: [
+          ["Як змінити пароль?", "Профіль → 'Змінити пароль'. Якщо реєструвався через Google чи Telegram — спочатку 'Встановити пароль'."],
+          ["Як змінити роль?", "Можна переключитися між Клієнтом і Виконавцем у бічному меню. Дані зберігаються для обох ролей."],
+          ["Як видалити акаунт?", "Профіль → Небезпечна зона → Видалити акаунт. Ця дія незворотна."],
+          ["Як підключити Telegram?", "Використай Telegram Login на сторінці входу або напиши /start нашому боту і слідуй інструкціям."]
+        ]
+      }
+    },
+    de: {
+      subtitle: "Wie kann ich helfen?",
+      welcome: "Hallo! Ich bin der Human-me Assistent. Wähle ein Thema oder stelle deine Frage.",
+      no_match: "Dazu habe ich leider noch keine Antwort. Wähle ein Thema aus dem Menü oder kontaktiere den Support.",
+      back: "Zurück zum Menü",
+      placeholder: "Frage eingeben...",
+      cats: {
+        how:      { label: "Wie es funktioniert", icon: "💡" },
+        client:   { label: "Für Kunden",          icon: "👤" },
+        provider: { label: "Für Anbieter",        icon: "💼" },
+        pricing:  { label: "Preise & Zahlung",    icon: "💳" },
+        account:  { label: "Konto",               icon: "⚙️" }
+      },
+      qa: {
+        how: [
+          ["Was ist Human-me?", "Human-me verbindet Kunden, die häusliche Pflege- und Gesundheitsdienste benötigen, mit verifizierten Anbietern in ihrer Nähe."],
+          ["Wie fange ich an?", "Registriere dich als Kunde oder Anbieter, fülle dein Profil aus — fertig! Kunden erstellen Anfragen, Anbieter senden Angebote."],
+          ["Ist es sicher?", "Ja! Anbieter laden Dokumente und Versicherungen hoch. Du kannst Profile, Bewertungen und Ratings einsehen. Zahlungen laufen sicher über Stripe."]
+        ],
+        client: [
+          ["Wie erstelle ich eine Anfrage?", "Auf dem Dashboard klicke 'Post a Request'. Gib den Service, Datum, Adresse, Bezirk und Notizen ein."],
+          ["Wie wähle ich einen Anbieter?", "Wenn Anbieter Angebote senden, siehst du Preis, Profil und Bewertung. Du kannst annehmen, ablehnen oder ein Gegenangebot machen."],
+          ["Wie bezahle ich?", "Nach Angebotsannahme bezahlst du sicher über Stripe. Füge deine Karte unter Profil → Zahlungsmethoden hinzu."],
+          ["Kann ich stornieren?", "Ja, auf der Terminseite. Bitte storniere so früh wie möglich."]
+        ],
+        provider: [
+          ["Wie erhalte ich Anfragen?", "Dashboard → 'New Requests' zeigt offene Kundenanfragen. Sichtbar ist der Bezirk (genaue Adresse erst nach Bestätigung)."],
+          ["Wie sende ich ein Angebot?", "Klicke auf eine Anfrage und gib deinen Preis ein. Der Kunde sieht dein Angebot mit Profil und Bewertung."],
+          ["Wie funktionieren Auszahlungen?", "Zahlungen über Stripe. Verbinde dein Bankkonto unter Profil → Auszahlungseinstellungen."],
+          ["Wie richte ich Stripe ein?", "Profil → Auszahlungseinstellungen → Connect with Stripe. Wähle dein Land und folge der Stripe-Registrierung."]
+        ],
+        pricing: [
+          ["Ist die Registrierung kostenlos?", "Ja! Die Registrierung ist für Kunden und Anbieter komplett kostenlos."],
+          ["Welche Gebühren gibt es?", "Eine kleine Servicegebühr wird auf Transaktionen erhoben. Den genauen Betrag siehst du vor der Zahlungsbestätigung."],
+          ["Wie funktioniert die Zahlung?", "Kunden zahlen per Stripe (Karte). Anbieter erhalten Auszahlungen auf ihr Bankkonto."]
+        ],
+        account: [
+          ["Wie ändere ich mein Passwort?", "Profil → 'Passwort ändern'. Bei Google/Telegram-Registrierung zuerst 'Passwort festlegen'."],
+          ["Wie wechsle ich die Rolle?", "Im Seitenmenü zwischen Kunde und Anbieter wechseln. Daten bleiben für beide Rollen erhalten."],
+          ["Wie lösche ich mein Konto?", "Profil → Gefahrenzone → Konto löschen. Diese Aktion ist unwiderruflich."],
+          ["Wie verbinde ich Telegram?", "Nutze den Telegram Login auf der Anmeldeseite oder schreibe /start an unseren Bot."]
+        ]
+      }
+    },
+    pl: {
+      subtitle: "Jak mogę pomóc?",
+      welcome: "Cześć! Jestem asystentem Human-me. Wybierz temat lub wpisz pytanie.",
+      no_match: "Nie mam jeszcze odpowiedzi na to pytanie. Wybierz temat z menu lub skontaktuj się ze wsparciem.",
+      back: "Powrót do menu",
+      placeholder: "Wpisz pytanie...",
+      cats: {
+        how:      { label: "Jak to działa",       icon: "💡" },
+        client:   { label: "Dla klientów",        icon: "👤" },
+        provider: { label: "Dla wykonawców",      icon: "💼" },
+        pricing:  { label: "Ceny i płatności",    icon: "💳" },
+        account:  { label: "Konto",               icon: "⚙️" }
+      },
+      qa: {
+        how: [
+          ["Czym jest Human-me?", "Human-me łączy klientów potrzebujących usług opieki domowej z zweryfikowanymi wykonawcami w okolicy."],
+          ["Jak zacząć?", "Zarejestruj się jako Klient lub Wykonawca, uzupełnij profil — gotowe! Klienci tworzą zapytania, wykonawcy wysyłają oferty."],
+          ["Czy to bezpieczne?", "Tak! Wykonawcy przesyłają dokumenty i ubezpieczenie. Możesz sprawdzić profile, opinie i oceny. Płatności przez Stripe."]
+        ],
+        client: [
+          ["Jak utworzyć zapytanie?", "Na Dashboardzie kliknij 'Post a Request'. Podaj usługę, datę, adres, dzielnicę i uwagi."],
+          ["Jak wybrać wykonawcę?", "Gdy wykonawcy wyślą oferty, zobaczysz cenę, profil i ocenę. Możesz zaakceptować, odrzucić lub złożyć kontrofertę."],
+          ["Jak zapłacić?", "Po zaakceptowaniu oferty płacisz bezpiecznie przez Stripe. Dodaj kartę w Profilu → Metody płatności."],
+          ["Czy mogę anulować?", "Tak, na stronie Wizyt. Anuluj jak najwcześniej."]
+        ],
+        provider: [
+          ["Jak otrzymywać zapytania?", "Dashboard → 'New Requests' pokazuje otwarte zapytania klientów. Widoczna jest dzielnica (dokładny adres po potwierdzeniu)."],
+          ["Jak wysłać ofertę?", "Kliknij zapytanie i podaj swoją cenę. Klient zobaczy ofertę z profilem i oceną."],
+          ["Jak działają wypłaty?", "Płatności przez Stripe. Połącz konto bankowe w Profilu → Ustawienia wypłat."],
+          ["Jak skonfigurować Stripe?", "Profil → Ustawienia wypłat → Connect with Stripe. Wybierz kraj i przejdź rejestrację Stripe."]
+        ],
+        pricing: [
+          ["Czy rejestracja jest darmowa?", "Tak! Rejestracja jest całkowicie bezpłatna dla klientów i wykonawców."],
+          ["Jakie są opłaty?", "Niewielka opłata serwisowa pobierana od transakcji. Dokładną kwotę widzisz przed potwierdzeniem płatności."],
+          ["Jak działa płatność?", "Klienci płacą przez Stripe (karta). Wykonawcy otrzymują wypłaty na połączone konto bankowe."]
+        ],
+        account: [
+          ["Jak zmienić hasło?", "Profil → 'Zmień hasło'. Przy rejestracji przez Google/Telegram najpierw 'Ustaw hasło'."],
+          ["Jak zmienić rolę?", "W menu bocznym przełącz między Klientem a Wykonawcą. Dane zachowane dla obu ról."],
+          ["Jak usunąć konto?", "Profil → Strefa niebezpieczeństwa → Usuń konto. Ta akcja jest nieodwracalna."],
+          ["Jak połączyć Telegram?", "Użyj Telegram Login na stronie logowania lub napisz /start do naszego bota."]
+        ]
+      }
+    }
+  };
+
+  /* ── Detect language ──────────────────────────────────── */
+  function getLang(){
+    const c = document.cookie.match(/(?:^|;\s*)lang=([^;]*)/);
+    if(c) return c[1];
+    const h = document.documentElement.lang;
+    if(h && T[h]) return h;
+    return 'en';
+  }
+  function t(){ return T[getLang()] || T.en; }
+
+  /* ── DOM refs ─────────────────────────────────────────── */
+  const toggle = document.getElementById('faqToggle');
+  const panel  = document.getElementById('faqPanel');
+  const body   = document.getElementById('faqBody');
+  const input  = document.getElementById('faqInput');
+  const send   = document.getElementById('faqSend');
+  const close  = document.getElementById('faqClose');
+  const dot    = document.getElementById('faqDot');
+  const sub    = document.getElementById('faqSubtitle');
+  let open = false;
+
+  /* ── Helpers ──────────────────────────────────────────── */
+  function addMsg(text, cls){
+    const d = document.createElement('div');
+    d.className = 'faq-msg ' + cls;
+    d.innerHTML = text;
+    body.appendChild(d);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function addButtons(btns){
+    const wrap = document.createElement('div');
+    wrap.className = 'faq-buttons';
+    btns.forEach(function(b){
+      const btn = document.createElement('button');
+      btn.className = 'faq-btn';
+      btn.textContent = b.label;
+      btn.onclick = b.action;
+      wrap.appendChild(btn);
+    });
+    body.appendChild(wrap);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function showMenu(){
+    const lang = t();
+    addMsg(lang.welcome, 'bot');
+    const btns = Object.keys(lang.cats).map(function(k){
+      return { label: lang.cats[k].icon + ' ' + lang.cats[k].label, action: function(){ showCategory(k); } };
+    });
+    addButtons(btns);
+  }
+
+  function showCategory(cat){
+    const lang = t();
+    const catInfo = lang.cats[cat];
+    addMsg(catInfo.label, 'user');
+    const questions = lang.qa[cat] || [];
+    const btns = questions.map(function(qa){
+      return { label: qa[0], action: function(){ showAnswer(qa[0], qa[1]); } };
+    });
+    btns.push({ label: '← ' + lang.back, action: function(){ body.innerHTML = ''; showMenu(); } });
+    addButtons(btns);
+  }
+
+  function showAnswer(q, a){
+    addMsg(q, 'user');
+    setTimeout(function(){ addMsg(a, 'bot'); addBackButton(); }, 200);
+  }
+
+  function addBackButton(){
+    const lang = t();
+    addButtons([{ label: '← ' + lang.back, action: function(){ body.innerHTML = ''; showMenu(); } }]);
+  }
+
+  /* ── Keyword search ───────────────────────────────────── */
+  function searchFAQ(query){
+    const lang = t();
+    const q = query.toLowerCase();
+    const results = [];
+    Object.keys(lang.qa).forEach(function(cat){
+      lang.qa[cat].forEach(function(qa){
+        if(qa[0].toLowerCase().indexOf(q) >= 0 || qa[1].toLowerCase().indexOf(q) >= 0){
+          results.push(qa);
+        }
+      });
+    });
+    return results;
+  }
+
+  function handleUserInput(){
+    const val = input.value.trim();
+    if(!val) return;
+    input.value = '';
+    addMsg(val, 'user');
+    const lang = t();
+    const results = searchFAQ(val);
+    if(results.length > 0){
+      if(results.length === 1){
+        setTimeout(function(){ addMsg(results[0][1], 'bot'); addBackButton(); }, 200);
+      } else {
+        const btns = results.slice(0, 5).map(function(qa){
+          return { label: qa[0], action: function(){ showAnswer(qa[0], qa[1]); } };
+        });
+        btns.push({ label: '← ' + lang.back, action: function(){ body.innerHTML = ''; showMenu(); } });
+        setTimeout(function(){ addMsg(results.length + ' results found:', 'bot'); addButtons(btns); }, 200);
+      }
+    } else {
+      setTimeout(function(){ addMsg(lang.no_match, 'bot'); addBackButton(); }, 300);
+    }
+  }
+
+  /* ── Events ───────────────────────────────────────────── */
+  toggle.onclick = function(){
+    open = !open;
+    panel.style.display = open ? 'flex' : 'none';
+    dot.style.display = 'none';
+    if(open && body.children.length === 0){
+      sub.textContent = t().subtitle;
+      input.placeholder = t().placeholder;
+      showMenu();
+    }
+  };
+  close.onclick = function(){ open = false; panel.style.display = 'none'; };
+  send.onclick = handleUserInput;
+  input.onkeydown = function(e){ if(e.key === 'Enter') handleUserInput(); };
+})();
+</script>

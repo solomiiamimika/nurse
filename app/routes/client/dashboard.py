@@ -2,6 +2,7 @@ from . import client_bp
 from flask import render_template, redirect, url_for, flash, request, abort, jsonify, current_app, Blueprint
 from app.extensions import db, bcrypt, socketio, mail
 from app.models import Appointment, ProviderService, User, Message, Payment, ClientSelfCreatedAppointment, Review, RequestOfferResponse, ServiceHistory, CancellationPolicy
+from app.models.service import SERVICE_TAG_CATEGORIES
 from app.utils import fuzz_coordinates, validate_coordinates
 from app.supabase_storage import get_file_url, delete_from_supabase, upload_to_supabase, buckets
 from datetime import datetime, timedelta
@@ -36,7 +37,8 @@ def dashboard():
     if current_user.role != 'client':
         return redirect(url_for('auth.login'))
 
-    return render_template('client/dashboard.html', stripe_public_key=stripe_public_key)
+    return render_template('client/dashboard.html', stripe_public_key=stripe_public_key,
+                           service_tag_categories=SERVICE_TAG_CATEGORIES)
 
 
 @client_bp.route('/get_providers_locations')

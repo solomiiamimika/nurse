@@ -417,6 +417,9 @@ def client_get_requests():
                 'created_appo': req.created_appo.isoformat(),
                 'notes': req.notes,
                 'payment': req.payment,
+                'address': req.address,
+                'district': req.district,
+                'service_tags': req.service_tags,
                 'offers': offers,
                 'accepted_provider': accepted_provider,
             })

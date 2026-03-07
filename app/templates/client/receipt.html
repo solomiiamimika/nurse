@@ -190,7 +190,7 @@
 <body>
     <div class="receipt-wrapper">
         <div class="actions-bar">
-            <a href="javascript:history.back()">
+            <a href="{{ url_for('client.dashboard') }}">
                 <i class="fas fa-arrow-left"></i> {{ _("Back") }}
             </a>
             <button class="btn-download" onclick="window.print()">
