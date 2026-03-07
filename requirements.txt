@@ -18,9 +18,7 @@ flask-migrate
 flask-bcrypt
 flask-dance
 pyngrok
-gunicorn
 flask-babel
-eventlet
 flask_jwt_extended
 openai
 apscheduler

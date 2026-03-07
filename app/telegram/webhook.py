@@ -5,6 +5,7 @@ Flask blueprint for Telegram integration:
   /telegram/complete_registration — role/email form for new Telegram users
   /telegram/link              — link existing account to Telegram
 """
+import logging
 import secrets
 from flask import (
     Blueprint, request, jsonify, current_app,
@@ -15,6 +16,8 @@ from app.extensions import db
 from app.models import User
 from .security import verify_telegram_login, verify_webhook_secret
 from .handlers import dispatch_update
+
+logger = logging.getLogger(__name__)
 
 telegram_bp = Blueprint('telegram', __name__, url_prefix='/telegram')
 
@@ -29,10 +32,14 @@ def webhook():
 
     secret_header = request.headers.get('X-Telegram-Bot-Api-Secret-Token', '')
     if not verify_webhook_secret(secret_header, bot_token):
+        logger.warning("Webhook request with invalid secret token")
         return '', 403
 
     update = request.get_json(force=True)
-    dispatch_update(update, bot_token)
+    try:
+        dispatch_update(update, bot_token)
+    except Exception:
+        logger.exception("Error dispatching webhook update_id=%s", update.get('update_id'))
     return '', 200
 
 

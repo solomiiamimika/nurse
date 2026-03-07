@@ -31,6 +31,17 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)   # load all settings from config.py
 
+    # ── Logging ─────────────────────────────────────────────────
+    import logging
+    log_level = logging.DEBUG if app.debug else logging.INFO
+    logging.basicConfig(
+        level=log_level,
+        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+    )
+    logging.getLogger('urllib3').setLevel(logging.WARNING)
+    logging.getLogger('werkzeug').setLevel(logging.WARNING)
+
     # ── 1. Init extensions (order matters) ────────────────────────
     db.init_app(app)
     bcrypt.init_app(app)
@@ -198,12 +209,18 @@ def create_app():
                             req.appointment_start_time.strftime('%d %b %Y'),
                             req.appointment_start_time.strftime('%H:%M'),
                         )
-                except Exception:
-                    pass
+                except Exception as e:
+                    app.logger.error(f"Telegram reminder error for request {req.id}: {e}")
+
+    def cleanup_telegram_sessions():
+        with app.app_context():
+            from app.telegram.conversations import conversation_manager
+            conversation_manager.cleanup_expired(timeout_minutes=30)
 
     if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
         scheduler = BackgroundScheduler(daemon=True)
         scheduler.add_job(send_payment_reminders, 'cron', hour=9, minute=0)
+        scheduler.add_job(cleanup_telegram_sessions, 'interval', minutes=10)
         scheduler.start()
 
     # ── 7. Set Telegram webhook (production only) ────────────────────

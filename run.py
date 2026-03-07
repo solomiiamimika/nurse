@@ -1,3 +1,4 @@
+import logging
 from app import create_app
 from app.extensions import db,socketio
 from app.models import User,Message,Service,Appointment,Payment,MedicalRecord,Prescription,Review
@@ -6,6 +7,8 @@ from flask_socketio import SocketIO
 import os
 import threading
 import time
+
+logger = logging.getLogger(__name__)
 
 #ngrok.set_auth_token('30Y5lts3TU8tBYOQ5g0CAxupy09_5M8qwijjkLXatMoCjpjbT')
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = "1"
@@ -19,7 +22,7 @@ def start_bot_polling(app):
 
     bot_token = app.config.get('TELEGRAM_BOT_TOKEN')
     if not bot_token:
-        print("[BOT] No TELEGRAM_BOT_TOKEN — bot polling disabled")
+        logger.warning("No TELEGRAM_BOT_TOKEN — bot polling disabled")
         return
 
     API = f"https://api.telegram.org/bot{bot_token}"
@@ -28,10 +31,18 @@ def start_bot_polling(app):
     try:
         req.post(f"{API}/deleteWebhook", timeout=5)
     except Exception:
-        pass
+        logger.warning("Failed to delete webhook")
 
     bot_name = app.config.get('TELEGRAM_BOT_NAME', 'bot')
-    print(f"[BOT] Polling @{bot_name}...")
+    logger.info("Polling @%s...", bot_name)
+
+    # Clean up expired sessions on startup
+    with app.app_context():
+        try:
+            from app.telegram.conversations import conversation_manager
+            conversation_manager.cleanup_expired()
+        except Exception:
+            logger.exception("Failed to cleanup expired sessions on startup")
 
     offset = 0
     while True:
@@ -41,7 +52,7 @@ def start_bot_polling(app):
             }, timeout=35)
 
             if not resp.ok:
-                print(f"[BOT] API error: {resp.status_code}")
+                logger.error("Bot API error: %s", resp.status_code)
                 time.sleep(3)
                 continue
 
@@ -51,10 +62,12 @@ def start_bot_polling(app):
                 cb = update.get('callback_query', {})
                 if msg:
                     user = msg.get('from', {})
-                    print(f"[BOT] MSG {user.get('first_name', '')} ({user.get('id', '')}): {msg.get('text', '')}")
+                    logger.info("MSG %s (%s): %s",
+                                user.get('first_name', ''), user.get('id', ''), msg.get('text', ''))
                 elif cb:
                     user = cb.get('from', {})
-                    print(f"[BOT] CB  {user.get('first_name', '')} ({user.get('id', '')}): {cb.get('data', '')}")
+                    logger.info("CB  %s (%s): %s",
+                                user.get('first_name', ''), user.get('id', ''), cb.get('data', ''))
 
                 with app.app_context():
                     from app.telegram.handlers import dispatch_update
@@ -62,18 +75,25 @@ def start_bot_polling(app):
 
         except req.exceptions.Timeout:
             continue
-        except Exception as e:
-            print(f"[BOT] Error: {e}")
+        except Exception:
+            logger.exception("Bot polling error")
             time.sleep(3)
 
 
 if __name__ == '__main__':
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+    )
+    logging.getLogger('urllib3').setLevel(logging.WARNING)
+    logging.getLogger('werkzeug').setLevel(logging.WARNING)
+
     host = "127.0.0.1"
     port = 5000
     url = f"http://{host}:{port}"
-    print(">>> SocketIO async_mode:", socketio.async_mode)
-    print(f"Server running at {url}")
-    print("Press CTRL+C to quit")
+    logger.info("SocketIO async_mode: %s", socketio.async_mode)
+    logger.info("Server running at %s", url)
 
     # Start Telegram bot polling in background (local dev only)
     base_url = app.config.get('BASE_URL', '')
@@ -83,5 +103,3 @@ if __name__ == '__main__':
             bot_thread.start()
 
     socketio.run(app, host="127.0.0.1", port=5000, debug=True)
-
-

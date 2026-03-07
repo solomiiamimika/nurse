@@ -4,21 +4,22 @@ Telegram notifications to individual users.
 send_user_telegram()  — low-level: send a message to a user by user_id
 notify_*()            — high-level: event-based notifications
 """
-import requests
+import logging
 from threading import Thread
 from flask import current_app
 
+logger = logging.getLogger(__name__)
+
 
 def _send_raw(token, chat_id, text, reply_markup=None):
-    """Send a Telegram message (blocking). Use in threads."""
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    """Send a Telegram message (blocking, with retry). Used in threads."""
+    from .handlers import telegram_api_request
     payload = {'chat_id': chat_id, 'text': text, 'parse_mode': 'HTML'}
     if reply_markup:
         payload['reply_markup'] = reply_markup
-    try:
-        requests.post(url, json=payload, timeout=5)
-    except Exception:
-        pass
+    result = telegram_api_request('sendMessage', token, payload)
+    if result is None:
+        logger.error("Failed to deliver notification to chat_id=%s", chat_id)
 
 
 def send_user_telegram(user_id, message, reply_markup=None):
@@ -29,17 +30,30 @@ def send_user_telegram(user_id, message, reply_markup=None):
     from app.models import User
     token = current_app.config.get('TELEGRAM_BOT_TOKEN')
     if not token:
+        logger.warning("TELEGRAM_BOT_TOKEN not configured, skipping notification")
         return
 
     user = User.query.get(user_id)
-    if not user or not user.telegram_id or not user.telegram_notifications:
+    if not user:
+        logger.warning("Notification skipped: user_id=%s not found", user_id)
+        return
+    if not user.telegram_id:
+        return
+    if not user.telegram_notifications:
         return
 
-    Thread(
-        target=_send_raw,
-        args=(token, user.telegram_id, message, reply_markup),
-        daemon=True,
-    ).start()
+    tg_id = user.telegram_id
+    user_name = user.user_name
+
+    def _send():
+        try:
+            _send_raw(token, tg_id, message, reply_markup)
+            logger.info("Notification sent to %s (telegram_id=%s)", user_name, tg_id)
+        except Exception:
+            logger.exception("Failed to send notification to %s (telegram_id=%s)",
+                             user_name, tg_id)
+
+    Thread(target=_send, daemon=True, name=f"tg-notify-{user_id}").start()
 
 
 # ── Event-based notifications ──────────────────────────────────────

@@ -20,6 +20,7 @@ from .payment     import Payment
 from .messaging   import Message
 from .medical     import MedicalRecord, Prescription, Review
 from .feedback    import Feedback
+from .telegram_session import TelegramSession
 
 # Backward-compatible alias (old code may still use NurseService)
 NurseService = ProviderService
