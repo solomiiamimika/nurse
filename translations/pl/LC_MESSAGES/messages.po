@@ -1,4 +1,4 @@
-# Ukrainian translations for Human-me.
+# Polish translations for Human-me.
 # Copyright (C) 2026 Human-me
 # This file is distributed under the same license as the Human-me project.
 #
@@ -9,10 +9,10 @@ msgstr ""
 "POT-Creation-Date: 2026-03-07 17:56+0100\n"
 "PO-Revision-Date: 2026-03-07 18:00+0100\n"
 "Last-Translator: Human-me Team\n"
-"Language: uk\n"
-"Language-Team: uk\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Language: pl\n"
+"Language-Team: pl\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && "
+"(n%100<10 || n%100>=20) ? 1 : 2);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -34,421 +34,421 @@ msgstr "Human"
 #: app/templates/provider/services.html:172
 #: app/templates/provider/services.html:193
 msgid "Cancel"
-msgstr "Скасувати"
+msgstr "Anuluj"
 
 #: app/templates/auth/register.html:256 app/templates/base.html:146
 #: app/templates/base.html:163 app/templates/client/dashboard.html:1366
 #: app/templates/client/dashboard.html:1522
 #: app/templates/provider/appointments.html:392
 msgid "Confirm"
-msgstr "Підтвердити"
+msgstr "Potwierdź"
 
 #: app/templates/base.html:162
 msgid "Are you sure?"
-msgstr "Точно впевнений?"
+msgstr "Na pewno?"
 
 #: app/templates/base.html:207
 msgid "Feedback"
-msgstr "Зворотній зв'язок"
+msgstr "Feedback"
 
 #: app/templates/base.html:212
 msgid "Bug"
-msgstr "Баг"
+msgstr "Błąd"
 
 #: app/templates/base.html:215
 msgid "Suggestion"
-msgstr "Ідея"
+msgstr "Pomysł"
 
 #: app/templates/base.html:218
 msgid "Describe the issue or your idea..."
-msgstr "Опиши проблему або свою ідею..."
+msgstr "Opisz problem lub swój pomysł..."
 
 #: app/templates/base.html:222 app/templates/base.html:300
 msgid "Send feedback"
-msgstr "Відправити"
+msgstr "Wyślij"
 
 #: app/templates/base.html:227
 msgid "Thank you!"
-msgstr "Дякую!"
+msgstr "Dzięki!"
 
 #: app/templates/base.html:228
 msgid "Your feedback has been sent."
-msgstr "Твій фідбек відправлено."
+msgstr "Twój feedback został wysłany."
 
 #: app/templates/auth/register.html:292 app/templates/home.html:447
 msgid "Log in"
-msgstr "Увійти"
+msgstr "Zaloguj się"
 
 #: app/templates/home.html:448
 msgid "Join Now"
-msgstr "Приєднуйся"
+msgstr "Dołącz teraz"
 
 #: app/templates/home.html:464
 msgid "Instant Help"
-msgstr "Допомога миттєво"
+msgstr "Pomoc od ręki"
 
 #: app/templates/home.html:467
 msgid "Local People"
-msgstr "Люди поруч"
+msgstr "Ludzie w pobliżu"
 
 #: app/templates/home.html:473
 msgid "це твоє місце щоб видихнути"
-msgstr "це твоє місце щоб видихнути"
+msgstr "twoje miejsce żeby odetchnąć"
 
 #: app/templates/home.html:481
 msgid "How can we help?"
-msgstr "Чим допомогти?"
+msgstr "Jak możemy pomóc?"
 
 #: app/templates/home.html:482
 msgid "e.g. walk the dog, help grandma, clean the flat..."
-msgstr "напр. вигуляти собаку, допомогти бабусі, прибрати квартиру..."
+msgstr "np. wyprowadzić psa, pomóc babci, posprzątać mieszkanie..."
 
 #: app/templates/home.html:483
 msgid "Your area (optional)"
-msgstr "Твій район (необов'язково)"
+msgstr "Twoja okolica (opcjonalnie)"
 
 #: app/templates/home.html:483
 msgid "Use my location"
-msgstr "Моя локація"
+msgstr "Moja lokalizacja"
 
 #: app/templates/home.html:484
 msgid "Find Help"
-msgstr "Знайти допомогу"
+msgstr "Znajdź pomoc"
 
 #: app/templates/home.html:485
 msgid "Free. No sign-up needed to browse."
-msgstr "Безкоштовно. Для перегляду реєстрація не потрібна."
+msgstr "Za darmo. Przeglądaj bez rejestracji."
 
 #: app/templates/home.html:489
 msgid "Looking for helpers near you..."
-msgstr "Шукаємо помічників поруч..."
+msgstr "Szukamy pomocników w pobliżu..."
 
 #: app/templates/home.html:497
 msgid "Available Helpers"
-msgstr "Хто вільний"
+msgstr "Dostępni pomocnicy"
 
 #: app/templates/home.html:498
 msgid "New search"
-msgstr "Новий пошук"
+msgstr "Nowe wyszukiwanie"
 
 #: app/templates/home.html:511
 msgid "How It Works"
-msgstr "Як це працює"
+msgstr "Jak to działa"
 
 #: app/templates/home.html:512
 msgid "From request to relaxation in 3 simple steps"
-msgstr "Від запиту до релаксу за 3 кроки"
+msgstr "Od zapytania do relaksu w 3 krokach"
 
 #: app/templates/home.html:527
 msgid "STEP 1"
-msgstr "КРОК 1"
+msgstr "KROK 1"
 
 #: app/templates/home.html:528
 msgid "Describe what you need"
-msgstr "Опиши, що треба"
+msgstr "Opisz czego potrzebujesz"
 
 #: app/templates/home.html:529
 msgid ""
 "Post your task in seconds — cleaning, childcare, errands, elderly care, "
 "or anything else. Set your preferred time and budget."
 msgstr ""
-"Створи завдання за секунди — прибирання, догляд за дітьми, доручення, "
-"допомога літнім чи що завгодно. Вкажи час і бюджет."
+"Stwórz zadanie w sekundy — sprzątanie, opieka nad dziećmi, sprawunki, "
+"pomoc seniorom i cokolwiek innego. Ustaw czas i budżet."
 
 #: app/templates/home.html:545
 msgid "STEP 2"
-msgstr "КРОК 2"
+msgstr "KROK 2"
 
 #: app/templates/home.html:546
 msgid "Get matched with a local helper"
-msgstr "Знайди помічника поруч"
+msgstr "Znajdź pomocnika w okolicy"
 
 #: app/templates/home.html:547
 msgid ""
 "Verified helpers from your neighborhood respond with offers. Compare "
 "profiles, ratings and prices — then pick your favorite."
 msgstr ""
-"Перевірені помічники з твого району відповідають пропозиціями. Порівнюй "
-"профілі, рейтинги та ціни — обирай найкращого."
+"Zweryfikowani pomocnicy z twojej okolicy odpowiadają ofertami. Porównaj "
+"profile, oceny i ceny — wybierz najlepszego."
 
 #: app/templates/home.html:563
 msgid "STEP 3"
-msgstr "КРОК 3"
+msgstr "KROK 3"
 
 #: app/templates/home.html:564
 msgid "Relax — it's handled"
-msgstr "Розслабся — все під контролем"
+msgstr "Relax — ogarnięte"
 
 #: app/templates/home.html:565
 msgid ""
 "Your helper arrives at the agreed time. Pay securely through the app. "
 "Rate your experience and enjoy your free time!"
 msgstr ""
-"Помічник приходить у домовлений час. Плати безпечно через додаток. Оціни "
-"досвід і насолоджуйся вільним часом!"
+"Pomocnik przychodzi o umówionej porze. Płać bezpiecznie przez apkę. Oceń "
+"i ciesz się wolnym czasem!"
 
 #: app/templates/home.html:581
 msgid "OR EARN"
-msgstr "АБО ЗАРОБЛЯЙ"
+msgstr "LUB ZARABIAJ"
 
 #: app/templates/home.html:582
 msgid "Help neighbors & get paid"
-msgstr "Допомагай сусідам і заробляй"
+msgstr "Pomagaj sąsiadom i zarabiaj"
 
 #: app/templates/home.html:583
 msgid ""
 "Register as a helper, set your own schedule and prices. Accept tasks "
 "nearby, complete them, and receive same-day payouts."
 msgstr ""
-"Зареєструйся як помічник, встанови свій графік і ціни. Бери завдання "
-"поруч, виконуй їх і отримуй виплати того ж дня."
+"Zarejestruj się jako pomocnik, ustaw swój grafik i ceny. Bierz zadania w "
+"pobliżu, wykonuj je i dostawaj wypłatę tego samego dnia."
 
 #: app/templates/home.html:603
 msgid "Active Providers"
-msgstr "Активних виконавців"
+msgstr "Aktywnych wykonawców"
 
 #: app/templates/home.html:608
 msgid "Tasks Completed"
-msgstr "Завдань виконано"
+msgstr "Wykonanych zadań"
 
 #: app/templates/home.html:613
 msgid "Avg. Rating"
-msgstr "Середній рейтинг"
+msgstr "Śr. ocena"
 
 #: app/templates/home.html:621
 msgid "Smash the Easter Egg"
-msgstr "Розбий пасхальне яйце"
+msgstr "Rozbij pisankę"
 
 #: app/templates/home.html:622
 msgid "Hit the egg to crack it open and reveal your fortune!"
-msgstr "Вдар по яйцю, розбий його і дізнайся свою долю!"
+msgstr "Uderz w jajko żeby je rozbić i poznać swoje szczęście!"
 
 #: app/templates/home.html:668 app/templates/home.html:1321
 msgid "Tap to smash!"
-msgstr "Тисни щоб розбити!"
+msgstr "Kliknij żeby rozbić!"
 
 #: app/templates/home.html:672
 msgid "New Egg"
-msgstr "Нове яйце"
+msgstr "Nowe jajko"
 
 #: app/templates/home.html:678
 msgid "Who are you?"
-msgstr "Хто ти?"
+msgstr "Kim jesteś?"
 
 #: app/templates/home.html:683
 msgid "Need help?"
-msgstr "Потрібна допомога?"
+msgstr "Potrzebujesz pomocy?"
 
 #: app/templates/home.html:684
 msgid "Post a task, pick a local, get it done. No hassle, no contracts."
-msgstr "Створи завдання, обери виконавця, готово. Без зайвого, без контрактів."
+msgstr "Dodaj zadanie, wybierz wykonawcę, gotowe. Bez stresu, bez umów."
 
 #: app/templates/home.html:685
 msgid "Get Help Now"
-msgstr "Отримати допомогу"
+msgstr "Uzyskaj pomoc"
 
 #: app/templates/home.html:688 app/templates/home.html:1382
 msgid "Meet your neighbors"
-msgstr "Познайомся з сусідами"
+msgstr "Poznaj swoich sąsiadów"
 
 #: app/templates/home.html:696
 msgid "Want to earn?"
-msgstr "Хочеш заробити?"
+msgstr "Chcesz zarobić?"
 
 #: app/templates/home.html:697
 msgid "Help neighbors on your own schedule. Get paid the same day."
-msgstr "Допомагай сусідам у зручний час. Отримуй гроші того ж дня."
+msgstr "Pomagaj sąsiadom w swoim tempie. Kasa tego samego dnia."
 
 #: app/templates/home.html:698
 msgid "Become a Provider"
-msgstr "Стати виконавцем"
+msgstr "Zostań wykonawcą"
 
 #: app/templates/home.html:701
 msgid "Set your own price"
-msgstr "Своя ціна"
+msgstr "Własna cena"
 
 #: app/templates/home.html:702
 msgid "Stripe payouts"
-msgstr "Виплати через Stripe"
+msgstr "Wypłaty przez Stripe"
 
 #: app/templates/home.html:703
 msgid "Work near home"
-msgstr "Працюй біля дому"
+msgstr "Pracuj blisko domu"
 
 #: app/templates/client/dashboard.html:928
 #: app/templates/client/dashboard.html:1094 app/templates/home.html:724
 msgid "Geolocation not supported"
-msgstr "Геолокація не підтримується"
+msgstr "Geolokalizacja nie jest wspierana"
 
 #: app/templates/home.html:739
 msgid "Location access denied"
-msgstr "Доступ до локації заборонено"
+msgstr "Brak dostępu do lokalizacji"
 
 #: app/templates/home.html:783
 msgid "No one available right now"
-msgstr "Зараз нікого немає"
+msgstr "Nikt teraz nie jest dostępny"
 
 #: app/templates/home.html:784
 msgid "Post a request — helpers will come to you!"
-msgstr "Створи запит — помічники знайдуться!"
+msgstr "Dodaj zapytanie — pomocnicy się znajdą!"
 
 #: app/templates/home.html:785
 msgid "Create Request"
-msgstr "Створити запит"
+msgstr "Utwórz zapytanie"
 
 #: app/templates/home.html:786
 msgid "or sign up to browse later"
-msgstr "або зареєструйся щоб переглядати потім"
+msgstr "lub zarejestruj się żeby przeglądać później"
 
 #: app/templates/client/dashboard.html:775
 #: app/templates/client/dashboard.html:1333 app/templates/home.html:813
 msgid "Book"
-msgstr "Забронювати"
+msgstr "Zarezerwuj"
 
 #: app/templates/home.html:819
 msgid "helpers available"
-msgstr "помічників доступно"
+msgstr "dostępnych pomocników"
 
 #: app/templates/home.html:1289
 msgid "Smashed!"
-msgstr "Розбито!"
+msgstr "Rozbite!"
 
 #: app/templates/payment_form.html:2
 msgid "Payment for:"
-msgstr "Оплата за:"
+msgstr "Płatność za:"
 
 #: app/templates/payment_form.html:3
 msgid "Amount:"
-msgstr "Сума:"
+msgstr "Kwota:"
 
 #: app/templates/payment_form.html:6 app/templates/payment_form.html:42
 #: app/templates/payment_form.html:49
 msgid "Pay Now"
-msgstr "Оплатити"
+msgstr "Zapłać"
 
 #: app/templates/client/appointments.html:395
 #: app/templates/client/appointments.html:446
 #: app/templates/client/provider_public_profile.html:363
 #: app/templates/payment_form.html:18 app/templates/provider/dashboard.html:389
 msgid "Processing..."
-msgstr "Обробка..."
+msgstr "Przetwarzanie..."
 
 #: app/templates/payment_form.html:32
 msgid "Network response was not ok"
-msgstr "Мережа не відповідає"
+msgstr "Sieć nie odpowiada"
 
 #: app/templates/payment_form.html:50
 msgid "Payment failed:"
-msgstr "Оплата не пройшла:"
+msgstr "Płatność nieudana:"
 
 #: app/templates/auth/login.html:7 app/templates/auth/login.html:210
 msgid "Login"
-msgstr "Вхід"
+msgstr "Logowanie"
 
 #: app/templates/auth/login.html:171 app/templates/auth/register.html:207
 msgid "Home"
-msgstr "Головна"
+msgstr "Start"
 
 #: app/templates/auth/login.html:174
 msgid "Welcome Back"
-msgstr "З поверненням!"
+msgstr "Witaj z powrotem!"
 
 #: app/templates/auth/login.html:175
 msgid "Enter your details to continue."
-msgstr "Введи дані щоб продовжити."
+msgstr "Wpisz swoje dane żeby kontynuować."
 
 #: app/templates/auth/login.html:194
 msgid "Email or Username"
-msgstr "Email або нікнейм"
+msgstr "Email lub nazwa użytkownika"
 
 #: app/templates/auth/login.html:205 app/templates/auth/register.html:251
 msgid "Password"
-msgstr "Пароль"
+msgstr "Hasło"
 
 #: app/templates/auth/login.html:214 app/templates/auth/register.html:270
 msgid "or"
-msgstr "або"
+msgstr "lub"
 
 #: app/templates/auth/login.html:226
 msgid "Don't have an account?"
-msgstr "Ще немає акаунту?"
+msgstr "Nie masz konta?"
 
 #: app/templates/auth/login.html:229 app/templates/auth/register.html:267
 #: app/templates/auth/telegram_complete.html:129
 msgid "Create Account"
-msgstr "Створити акаунт"
+msgstr "Utwórz konto"
 
 #: app/templates/auth/register.html:7
 msgid "Register"
-msgstr "Реєстрація"
+msgstr "Rejestracja"
 
 #: app/templates/auth/register.html:210
 msgid "Join Human"
-msgstr "Приєднуйся до Human"
+msgstr "Dołącz do Human"
 
 #: app/templates/auth/register.html:211
 msgid "Create an account to book services or find work."
-msgstr "Створи акаунт щоб замовити послугу або знайти роботу."
+msgstr "Utwórz konto żeby zamówić usługę lub znaleźć pracę."
 
 #: app/templates/auth/register.html:227
 msgid "Username"
-msgstr "Нікнейм"
+msgstr "Nazwa użytkownika"
 
 #: app/templates/auth/register.html:232 app/templates/client/profile.html:130
 #: app/templates/provider/profile.html:150
 msgid "Full Name"
-msgstr "Повне ім'я"
+msgstr "Imię i nazwisko"
 
 #: app/templates/auth/register.html:237
 msgid "Email Address"
-msgstr "Електронна пошта"
+msgstr "Adres email"
 
 #: app/templates/auth/register.html:243
 msgid "I want to find care (Client)"
-msgstr "Шукаю допомогу (Клієнт)"
+msgstr "Szukam pomocy (Klient)"
 
 #: app/templates/auth/register.html:244
 msgid "I want to offer services (Provider)"
-msgstr "Хочу допомагати (Виконавець)"
+msgstr "Chcę pomagać (Wykonawca)"
 
 #: app/templates/auth/register.html:275
 msgid "Sign up as Client"
-msgstr "Зареєструватися як клієнт"
+msgstr "Zarejestruj się jako klient"
 
 #: app/templates/auth/register.html:277
 msgid "Sign up as Provider"
-msgstr "Зареєструватися як виконавець"
+msgstr "Zarejestruj się jako wykonawca"
 
 #: app/templates/auth/register.html:281
 msgid "or sign up with Telegram"
-msgstr "або через Telegram"
+msgstr "lub przez Telegram"
 
 #: app/templates/auth/register.html:292
 msgid "Already have an account?"
-msgstr "Вже є акаунт?"
+msgstr "Masz już konto?"
 
 #: app/templates/auth/telegram_complete.html:7
 #: app/templates/auth/telegram_complete.html:94
 msgid "Complete Registration"
-msgstr "Завершити реєстрацію"
+msgstr "Dokończ rejestrację"
 
 #: app/templates/auth/telegram_complete.html:96
 msgid "Hello"
-msgstr "Привіт"
+msgstr "Hej"
 
 #: app/templates/auth/telegram_complete.html:97
 msgid "Choose your role to finish."
-msgstr "Обери роль і готово."
+msgstr "Wybierz rolę i gotowe."
 
 #: app/templates/auth/telegram_complete.html:115
 #: app/templates/client/receipt.html:237
 msgid "Client"
-msgstr "Клієнт"
+msgstr "Klient"
 
 #: app/templates/auth/telegram_complete.html:118
 #: app/templates/client/receipt.html:233
 msgid "Provider"
-msgstr "Виконавець"
+msgstr "Wykonawca"
 
 #: app/templates/auth/telegram_complete.html:123
 #: app/templates/provider/client_profile.html:41
@@ -457,24 +457,24 @@ msgstr "Email"
 
 #: app/templates/auth/telegram_complete.html:123
 msgid "optional"
-msgstr "необов'язково"
+msgstr "opcjonalnie"
 
 #: app/templates/auth/telegram_complete.html:124
 msgid "your@email.com"
-msgstr "твій@email.com"
+msgstr "twoj@email.com"
 
 #: app/templates/auth/telegram_complete.html:125
 msgid "If you already have an account, enter the same email to link it."
-msgstr "Якщо вже є акаунт — введи той самий email для прив'язки."
+msgstr "Jeśli masz już konto — wpisz ten sam email żeby je połączyć."
 
 #: app/templates/chat/chats.html:5 app/templates/client/dashboard.html:38
 #: app/templates/provider/dashboard.html:36
 msgid "Chats"
-msgstr "Чати"
+msgstr "Czaty"
 
 #: app/templates/chat/chats.html:7 app/templates/client/receipt.html:194
 msgid "Back"
-msgstr "Назад"
+msgstr "Wróć"
 
 #: app/templates/chat/chats.html:14 app/templates/client/dashboard.html:110
 #: app/templates/client/dashboard.html:118
@@ -483,115 +483,115 @@ msgstr "Назад"
 #: app/templates/provider/dashboard.html:94
 #: app/templates/provider/dashboard.html:101
 msgid "All"
-msgstr "Всі"
+msgstr "Wszystkie"
 
 #: app/templates/chat/chats.html:17
 msgid "Unread"
-msgstr "Непрочитані"
+msgstr "Nieprzeczytane"
 
 #: app/templates/chat/chats.html:21
 msgid "Important"
-msgstr "Важливі"
+msgstr "Ważne"
 
 #: app/templates/chat/chats.html:122
 msgid "No unread messages"
-msgstr "Непрочитаних немає"
+msgstr "Brak nieprzeczytanych"
 
 #: app/templates/chat/chats.html:124
 msgid "No important chats. Tap the star to mark a chat as important."
-msgstr "Важливих чатів немає. Натисни зірочку щоб позначити."
+msgstr "Brak ważnych czatów. Kliknij gwiazdkę żeby oznaczyć."
 
 #: app/templates/chat/chats.html:125
 msgid "No conversations yet"
-msgstr "Поки що немає розмов"
+msgstr "Jeszcze nie ma rozmów"
 
 #: app/templates/chat/chats.html:145
 msgid "Attachment"
-msgstr "Вкладення"
+msgstr "Załącznik"
 
 #: app/templates/chat/chats.html:163
 msgid "Mark as important"
-msgstr "Позначити як важливе"
+msgstr "Oznacz jako ważne"
 
 #: app/templates/chat/conversation.html:16
 #: app/templates/client/dashboard.html:119
 #: app/templates/client/dashboard.html:1302
 #: app/templates/client/provider_public_profile.html:28
 msgid "Online"
-msgstr "Онлайн"
+msgstr "Online"
 
 #: app/templates/chat/conversation.html:16
 #: app/templates/client/dashboard.html:120
 #: app/templates/client/dashboard.html:1303
 #: app/templates/client/provider_public_profile.html:28
 msgid "Offline"
-msgstr "Офлайн"
+msgstr "Offline"
 
 #: app/templates/chat/conversation.html:31
 #: app/templates/chat/conversation.html:63
 msgid "Create Proposal"
-msgstr "Створити пропозицію"
+msgstr "Utwórz ofertę"
 
 #: app/templates/chat/conversation.html:36
 msgid "Service name"
-msgstr "Назва послуги"
+msgstr "Nazwa usługi"
 
 #: app/templates/chat/conversation.html:40
 #: app/templates/provider/services.html:39
 msgid "Price"
-msgstr "Ціна"
+msgstr "Cena"
 
 #: app/templates/chat/conversation.html:44
 msgid "Duration (min)"
-msgstr "Тривалість (хв)"
+msgstr "Czas trwania (min)"
 
 #: app/templates/chat/conversation.html:47
 #: app/templates/client/dashboard.html:209
 #: app/templates/client/dashboard.html:246
 #: app/templates/client/provider_public_profile.html:197
 msgid "Select date & time"
-msgstr "Обери дату і час"
+msgstr "Wybierz datę i czas"
 
 #: app/templates/chat/conversation.html:50
 msgid "Notes (optional)"
-msgstr "Нотатки (необов'язково)"
+msgstr "Notatki (opcjonalnie)"
 
 #: app/templates/chat/conversation.html:54
 msgid "Send Proposal"
-msgstr "Надіслати пропозицію"
+msgstr "Wyślij ofertę"
 
 #: app/templates/chat/conversation.html:67
 msgid "Write a message..."
-msgstr "Написати повідомлення..."
+msgstr "Napisz wiadomość..."
 
 #: app/templates/chat/conversation.html:173
 #: app/templates/client/dashboard.html:99
 #: app/templates/provider/dashboard.html:655
 msgid "Accepted"
-msgstr "Прийнято"
+msgstr "Zaakceptowane"
 
 #: app/templates/chat/conversation.html:175
 msgid "Declined"
-msgstr "Відхилено"
+msgstr "Odrzucone"
 
 #: app/templates/chat/conversation.html:180
 #: app/templates/provider/dashboard.html:684
 msgid "Accept"
-msgstr "Прийняти"
+msgstr "Akceptuj"
 
 #: app/templates/chat/conversation.html:183
 #: app/templates/provider/appointments.html:208
 msgid "Decline"
-msgstr "Відхилити"
+msgstr "Odrzuć"
 
 #: app/templates/chat/conversation.html:187
 #: app/templates/client/dashboard.html:1381
 msgid "Pending"
-msgstr "Очікує"
+msgstr "Oczekuje"
 
 #: app/templates/chat/conversation.html:196
 msgid "Proposal"
-msgstr "Пропозиція"
+msgstr "Oferta"
 
 #: app/templates/chat/conversation.html:202
 #: app/templates/client/dashboard.html:505
@@ -599,62 +599,62 @@ msgstr "Пропозиція"
 #: app/templates/provider/services.html:62
 #: app/templates/provider/services.html:259
 msgid "min"
-msgstr "хв"
+msgstr "min"
 
 #: app/templates/chat/conversation.html:213
 msgid "Say hi!"
-msgstr "Скажи привіт!"
+msgstr "Powiedz hej!"
 
 #: app/templates/chat/conversation.html:219
 msgid "Load earlier"
-msgstr "Завантажити раніше"
+msgstr "Załaduj wcześniejsze"
 
 #: app/templates/chat/conversation.html:255
 msgid "File"
-msgstr "Файл"
+msgstr "Plik"
 
 #: app/templates/chat/conversation.html:333
 msgid "Please fill in service name, price and date/time."
-msgstr "Заповни назву послуги, ціну та дату/час."
+msgstr "Uzupełnij nazwę usługi, cenę i datę/czas."
 
 #: app/templates/chat/conversation.html:378
 msgid "Accept this proposal? An appointment will be created."
-msgstr "Прийняти пропозицію? Буде створено запис."
+msgstr "Przyjąć ofertę? Zostanie utworzona rezerwacja."
 
 #: app/templates/chat/conversation.html:379
 msgid "Decline this proposal?"
-msgstr "Відхилити пропозицію?"
+msgstr "Odrzucić ofertę?"
 
 #: app/templates/chat/conversation.html:381
 msgid "Accept Proposal"
-msgstr "Прийняти пропозицію"
+msgstr "Przyjmij ofertę"
 
 #: app/templates/chat/conversation.html:381
 #: app/templates/client/dashboard.html:837
 #: app/templates/provider/appointments.html:398
 #: app/templates/provider/dashboard.html:1068
 msgid "Yes, Accept"
-msgstr "Так, прийняти"
+msgstr "Tak, przyjmij"
 
 #: app/templates/chat/conversation.html:382
 msgid "Decline Proposal"
-msgstr "Відхилити пропозицію"
+msgstr "Odrzuć ofertę"
 
 #: app/templates/chat/conversation.html:382
 msgid "Yes, Decline"
-msgstr "Так, відхилити"
+msgstr "Tak, odrzuć"
 
 #: app/templates/chat/conversation.html:396
 msgid "Proposal accepted! Appointment created."
-msgstr "Пропозицію прийнято! Запис створено."
+msgstr "Oferta przyjęta! Rezerwacja utworzona."
 
 #: app/templates/client/appointments.html:9
 msgid "My Appointments"
-msgstr "Мої записи"
+msgstr "Moje wizyty"
 
 #: app/templates/client/appointments.html:10
 msgid "Manage your schedule and payments"
-msgstr "Керуй розкладом і платежами"
+msgstr "Zarządzaj wizytami i płatnościami"
 
 #: app/templates/client/appointments.html:13
 #: app/templates/client/history.html:12 app/templates/client/profile.html:13
@@ -664,96 +664,96 @@ msgstr "Керуй розкладом і платежами"
 #: app/templates/provider/profile.html:13
 #: app/templates/provider/services.html:13
 msgid "Back to Dashboard"
-msgstr "На головну"
+msgstr "Na stronę główną"
 
 #: app/templates/client/appointments.html:25
 msgid "New appointment"
-msgstr "Новий запис"
+msgstr "Nowa wizyta"
 
 #: app/templates/client/appointments.html:26
 #: app/templates/client/appointments.html:40
 #: app/templates/client/profile.html:167
 #: app/templates/provider/appointments.html:209
 msgid "Close"
-msgstr "Закрити"
+msgstr "Zamknij"
 
 #: app/templates/client/appointments.html:39
 #: app/templates/provider/appointments.html:30
 msgid "Appointment Details"
-msgstr "Деталі запису"
+msgstr "Szczegóły wizyty"
 
 #: app/templates/client/appointments.html:46
 #: app/templates/client/provider_public_profile.html:191
 #: app/templates/provider/appointments.html:41
 #: app/templates/provider/dashboard.html:160
 msgid "SERVICE"
-msgstr "ПОСЛУГА"
+msgstr "USŁUGA"
 
 #: app/templates/client/appointments.html:50
 #: app/templates/client/dashboard.html:208
 #: app/templates/client/provider_public_profile.html:196
 #: app/templates/provider/appointments.html:45
 msgid "DATE & TIME"
-msgstr "ДАТА Й ЧАС"
+msgstr "DATA I CZAS"
 
 #: app/templates/client/appointments.html:54
 #: app/templates/provider/appointments.html:49
 msgid "STATUS"
-msgstr "СТАТУС"
+msgstr "STATUS"
 
 #: app/templates/client/appointments.html:58
 msgid "AMOUNT"
-msgstr "СУМА"
+msgstr "KWOTA"
 
 #: app/templates/client/appointments.html:62
 #: app/templates/provider/appointments.html:53
 #: app/templates/provider/dashboard.html:188
 msgid "NOTES"
-msgstr "НОТАТКИ"
+msgstr "NOTATKI"
 
 #: app/templates/client/appointments.html:69
 #: app/templates/client/appointments.html:418
 #: app/templates/client/appointments.html:425
 msgid "Make a payment now"
-msgstr "Оплатити зараз"
+msgstr "Zapłać teraz"
 
 #: app/templates/client/appointments.html:72
 #: app/templates/client/appointments.html:456
 #: app/templates/client/appointments.html:458
 msgid "Pay by cash"
-msgstr "Оплата готівкою"
+msgstr "Płatność gotówką"
 
 #: app/templates/client/appointments.html:82
 msgid "Your Review"
-msgstr "Твій відгук"
+msgstr "Twoja opinia"
 
 #: app/templates/client/appointments.html:87
 msgid "RATING"
-msgstr "ОЦІНКА"
+msgstr "OCENA"
 
 #: app/templates/client/appointments.html:97
 msgid "Edit Review"
-msgstr "Редагувати відгук"
+msgstr "Edytuj opinię"
 
 #: app/templates/client/appointments.html:106
 #: app/templates/provider/appointments.html:75
 msgid "stars"
-msgstr "зірок"
+msgstr "gwiazdek"
 
 #: app/templates/client/appointments.html:109
 #: app/templates/provider/appointments.html:78
 msgid "Tap a star to rate"
-msgstr "Натисни на зірку щоб оцінити"
+msgstr "Kliknij gwiazdkę żeby ocenić"
 
 #: app/templates/client/appointments.html:112
 #: app/templates/client/appointments.html:557
 msgid "Share your experience..."
-msgstr "Поділись враженнями..."
+msgstr "Podziel się wrażeniami..."
 
 #: app/templates/client/appointments.html:114
 #: app/templates/provider/appointments.html:83
 msgid "Reason is required for ratings of 3 stars or below"
-msgstr "Для оцінки 3 зірки або менше потрібна причина"
+msgstr "Dla oceny 3 gwiazdki lub niżej wymagany jest powód"
 
 #: app/templates/client/appointments.html:118
 #: app/templates/client/appointments.html:541
@@ -762,57 +762,57 @@ msgstr "Для оцінки 3 зірки або менше потрібна пр
 #: app/templates/provider/dashboard.html:1114
 #: app/templates/provider/dashboard.html:1278
 msgid "Send"
-msgstr "Надіслати"
+msgstr "Wyślij"
 
 #: app/templates/client/appointments.html:124
 msgid "You haven't left a review yet."
-msgstr "Ти ще не залишив відгук."
+msgstr "Nie zostawiłeś jeszcze opinii."
 
 #: app/templates/client/appointments.html:126
 #: app/templates/provider/appointments.html:95
 msgid "Write a Review"
-msgstr "Написати відгук"
+msgstr "Napisz opinię"
 
 #: app/templates/client/appointments.html:270
 #: app/templates/provider/dashboard.html:386
 msgid "No notes provided"
-msgstr "Нотаток немає"
+msgstr "Brak notatek"
 
 #: app/templates/client/appointments.html:288
 msgid "Waiting for provider approval."
-msgstr "Чекаємо поки виконавець підтвердить."
+msgstr "Czekamy na potwierdzenie od wykonawcy."
 
 #: app/templates/client/appointments.html:292
 #: app/templates/client/appointments.html:310
 #: app/templates/client/appointments.html:326
 #: app/templates/client/appointments.html:342
 msgid "Cancel appointment"
-msgstr "Скасувати запис"
+msgstr "Anuluj wizytę"
 
 #: app/templates/client/appointments.html:305
 msgid "Free service — no payment required."
-msgstr "Безкоштовно — оплата не потрібна."
+msgstr "Za darmo — płatność nie jest wymagana."
 
 #: app/templates/client/appointments.html:320
 msgid "Payment held securely. Waiting for provider."
-msgstr "Оплата захищена. Чекаємо виконавця."
+msgstr "Płatność zabezpieczona. Czekamy na wykonawcę."
 
 #: app/templates/client/appointments.html:322
 msgid "Confirmed. Waiting for provider to complete."
-msgstr "Підтверджено. Чекаємо поки виконавець закінчить."
+msgstr "Potwierdzone. Czekamy na zakończenie."
 
 #: app/templates/client/appointments.html:335
 msgid "Job Done?"
-msgstr "Роботу зроблено?"
+msgstr "Robota zrobiona?"
 
 #: app/templates/client/appointments.html:336
 msgid "The provider has marked this job as finished."
-msgstr "Виконавець позначив роботу як завершену."
+msgstr "Wykonawca oznaczył pracę jako zakończoną."
 
 #: app/templates/client/appointments.html:339
 #: app/templates/client/dashboard.html:1417
 msgid "Approve & Release Payment"
-msgstr "Підтвердити і оплатити"
+msgstr "Potwierdź i zapłać"
 
 #: app/templates/client/appointments.html:339
 #: app/templates/client/appointments.html:690
@@ -820,56 +820,56 @@ msgstr "Підтвердити і оплатити"
 #: app/templates/client/dashboard.html:1417
 #: app/templates/provider/dashboard.html:970
 msgid "Confirm Completion"
-msgstr "Підтвердити завершення"
+msgstr "Potwierdź zakończenie"
 
 #: app/templates/client/appointments.html:350
 #: app/templates/provider/appointments.html:336
 msgid "Download Receipt"
-msgstr "Завантажити чек"
+msgstr "Pobierz rachunek"
 
 #: app/templates/client/appointments.html:361
 #: app/templates/client/appointments.html:370
 #: app/templates/provider/appointments.html:327
 msgid "This appointment was cancelled."
-msgstr "Цей запис скасовано."
+msgstr "Ta wizyta została anulowana."
 
 #: app/templates/client/appointments.html:364
 #: app/templates/client/appointments.html:612
 msgid "Restore Appointment"
-msgstr "Відновити запис"
+msgstr "Przywróć wizytę"
 
 #: app/templates/client/appointments.html:408
 msgid "Network error"
-msgstr "Помилка мережі"
+msgstr "Błąd sieci"
 
 #: app/templates/client/appointments.html:435
 #: app/templates/client/dashboard.html:806
 msgid "Pay by cash directly to the provider?"
-msgstr "Оплатити готівкою напряму виконавцю?"
+msgstr "Zapłacić gotówką bezpośrednio wykonawcy?"
 
 #: app/templates/client/appointments.html:436
 #: app/templates/client/dashboard.html:807
 msgid "Cash Payment"
-msgstr "Оплата готівкою"
+msgstr "Płatność gotówką"
 
 #: app/templates/client/appointments.html:437
 #: app/templates/client/dashboard.html:808
 msgid "Yes, pay by cash"
-msgstr "Так, готівкою"
+msgstr "Tak, gotówką"
 
 #: app/templates/client/appointments.html:506
 #: app/templates/provider/appointments.html:490
 msgid "Please select a rating"
-msgstr "Обери оцінку"
+msgstr "Wybierz ocenę"
 
 #: app/templates/client/appointments.html:512
 msgid "Sending..."
-msgstr "Надсилаємо..."
+msgstr "Wysyłanie..."
 
 #: app/templates/client/appointments.html:529
 #: app/templates/provider/appointments.html:503
 msgid "Thank you for your feedback!"
-msgstr "Дякую за відгук!"
+msgstr "Dzięki za opinię!"
 
 #: app/templates/client/appointments.html:532
 #: app/templates/client/appointments.html:605
@@ -880,36 +880,36 @@ msgstr "Дякую за відгук!"
 #: app/templates/provider/appointments.html:506
 #: app/templates/shared/_documents_grid.html:80
 msgid "Error:"
-msgstr "Помилка:"
+msgstr "Błąd:"
 
 #: app/templates/client/appointments.html:537
 msgid "An error occurred"
-msgstr "Щось пішло не так"
+msgstr "Coś poszło nie tak"
 
 #: app/templates/client/appointments.html:553
 #: app/templates/provider/appointments.html:478
 msgid "Please explain the reason for your rating (required)"
-msgstr "Поясни причину оцінки (обов'язково)"
+msgstr "Wyjaśnij powód oceny (wymagane)"
 
 #: app/templates/client/appointments.html:565
 msgid "Scheduled"
-msgstr "Заплановано"
+msgstr "Zaplanowane"
 
 #: app/templates/client/appointments.html:566
 msgid "Approved (Awaiting Payment)"
-msgstr "Схвалено (чекає оплати)"
+msgstr "Zatwierdzone (czeka na płatność)"
 
 #: app/templates/client/appointments.html:567
 msgid "Paid & Confirmed"
-msgstr "Оплачено і підтверджено"
+msgstr "Opłacone i potwierdzone"
 
 #: app/templates/client/appointments.html:567
 msgid "Confirmed"
-msgstr "Підтверджено"
+msgstr "Potwierdzone"
 
 #: app/templates/client/appointments.html:568
 msgid "Work Submitted (Action Required)"
-msgstr "Роботу подано (потрібна дія)"
+msgstr "Praca zgłoszona (wymagana akcja)"
 
 #: app/templates/client/appointments.html:569
 #: app/templates/client/dashboard.html:1360
@@ -918,7 +918,7 @@ msgstr "Роботу подано (потрібна дія)"
 #: app/templates/provider/appointments.html:439
 #: app/templates/provider/dashboard.html:710
 msgid "Completed"
-msgstr "Завершено"
+msgstr "Zakończone"
 
 #: app/templates/client/appointments.html:570
 #: app/templates/client/dashboard.html:1357
@@ -927,676 +927,678 @@ msgstr "Завершено"
 #: app/templates/provider/appointments.html:440
 #: app/templates/provider/dashboard.html:714
 msgid "Cancelled"
-msgstr "Скасовано"
+msgstr "Anulowane"
 
 #: app/templates/client/appointments.html:579
 msgid "Payment error:"
-msgstr "Помилка оплати:"
+msgstr "Błąd płatności:"
 
 #: app/templates/client/appointments.html:583
 msgid "Are you sure you want to cancel this appointment?"
-msgstr "Точно хочеш скасувати запис?"
+msgstr "Na pewno chcesz anulować tę wizytę?"
 
 #: app/templates/client/appointments.html:584
 #: app/templates/provider/appointments.html:400
 msgid "Cancel Appointment"
-msgstr "Скасувати запис"
+msgstr "Anuluj wizytę"
 
 #: app/templates/client/appointments.html:585
 #: app/templates/client/dashboard.html:1011
 #: app/templates/provider/appointments.html:400
 #: app/templates/provider/dashboard.html:1043
 msgid "Yes, Cancel"
-msgstr "Так, скасувати"
+msgstr "Tak, anuluj"
 
 #: app/templates/client/appointments.html:611
 msgid "Restore this appointment? It will return to scheduled status."
-msgstr "Відновити запис? Він повернеться в статус \"заплановано\"."
+msgstr "Przywrócić wizytę? Wróci do statusu \"zaplanowane\"."
 
 #: app/templates/client/appointments.html:613
 #: app/templates/client/dashboard.html:1051
 msgid "Yes, Restore"
-msgstr "Так, відновити"
+msgstr "Tak, przywróć"
 
 #: app/templates/client/appointments.html:653
 msgid "Review available after completion."
-msgstr "Відгук буде доступний після завершення."
+msgstr "Opinia dostępna po zakończeniu."
 
 #: app/templates/client/appointments.html:665
 msgid "Without comment"
-msgstr "Без коментаря"
+msgstr "Bez komentarza"
 
 #: app/templates/client/appointments.html:689
 #: app/templates/client/dashboard.html:1071
 msgid "Confirm that the work has been completed?"
-msgstr "Підтвердити що роботу виконано?"
+msgstr "Potwierdzić że praca została wykonana?"
 
 #: app/templates/client/appointments.html:689
 msgid "Are you sure? This will release the funds to the provider."
-msgstr "Впевнений? Кошти будуть переведені виконавцю."
+msgstr "Na pewno? Środki zostaną przekazane wykonawcy."
 
 #: app/templates/client/appointments.html:690
 #: app/templates/client/dashboard.html:1072
 msgid "Release Payment"
-msgstr "Відпустити оплату"
+msgstr "Zwolnij płatność"
 
 #: app/templates/client/appointments.html:691
 #: app/templates/client/dashboard.html:1073
 msgid "Yes, Confirm"
-msgstr "Так, підтверджую"
+msgstr "Tak, potwierdzam"
 
 #: app/templates/client/appointments.html:691
 #: app/templates/client/dashboard.html:1073
 msgid "Yes, Release Funds"
-msgstr "Так, перевести кошти"
+msgstr "Tak, przekaż środki"
 
 #: app/templates/client/appointments.html:709
 msgid "Completed! Thank you."
-msgstr "Готово! Дякую."
+msgstr "Gotowe! Dzięki."
 
 #: app/templates/client/appointments.html:709
 msgid "Payment Released! Thank you."
-msgstr "Оплату переведено! Дякую."
+msgstr "Płatność przekazana! Dzięki."
 
 #: app/templates/client/dashboard.html:8
 msgid "Hi"
-msgstr "Привіт"
+msgstr "Hej"
 
 #: app/templates/client/dashboard.html:9
 msgid "Find the perfect service for your needs"
-msgstr "Знайди ідеальну послугу для себе"
+msgstr "Znajdź idealną usługę dla siebie"
 
 #: app/templates/client/dashboard.html:14
 #: app/templates/provider/dashboard.html:16
 msgid "orders"
-msgstr "замовлень"
+msgstr "zamówień"
 
 #: app/templates/client/dashboard.html:19
 #: app/templates/provider/dashboard.html:21
 msgid "Next:"
-msgstr "Далі:"
+msgstr "Dalej:"
 
 #: app/templates/client/dashboard.html:21
 #: app/templates/provider/dashboard.html:23
 msgid "Max Level!"
-msgstr "Макс. рівень!"
+msgstr "Maks. poziom!"
 
 #: app/templates/client/dashboard.html:32
 #: app/templates/client/dashboard.html:1330
 #: app/templates/provider/dashboard.html:33
 msgid "Profile"
-msgstr "Профіль"
+msgstr "Profil"
 
 #: app/templates/client/dashboard.html:35
 msgid "Calendar"
-msgstr "Календар"
+msgstr "Kalendarz"
 
 #: app/templates/client/dashboard.html:42 app/templates/client/history.html:8
 msgid "History"
-msgstr "Історія"
+msgstr "Historia"
 
 #: app/templates/client/dashboard.html:45
 #: app/templates/provider/dashboard.html:38
 msgid "Update Location"
-msgstr "Оновити локацію"
+msgstr "Zaktualizuj lokalizację"
 
 #: app/templates/client/dashboard.html:48
 #: app/templates/client/dashboard.html:229
 #: app/templates/client/dashboard.html:1565
 msgid "Post a Request"
-msgstr "Створити запит"
+msgstr "Dodaj zapytanie"
 
 #: app/templates/client/dashboard.html:52
 #: app/templates/provider/dashboard.html:45
 msgid "Exit"
-msgstr "Вихід"
+msgstr "Wyloguj"
 
 #: app/templates/client/dashboard.html:66
 #: app/templates/provider/dashboard.html:58
 msgid "Map View"
-msgstr "Карта"
+msgstr "Mapa"
 
 #: app/templates/client/dashboard.html:69
 #: app/templates/provider/dashboard.html:61
 msgid "Real-time"
-msgstr "В реальному часі"
+msgstr "Na żywo"
 
 #: app/templates/client/dashboard.html:83
 #: app/templates/client/dashboard.html:460
 msgid "Provider is on the way!"
-msgstr "Виконавець їде до тебе!"
+msgstr "Wykonawca jest w drodze!"
 
 #: app/templates/client/dashboard.html:90
 msgid "Find a Provider"
-msgstr "Знайти виконавця"
+msgstr "Znajdź wykonawcę"
 
 #: app/templates/client/dashboard.html:96
 msgid "Active"
-msgstr "Активні"
+msgstr "Aktywne"
 
 #: app/templates/client/dashboard.html:102
 msgid "Past"
-msgstr "Минулі"
+msgstr "Przeszłe"
 
 #: app/templates/client/dashboard.html:132
 #: app/templates/provider/dashboard.html:109
 msgid "Nearest first"
-msgstr "Найближчі"
+msgstr "Najbliżsi"
 
 #: app/templates/client/dashboard.html:133
 msgid "Highest rated"
-msgstr "Найкращі за рейтингом"
+msgstr "Najlepiej oceniani"
 
 #: app/templates/client/dashboard.html:134
 msgid "Name A-Z"
-msgstr "За ім'ям А-Я"
+msgstr "Nazwa A-Z"
 
 #: app/templates/client/dashboard.html:135
 msgid "Most reviewed"
-msgstr "Найбільше відгуків"
+msgstr "Najwięcej opinii"
 
 #: app/templates/client/dashboard.html:139
 msgid "Search by name or service..."
-msgstr "Пошук за ім'ям або послугою..."
+msgstr "Szukaj po nazwie lub usłudze..."
 
 #: app/templates/client/dashboard.html:151
 #: app/templates/client/dashboard.html:161
 #: app/templates/client/dashboard.html:171
 msgid "Loading..."
-msgstr "Завантаження..."
+msgstr "Ładowanie..."
 
 #: app/templates/client/dashboard.html:181
 msgid "Loading providers..."
-msgstr "Шукаємо виконавців..."
+msgstr "Szukamy wykonawców..."
 
 #: app/templates/client/dashboard.html:196
 #: app/templates/client/provider_public_profile.html:182
 msgid "Book Service"
-msgstr "Забронювати послугу"
+msgstr "Zarezerwuj usługę"
 
 #: app/templates/client/dashboard.html:200
 #: app/templates/client/provider_public_profile.html:186
 msgid "Provider:"
-msgstr "Виконавець:"
+msgstr "Wykonawca:"
 
 #: app/templates/client/dashboard.html:204
 msgid "SELECT SERVICE"
-msgstr "ОБЕРИ ПОСЛУГУ"
+msgstr "WYBIERZ USŁUGĘ"
 
 #: app/templates/client/dashboard.html:212
 #: app/templates/client/provider_public_profile.html:200
 msgid "REQUIREMENTS"
-msgstr "ПОБАЖАННЯ"
+msgstr "WYMAGANIA"
 
 #: app/templates/client/dashboard.html:213
 #: app/templates/client/provider_public_profile.html:201
 msgid "Describe what you need..."
-msgstr "Опиши що тобі потрібно..."
+msgstr "Opisz czego potrzebujesz..."
 
 #: app/templates/client/dashboard.html:219
 #: app/templates/client/provider_public_profile.html:207
 #: app/templates/client/provider_public_profile.html:379
 msgid "Confirm Booking"
-msgstr "Підтвердити бронювання"
+msgstr "Potwierdź rezerwację"
 
 #: app/templates/client/dashboard.html:233
 msgid "Let providers know what you need and they will contact you."
-msgstr "Розкажи виконавцям що потрібно — і вони з тобою зв'яжуться."
+msgstr "Powiedz wykonawcom czego potrzebujesz — odezwą się do ciebie."
 
 #: app/templates/client/dashboard.html:236
 msgid "SERVICE NEEDED"
-msgstr "ПОТРІБНА ПОСЛУГА"
+msgstr "POTRZEBNA USŁUGA"
 
 #: app/templates/client/dashboard.html:237
 msgid "e.g. Home Injection"
-msgstr "напр. Ін'єкція вдома"
+msgstr "np. Zastrzyk w domu"
 
 #: app/templates/client/dashboard.html:241
 msgid "BUDGET (EUR)"
-msgstr "БЮДЖЕТ (EUR)"
+msgstr "BUDŻET (EUR)"
 
 #: app/templates/client/dashboard.html:245
 msgid "WHEN?"
-msgstr "КОЛИ?"
+msgstr "KIEDY?"
 
 #: app/templates/client/dashboard.html:250
 msgid "YOUR ADDRESS"
-msgstr "ТВОЯ АДРЕСА"
+msgstr "TWÓJ ADRES"
 
 #: app/templates/client/dashboard.html:253
 msgid "Street, building, city"
-msgstr "Вулиця, будинок, місто"
+msgstr "Ulica, numer, miasto"
 
 #: app/templates/client/dashboard.html:255
 msgid "Detect my location"
-msgstr "Визначити мою локацію"
+msgstr "Wykryj moją lokalizację"
 
 #: app/templates/client/dashboard.html:261
 msgid "Only visible to the provider after they accept your request."
-msgstr "Видно виконавцю тільки після прийняття запиту."
+msgstr "Widoczne dla wykonawcy dopiero po akceptacji."
 
 #: app/templates/client/dashboard.html:265
 msgid "DISTRICT / NEIGHBORHOOD"
-msgstr "РАЙОН / МІКРОРАЙОН"
+msgstr "DZIELNICA / OKOLICA"
 
 #: app/templates/client/dashboard.html:267
 msgid "e.g. Schwabing, Sendling, Mitte..."
-msgstr "напр. Шевченківський, Подол, Оболонь..."
+msgstr "np. Schwabing, Sendling, Mitte..."
 
 #: app/templates/client/dashboard.html:269
 msgid "Providers will only see this area name, not your exact address."
-msgstr "Виконавці побачать тільки цей район, а не точну адресу."
+msgstr "Wykonawcy zobaczą tylko tę okolicę, nie twój dokładny adres."
 
 #: app/templates/client/dashboard.html:273
 #: app/templates/provider/services.html:152
 msgid "DESCRIPTION"
-msgstr "ОПИС"
+msgstr "OPIS"
 
 #: app/templates/client/dashboard.html:279
 msgid "Publish Request"
-msgstr "Опублікувати запит"
+msgstr "Opublikuj zapytanie"
 
 #: app/templates/client/dashboard.html:461
 msgid "Waiting for location..."
-msgstr "Визначаємо локацію..."
+msgstr "Ustalanie lokalizacji..."
 
 #: app/templates/client/dashboard.html:526
 msgid "Provider has arrived!"
-msgstr "Виконавець на місці!"
+msgstr "Wykonawca jest na miejscu!"
 
 #: app/templates/client/dashboard.html:684
 msgid "You are here"
-msgstr "Ти тут"
+msgstr "Jesteś tutaj"
 
 #: app/templates/client/dashboard.html:715
 msgid "Calculating route to"
-msgstr "Будуємо маршрут до"
+msgstr "Obliczanie trasy do"
 
 #: app/templates/client/dashboard.html:745
 msgid "Could not calculate route."
-msgstr "Не вдалося побудувати маршрут."
+msgstr "Nie udało się obliczyć trasy."
 
 #: app/templates/client/dashboard.html:770
 msgid "Show Route"
-msgstr "Показати маршрут"
+msgstr "Pokaż trasę"
 
 #: app/templates/client/dashboard.html:835
 msgid "Accept this provider?"
-msgstr "Прийняти цього виконавця?"
+msgstr "Zaakceptować tego wykonawcę?"
 
 #: app/templates/client/dashboard.html:836
 msgid "Accept Provider"
-msgstr "Прийняти виконавця"
+msgstr "Akceptuj wykonawcę"
 
 #: app/templates/client/dashboard.html:849
 msgid "Provider accepted! Your appointment is scheduled."
-msgstr "Виконавця прийнято! Запис створено."
+msgstr "Wykonawca zaakceptowany! Wizyta zaplanowana."
 
 #: app/templates/client/dashboard.html:858
 msgid "Confirm provider and proceed to payment?"
-msgstr "Підтвердити виконавця і перейти до оплати?"
+msgstr "Potwierdzić wykonawcę i przejść do płatności?"
 
 #: app/templates/client/dashboard.html:859
 #: app/templates/client/dashboard.html:1525
 msgid "Confirm & Pay"
-msgstr "Підтвердити і оплатити"
+msgstr "Potwierdź i zapłać"
 
 #: app/templates/client/dashboard.html:860
 msgid "Yes, Proceed to Payment"
-msgstr "Так, до оплати"
+msgstr "Tak, przejdź do płatności"
 
 #: app/templates/client/dashboard.html:890
 #: app/templates/provider/dashboard.html:939
 msgid "Your price (EUR)"
-msgstr "Твоя ціна (EUR)"
+msgstr "Twoja cena (EUR)"
 
 #: app/templates/client/dashboard.html:895
 msgid "Your price"
-msgstr "Твоя ціна"
+msgstr "Twoja cena"
 
 #: app/templates/client/dashboard.html:903
 #: app/templates/provider/dashboard.html:1125
 #: app/templates/provider/dashboard.html:1148
 msgid "Please enter a valid price"
-msgstr "Введи коректну ціну"
+msgstr "Wpisz poprawną cenę"
 
 #: app/templates/client/dashboard.html:933
 msgid "Detecting location..."
-msgstr "Визначаємо локацію..."
+msgstr "Ustalanie lokalizacji..."
 
 #: app/templates/client/dashboard.html:945
 #: app/templates/client/dashboard.html:950
 msgid "Location detected"
-msgstr "Локацію знайдено"
+msgstr "Lokalizacja znaleziona"
 
 #: app/templates/client/dashboard.html:970
 msgid "Please enter your address."
-msgstr "Введи свою адресу."
+msgstr "Wpisz swój adres."
 
 #: app/templates/client/dashboard.html:972
 msgid "Please enter your district or neighborhood."
-msgstr "Введи свій район або мікрорайон."
+msgstr "Wpisz swoją dzielnicę lub okolicę."
 
 #: app/templates/client/dashboard.html:1003
 msgid "Request published successfully!"
-msgstr "Запит опубліковано!"
+msgstr "Zapytanie opublikowane!"
 
 #: app/templates/client/dashboard.html:1009
 msgid ""
 "Are you sure you want to cancel this request? If payment was authorized, "
 "it will be refunded."
-msgstr "Точно скасувати запит? Якщо оплата була авторизована — повернемо гроші."
+msgstr ""
+"Na pewno anulować zapytanie? Jeśli płatność była autoryzowana — zwrócimy "
+"pieniądze."
 
 #: app/templates/client/dashboard.html:1010
 #: app/templates/provider/dashboard.html:791
 #: app/templates/provider/dashboard.html:1042
 msgid "Cancel Request"
-msgstr "Скасувати запит"
+msgstr "Anuluj zapytanie"
 
 #: app/templates/client/dashboard.html:1021
 #: app/templates/provider/dashboard.html:1056
 msgid "Request cancelled"
-msgstr "Запит скасовано"
+msgstr "Zapytanie anulowane"
 
 #: app/templates/client/dashboard.html:1029
 msgid "Go back to the previous step?"
-msgstr "Повернутися на попередній крок?"
+msgstr "Wrócić do poprzedniego kroku?"
 
 #: app/templates/client/dashboard.html:1030
 #: app/templates/client/dashboard.html:1447
 msgid "Go Back"
-msgstr "Назад"
+msgstr "Wróć"
 
 #: app/templates/client/dashboard.html:1031
 msgid "Yes, Go Back"
-msgstr "Так, назад"
+msgstr "Tak, wróć"
 
 #: app/templates/client/dashboard.html:1041
 msgid "Returned to previous step"
-msgstr "Повернено на попередній крок"
+msgstr "Powrót do poprzedniego kroku"
 
 #: app/templates/client/dashboard.html:1049
 msgid ""
 "Restore this request? It will be returned to pending status and providers"
 " can send new offers."
 msgstr ""
-"Відновити запит? Він повернеться в очікування і виконавці зможуть "
-"надіслати нові пропозиції."
+"Przywrócić zapytanie? Wróci do oczekiwania i wykonawcy będą mogli wysyłać"
+" nowe oferty."
 
 #: app/templates/client/dashboard.html:1050
 msgid "Restore Request"
-msgstr "Відновити запит"
+msgstr "Przywróć zapytanie"
 
 #: app/templates/client/dashboard.html:1061
 msgid "Request restored"
-msgstr "Запит відновлено"
+msgstr "Zapytanie przywrócone"
 
 #: app/templates/client/dashboard.html:1071
 msgid "Are you sure? This will release the held funds to the provider."
-msgstr "Впевнений? Кошти будуть переведені виконавцю."
+msgstr "Na pewno? Środki zostaną przekazane wykonawcy."
 
 #: app/templates/client/dashboard.html:1086
 msgid "Service completed!"
-msgstr "Послугу виконано!"
+msgstr "Usługa wykonana!"
 
 #: app/templates/client/dashboard.html:1086
 msgid "Payment released! Service completed."
-msgstr "Оплату переведено! Послугу завершено."
+msgstr "Płatność przekazana! Usługa zakończona."
 
 #: app/templates/client/dashboard.html:1095
 #: app/templates/provider/dashboard.html:1179
 msgid "Locating..."
-msgstr "Визначаємо..."
+msgstr "Szukanie..."
 
 #: app/templates/client/dashboard.html:1108
 msgid "Location updated"
-msgstr "Локацію оновлено"
+msgstr "Lokalizacja zaktualizowana"
 
 #: app/templates/client/dashboard.html:1110
 msgid "Error getting location"
-msgstr "Не вдалося отримати локацію"
+msgstr "Nie udało się pobrać lokalizacji"
 
 #: app/templates/client/dashboard.html:1118
 #: app/templates/client/provider_public_profile.html:307
 msgid "Loading services..."
-msgstr "Завантаження послуг..."
+msgstr "Ładowanie usług..."
 
 #: app/templates/client/dashboard.html:1125
 #: app/templates/client/provider_public_profile.html:317
 msgid "No services available"
-msgstr "Послуг поки немає"
+msgstr "Brak dostępnych usług"
 
 #: app/templates/client/dashboard.html:1174
 #: app/templates/client/provider_public_profile.html:375
 msgid "Appointment confirmed!"
-msgstr "Запис підтверджено!"
+msgstr "Wizyta potwierdzona!"
 
 #: app/templates/client/dashboard.html:1204
 msgid "New offers on your request!"
-msgstr "Нові пропозиції на твій запит!"
+msgstr "Nowe oferty na twoje zapytanie!"
 
 #: app/templates/client/dashboard.html:1292
 msgid "No providers found"
-msgstr "Виконавців не знайдено"
+msgstr "Nie znaleziono wykonawców"
 
 #: app/templates/client/dashboard.html:1306
 msgid "No reviews"
-msgstr "Без відгуків"
+msgstr "Brak opinii"
 
 #: app/templates/client/dashboard.html:1310
 #: app/templates/client/dashboard.html:1512
 #: app/templates/client/provider_public_profile.html:50
 msgid "Verified"
-msgstr "Перевірений"
+msgstr "Zweryfikowany"
 
 #: app/templates/client/dashboard.html:1319
 msgid "No address"
-msgstr "Адреси немає"
+msgstr "Brak adresu"
 
 #: app/templates/client/dashboard.html:1326
 msgid "services"
-msgstr "послуг"
+msgstr "usług"
 
 #: app/templates/client/dashboard.html:1365
 msgid "Approve & Pay"
-msgstr "Підтвердити і оплатити"
+msgstr "Potwierdź i zapłać"
 
 #: app/templates/client/dashboard.html:1369
 msgid "Payment held"
-msgstr "Оплата заморожена"
+msgstr "Płatność zamrożona"
 
 #: app/templates/client/dashboard.html:1372
 msgid "Pay to confirm"
-msgstr "Оплати для підтвердження"
+msgstr "Zapłać żeby potwierdzić"
 
 #: app/templates/client/dashboard.html:1375
 msgid "Booked"
-msgstr "Заброньовано"
+msgstr "Zarezerwowane"
 
 #: app/templates/client/dashboard.html:1378
 msgid "Offers"
-msgstr "Пропозиції"
+msgstr "Oferty"
 
 #: app/templates/client/dashboard.html:1399
 #: app/templates/client/history.html:108
 msgid "Restore"
-msgstr "Відновити"
+msgstr "Przywróć"
 
 #: app/templates/client/dashboard.html:1405
 #: app/templates/client/history.html:101
 #: app/templates/provider/dashboard.html:712
 msgid "Receipt"
-msgstr "Чек"
+msgstr "Rachunek"
 
 #: app/templates/client/dashboard.html:1413
 msgid "The provider has completed the service."
-msgstr "Виконавець завершив послугу."
+msgstr "Wykonawca zakończył usługę."
 
 #: app/templates/client/dashboard.html:1414
 msgid "Please approve to release the payment."
-msgstr "Підтверди щоб перевести оплату."
+msgstr "Potwierdź żeby przekazać płatność."
 
 #: app/templates/client/dashboard.html:1414
 msgid "Please confirm the completion."
-msgstr "Підтверди завершення."
+msgstr "Potwierdź zakończenie."
 
 #: app/templates/client/dashboard.html:1422
 msgid "View Provider"
-msgstr "Переглянути виконавця"
+msgstr "Zobacz wykonawcę"
 
 #: app/templates/client/dashboard.html:1429
 msgid "Hold payment"
-msgstr "Заморозити оплату"
+msgstr "Zamroź płatność"
 
 #: app/templates/client/dashboard.html:1432
 msgid "Cash"
-msgstr "Готівка"
+msgstr "Gotówka"
 
 #: app/templates/client/dashboard.html:1438
 #: app/templates/client/dashboard.html:1531
 #: app/templates/provider/client_profile.html:55
 msgid "Chat"
-msgstr "Чат"
+msgstr "Czat"
 
 #: app/templates/client/dashboard.html:1443
 msgid "View Offers"
-msgstr "Переглянути пропозиції"
+msgstr "Zobacz oferty"
 
 #: app/templates/client/dashboard.html:1462
 msgid "Payment is available 7 days before the appointment."
-msgstr "Оплата доступна за 7 днів до запису."
+msgstr "Płatność dostępna 7 dni przed wizytą."
 
 #: app/templates/client/dashboard.html:1463
 msgid "From"
-msgstr "Від"
+msgstr "Od"
 
 #: app/templates/client/dashboard.html:1463
 msgid ""
 "you will receive an email to authorize the payment. Funds are held "
 "securely and released only after the service."
 msgstr ""
-"ти отримаєш email для авторизації платежу. Кошти безпечно утримуються і "
-"переводяться тільки після послуги."
+"dostaniesz maila do autoryzacji płatności. Środki są bezpiecznie "
+"zamrożone i przekazywane dopiero po usłudze."
 
 #: app/templates/client/dashboard.html:1483
 msgid "agreed price"
-msgstr "узгоджена ціна"
+msgstr "uzgodniona cena"
 
 #: app/templates/client/dashboard.html:1489
 msgid "Full Profile"
-msgstr "Повний профіль"
+msgstr "Pełny profil"
 
 #: app/templates/client/dashboard.html:1492
 msgid "Show on map"
-msgstr "На карті"
+msgstr "Na mapie"
 
 #: app/templates/client/dashboard.html:1506
 msgid "Price not set"
-msgstr "Ціну не вказано"
+msgstr "Cena nie ustalona"
 
 #: app/templates/client/dashboard.html:1514
 msgid "Your counter"
-msgstr "Твоя контрпропозиція"
+msgstr "Twoja kontrpropozycja"
 
 #: app/templates/client/dashboard.html:1514
 msgid "waiting"
-msgstr "очікує"
+msgstr "czeka"
 
 #: app/templates/client/dashboard.html:1517
 msgid "Budget"
-msgstr "Бюджет"
+msgstr "Budżet"
 
 #: app/templates/client/dashboard.html:1528
 msgid "Counter"
-msgstr "Контрпропозиція"
+msgstr "Kontrpropozycja"
 
 #: app/templates/client/dashboard.html:1563
 msgid "No active requests"
-msgstr "Активних запитів немає"
+msgstr "Brak aktywnych zapytań"
 
 #: app/templates/client/dashboard.html:1578
 msgid "No accepted requests yet"
-msgstr "Прийнятих запитів поки немає"
+msgstr "Nie ma jeszcze zaakceptowanych zapytań"
 
 #: app/templates/client/dashboard.html:1590
 msgid "No past requests"
-msgstr "Минулих запитів немає"
+msgstr "Brak przeszłych zapytań"
 
 #: app/templates/client/dashboard.html:1726
 msgid "Easter eggs found!"
-msgstr "Пасхалки знайдено!"
+msgstr "Pisanki znalezione!"
 
 #: app/templates/client/dashboard.html:1738
 msgid "Happy Easter!"
-msgstr "Христос Воскрес!"
+msgstr "Wesołych Świąt!"
 
 #: app/templates/client/dashboard.html:1739
 msgid "You found me!"
-msgstr "Ти мене знайшов!"
+msgstr "Znalazłeś mnie!"
 
 #: app/templates/client/dashboard.html:1740
 msgid "Spring vibes!"
-msgstr "Весняний вайб!"
+msgstr "Wiosenny vibe!"
 
 #: app/templates/client/dashboard.html:1741
 msgid "Lucky egg!"
-msgstr "Щасливе яйце!"
+msgstr "Szczęśliwe jajko!"
 
 #: app/templates/client/dashboard.html:1742
 msgid "Sweet!"
-msgstr "Клас!"
+msgstr "Super!"
 
 #: app/templates/client/dashboard.html:1743
 msgid "Wonderful!"
-msgstr "Чудово!"
+msgstr "Cudownie!"
 
 #: app/templates/client/dashboard.html:1753
 msgid "eggs found"
-msgstr "яєць знайдено"
+msgstr "jajek znalezionych"
 
 #: app/templates/client/history.html:9
 msgid "Your completed and past services"
-msgstr "Твої завершені та минулі послуги"
+msgstr "Twoje zakończone i przeszłe usługi"
 
 #: app/templates/client/history.html:66
 msgid "Paid"
-msgstr "Оплачено"
+msgstr "Opłacone"
 
 #: app/templates/client/history.html:68
 msgid "Work submitted"
-msgstr "Роботу подано"
+msgstr "Praca zgłoszona"
 
 #: app/templates/client/history.html:84
 msgid "Nothing here yet"
-msgstr "Тут поки пусто"
+msgstr "Tu jeszcze nic nie ma"
 
 #: app/templates/client/history.html:96
 msgid "Booking"
-msgstr "Бронювання"
+msgstr "Rezerwacja"
 
 #: app/templates/client/history.html:97
 msgid "Request"
-msgstr "Запит"
+msgstr "Zapytanie"
 
 #: app/templates/client/history.html:128 app/templates/client/receipt.html:216
 msgid "Free"
-msgstr "Безкоштовно"
+msgstr "Za darmo"
 
 #: app/templates/client/history.html:158
 msgid "Restore this item? It will return to pending status."
-msgstr "Відновити? Повернеться в статус очікування."
+msgstr "Przywrócić? Wróci do statusu oczekiwania."
 
 #: app/templates/client/profile.html:9
 msgid "Profile Settings"
-msgstr "Налаштування профілю"
+msgstr "Ustawienia profilu"
 
 #: app/templates/client/profile.html:10
 msgid "Update your personal information"
-msgstr "Оновити твою інфу"
+msgstr "Zaktualizuj swoje dane"
 
 #: app/templates/client/profile.html:26 app/templates/provider/profile.html:26
 msgid "FULL NAME"
-msgstr "ПОВНЕ ІМ'Я"
+msgstr "IMIĘ I NAZWISKO"
 
 #: app/templates/client/profile.html:31 app/templates/provider/profile.html:31
 msgid "EMAIL"
@@ -1604,1073 +1606,1073 @@ msgstr "EMAIL"
 
 #: app/templates/client/profile.html:36 app/templates/provider/profile.html:36
 msgid "PHONE NUMBER"
-msgstr "НОМЕР ТЕЛЕФОНУ"
+msgstr "NUMER TELEFONU"
 
 #: app/templates/client/profile.html:41 app/templates/provider/profile.html:41
 msgid "BIRTH DATE"
-msgstr "ДАТА НАРОДЖЕННЯ"
+msgstr "DATA URODZENIA"
 
 #: app/templates/client/profile.html:46
 #: app/templates/provider/dashboard.html:180
 #: app/templates/provider/profile.html:46
 msgid "ADDRESS"
-msgstr "АДРЕСА"
+msgstr "ADRES"
 
 #: app/templates/client/profile.html:51
 #: app/templates/client/provider_public_profile.html:57
 #: app/templates/provider/profile.html:51
 msgid "ABOUT ME"
-msgstr "ПРО МЕНЕ"
+msgstr "O MNIE"
 
 #: app/templates/client/profile.html:62
 msgid "Enter new password to change"
-msgstr "Введи новий пароль"
+msgstr "Wpisz nowe hasło"
 
 #: app/templates/client/profile.html:71
 msgid "UPLOAD NEW DOCUMENTS"
-msgstr "ЗАВАНТАЖИТИ ДОКУМЕНТИ"
+msgstr "WGRAJ DOKUMENTY"
 
 #: app/templates/client/profile.html:76 app/templates/provider/profile.html:61
 msgid "You can select multiple files (PDF, JPG, PNG)"
-msgstr "Можна вибрати кілька файлів (PDF, JPG, PNG)"
+msgstr "Możesz wybrać kilka plików (PDF, JPG, PNG)"
 
 #: app/templates/client/profile.html:81 app/templates/provider/profile.html:66
 msgid "Update Profile"
-msgstr "Оновити профіль"
+msgstr "Zaktualizuj profil"
 
 #: app/templates/client/profile.html:94
 msgid "Payment Methods"
-msgstr "Способи оплати"
+msgstr "Metody płatności"
 
 #: app/templates/client/profile.html:96
 msgid "Add Card"
-msgstr "Додати картку"
+msgstr "Dodaj kartę"
 
 #: app/templates/client/profile.html:111
 msgid "NEW CARD"
-msgstr "НОВА КАРТКА"
+msgstr "NOWA KARTA"
 
 #: app/templates/client/profile.html:118 app/templates/client/profile.html:304
 msgid "Save Card"
-msgstr "Зберегти картку"
+msgstr "Zapisz kartę"
 
 #: app/templates/client/profile.html:129
 #: app/templates/provider/profile.html:149
 #: app/templates/shared/_profile_photo.html:10
 msgid "Profile Photo"
-msgstr "Фото профілю"
+msgstr "Zdjęcie profilowe"
 
 #: app/templates/client/profile.html:131
 #: app/templates/provider/profile.html:151
 msgid "Phone Number"
-msgstr "Номер телефону"
+msgstr "Numer telefonu"
 
 #: app/templates/client/profile.html:132
 #: app/templates/provider/profile.html:152
 msgid "About Me"
-msgstr "Про мене"
+msgstr "O mnie"
 
 #: app/templates/client/profile.html:133
 #: app/templates/provider/profile.html:153
 msgid "Birth Date"
-msgstr "Дата народження"
+msgstr "Data urodzenia"
 
 #: app/templates/client/profile.html:143
 msgid "Danger Zone"
-msgstr "Небезпечна зона"
+msgstr "Strefa zagrożenia"
 
 #: app/templates/client/profile.html:148
 msgid "Once you delete your account, there is no going back. Please be certain."
-msgstr "Видалив акаунт — назад дороги немає. Добре подумай."
+msgstr "Po usunięciu konta nie ma odwrotu. Dobrze to przemyśl."
 
 #: app/templates/client/profile.html:151
 msgid "Delete Account"
-msgstr "Видалити акаунт"
+msgstr "Usuń konto"
 
 #: app/templates/client/profile.html:166
 msgid "Delete Account?"
-msgstr "Видалити акаунт?"
+msgstr "Usunąć konto?"
 
 #: app/templates/client/profile.html:170
 msgid ""
 "Are you absolutely sure? This action cannot be undone. All your data, "
 "photos, and history will be permanently erased."
 msgstr ""
-"Точно-точно? Це не можна скасувати. Всі дані, фотки та історія зникнуть "
-"назавжди."
+"Na pewno? Tego nie da się cofnąć. Wszystkie dane, zdjęcia i historia "
+"zostaną trwale usunięte."
 
 #: app/templates/client/profile.html:176
 msgid "Yes, Delete Everything"
-msgstr "Так, видалити все"
+msgstr "Tak, usuń wszystko"
 
 #: app/templates/client/profile.html:222
 msgid "No saved cards yet"
-msgstr "Збережених карток поки немає"
+msgstr "Brak zapisanych kart"
 
 #: app/templates/client/profile.html:240
 msgid "Default"
-msgstr "За замовчуванням"
+msgstr "Domyślna"
 
 #: app/templates/client/profile.html:242
 msgid "Expires"
-msgstr "Діє до"
+msgstr "Ważna do"
 
 #: app/templates/client/profile.html:246
 msgid "Set as default"
-msgstr "Зробити основною"
+msgstr "Ustaw jako domyślną"
 
 #: app/templates/client/profile.html:247
 #: app/templates/provider/services.html:92
 msgid "Remove"
-msgstr "Видалити"
+msgstr "Usuń"
 
 #: app/templates/client/profile.html:295
 msgid "Saving..."
-msgstr "Зберігаємо..."
+msgstr "Zapisywanie..."
 
 #: app/templates/client/profile.html:323
 msgid "Remove this card?"
-msgstr "Видалити картку?"
+msgstr "Usunąć kartę?"
 
 #: app/templates/client/profile.html:324
 msgid "Remove Card"
-msgstr "Видалити картку"
+msgstr "Usuń kartę"
 
 #: app/templates/client/profile.html:325
 #: app/templates/provider/profile.html:284
 #: app/templates/provider/profile.html:361
 msgid "Yes, Remove"
-msgstr "Так, видалити"
+msgstr "Tak, usuń"
 
 #: app/templates/client/provider_public_profile.html:9
 msgid "Back to Search"
-msgstr "Назад до пошуку"
+msgstr "Wróć do wyszukiwania"
 
 #: app/templates/client/provider_public_profile.html:35
 msgid "No address provided"
-msgstr "Адресу не вказано"
+msgstr "Adres nie podany"
 
 #: app/templates/client/provider_public_profile.html:42
 msgid "Rating"
-msgstr "Рейтинг"
+msgstr "Ocena"
 
 #: app/templates/client/provider_public_profile.html:46
 #: app/templates/client/provider_public_profile.html:97
 #: app/templates/provider/client_profile.html:89
 #: app/templates/provider/dashboard.html:37
 msgid "Reviews"
-msgstr "Відгуки"
+msgstr "Opinie"
 
 #: app/templates/client/provider_public_profile.html:51
 msgid "Identity"
-msgstr "Особу підтверджено"
+msgstr "Tożsamość potwierdzona"
 
 #: app/templates/client/provider_public_profile.html:59
 msgid "This provider has not added a description yet."
-msgstr "Виконавець ще не додав опис."
+msgstr "Ten wykonawca nie dodał jeszcze opisu."
 
 #: app/templates/client/provider_public_profile.html:68
 #: app/templates/provider/profile.html:79
 msgid "Portfolio"
-msgstr "Портфоліо"
+msgstr "Portfolio"
 
 #: app/templates/client/provider_public_profile.html:123
 msgid "Provider's response"
-msgstr "Відповідь виконавця"
+msgstr "Odpowiedź wykonawcy"
 
 #: app/templates/client/provider_public_profile.html:135
 #: app/templates/provider/dashboard.html:1253
 msgid "No reviews yet."
-msgstr "Відгуків поки немає."
+msgstr "Jeszcze nie ma opinii."
 
 #: app/templates/client/provider_public_profile.html:144
 msgid "Available Services"
-msgstr "Доступні послуги"
+msgstr "Dostępne usługi"
 
 #: app/templates/client/provider_public_profile.html:155
 msgid "Standard service procedure"
-msgstr "Стандартна процедура"
+msgstr "Standardowa procedura"
 
 #: app/templates/client/provider_public_profile.html:160
 msgid "Book Now"
-msgstr "Забронювати"
+msgstr "Zarezerwuj"
 
 #: app/templates/client/provider_public_profile.html:168
 msgid "This provider has no active services at the moment."
-msgstr "Зараз у цього виконавця немає активних послуг."
+msgstr "Ten wykonawca nie ma teraz aktywnych usług."
 
 #: app/templates/client/provider_public_profile.html:359
 msgid "Please fill in date and service"
-msgstr "Вкажи дату і послугу"
+msgstr "Uzupełnij datę i usługę"
 
 #: app/templates/client/receipt.html:197
 msgid "Save PDF"
-msgstr "Зберегти PDF"
+msgstr "Zapisz PDF"
 
 #: app/templates/client/receipt.html:204
 msgid "Service Receipt"
-msgstr "Чек за послугу"
+msgstr "Rachunek za usługę"
 
 #: app/templates/client/receipt.html:210
 msgid "Total"
-msgstr "Разом"
+msgstr "Razem"
 
 #: app/templates/client/receipt.html:229
 msgid "Service"
-msgstr "Послуга"
+msgstr "Usługa"
 
 #: app/templates/client/receipt.html:241
 #: app/templates/provider/finances.html:187
 msgid "Date"
-msgstr "Дата"
+msgstr "Data"
 
 #: app/templates/client/receipt.html:245
 msgid "Time"
-msgstr "Час"
+msgstr "Czas"
 
 #: app/templates/client/receipt.html:250
 msgid "Currency"
-msgstr "Валюта"
+msgstr "Waluta"
 
 #: app/templates/client/receipt.html:258
 msgid "your place to breathe"
-msgstr "твоє місце щоб видихнути"
+msgstr "twoje miejsce żeby odetchnąć"
 
 #: app/templates/client/receipt.html:259
 msgid "Generated on"
-msgstr "Згенеровано"
+msgstr "Wygenerowano"
 
 #: app/templates/provider/appointments.html:11
 #: app/templates/provider/dashboard.html:78
 msgid "My Schedule"
-msgstr "Мій розклад"
+msgstr "Mój grafik"
 
 #: app/templates/provider/appointments.html:12
 msgid "Manage your upcoming appointments"
-msgstr "Керуй своїми записами"
+msgstr "Zarządzaj swoimi wizytami"
 
 #: app/templates/provider/appointments.html:37
 #: app/templates/provider/dashboard.html:156
 msgid "CLIENT"
-msgstr "КЛІЄНТ"
+msgstr "KLIENT"
 
 #: app/templates/provider/appointments.html:61
 msgid "Review Client"
-msgstr "Оцінити клієнта"
+msgstr "Oceń klienta"
 
 #: app/templates/provider/appointments.html:81
 #: app/templates/provider/appointments.html:481
 msgid "Share your experience with this client..."
-msgstr "Поділись враженнями від роботи з цим клієнтом..."
+msgstr "Podziel się wrażeniami z pracy z tym klientem..."
 
 #: app/templates/provider/appointments.html:93
 msgid "You haven't reviewed this client yet."
-msgstr "Ти ще не оцінив цього клієнта."
+msgstr "Nie oceniłeś jeszcze tego klienta."
 
 #: app/templates/provider/appointments.html:207
 #: app/templates/provider/appointments.html:398
 #: app/templates/provider/dashboard.html:393
 msgid "Accept Request"
-msgstr "Прийняти запит"
+msgstr "Przyjmij zapytanie"
 
 #: app/templates/provider/appointments.html:210
 msgid "No comments"
-msgstr "Без коментарів"
+msgstr "Brak komentarzy"
 
 #: app/templates/provider/appointments.html:293
 msgid "Waiting for client payment."
-msgstr "Чекаємо оплати від клієнта."
+msgstr "Czekamy na płatność od klienta."
 
 #: app/templates/provider/appointments.html:294
 msgid "You can submit work only after payment."
-msgstr "Роботу можна подати тільки після оплати."
+msgstr "Pracę można zgłosić dopiero po płatności."
 
 #: app/templates/provider/appointments.html:303
 msgid "Payment Secured. Safe to work."
-msgstr "Оплату забезпечено. Можна працювати."
+msgstr "Płatność zabezpieczona. Można działać."
 
 #: app/templates/provider/appointments.html:306
 msgid "I have finished the work"
-msgstr "Я завершив роботу"
+msgstr "Skończyłem pracę"
 
 #: app/templates/provider/appointments.html:315
 msgid "Work Submitted."
-msgstr "Роботу подано."
+msgstr "Praca zgłoszona."
 
 #: app/templates/provider/appointments.html:316
 msgid "Funds will be released when client approves."
-msgstr "Кошти переведуть коли клієнт підтвердить."
+msgstr "Środki zostaną przekazane po potwierdzeniu klienta."
 
 #: app/templates/provider/appointments.html:316
 msgid "Waiting for client confirmation."
-msgstr "Чекаємо підтвердження від клієнта."
+msgstr "Czekamy na potwierdzenie klienta."
 
 #: app/templates/provider/appointments.html:319
 msgid "Retract (Go Back)"
-msgstr "Відкликати (назад)"
+msgstr "Cofnij (wróć)"
 
 #: app/templates/provider/appointments.html:364
 #: app/templates/provider/dashboard.html:992
 msgid "Retract your work submission? This will go back to the previous step."
-msgstr "Відкликати подання? Повернемося на попередній крок."
+msgstr "Cofnąć zgłoszenie pracy? Wrócimy do poprzedniego kroku."
 
 #: app/templates/provider/appointments.html:365
 #: app/templates/provider/dashboard.html:993
 msgid "Retract Work"
-msgstr "Відкликати роботу"
+msgstr "Cofnij pracę"
 
 #: app/templates/provider/appointments.html:366
 #: app/templates/provider/dashboard.html:994
 msgid "Yes, Retract"
-msgstr "Так, відкликати"
+msgstr "Tak, cofnij"
 
 #: app/templates/provider/appointments.html:392
 msgid "Yes"
-msgstr "Так"
+msgstr "Tak"
 
 #: app/templates/provider/appointments.html:395
 msgid ""
 "Are you sure you have finished the work? The client will be notified to "
 "approve."
-msgstr "Точно завершив роботу? Клієнт отримає повідомлення для підтвердження."
+msgstr "Na pewno skończyłeś? Klient dostanie powiadomienie do potwierdzenia."
 
 #: app/templates/provider/appointments.html:396
 msgid "Submit Work"
-msgstr "Подати роботу"
+msgstr "Zgłoś pracę"
 
 #: app/templates/provider/appointments.html:396
 msgid "Yes, Submit"
-msgstr "Так, подати"
+msgstr "Tak, zgłoś"
 
 #: app/templates/provider/appointments.html:435
 msgid "Pending Request"
-msgstr "Запит в очікуванні"
+msgstr "Zapytanie oczekuje"
 
 #: app/templates/provider/appointments.html:436
 msgid "Accepted (Awaiting Payment)"
-msgstr "Прийнято (чекає оплати)"
+msgstr "Zaakceptowane (czeka na płatność)"
 
 #: app/templates/provider/appointments.html:437
 msgid "Paid - Ready to Start"
-msgstr "Оплачено — можна починати"
+msgstr "Opłacone — można zaczynać"
 
 #: app/templates/provider/appointments.html:437
 msgid "Confirmed - Ready to Start"
-msgstr "Підтверджено — можна починати"
+msgstr "Potwierdzone — można zaczynać"
 
 #: app/templates/provider/appointments.html:438
 msgid "Work Submitted (Pending Approval)"
-msgstr "Роботу подано (чекає підтвердження)"
+msgstr "Praca zgłoszona (czeka na zatwierdzenie)"
 
 #: app/templates/provider/appointments.html:439
 msgid "Completed & Paid"
-msgstr "Завершено і оплачено"
+msgstr "Zakończone i opłacone"
 
 #: app/templates/provider/appointments.html:491
 msgid "Please provide a reason for your low rating"
-msgstr "Поясни чому низька оцінка"
+msgstr "Wyjaśnij dlaczego niska ocena"
 
 #: app/templates/provider/client_profile.html:24
 msgid "Member since"
-msgstr "На платформі з"
+msgstr "Na platformie od"
 
 #: app/templates/provider/client_profile.html:35
 msgid "Phone"
-msgstr "Телефон"
+msgstr "Telefon"
 
 #: app/templates/provider/client_profile.html:47
 #: app/templates/provider/profile.html:154
 msgid "Address"
-msgstr "Адреса"
+msgstr "Adres"
 
 #: app/templates/provider/client_profile.html:62
 msgid "Service History"
-msgstr "Історія послуг"
+msgstr "Historia usług"
 
 #: app/templates/provider/client_profile.html:81
 msgid "No shared service history yet."
-msgstr "Спільної історії поки немає."
+msgstr "Brak wspólnej historii."
 
 #: app/templates/provider/client_profile.html:106
 msgid "No reviews from this client yet."
-msgstr "Від цього клієнта ще немає відгуків."
+msgstr "Ten klient nie ma jeszcze opinii."
 
 #: app/templates/provider/dashboard.html:11
 msgid "Manage your requests and availability"
-msgstr "Керуй запитами і доступністю"
+msgstr "Zarządzaj zapytaniami i dostępnością"
 
 #: app/templates/provider/dashboard.html:34
 msgid "Appointments"
-msgstr "Записи"
+msgstr "Wizyty"
 
 #: app/templates/provider/dashboard.html:35
 #: app/templates/provider/services.html:24
 msgid "My Services"
-msgstr "Мої послуги"
+msgstr "Moje usługi"
 
 #: app/templates/provider/dashboard.html:41
 #: app/templates/provider/dashboard.html:1213
 msgid "You are Online"
-msgstr "Ти онлайн"
+msgstr "Jesteś online"
 
 #: app/templates/provider/dashboard.html:41
 #: app/templates/provider/dashboard.html:1216
 msgid "You are Offline"
-msgstr "Ти офлайн"
+msgstr "Jesteś offline"
 
 #: app/templates/provider/dashboard.html:72
 msgid "New Requests"
-msgstr "Нові запити"
+msgstr "Nowe zapytania"
 
 #: app/templates/provider/dashboard.html:75
 msgid "My Offers"
-msgstr "Мої пропозиції"
+msgstr "Moje oferty"
 
 #: app/templates/provider/dashboard.html:102
 msgid "Today"
-msgstr "Сьогодні"
+msgstr "Dzisiaj"
 
 #: app/templates/provider/dashboard.html:103
 msgid "Tomorrow"
-msgstr "Завтра"
+msgstr "Jutro"
 
 #: app/templates/provider/dashboard.html:104
 msgid "This Week"
-msgstr "Цей тиждень"
+msgstr "Ten tydzień"
 
 #: app/templates/provider/dashboard.html:110
 msgid "Highest price"
-msgstr "Найдорожчі"
+msgstr "Najdroższe"
 
 #: app/templates/provider/dashboard.html:111
 msgid "Lowest price"
-msgstr "Найдешевші"
+msgstr "Najtańsze"
 
 #: app/templates/provider/dashboard.html:112
 msgid "Newest first"
-msgstr "Нові спочатку"
+msgstr "Najnowsze"
 
 #: app/templates/provider/dashboard.html:113
 msgid "Soonest first"
-msgstr "Найближчі за часом"
+msgstr "Najbliższe czasowo"
 
 #: app/templates/provider/dashboard.html:117
 msgid "Search by service..."
-msgstr "Пошук за послугою..."
+msgstr "Szukaj po usłudze..."
 
 #: app/templates/provider/dashboard.html:150
 msgid "Details"
-msgstr "Деталі"
+msgstr "Szczegóły"
 
 #: app/templates/provider/dashboard.html:164
 msgid "TIME"
-msgstr "ЧАС"
+msgstr "CZAS"
 
 #: app/templates/provider/dashboard.html:168
 msgid "PAYMENT"
-msgstr "ОПЛАТА"
+msgstr "PŁATNOŚĆ"
 
 #: app/templates/provider/dashboard.html:172
 msgid "DISTANCE"
-msgstr "ВІДСТАНЬ"
+msgstr "ODLEGŁOŚĆ"
 
 #: app/templates/provider/dashboard.html:173
 #: app/templates/provider/dashboard.html:388
 msgid "Calculating..."
-msgstr "Рахуємо..."
+msgstr "Obliczanie..."
 
 #: app/templates/provider/dashboard.html:176
 msgid "AREA"
-msgstr "РАЙОН"
+msgstr "REJON"
 
 #: app/templates/provider/dashboard.html:184
 #: app/templates/provider/services.html:157
 msgid "TAGS"
-msgstr "ТЕГИ"
+msgstr "TAGI"
 
 #: app/templates/provider/dashboard.html:205
 msgid "My Reviews"
-msgstr "Мої відгуки"
+msgstr "Moje opinie"
 
 #: app/templates/provider/dashboard.html:387
 msgid "Address not provided"
-msgstr "Адресу не вказано"
+msgstr "Adres nie podany"
 
 #: app/templates/provider/dashboard.html:390
 msgid "Request accepted!"
-msgstr "Запит прийнято!"
+msgstr "Zapytanie przyjęte!"
 
 #: app/templates/provider/dashboard.html:391
 msgid "I'm on my way"
-msgstr "Я вже їду"
+msgstr "Jestem w drodze"
 
 #: app/templates/provider/dashboard.html:392
 msgid "Stop Sharing"
-msgstr "Зупинити трекінг"
+msgstr "Zatrzymaj śledzenie"
 
 #: app/templates/provider/dashboard.html:650
 msgid "No offers sent yet"
-msgstr "Пропозицій ще немає"
+msgstr "Nie wysłano jeszcze ofert"
 
 #: app/templates/provider/dashboard.html:654
 msgid "Waiting"
-msgstr "Очікує"
+msgstr "Czeka"
 
 #: app/templates/provider/dashboard.html:656
 msgid "Rejected"
-msgstr "Відхилено"
+msgstr "Odrzucone"
 
 #: app/templates/provider/dashboard.html:674
 #: app/templates/provider/dashboard.html:800
 msgid "Your price:"
-msgstr "Твоя ціна:"
+msgstr "Twoja cena:"
 
 #: app/templates/provider/dashboard.html:675
 msgid "Budget:"
-msgstr "Бюджет:"
+msgstr "Budżet:"
 
 #: app/templates/provider/dashboard.html:681
 msgid "Client counter:"
-msgstr "Контрпропозиція клієнта:"
+msgstr "Kontrpropozycja klienta:"
 
 #: app/templates/provider/dashboard.html:687
 msgid "Revise"
-msgstr "Переглянути"
+msgstr "Zmień"
 
 #: app/templates/provider/dashboard.html:694
 msgid "Mark Done"
-msgstr "Позначити готовим"
+msgstr "Oznacz jako gotowe"
 
 #: app/templates/provider/dashboard.html:697
 msgid "Waiting for client payment"
-msgstr "Чекаємо оплати від клієнта"
+msgstr "Czekamy na płatność klienta"
 
 #: app/templates/provider/dashboard.html:706
 msgid "Waiting for client approval"
-msgstr "Чекаємо підтвердження клієнта"
+msgstr "Czekamy na zatwierdzenie klienta"
 
 #: app/templates/provider/dashboard.html:708
 msgid "Retract"
-msgstr "Відкликати"
+msgstr "Cofnij"
 
 #: app/templates/provider/dashboard.html:716
 msgid "Awaiting client"
-msgstr "Чекаємо клієнта"
+msgstr "Czekamy na klienta"
 
 #: app/templates/provider/dashboard.html:719
 msgid "Withdraw"
-msgstr "Відкликати"
+msgstr "Wycofaj"
 
 #: app/templates/provider/dashboard.html:799
 msgid "Client proposed a counter-offer:"
-msgstr "Клієнт запропонував контрпропозицію:"
+msgstr "Klient zaproponował kontrpropozycję:"
 
 #: app/templates/provider/dashboard.html:804
 msgid "Accept Counter"
-msgstr "Прийняти контрпропозицію"
+msgstr "Przyjmij kontrpropozycję"
 
 #: app/templates/provider/dashboard.html:807
 msgid "Revise Price"
-msgstr "Змінити ціну"
+msgstr "Zmień cenę"
 
 #: app/templates/provider/dashboard.html:811
 msgid "Waiting for the client to accept your offer..."
-msgstr "Чекаємо поки клієнт прийме пропозицію..."
+msgstr "Czekamy aż klient przyjmie twoją ofertę..."
 
 #: app/templates/provider/dashboard.html:815
 #: app/templates/provider/dashboard.html:1016
 msgid "Withdraw Offer"
-msgstr "Відкликати пропозицію"
+msgstr "Wycofaj ofertę"
 
 #: app/templates/provider/dashboard.html:818
 msgid "The client selected another provider."
-msgstr "Клієнт вибрав іншого виконавця."
+msgstr "Klient wybrał innego wykonawcę."
 
 #: app/templates/provider/dashboard.html:828
 msgid "No requests available"
-msgstr "Запитів поки немає"
+msgstr "Brak dostępnych zapytań"
 
 #: app/templates/provider/dashboard.html:940
 msgid "Enter your price"
-msgstr "Введи свою ціну"
+msgstr "Wpisz swoją cenę"
 
 #: app/templates/provider/dashboard.html:969
 msgid "Confirm that the service has been completed?"
-msgstr "Підтвердити що послугу виконано?"
+msgstr "Potwierdzić że usługa została wykonana?"
 
 #: app/templates/provider/dashboard.html:971
 msgid "Yes, Complete"
-msgstr "Так, виконано"
+msgstr "Tak, wykonane"
 
 #: app/templates/provider/dashboard.html:982
 msgid "Work submitted! Waiting for client approval."
-msgstr "Роботу подано! Чекаємо підтвердження клієнта."
+msgstr "Praca zgłoszona! Czekamy na zatwierdzenie klienta."
 
 #: app/templates/provider/dashboard.html:1005
 msgid "Work submission retracted."
-msgstr "Подання відкликано."
+msgstr "Zgłoszenie cofnięte."
 
 #: app/templates/provider/dashboard.html:1015
 msgid "Are you sure you want to withdraw this offer?"
-msgstr "Точно відкликати пропозицію?"
+msgstr "Na pewno wycofać ofertę?"
 
 #: app/templates/provider/dashboard.html:1017
 msgid "Yes, Withdraw"
-msgstr "Так, відкликати"
+msgstr "Tak, wycofaj"
 
 #: app/templates/provider/dashboard.html:1030
 msgid "Offer withdrawn successfully"
-msgstr "Пропозицію відкликано"
+msgstr "Oferta wycofana"
 
 #: app/templates/provider/dashboard.html:1041
 msgid "Are you sure you want to cancel this accepted request?"
-msgstr "Точно скасувати прийнятий запит?"
+msgstr "Na pewno anulować przyjęte zapytanie?"
 
 #: app/templates/provider/dashboard.html:1066
 msgid "Accept the client counter-offer price?"
-msgstr "Прийняти контрпропозицію клієнта?"
+msgstr "Przyjąć kontrpropozycję klienta?"
 
 #: app/templates/provider/dashboard.html:1067
 msgid "Accept Counter-Offer"
-msgstr "Прийняти контрпропозицію"
+msgstr "Przyjmij kontrpropozycję"
 
 #: app/templates/provider/dashboard.html:1082
 msgid "Counter-offer accepted! Price updated."
-msgstr "Контрпропозицію прийнято! Ціну оновлено."
+msgstr "Kontrpropozycja przyjęta! Cena zaktualizowana."
 
 #: app/templates/provider/dashboard.html:1095
 msgid "New price"
-msgstr "Нова ціна"
+msgstr "Nowa cena"
 
 #: app/templates/provider/dashboard.html:1111
 msgid "Enter new price"
-msgstr "Введи нову ціну"
+msgstr "Wpisz nową cenę"
 
 #: app/templates/provider/dashboard.html:1136
 msgid "Price revised and sent to client."
-msgstr "Ціну змінено і надіслано клієнту."
+msgstr "Cena zmieniona i wysłana do klienta."
 
 #: app/templates/provider/dashboard.html:1190
 msgid "Location updated!"
-msgstr "Локацію оновлено!"
+msgstr "Lokalizacja zaktualizowana!"
 
 #: app/templates/provider/dashboard.html:1265
 msgid "Your response"
-msgstr "Твоя відповідь"
+msgstr "Twoja odpowiedź"
 
 #: app/templates/provider/dashboard.html:1273
 msgid "Respond"
-msgstr "Відповісти"
+msgstr "Odpowiedz"
 
 #: app/templates/provider/dashboard.html:1276
 msgid "Write your public response..."
-msgstr "Напиши публічну відповідь..."
+msgstr "Napisz swoją publiczną odpowiedź..."
 
 #: app/templates/provider/dashboard.html:1305
 msgid "Please write a response"
-msgstr "Напиши відповідь"
+msgstr "Napisz odpowiedź"
 
 #: app/templates/provider/finances.html:3
 msgid "My Finances"
-msgstr "Мої фінанси"
+msgstr "Moje finanse"
 
 #: app/templates/provider/finances.html:89
 msgid "Financial Overview"
-msgstr "Фінансовий огляд"
+msgstr "Przegląd finansów"
 
 #: app/templates/provider/finances.html:90
 msgid "Track your earnings, payouts, and transactions"
-msgstr "Відстежуй заробіток, виплати та транзакції"
+msgstr "Śledź zarobki, wypłaty i transakcje"
 
 #: app/templates/provider/finances.html:100
 #: app/templates/provider/profile.html:200
 msgid "Open Stripe Dashboard"
-msgstr "Відкрити Stripe"
+msgstr "Otwórz Stripe"
 
 #: app/templates/provider/finances.html:103
 msgid "Refresh Data"
-msgstr "Оновити дані"
+msgstr "Odśwież dane"
 
 #: app/templates/provider/finances.html:113
 msgid "Available to Payout"
-msgstr "Доступно до виплати"
+msgstr "Do wypłaty"
 
 #: app/templates/provider/finances.html:121
 msgid "Ready"
-msgstr "Готово"
+msgstr "Gotowe"
 
 #: app/templates/provider/finances.html:125
 msgid "Pending Balance"
-msgstr "Баланс в очікуванні"
+msgstr "Oczekujący bilans"
 
 #: app/templates/provider/finances.html:133
 msgid "Processing"
-msgstr "Обробляється"
+msgstr "Przetwarzanie"
 
 #: app/templates/provider/finances.html:139
 msgid "Recent Payouts"
-msgstr "Останні виплати"
+msgstr "Ostatnie wypłaty"
 
 #: app/templates/provider/finances.html:140
 msgid "Transfers to your bank account"
-msgstr "Перекази на твій рахунок"
+msgstr "Przelewy na twoje konto"
 
 #: app/templates/provider/finances.html:147
 #: app/templates/provider/finances.html:189
 msgid "Amount"
-msgstr "Сума"
+msgstr "Kwota"
 
 #: app/templates/provider/finances.html:148
 #: app/templates/provider/services.html:41
 msgid "Status"
-msgstr "Статус"
+msgstr "Status"
 
 #: app/templates/provider/finances.html:149
 msgid "Arrival Date"
-msgstr "Дата надходження"
+msgstr "Data wpływu"
 
 #: app/templates/provider/finances.html:150
 msgid "Bank Account"
-msgstr "Банківський рахунок"
+msgstr "Konto bankowe"
 
 #: app/templates/provider/finances.html:169
 msgid "No payouts found yet."
-msgstr "Виплат поки немає."
+msgstr "Nie ma jeszcze wypłat."
 
 #: app/templates/provider/finances.html:179
 msgid "Transaction History"
-msgstr "Історія транзакцій"
+msgstr "Historia transakcji"
 
 #: app/templates/provider/finances.html:180
 msgid "Recent activity on your account"
-msgstr "Остання активність"
+msgstr "Ostatnia aktywność"
 
 #: app/templates/provider/finances.html:188
 #: app/templates/provider/services.html:38
 msgid "Description"
-msgstr "Опис"
+msgstr "Opis"
 
 #: app/templates/provider/finances.html:190
 msgid "Fee"
-msgstr "Комісія"
+msgstr "Prowizja"
 
 #: app/templates/provider/finances.html:191
 msgid "Net"
-msgstr "Чистий прибуток"
+msgstr "Netto"
 
 #: app/templates/provider/finances.html:199
 msgid "Payment"
-msgstr "Оплата"
+msgstr "Płatność"
 
 #: app/templates/provider/finances.html:212
 msgid "No transactions found yet."
-msgstr "Транзакцій поки немає."
+msgstr "Nie ma jeszcze transakcji."
 
 #: app/templates/provider/profile.html:9
 msgid "Service Provider Profile"
-msgstr "Профіль виконавця"
+msgstr "Profil wykonawcy"
 
 #: app/templates/provider/profile.html:10
 msgid "Manage your personal information and documents"
-msgstr "Керуй інфою і документами"
+msgstr "Zarządzaj danymi i dokumentami"
 
 #: app/templates/provider/profile.html:56
 msgid "UPLOAD DOCUMENTS"
-msgstr "ЗАВАНТАЖИТИ ДОКУМЕНТИ"
+msgstr "WGRAJ DOKUMENTY"
 
 #: app/templates/provider/profile.html:81
 msgid "Add Photo/Video"
-msgstr "Додати фото/відео"
+msgstr "Dodaj zdjęcie/wideo"
 
 #: app/templates/provider/profile.html:85
 msgid "Showcase your work — photos and videos visible to clients"
-msgstr "Покажи свою роботу — фото і відео бачитимуть клієнти"
+msgstr "Pokaż swoją pracę — zdjęcia i wideo widoczne dla klientów"
 
 #: app/templates/provider/profile.html:109
 msgid "No portfolio items yet"
-msgstr "Портфоліо поки порожнє"
+msgstr "Portfolio jeszcze puste"
 
 #: app/templates/provider/profile.html:115
 msgid "Insurance"
-msgstr "Страховка"
+msgstr "Ubezpieczenie"
 
 #: app/templates/provider/profile.html:121
 msgid "I have professional liability insurance"
-msgstr "Маю страхування професійної відповідальності"
+msgstr "Mam ubezpieczenie OC zawodowe"
 
 #: app/templates/provider/profile.html:126
 msgid "UPLOAD INSURANCE DOCUMENT"
-msgstr "ЗАВАНТАЖИТИ ДОКУМЕНТ СТРАХОВКИ"
+msgstr "WGRAJ DOKUMENT UBEZPIECZENIA"
 
 #: app/templates/provider/profile.html:129
 msgid "PDF, JPG or PNG accepted"
-msgstr "PDF, JPG або PNG"
+msgstr "PDF, JPG lub PNG"
 
 #: app/templates/provider/profile.html:136
 msgid "View insurance document"
-msgstr "Переглянути документ страховки"
+msgstr "Zobacz dokument ubezpieczenia"
 
 #: app/templates/provider/profile.html:155
 msgid "Documents"
-msgstr "Документи"
+msgstr "Dokumenty"
 
 #: app/templates/provider/profile.html:156
 msgid "Insurance Status"
-msgstr "Статус страховки"
+msgstr "Status ubezpieczenia"
 
 #: app/templates/provider/profile.html:163
 msgid "Payout Settings"
-msgstr "Налаштування виплат"
+msgstr "Ustawienia wypłat"
 
 #: app/templates/provider/profile.html:169
 msgid "Payments"
-msgstr "Платежі"
+msgstr "Płatności"
 
 #: app/templates/provider/profile.html:171
 msgid "Payments pending"
-msgstr "Платежі в очікуванні"
+msgstr "Płatności oczekujące"
 
 #: app/templates/provider/profile.html:174
 msgid "Payouts"
-msgstr "Виплати"
+msgstr "Wypłaty"
 
 #: app/templates/provider/profile.html:176
 msgid "Payouts pending"
-msgstr "Виплати в очікуванні"
+msgstr "Wypłaty oczekujące"
 
 #: app/templates/provider/profile.html:182
 msgid "CONNECTED BANK ACCOUNT"
-msgstr "ПІДКЛЮЧЕНИЙ РАХУНОК"
+msgstr "POŁĄCZONE KONTO"
 
 #: app/templates/provider/profile.html:185
 msgid "Bank"
-msgstr "Банк"
+msgstr "Bank"
 
 #: app/templates/provider/profile.html:194
 msgid "AVAILABLE BALANCE"
-msgstr "ДОСТУПНИЙ БАЛАНС"
+msgstr "DOSTĘPNE ŚRODKI"
 
 #: app/templates/provider/profile.html:203
 #: app/templates/provider/profile.html:214
 msgid "Transactions"
-msgstr "Транзакції"
+msgstr "Transakcje"
 
 #: app/templates/provider/profile.html:210
 msgid "Could not load Stripe account info."
-msgstr "Не вдалося завантажити інфо Stripe."
+msgstr "Nie udało się załadować info Stripe."
 
 #: app/templates/provider/profile.html:211
 msgid "Retry"
-msgstr "Спробувати знову"
+msgstr "Spróbuj ponownie"
 
 #: app/templates/provider/profile.html:221
 msgid "Connect your bank account to receive payments."
-msgstr "Підключи банківський рахунок для отримання виплат."
+msgstr "Połącz konto bankowe żeby otrzymywać wypłaty."
 
 #: app/templates/provider/profile.html:226
 msgid "Select your country:"
-msgstr "Обери країну:"
+msgstr "Wybierz kraj:"
 
 #: app/templates/provider/profile.html:239
 msgid "Connect with Stripe"
-msgstr "Підключити Stripe"
+msgstr "Połącz ze Stripe"
 
 #: app/templates/provider/profile.html:282
 msgid "Remove the insurance document?"
-msgstr "Видалити документ страховки?"
+msgstr "Usunąć dokument ubezpieczenia?"
 
 #: app/templates/provider/profile.html:283
 #: app/templates/shared/_documents_grid.html:52
 msgid "Delete Document"
-msgstr "Видалити документ"
+msgstr "Usuń dokument"
 
 #: app/templates/provider/profile.html:313
 msgid "unsupported format"
-msgstr "формат не підтримується"
+msgstr "format nie obsługiwany"
 
 #: app/templates/provider/profile.html:314
 msgid "max 5MB for photos"
-msgstr "макс. 5MB для фото"
+msgstr "maks. 5MB dla zdjęć"
 
 #: app/templates/provider/profile.html:315
 msgid "max 20MB for videos"
-msgstr "макс. 20MB для відео"
+msgstr "maks. 20MB dla wideo"
 
 #: app/templates/provider/profile.html:359
 msgid "Remove this item?"
-msgstr "Видалити це?"
+msgstr "Usunąć to?"
 
 #: app/templates/provider/profile.html:360
 msgid "Delete Item"
-msgstr "Видалити"
+msgstr "Usuń"
 
 #: app/templates/provider/services.html:9
 msgid "Service Management"
-msgstr "Управління послугами"
+msgstr "Zarządzanie usługami"
 
 #: app/templates/provider/services.html:10
 msgid "Configure the services you offer to clients"
-msgstr "Налаштуй послуги для клієнтів"
+msgstr "Skonfiguruj usługi dla klientów"
 
 #: app/templates/provider/services.html:27
 #: app/templates/provider/services.html:120
 #: app/templates/provider/services.html:339
 msgid "Add Service"
-msgstr "Додати послугу"
+msgstr "Dodaj usługę"
 
 #: app/templates/provider/services.html:37
 msgid "Name"
-msgstr "Назва"
+msgstr "Nazwa"
 
 #: app/templates/provider/services.html:40
 msgid "Duration"
-msgstr "Тривалість"
+msgstr "Czas trwania"
 
 #: app/templates/provider/services.html:42
 msgid "Actions"
-msgstr "Дії"
+msgstr "Akcje"
 
 #: app/templates/provider/services.html:65
 msgid "Available"
-msgstr "Доступно"
+msgstr "Dostępna"
 
 #: app/templates/provider/services.html:67
 msgid "Hidden"
-msgstr "Прихована"
+msgstr "Ukryta"
 
 #: app/templates/provider/services.html:83
 msgid "Edit"
-msgstr "Редагувати"
+msgstr "Edytuj"
 
 #: app/templates/provider/services.html:106
 msgid "You haven't added any services yet."
-msgstr "Ти ще не додав жодної послуги."
+msgstr "Nie dodałeś jeszcze żadnych usług."
 
 #: app/templates/provider/services.html:107
 msgid ""
 "Click 'Add Service' to get started — choose from suggestions or create "
 "your own."
-msgstr "Натисни «Додати послугу» — обери з підказок або створи свою."
+msgstr "Kliknij «Dodaj usługę» — wybierz z podpowiedzi lub stwórz własną."
 
 #: app/templates/provider/services.html:132
 msgid "SERVICE NAME"
-msgstr "НАЗВА ПОСЛУГИ"
+msgstr "NAZWA USŁUGI"
 
 #: app/templates/provider/services.html:135
 msgid "Type or pick from suggestions..."
-msgstr "Введи або обери з підказок..."
+msgstr "Wpisz lub wybierz z podpowiedzi..."
 
 #: app/templates/provider/services.html:142
 msgid "PRICE (EUR)"
-msgstr "ЦІНА (EUR)"
+msgstr "CENA (EUR)"
 
 #: app/templates/provider/services.html:146
 msgid "DURATION (MIN)"
-msgstr "ТРИВАЛІСТЬ (ХВ)"
+msgstr "CZAS TRWANIA (MIN)"
 
 #: app/templates/provider/services.html:153
 msgid "Optional details..."
-msgstr "Деталі (необов'язково)..."
+msgstr "Szczegóły (opcjonalnie)..."
 
 #: app/templates/provider/services.html:168
 msgid "Available for booking immediately"
-msgstr "Доступна для бронювання одразу"
+msgstr "Dostępna do rezerwacji od razu"
 
 #: app/templates/provider/services.html:173
 msgid "Save"
-msgstr "Зберегти"
+msgstr "Zapisz"
 
 #: app/templates/provider/services.html:185
 msgid "Confirm Deletion"
-msgstr "Підтвердити видалення"
+msgstr "Potwierdź usunięcie"
 
 #: app/templates/provider/services.html:189
 msgid "Are you sure you want to remove this service from your list?"
-msgstr "Точно видалити цю послугу зі списку?"
+msgstr "Na pewno usunąć tę usługę z listy?"
 
 #: app/templates/provider/services.html:190
 msgid "This action cannot be undone instantly."
-msgstr "Це не можна скасувати миттєво."
+msgstr "Tego nie da się cofnąć od razu."
 
 #: app/templates/provider/services.html:194
 msgid "Delete Service"
-msgstr "Видалити послугу"
+msgstr "Usuń usługę"
 
 #: app/templates/provider/services.html:360
 msgid "Edit Service"
-msgstr "Редагувати послугу"
+msgstr "Edytuj usługę"
 
 #: app/templates/shared/_change_password_accordion.html:11
 msgid "Change Password"
-msgstr "Змінити пароль"
+msgstr "Zmień hasło"
 
 #: app/templates/shared/_change_password_accordion.html:19
 msgid "You signed in with Google. Password change is not available."
-msgstr "Ти увійшов через Google. Зміна пароля недоступна."
+msgstr "Zalogowałeś się przez Google. Zmiana hasła jest niedostępna."
 
 #: app/templates/shared/_change_password_accordion.html:26
 msgid "CURRENT PASSWORD"
-msgstr "ПОТОЧНИЙ ПАРОЛЬ"
+msgstr "AKTUALNE HASŁO"
 
 #: app/templates/shared/_change_password_accordion.html:30
 msgid "NEW PASSWORD"
-msgstr "НОВИЙ ПАРОЛЬ"
+msgstr "NOWE HASŁO"
 
 #: app/templates/shared/_change_password_accordion.html:34
 msgid "CONFIRM NEW PASSWORD"
-msgstr "ПІДТВЕРДИТИ НОВИЙ ПАРОЛЬ"
+msgstr "POTWIERDŹ NOWE HASŁO"
 
 #: app/templates/shared/_change_password_accordion.html:39
 msgid "Update Password"
-msgstr "Оновити пароль"
+msgstr "Zaktualizuj hasło"
 
 #: app/templates/shared/_documents_grid.html:8
 msgid "Your Documents"
-msgstr "Твої документи"
+msgstr "Twoje dokumenty"
 
 #: app/templates/shared/_documents_grid.html:25
 msgid "Delete"
-msgstr "Видалити"
+msgstr "Usuń"
 
 #: app/templates/shared/_documents_grid.html:34
 msgid "No documents uploaded yet."
-msgstr "Документів поки немає."
+msgstr "Brak dokumentów."
 
 #: app/templates/shared/_documents_grid.html:51
 msgid "Delete document"
-msgstr "Видалити документ"
+msgstr "Usuń dokument"
 
 #: app/templates/shared/_documents_grid.html:53
 msgid "Yes, Delete"
-msgstr "Так, видалити"
+msgstr "Tak, usuń"
 
 #: app/templates/shared/_documents_grid.html:84
 msgid "Error with server."
-msgstr "Помилка сервера."
+msgstr "Błąd serwera."
 
 #: app/templates/shared/_profile_photo.html:16
 msgid "Change photo"
-msgstr "Змінити фото"
+msgstr "Zmień zdjęcie"
 
 #: app/templates/shared/_profile_photo.html:21
 msgid "Allowed: JPG, PNG, GIF (Max 5MB)"
-msgstr "Дозволено: JPG, PNG, GIF (макс. 5 МБ)"
+msgstr "Dozwolone: JPG, PNG, GIF (maks. 5MB)"
 
 #: app/templates/shared/_profile_photo.html:32
 msgid "File is too large, 5MB max."
-msgstr "Файл завеликий, макс. 5 МБ."
+msgstr "Plik za duży, maks. 5MB."
 
 #: app/templates/shared/_profile_photo.html:38
 msgid "Only JPG, PNG, and GIF files are allowed."
-msgstr "Тільки JPG, PNG та GIF."
+msgstr "Tylko pliki JPG, PNG i GIF."
 
 #: app/templates/shared/_visibility_settings.html:8
 msgid "Profile Visibility"
-msgstr "Видимість профілю"
+msgstr "Widoczność profilu"
 
 #: app/templates/shared/_visibility_settings.html:9
 msgid ""
 "Choose what others can see on your public profile. Everything is visible "
 "by default."
-msgstr "Обери що інші бачитимуть у твоєму профілі. За замовчуванням все видно."
+msgstr "Wybierz co inni widzą w twoim profilu. Domyślnie wszystko jest widoczne."
 

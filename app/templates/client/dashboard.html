@@ -257,7 +257,17 @@
                       </button>
                   </div>
                   <div id="reqAddressStatus" class="form-text" style="font-size:11px;"></div>
-                  <div class="form-text text-muted" style="font-size:11px;">{{ _("Only visible to the provider after they accept your request.") }}</div>
+                  <div class="form-text text-muted" style="font-size:11px;">
+                      <i class="fas fa-lock me-1"></i>{{ _("Only visible to the provider after they accept your request.") }}
+                  </div>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label fw-bold small text-muted">{{ _("DISTRICT / NEIGHBORHOOD") }} <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="reqDistrict" required
+                         placeholder="{{ _('e.g. Schwabing, Sendling, Mitte...') }}">
+                  <div class="form-text text-muted" style="font-size:11px;">
+                      <i class="fas fa-eye me-1"></i>{{ _("Providers will only see this area name, not your exact address.") }}
+                  </div>
               </div>
               <div class="mb-3">
                   <label class="form-label fw-bold small text-muted">{{ _("DESCRIPTION") }}</label>
@@ -958,6 +968,8 @@
   document.getElementById('submitRequestBtn').addEventListener('click', function() {
       const address = document.getElementById('reqAddress').value.trim();
       if (!address) { alert("{{ _('Please enter your address.') }}"); return; }
+      const district = document.getElementById('reqDistrict').value.trim();
+      if (!district) { alert("{{ _('Please enter your district or neighborhood.') }}"); return; }
 
       let lat, lng;
       if (_detectedLat !== null) {
@@ -975,6 +987,7 @@
           payment: document.getElementById('reqPayment').value,
           appointment_start_time: document.getElementById('reqTime').value,
           address: address,
+          district: district,
           latitude: latLng.lat,
           longitude: latLng.lng
       };

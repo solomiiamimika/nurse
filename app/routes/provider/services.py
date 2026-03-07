@@ -1,7 +1,7 @@
 from . import provider_bp
 from flask import Blueprint, jsonify, request, current_app, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
-from app.models import User, Message, db, Service, ProviderService, Appointment, ClientSelfCreatedAppointment, RequestOfferResponse, ServiceHistory, CancellationPolicy
+from app.models import User, Message, db, Service, ProviderService, Appointment, ClientSelfCreatedAppointment, RequestOfferResponse, ServiceHistory, CancellationPolicy, SERVICE_TAGS
 from app.utils import fuzz_coordinates, haversine_distance, validate_coordinates
 from datetime import datetime
 import json
@@ -48,7 +48,8 @@ def manage_services():
                     price=float(request.form.get('price')),
                     duration=int(request.form.get('duration')),
                     description=request.form.get('description', ''),
-                    is_available='is_available' in request.form
+                    is_available='is_available' in request.form,
+                    tags=request.form.get('tags', '')
                 )
                 db.session.add(new_service)
                 flash('Custom service added successfully', 'success')
@@ -66,7 +67,8 @@ def manage_services():
                     price=float(request.form.get('price')),
                     duration=int(request.form.get('duration')),
                     description=request.form.get('description', ''),
-                    is_available='is_available' in request.form
+                    is_available='is_available' in request.form,
+                    tags=request.form.get('tags', '')
                 )
                 db.session.add(new_service)
                 flash('Standard service added successfully', 'success')
@@ -93,6 +95,7 @@ def manage_services():
                     service.duration = int(request.form.get('duration'))
                     service.description = request.form.get('description', '')
                     service.is_available = 'is_available' in request.form
+                    service.tags = request.form.get('tags', '')
                     flash('Service updated successfully', 'success')
                 else:
                     flash('Service not found', 'danger')
@@ -133,7 +136,8 @@ def manage_services():
 
     return render_template('provider/services.html',
                            standard_services=standard_services,
-                           provider_services=provider_services)
+                           provider_services=provider_services,
+                           service_tags=SERVICE_TAGS)
 
 
 @provider_bp.route('/service_history', methods=['GET'])

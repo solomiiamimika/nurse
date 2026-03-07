@@ -302,6 +302,9 @@ def provider_get_requests():
                 continue
             if not req.latitude or not req.longitude:
                 continue
+            # Skip requests without address — provider needs location info
+            if not req.address or not req.address.strip():
+                continue
 
             # Для перегляду запиту: відстань + розмиті координати для карти
             # Точна адреса буде видна тільки після прийняття
@@ -318,9 +321,11 @@ def provider_get_requests():
                 'patient_id': req.patient_id,
                 'patient_name': req.patient.full_name if req.patient else "Client",
                 'service_name': req.service_name,
+                'service_tags': req.service_tags or '',
                 'appointment_start_time': req.appointment_start_time.isoformat(),
                 'lat': f_lat,          # розмиті координати для карти
                 'lng': f_lng,
+                'district': req.district or '',  # тільки район, не точна адреса
                 'distance_km': distance_km,  # відстань для рішення
                 'notes': req.notes,
                 'payment': req.payment
@@ -491,7 +496,7 @@ def provider_get_accepted_requests():
             req = offer.appointment_requests  # backref on ClientSelfCreatedAppointment
             if not req:
                 continue
-            # Show address only when client accepted this provider's offer
+            # Show full address only when client accepted this provider's offer
             show_address = (offer.status == 'accepted')
             result.append({
                 'id': req.id,
@@ -500,12 +505,14 @@ def provider_get_accepted_requests():
                 'patient_id': req.patient_id,
                 'patient_name': req.patient.full_name if req.patient else '',
                 'service_name': req.service_name,
+                'service_tags': req.service_tags or '',
                 'status': req.status,
                 'appointment_start_time': req.appointment_start_time.isoformat(),
                 'created_appo': req.created_appo.isoformat(),
                 'latitude': req.latitude if show_address else None,
                 'longitude': req.longitude if show_address else None,
                 'address': req.address if show_address else None,
+                'district': req.district or '',  # district always visible
                 'notes': req.notes,
                 'payment': offer.proposed_price,
                 'counter_price': offer.counter_price,

@@ -14,7 +14,7 @@ Importing from here works exactly as before:
 """
 from app.extensions import db
 from .user        import User, InvitationToken
-from .service     import Service, ProviderService, CancellationPolicy
+from .service     import Service, ProviderService, CancellationPolicy, SERVICE_TAGS
 from .appointment import Appointment, ClientSelfCreatedAppointment, RequestOfferResponse, ServiceHistory
 from .payment     import Payment
 from .messaging   import Message

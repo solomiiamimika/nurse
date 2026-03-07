@@ -172,9 +172,17 @@
                 <strong class="text-muted small">{{ _("DISTANCE") }}</strong>
                 <span class="fw-bold text-primary" id="detailDistance">{{ _("Calculating...") }}</span>
             </div>
-            <div class="mb-2 d-flex justify-content-between border-bottom pb-2" id="detailAddressRow">
-                <strong class="text-muted small">{{ _("ADDRESS") }}</strong>
+            <div class="mb-2 d-flex justify-content-between border-bottom pb-2" id="detailDistrictRow">
+                <strong class="text-muted small">{{ _("AREA") }}</strong>
+                <span id="detailDistrict" class="fw-bold text-end" style="max-width:65%"></span>
+            </div>
+            <div class="mb-2 d-flex justify-content-between border-bottom pb-2" id="detailAddressRow" style="display:none;">
+                <strong class="text-muted small">{{ _("ADDRESS") }} <i class="fas fa-lock-open ms-1" style="font-size:10px;"></i></strong>
                 <span id="detailAddress" class="fw-bold text-end" style="max-width:65%"></span>
+            </div>
+            <div class="mb-2" id="detailTagsRow" style="display:none;">
+                <strong class="text-muted small d-block mb-1">{{ _("TAGS") }}</strong>
+                <div id="detailTags"></div>
             </div>
             <div class="mb-0">
                 <strong class="text-muted small d-block">{{ _("NOTES") }}</strong>
@@ -736,6 +744,17 @@
       document.getElementById('detailPayment').textContent = item.payment || '0';
       document.getElementById('detailDistance').textContent = item.offer_status === 'accepted' ? i18n.calculating : '—';
 
+      // DISTRICT: always visible
+      const districtRow2 = document.getElementById('detailDistrictRow');
+      const districtEl2 = document.getElementById('detailDistrict');
+      if (item.district) {
+          districtRow2.style.display = '';
+          districtEl2.textContent = item.district;
+      } else {
+          districtRow2.style.display = 'none';
+      }
+
+      // ADDRESS: only after acceptance (Airbnb-style)
       const addressRow = document.getElementById('detailAddressRow');
       const addressEl = document.getElementById('detailAddress');
       if (item.offer_status === 'accepted' && item.address) {
@@ -743,6 +762,19 @@
           addressEl.textContent = item.address;
       } else {
           addressRow.style.display = 'none';
+      }
+
+      // TAGS
+      const tagsRow2 = document.getElementById('detailTagsRow');
+      const tagsEl2 = document.getElementById('detailTags');
+      const tags2 = item.service_tags || '';
+      if (tags2) {
+          tagsRow2.style.display = '';
+          tagsEl2.innerHTML = tags2.split(',').filter(t => t.trim()).map(t =>
+              `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary me-1" style="font-size:11px;">${t.trim()}</span>`
+          ).join('');
+      } else {
+          tagsRow2.style.display = 'none';
       }
 
       const hasClientCounter = item.counter_price != null && item.last_action_by === 'client';
@@ -812,7 +844,9 @@
                   </div>
                   <div class="small text-muted mb-1"><i class="fas fa-user me-1"></i> ${(item.client_id || item.patient_id) ? `<a href="/provider/client/${item.client_id || item.patient_id}" onclick="event.stopPropagation()" class="text-primary text-decoration-none fw-semibold">${item.patient_name || item.client_name || 'Client'}</a>` : (item.patient_name || item.client_name || 'Client')}</div>
                   <div class="small text-muted mb-1"><i class="fas fa-clock me-1"></i> ${time}</div>
-                  ${item.distance_km != null ? `<div class="small text-primary mb-2"><i class="fas fa-map-marker-alt me-1"></i> ${item.distance_km} km</div>` : ''}
+                  ${item.district ? `<div class="small text-muted mb-1"><i class="fas fa-map-pin me-1"></i> ${item.district}</div>` : ''}
+                  ${item.distance_km != null ? `<div class="small text-primary mb-1"><i class="fas fa-map-marker-alt me-1"></i> ${item.distance_km} km</div>` : ''}
+                  ${(item.service_tags || '').split(',').filter(t=>t.trim()).length > 0 ? `<div class="mb-2">${item.service_tags.split(',').filter(t=>t.trim()).map(t=>'<span class="badge bg-primary bg-opacity-10 text-primary me-1" style="font-size:10px;">'+t.trim()+'</span>').join('')}</div>` : ''}
                   <button class="view-request-btn ${btnClass}">${btnText}</button>
               </div>`;
       });
@@ -858,14 +892,39 @@
       document.getElementById('detailPayment').textContent = item.payment || item.price || '0';
       document.getElementById('detailDistance').textContent = i18n.calculating;
 
-      // ADDRESS: show only after accepting (appointments mode), hide for pending requests
+      // DISTRICT: always visible if available
+      const districtRow = document.getElementById('detailDistrictRow');
+      const districtEl = document.getElementById('detailDistrict');
+      if (item.district) {
+          districtRow.style.display = '';
+          districtEl.textContent = item.district;
+      } else {
+          districtRow.style.display = 'none';
+      }
+
+      // ADDRESS: show only for appointments mode (after acceptance), hide for pending requests
       const addressRow = document.getElementById('detailAddressRow');
       const addressEl = document.getElementById('detailAddress');
       if (currentMode === 'requests') {
           addressRow.style.display = 'none';
-      } else {
+      } else if (item.address) {
           addressRow.style.display = '';
-          addressEl.textContent = item.address || i18n.addressNotProvided;
+          addressEl.textContent = item.address;
+      } else {
+          addressRow.style.display = 'none';
+      }
+
+      // TAGS: show if present
+      const tagsRow = document.getElementById('detailTagsRow');
+      const tagsEl = document.getElementById('detailTags');
+      const tags = item.service_tags || '';
+      if (tags) {
+          tagsRow.style.display = '';
+          tagsEl.innerHTML = tags.split(',').filter(t => t.trim()).map(t =>
+              `<span class="badge bg-primary bg-opacity-10 text-primary border border-primary me-1" style="font-size:11px;">${t.trim()}</span>`
+          ).join('');
+      } else {
+          tagsRow.style.display = 'none';
       }
 
       // --- DYNAMIC BUTTONS ---

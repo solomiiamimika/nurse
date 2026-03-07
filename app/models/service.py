@@ -37,8 +37,19 @@ class ProviderService(db.Model):
     duration     = Column(Integer, nullable=False)   # minutes
     description  = Column(Text)
     is_available = Column(Boolean, default=True)
+    tags         = Column(String(500), nullable=True)  # comma-separated tags
 
     appointments = relationship('Appointment', backref='provider_service', lazy=True)
+
+
+# Predefined service tags
+SERVICE_TAGS = [
+    'Injection', 'IV Drip', 'Wound Care', 'Blood Test',
+    'Physiotherapy', 'Massage', 'Elderly Care', 'Post-Surgery',
+    'Consultation', 'Home Visit', 'Emergency', 'Vaccination',
+    'Bandaging', 'Catheter', 'Vital Signs', 'Medication',
+    'Rehabilitation', 'Palliative Care', 'Pediatric', 'Prenatal',
+]
 
 
 class CancellationPolicy(db.Model):

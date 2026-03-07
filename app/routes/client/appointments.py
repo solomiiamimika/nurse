@@ -323,6 +323,9 @@ def client_self_create_appointment():
         if not data.get('address', '').strip():
             return jsonify({'success': False, 'error': 'Address is required'}), 400
 
+        if not data.get('district', '').strip():
+            return jsonify({'success': False, 'error': 'District / neighborhood is required'}), 400
+
         appointment_start_time = datetime.fromisoformat(data['appointment_start_time'].replace('Z', '+00:00'))
 
         end_time = data.get('end_time')
@@ -338,6 +341,8 @@ def client_self_create_appointment():
             latitude=data.get('latitude') or 0,
             longitude=data.get('longitude') or 0,
             address=data['address'].strip(),
+            district=data['district'].strip(),
+            service_tags=data.get('service_tags', ''),
             status='pending',
             notes=data.get('notes', ''),
             service_name=data.get('service_name', ''),

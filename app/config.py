@@ -33,8 +33,9 @@ class Config:
     MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER')
 
     # ── Stripe payments ────────────────────────────────────────────
-    STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY')
-    STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+    STRIPE_PUBLIC_KEY     = os.getenv('STRIPE_PUBLIC_KEY')
+    STRIPE_SECRET_KEY     = os.getenv('STRIPE_SECRET_KEY')
+    STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
 
     # ── Telegram notifications ───────────────────────────────────────
     TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')

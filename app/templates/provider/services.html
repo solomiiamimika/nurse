@@ -45,7 +45,18 @@
           <tbody>
             {% for service in my_services %}
             <tr>
-              <td class="fw-bold text-dark">{{ service.name or service.base_service.name }}</td>
+              <td>
+                <div class="fw-bold text-dark">{{ service.name or service.base_service.name }}</div>
+                {% if service.tags %}
+                <div class="mt-1">
+                  {% for tag in service.tags.split(',') %}
+                    {% if tag.strip() %}
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary" style="font-size:10px;font-weight:500;">{{ tag.strip() }}</span>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </td>
               <td class="text-muted small">{{ service.description or (service.base_service.description if service.base_service else '') }}</td>
               <td>{{ service.price }} €</td>
               <td>{{ service.duration }} {{ _("min") }}</td>
@@ -67,6 +78,7 @@
                     data-description="{{ service.description or '' }}"
                     data-available="{{ service.is_available }}"
                     data-name="{{ service.name or '' }}"
+                    data-tags="{{ service.tags or '' }}"
                     data-custom="{{ 'true' if not service.service_id else 'false' }}"
                     title="{{ _('Edit') }}"
                   >
@@ -139,6 +151,16 @@
           <div class="mb-3">
             <label for="description" class="form-label fw-bold small text-muted">{{ _("DESCRIPTION") }}</label>
             <textarea class="form-control" id="description" name="description" rows="3" placeholder="{{ _('Optional details...') }}"></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-muted">{{ _("TAGS") }}</label>
+            <input type="hidden" name="tags" id="tagsInput" />
+            <div id="tagsPicker" class="d-flex flex-wrap gap-1">
+              {% for tag in service_tags %}
+              <span class="badge tag-pill" data-tag="{{ tag }}" style="cursor:pointer;font-size:12px;padding:6px 12px;border-radius:20px;border:1px solid #d1d5db;background:#f9fafb;color:#4b5563;transition:all 0.2s;">{{ tag }}</span>
+              {% endfor %}
+            </div>
           </div>
 
           <div class="form-check form-switch">
@@ -270,6 +292,44 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  // --- Tags picker ---
+  let selectedTags = new Set();
+  const tagsInput = document.getElementById('tagsInput');
+
+  document.querySelectorAll('.tag-pill').forEach(pill => {
+    pill.addEventListener('click', function() {
+      const tag = this.dataset.tag;
+      if (selectedTags.has(tag)) {
+        selectedTags.delete(tag);
+        this.style.background = '#f9fafb';
+        this.style.color = '#4b5563';
+        this.style.borderColor = '#d1d5db';
+      } else {
+        selectedTags.add(tag);
+        this.style.background = '#3b82f6';
+        this.style.color = '#fff';
+        this.style.borderColor = '#3b82f6';
+      }
+      tagsInput.value = Array.from(selectedTags).join(',');
+    });
+  });
+
+  function setTagsFromString(tagsStr) {
+    selectedTags.clear();
+    document.querySelectorAll('.tag-pill').forEach(p => {
+      p.style.background = '#f9fafb'; p.style.color = '#4b5563'; p.style.borderColor = '#d1d5db';
+    });
+    if (!tagsStr) { tagsInput.value = ''; return; }
+    tagsStr.split(',').forEach(t => {
+      t = t.trim();
+      if (!t) return;
+      selectedTags.add(t);
+      const pill = document.querySelector(`.tag-pill[data-tag="${t}"]`);
+      if (pill) { pill.style.background = '#3b82f6'; pill.style.color = '#fff'; pill.style.borderColor = '#3b82f6'; }
+    });
+    tagsInput.value = Array.from(selectedTags).join(',');
+  }
+
   // Add Service button
   document.getElementById('addServiceBtn').addEventListener('click', function () {
     isEditing = false;
@@ -284,6 +344,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById('duration').value = '';
     document.getElementById('description').value = '';
     document.getElementById('is_available').checked = true;
+    setTagsFromString('');
     new bootstrap.Modal(document.getElementById('serviceModal')).show();
   });
 
@@ -307,6 +368,7 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById('duration').value = this.dataset.duration;
       document.getElementById('description').value = this.dataset.description;
       document.getElementById('is_available').checked = this.dataset.available === 'True';
+      setTagsFromString(this.dataset.tags || '');
       dropdown.style.display = 'none';
 
       new bootstrap.Modal(document.getElementById('serviceModal')).show();

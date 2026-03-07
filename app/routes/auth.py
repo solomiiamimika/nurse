@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, request, abort, Blueprint, session, jsonify
+from flask import render_template, redirect, url_for, flash, request, abort, Blueprint, session, jsonify, current_app
 from flask_login import login_user, logout_user, current_user,login_required
 from app.extensions import db, bcrypt
 from app.models import User,Review,Appointment,Message,Payment,ClientSelfCreatedAppointment,InvitationToken
@@ -203,7 +203,7 @@ def login():
 
         user = User.query.filter((User.email == username) | (User.user_name == username)).first()
         
-        if user and (user.verify_password(password) or user.google_id):
+        if user and user.verify_password(password):
             if user.is_active is False:
                 flash('Your account has been deactivated. Contact support.', 'danger')
                 return redirect(url_for('auth.login'))
@@ -259,7 +259,7 @@ def google_login():
                 user_name=username,
                 role=role, 
                 online=True,
-                password_hash = password, #bcrypt.generate_password_hash(password).decode('utf-8')
+                password_hash = bcrypt.generate_password_hash(password).decode('utf-8'),
                 full_name=google_data.get("name", "")
             )
             db.session.add(user)
@@ -296,7 +296,7 @@ def delete_account():
             try:
                 delete_from_supabase(current_user.photo, 'profile_pictures')
             except Exception as e:
-                print(f"Supabase photo error: {e}")
+                    pass  # Supabase photo cleanup failed
 
         # 2. Delete Supabase Files (Documents)
         if current_user.documents:
@@ -305,7 +305,7 @@ def delete_account():
                 for i in documents:
                     delete_from_supabase(i, 'documents')
             except Exception as e:
-                print(f"Supabase doc error: {e}")
+                    pass  # Supabase doc cleanup failed
 
         # 3. MANUALLY DELETE RELATED DATABASE RECORDS
         # We use .delete() directly on the query
@@ -345,13 +345,13 @@ def delete_account():
         
     except Exception as e:
         db.session.rollback()
-        print(f"Delete Error: {e}")
+        current_app.logger.error(f"Delete Error: {e}")
         flash(f'Error deleting account: {str(e)}', 'danger')
         return redirect(url_for('client.profile'))
     
 @auth_bp.route('/set_language/<lang_code>')    
 def set_language(lang_code):
-        print(f"Setting language to: {lang_code}")
+        # set language
         session['lang'] = lang_code
         return redirect(request.referrer or url_for('main.index'))
 

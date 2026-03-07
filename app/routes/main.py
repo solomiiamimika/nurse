@@ -41,7 +41,7 @@ def search_providers_by_rating():
             'user_name': n.user_name,
             'full_name': n.full_name,
             'average_rating': avg,
-            'reviews_count': n.reviews_count
+            'reviews_count': n.review_count
         })
 
     # Sort by rating (best first)

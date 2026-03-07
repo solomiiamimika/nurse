@@ -1,7 +1,6 @@
 from . import client_bp
 from flask import render_template, redirect, url_for, flash, request, abort, jsonify, current_app, Blueprint
-from sqlalchemy.sql.sqltypes import DateTime
-from app.extensions import db, bcrypt, socketio, db, mail
+from app.extensions import db, bcrypt, socketio, mail
 from app.models import Appointment, ProviderService, User, Message, Payment, ClientSelfCreatedAppointment, Review, RequestOfferResponse, ServiceHistory, CancellationPolicy
 from app.utils import fuzz_coordinates, validate_coordinates
 from app.supabase_storage import get_file_url, delete_from_supabase, upload_to_supabase, buckets
@@ -11,15 +10,10 @@ from werkzeug.utils import secure_filename
 import json
 from dotenv import load_dotenv
 import stripe
-import supabase
 import base64
 from flask_mail import Message as MailMessage
 from threading import Thread
-from flask import current_app, request
 from flask_socketio import join_room, leave_room, emit
-from app.models import Message, db, User
-from datetime import datetime
-from app.supabase_storage import upload_to_supabase, supabase
 from flask_cors import cross_origin
 from flask_login import login_required, current_user
 load_dotenv()
@@ -167,7 +161,7 @@ def working_hours():
     provider_id = request.args.get('provider_id')
     service_id = request.args.get('service_id')
     date_work = request.args.get('date')
-    if not service_id or service_id or provider_id:
+    if not service_id or not date_work or not provider_id:
         return jsonify({'error': 'data is not here'}), 400
 
     service = ProviderService.query.get(service_id)
@@ -176,6 +170,13 @@ def working_hours():
     end_working_hours = 17
 
     appointments_active = Appointment.query.filter(Appointment.provider_id == provider_id, db.func.date(Appointment.appointment_time) == date).all()
+
+    return jsonify({
+        'start': start_working_hours,
+        'end': end_working_hours,
+        'duration': service.duration if service else 60,
+        'busy': [{'start': a.appointment_time.isoformat(), 'end': a.end_time.isoformat()} for a in appointments_active if a.end_time]
+    })
 
 
 @client_bp.route('/get_available_times')
