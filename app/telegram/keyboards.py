@@ -87,3 +87,15 @@ def notification_toggle(currently_on):
             [{'text': label, 'callback_data': 'toggle_notifications'}],
         ]
     }
+
+
+def counter_offer_response(offer_id):
+    """Buttons for provider to respond to a client counter-offer."""
+    return {
+        'inline_keyboard': [
+            [
+                {'text': 'Accept Counter', 'callback_data': f'counter_accept_{offer_id}'},
+                {'text': 'Revise Price', 'callback_data': f'counter_revise_{offer_id}'},
+            ]
+        ]
+    }

@@ -220,6 +220,87 @@ def handle_callback_query(cq, bot_token):
             logger.exception("Error starting offer flow for telegram_id=%s", telegram_id)
             send_message(bot_token, chat_id, "Something went wrong. Please try again.")
 
+    # Accept counter-offer
+    if data.startswith('counter_accept_'):
+        try:
+            offer_id = int(data.replace('counter_accept_', ''))
+        except ValueError:
+            logger.warning("Invalid counter_accept callback data: %s", data)
+            return
+        try:
+            user = User.query.filter_by(telegram_id=telegram_id).first()
+            if not user:
+                send_message(bot_token, chat_id, "Please /register or /link first.")
+                return
+
+            offer = RequestOfferResponse.query.filter_by(
+                id=offer_id, provider_id=user.id
+            ).first()
+            if not offer or offer.status != 'pending':
+                send_message(bot_token, chat_id, "Offer not found or already processed.")
+                return
+            if offer.counter_price is None:
+                send_message(bot_token, chat_id, "No counter-offer to accept.")
+                return
+
+            offer.proposed_price = offer.counter_price
+            offer.counter_price = None
+            offer.last_action_by = 'provider'
+            db.session.commit()
+
+            req = offer.appointment_requests
+            svc = req.service_name if req else 'Service'
+            send_message(bot_token, chat_id,
+                         f"Counter accepted! Price set to <b>{offer.proposed_price:.2f} EUR</b> for <b>{svc}</b>.\n"
+                         f"Waiting for client to finalize.")
+
+            # Notify client that provider accepted their counter
+            try:
+                from .notifications import send_user_telegram
+                if req:
+                    send_user_telegram(req.patient_id,
+                                       f"<b>Your counter-offer was accepted!</b>\n\n"
+                                       f"Service: {svc}\n"
+                                       f"Agreed price: {offer.proposed_price:.2f} EUR")
+            except Exception:
+                logger.exception("Failed to notify client about accepted counter")
+
+        except Exception:
+            db.session.rollback()
+            logger.exception("Error accepting counter for telegram_id=%s", telegram_id)
+            send_message(bot_token, chat_id, "Something went wrong. Please try again.")
+
+    # Revise price (counter to counter-offer)
+    if data.startswith('counter_revise_'):
+        try:
+            offer_id = int(data.replace('counter_revise_', ''))
+        except ValueError:
+            logger.warning("Invalid counter_revise callback data: %s", data)
+            return
+        try:
+            user = User.query.filter_by(telegram_id=telegram_id).first()
+            if not user:
+                send_message(bot_token, chat_id, "Please /register or /link first.")
+                return
+
+            offer = RequestOfferResponse.query.filter_by(
+                id=offer_id, provider_id=user.id
+            ).first()
+            if not offer or offer.status != 'pending':
+                send_message(bot_token, chat_id, "Offer not found or already processed.")
+                return
+
+            conversation_manager.start(telegram_id, 'revise_offer', {'offer_id': offer_id})
+            req = offer.appointment_requests
+            svc = req.service_name if req else 'Service'
+            send_message(bot_token, chat_id,
+                         f"Revising price for <b>{svc}</b>\n"
+                         f"Client counter: {(offer.counter_price or 0):.2f} EUR\n\n"
+                         f"Enter your new price:")
+        except Exception:
+            logger.exception("Error starting revise flow for telegram_id=%s", telegram_id)
+            send_message(bot_token, chat_id, "Something went wrong. Please try again.")
+
 
 # ── Command handlers ───────────────────────────────────────────────
 
@@ -429,11 +510,12 @@ def handle_open_requests(telegram_id, chat_id, bot_token, from_data):
         for r in reqs:
             dt = r.appointment_start_time.strftime('%d.%m.%Y %H:%M')
             budget = f"{(r.payment or 0):.2f} EUR" if r.payment else 'Open'
+            area = r.district or '—'
             text = (
                 f"<b>{r.service_name or 'Request'}</b>\n"
                 f"Date: {dt}\n"
                 f"Budget: {budget}\n"
-                f"Address: {r.address or '—'}"
+                f"Area: {area}"
             )
             send_message(bot_token, chat_id, text, keyboards.offer_button(r.id))
     except Exception:

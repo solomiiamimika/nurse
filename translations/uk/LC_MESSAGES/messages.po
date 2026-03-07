@@ -420,8 +420,14 @@ msgid "Sign up as Provider"
 msgstr "Зареєструватися як виконавець"
 
 #: app/templates/auth/register.html:281
+msgid "or sign up with Google"
+msgstr "або через Google"
+
 msgid "or sign up with Telegram"
 msgstr "або через Telegram"
+
+msgid "I understand that the platform is not responsible for any damages caused by a provider to a client or vice versa. All interactions are at my own risk."
+msgstr "Я розумію, що платформа не несе відповідальності за будь-яку шкоду, заподіяну виконавцем клієнту або навпаки. Усі взаємодії відбуваються на мій власний ризик."
 
 #: app/templates/auth/register.html:292
 msgid "Already have an account?"
@@ -2623,6 +2629,12 @@ msgstr "ПІДТВЕРДИТИ НОВИЙ ПАРОЛЬ"
 #: app/templates/shared/_change_password_accordion.html:39
 msgid "Update Password"
 msgstr "Оновити пароль"
+
+msgid "Set Password"
+msgstr "Встановити пароль"
+
+msgid "Set a password to log in with your username and password."
+msgstr "Встановіть пароль, щоб входити за логіном і паролем."
 
 #: app/templates/shared/_documents_grid.html:8
 msgid "Your Documents"

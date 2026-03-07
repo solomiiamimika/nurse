@@ -361,20 +361,23 @@ def change_password():
     current_pw = request.form.get('current_password', '')
     new_pw = request.form.get('new_password', '')
     confirm = request.form.get('confirm_password', '')
+    set_new = request.form.get('set_new')  # "1" when user has no bcrypt password yet
 
-    # Google-only users have a raw token as password_hash (not a bcrypt hash)
-    is_google_only = bool(current_user.google_id) and not (
-        current_user.password_hash and current_user.password_hash.startswith('$2')
-    )
+    has_bcrypt = current_user.password_hash and current_user.password_hash.startswith('$2')
 
-    if is_google_only:
-        flash('You signed in with Google. Password change is not available.', 'danger')
-    elif not current_user.verify_password(current_pw):
-        flash('Current password is incorrect.', 'danger')
-    elif new_pw != confirm:
+    if new_pw != confirm:
         flash('New passwords do not match.', 'danger')
     elif len(new_pw) < 6:
         flash('Password must be at least 6 characters.', 'danger')
+    elif set_new and not has_bcrypt:
+        # User registered via Telegram/Google — setting password for the first time
+        current_user.password = new_pw
+        db.session.commit()
+        flash('Password set successfully! You can now log in with your username and password.', 'success')
+    elif not has_bcrypt:
+        flash('Use the "Set Password" form to create your password.', 'danger')
+    elif not current_user.verify_password(current_pw):
+        flash('Current password is incorrect.', 'danger')
     else:
         current_user.password = new_pw
         db.session.commit()

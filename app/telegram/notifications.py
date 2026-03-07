@@ -101,7 +101,8 @@ def notify_offer_rejected(offer):
 
 
 def notify_counter_offer(offer):
-    """Provider receives: client sent a counter-offer."""
+    """Provider receives: client sent a counter-offer (with inline buttons)."""
+    from . import keyboards
     req = offer.appointment_requests
     svc = req.service_name if req else 'Service'
     msg = (
@@ -109,9 +110,10 @@ def notify_counter_offer(offer):
         f"Request: {svc}\n"
         f"Your price: {offer.proposed_price:.2f} EUR\n"
         f"Client counter: {offer.counter_price:.2f} EUR\n\n"
-        f"Open the app to respond."
+        f"Accept or revise below:"
     )
-    send_user_telegram(offer.provider_id, msg)
+    send_user_telegram(offer.provider_id, msg,
+                       reply_markup=keyboards.counter_offer_response(offer.id))
 
 
 def notify_status_change(user_id, service_name, old_status, new_status):

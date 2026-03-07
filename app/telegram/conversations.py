@@ -97,6 +97,8 @@ class ConversationManager:
             _process_create_request(self, telegram_id, text, bot_token, chat_id, session)
         elif flow == 'send_offer':
             _process_send_offer(self, telegram_id, text, bot_token, chat_id, session)
+        elif flow == 'revise_offer':
+            _process_revise_offer(self, telegram_id, text, bot_token, chat_id, session)
 
         # Save if still active (flow handler may have called end())
         if self.is_active(telegram_id):
@@ -454,6 +456,92 @@ def _process_send_offer(cm, telegram_id, text, bot_token, chat_id, session):
 
     except Exception:
         logger.exception("Error in send_offer flow step=%s for telegram_id=%s",
+                         session.get('step'), telegram_id)
+        cm.end(telegram_id)
+        send_message(bot_token, chat_id,
+                     "Something went wrong. Please try again.")
+
+
+# ── Revise offer flow (provider responds to counter-offer) ────────
+
+def _process_revise_offer(cm, telegram_id, text, bot_token, chat_id, session):
+    from .handlers import send_message
+    from . import keyboards
+
+    try:
+        step = session['step']
+
+        if step == 0:
+            try:
+                price = float(text.strip())
+                if price < 0:
+                    send_message(bot_token, chat_id, "Price can't be negative:")
+                    return
+                session['data']['price'] = price
+            except ValueError:
+                send_message(bot_token, chat_id, "Enter a price (number):")
+                return
+
+            offer_id = session['data']['offer_id']
+            offer = RequestOfferResponse.query.get(offer_id)
+            req = offer.appointment_requests if offer else None
+            svc = req.service_name if req else 'Service'
+
+            session['step'] = 1
+            send_message(bot_token, chat_id,
+                         f"Revise price to <b>{price:.2f} EUR</b> for <b>{svc}</b>?",
+                         keyboards.confirm_cancel())
+            return
+
+        if step == 1:
+            if text != '__confirm__':
+                send_message(bot_token, chat_id, "Press Confirm or Cancel.",
+                             keyboards.confirm_cancel())
+                return
+
+            user = User.query.filter_by(telegram_id=telegram_id).first()
+            if not user:
+                cm.end(telegram_id)
+                send_message(bot_token, chat_id, "Error: account not found.")
+                return
+
+            offer_id = session['data']['offer_id']
+            price = session['data']['price']
+            offer = RequestOfferResponse.query.filter_by(
+                id=offer_id, provider_id=user.id
+            ).first()
+
+            if not offer or offer.status != 'pending':
+                cm.end(telegram_id)
+                send_message(bot_token, chat_id, "This offer is no longer available.")
+                return
+
+            offer.proposed_price = price
+            offer.counter_price = None
+            offer.last_action_by = 'provider'
+            db.session.commit()
+            cm.end(telegram_id)
+
+            req = offer.appointment_requests
+            svc = req.service_name if req else 'Service'
+            send_message(bot_token, chat_id,
+                         f"Price revised to <b>{price:.2f} EUR</b> for <b>{svc}</b>!\n"
+                         f"Waiting for client response.")
+
+            # Notify client about revised price
+            try:
+                from .notifications import send_user_telegram
+                if req:
+                    send_user_telegram(req.patient_id,
+                                       f"<b>Provider revised their price</b>\n\n"
+                                       f"Service: {svc}\n"
+                                       f"New price: {price:.2f} EUR\n\n"
+                                       f"Open the app to accept or counter.")
+            except Exception:
+                logger.exception("Failed to notify client about revised price")
+
+    except Exception:
+        logger.exception("Error in revise_offer flow step=%s for telegram_id=%s",
                          session.get('step'), telegram_id)
         cm.end(telegram_id)
         send_message(bot_token, chat_id,

@@ -206,6 +206,16 @@
       <a href="{{ url_for('main.home') }}" style="position:fixed;top:20px;left:20px;z-index:100;display:inline-flex;align-items:center;gap:6px;background:white;border:1px solid #e5e7eb;border-radius:8px;padding:8px 14px;font-size:0.85rem;font-weight:600;color:#374151;text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
           <i class="fas fa-arrow-left"></i> {{ _("Home") }}
       </a>
+      <div style="position:fixed;top:20px;right:20px;z-index:100;display:inline-flex;align-items:center;gap:6px;background:white;border:1px solid #e5e7eb;border-radius:8px;padding:6px 12px;font-size:0.8rem;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+        <i class="fas fa-globe" style="color:#9ca3af;"></i>
+        <a href="{{ url_for('auth.set_language', lang_code='en') }}" style="color:{{ '#3f4a36' if session.get('lang','en')=='en' else '#9ca3af' }};text-decoration:none;">EN</a>
+        <span style="color:#ddd;">|</span>
+        <a href="{{ url_for('auth.set_language', lang_code='uk') }}" style="color:{{ '#3f4a36' if session.get('lang')=='uk' else '#9ca3af' }};text-decoration:none;">UA</a>
+        <span style="color:#ddd;">|</span>
+        <a href="{{ url_for('auth.set_language', lang_code='de') }}" style="color:{{ '#3f4a36' if session.get('lang')=='de' else '#9ca3af' }};text-decoration:none;">DE</a>
+        <span style="color:#ddd;">|</span>
+        <a href="{{ url_for('auth.set_language', lang_code='pl') }}" style="color:{{ '#3f4a36' if session.get('lang')=='pl' else '#9ca3af' }};text-decoration:none;">PL</a>
+      </div>
       <div class="auth-card">
         <h2>{{ _("Join Human") }}</h2>
         <p class="subtitle">{{ _("Create an account to book services or find work.") }}</p>
@@ -260,7 +270,7 @@
           <div class="form-check mb-2 full-width" style="margin-top:12px;">
             <input class="form-check-input" type="checkbox" name="terms_accepted" id="termsCheck" required>
             <label class="form-check-label small text-muted" for="termsCheck">
-              I understand that the platform is not responsible for any damages caused by a provider to a client or vice versa. All interactions are at my own risk.
+              {{ _("I understand that the platform is not responsible for any damages caused by a provider to a client or vice versa. All interactions are at my own risk.") }}
             </label>
           </div>
 
@@ -269,7 +279,7 @@
 
         <div class="divider"><span>{{ _("or") }}</span></div>
 
-        <p>sign up with Google </p>
+        <p class="small text-muted mb-2">{{ _("or sign up with Google") }}</p>
         <div>
             <a href="{{ url_for('auth.google_role', role='client') }}" class="google-btn" style="margin-bottom: 10px;">
                 <i class="fab fa-google"></i> {{ _("Sign up as Client") }} </a>

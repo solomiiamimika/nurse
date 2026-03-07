@@ -170,6 +170,16 @@
       <a href="{{ url_for('main.home') }}" style="position:fixed;top:20px;left:20px;z-index:100;display:inline-flex;align-items:center;gap:6px;background:white;border:1px solid #e5e7eb;border-radius:8px;padding:8px 14px;font-size:0.85rem;font-weight:600;color:#374151;text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
           <i class="fas fa-arrow-left"></i> {{ _("Home") }}
       </a>
+      <div style="position:fixed;top:20px;right:20px;z-index:100;display:inline-flex;align-items:center;gap:6px;background:white;border:1px solid #e5e7eb;border-radius:8px;padding:6px 12px;font-size:0.8rem;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+        <i class="fas fa-globe" style="color:#9ca3af;"></i>
+        <a href="{{ url_for('auth.set_language', lang_code='en') }}" style="color:{{ '#3f4a36' if session.get('lang','en')=='en' else '#9ca3af' }};text-decoration:none;">EN</a>
+        <span style="color:#ddd;">|</span>
+        <a href="{{ url_for('auth.set_language', lang_code='uk') }}" style="color:{{ '#3f4a36' if session.get('lang')=='uk' else '#9ca3af' }};text-decoration:none;">UA</a>
+        <span style="color:#ddd;">|</span>
+        <a href="{{ url_for('auth.set_language', lang_code='de') }}" style="color:{{ '#3f4a36' if session.get('lang')=='de' else '#9ca3af' }};text-decoration:none;">DE</a>
+        <span style="color:#ddd;">|</span>
+        <a href="{{ url_for('auth.set_language', lang_code='pl') }}" style="color:{{ '#3f4a36' if session.get('lang')=='pl' else '#9ca3af' }};text-decoration:none;">PL</a>
+      </div>
       <div class="auth-card">
         <h1>{{ _("Welcome Back") }}</h1>
         <p class="subtitle">{{ _("Enter your details to continue.") }}</p>
@@ -210,8 +220,17 @@
           <button type="submit" class="btn-submit">{{ _("Login") }}</button>
         </form>
 
-        {% if telegram_bot_name %}
+        {% if google_oauth_enabled or telegram_bot_name %}
         <div class="divider">{{ _("or") }}</div>
+        {% endif %}
+
+        {% if google_oauth_enabled %}
+        <a href="{{ url_for('google.login') }}" class="btn-secondary-custom" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;">
+          <i class="fab fa-google"></i> {{ _("Sign in with Google") }}
+        </a>
+        {% endif %}
+
+        {% if telegram_bot_name %}
         <div class="text-center mb-3">
           <script async src="https://telegram.org/js/telegram-widget.js?22"
                   data-telegram-login="{{ telegram_bot_name }}"

@@ -419,8 +419,14 @@ msgid "Sign up as Provider"
 msgstr "Als Anbieter registrieren"
 
 #: app/templates/auth/register.html:281
+msgid "or sign up with Google"
+msgstr "oder über Google"
+
 msgid "or sign up with Telegram"
 msgstr "oder über Telegram"
+
+msgid "I understand that the platform is not responsible for any damages caused by a provider to a client or vice versa. All interactions are at my own risk."
+msgstr "Ich verstehe, dass die Plattform nicht für Schäden haftet, die ein Anbieter einem Kunden oder umgekehrt zufügt. Alle Interaktionen erfolgen auf eigenes Risiko."
 
 #: app/templates/auth/register.html:292
 msgid "Already have an account?"
@@ -2626,6 +2632,12 @@ msgstr "NEUES PASSWORT BESTÄTIGEN"
 #: app/templates/shared/_change_password_accordion.html:39
 msgid "Update Password"
 msgstr "Passwort aktualisieren"
+
+msgid "Set Password"
+msgstr "Passwort festlegen"
+
+msgid "Set a password to log in with your username and password."
+msgstr "Lege ein Passwort fest, um dich mit Benutzername und Passwort anzumelden."
 
 #: app/templates/shared/_documents_grid.html:8
 msgid "Your Documents"

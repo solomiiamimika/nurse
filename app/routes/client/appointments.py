@@ -39,22 +39,15 @@ os.makedirs(PROFILE_PICTURES_FOLDER, exist_ok=True)
 def get_appointment_color(status):
     colors = {
         'scheduled': 'gray',
-        'confirmed': 'blue',
-        'completed': 'green',
-        'cancelled': 'red'
-    }
-    return colors.get(status, 'gray')
-
-
-def calendar_appointment_color(Status):
-    colors_dictionary = {
-        'scheduled': 'gray',
-        'request_sended': 'yellow',
+        'request_sended': '#f59e0b',
+        'confirmed': '#f59e0b',
+        'confirmed_paid': 'green',
         'provider_confirmed': 'green',
+        'work_submitted': '#0ea5e9',
         'completed': 'blue',
         'cancelled': 'red'
     }
-    return colors_dictionary.get(Status)
+    return colors.get(status, 'gray')
 
 
 @client_bp.route('/appointments')
