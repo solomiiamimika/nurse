@@ -135,3 +135,81 @@ def notify_appointment_reminder(user_id, service_name, date_str, time_str):
         f"Don't forget to prepare!"
     )
     send_user_telegram(user_id, msg)
+
+
+def notify_provider_arrived(client_id, service_name):
+    """Client receives: provider has arrived and started work."""
+    msg = (
+        f"<b>Provider has arrived!</b>\n\n"
+        f"Service: {service_name}\n"
+        f"Work is now in progress."
+    )
+    send_user_telegram(client_id, msg)
+
+
+def notify_provider_late(client_id, service_name, minutes):
+    """Client receives: provider is running late."""
+    msg = (
+        f"<b>Provider is running late</b>\n\n"
+        f"Service: {service_name}\n"
+        f"Estimated delay: ~{minutes} minutes"
+    )
+    send_user_telegram(client_id, msg)
+
+
+def notify_work_submitted(client_id, service_name):
+    """Client receives: provider submitted work for approval."""
+    msg = (
+        f"<b>Work completed!</b>\n\n"
+        f"Service: {service_name}\n"
+        f"Please approve the work or report an issue.\n"
+        f"Auto-approved in 48 hours if no action taken."
+    )
+    send_user_telegram(client_id, msg)
+
+
+def notify_work_approved(provider_id, service_name):
+    """Provider receives: client approved their work."""
+    msg = (
+        f"<b>Work approved!</b>\n\n"
+        f"Service: {service_name}\n"
+        f"Payment will be released shortly."
+    )
+    send_user_telegram(provider_id, msg)
+
+
+def notify_no_show(user_id, service_name, role):
+    """User receives: they were marked as no-show."""
+    msg = (
+        f"<b>No-show recorded</b>\n\n"
+        f"You were marked as no-show for: {service_name}\n"
+        f"If this is a mistake, please contact support."
+    )
+    send_user_telegram(user_id, msg)
+
+
+def notify_dispute_created(provider_id, service_name, reason):
+    """Provider receives: client created a dispute."""
+    reason_labels = {
+        'not_completed': 'Not completed',
+        'quality_issue': 'Quality issue',
+        'other': 'Other',
+    }
+    msg = (
+        f"<b>Dispute reported</b>\n\n"
+        f"Service: {service_name}\n"
+        f"Reason: {reason_labels.get(reason, reason)}\n"
+        f"The platform team will review this case."
+    )
+    send_user_telegram(provider_id, msg)
+
+
+def notify_dispute_resolved(user_id, service_name, resolution):
+    """User receives: dispute has been resolved."""
+    msg = (
+        f"<b>Dispute resolved</b>\n\n"
+        f"Service: {service_name}\n"
+        f"Resolution: {resolution}\n"
+        f"If you have questions, please contact support."
+    )
+    send_user_telegram(user_id, msg)

@@ -279,6 +279,58 @@ def provider_detail(provider_id):
     return render_template("client/provider_public_profile.html", provider=provider, reviews=reviews, services=servises, photo=photo, portfolio_items=portfolio_items)
 
 
+@client_bp.route("/api/provider/<int:provider_id>")
+@login_required
+def provider_detail_json(provider_id):
+    """JSON version of provider detail for mobile app."""
+    provider = User.query.filter_by(id=provider_id, role='provider').first()
+    if not provider:
+        return jsonify({'error': 'Provider not found'}), 404
+
+    reviews = Review.query.filter_by(provider_id=provider.id).order_by(
+        Review.created_at.desc()
+    ).all()
+    services = ProviderService.query.filter_by(provider_id=provider.id, is_available=True).all()
+    photo = None
+    if provider.photo:
+        try:
+            photo = get_file_url(provider.photo, buckets['profile_pictures'])
+        except Exception:
+            pass
+
+    avg_rating = round(sum(r.rating for r in reviews) / len(reviews), 1) if reviews else None
+
+    return jsonify({
+        'provider': {
+            'id': provider.id,
+            'name': provider.full_name or provider.user_name,
+            'username': provider.user_name,
+            'about': provider.about_me,
+            'address': provider.address,
+            'online': provider.online,
+            'verified': provider.is_verified,
+            'photo': photo,
+            'avg_rating': avg_rating,
+            'review_count': len(reviews),
+        },
+        'services': [{
+            'id': s.id,
+            'name': s.name,
+            'price': s.price,
+            'duration': s.duration,
+            'description': s.description,
+        } for s in services],
+        'reviews': [{
+            'id': r.id,
+            'rating': r.rating,
+            'comment': r.comment,
+            'response_text': r.response_text,
+            'created_at': r.created_at.isoformat() if r.created_at else None,
+            'patient_name': r.patient.full_name or r.patient.user_name if r.patient else 'Anonymous',
+        } for r in reviews],
+    })
+
+
 @client_bp.route('/history')
 @login_required
 def history():

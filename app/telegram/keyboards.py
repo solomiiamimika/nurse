@@ -99,3 +99,55 @@ def counter_offer_response(offer_id):
             ]
         ]
     }
+
+
+# ── Appointment action buttons ──────────────────────────────────
+
+def provider_appointment_actions(appt_id, appt_type, status, is_no_show_eligible=False):
+    """Action buttons for a provider's appointment card.
+    appt_type: 'appt' or 'req'
+    """
+    prefix = f'{appt_type}_{appt_id}'
+    buttons = []
+
+    if status == 'confirmed_paid':
+        buttons.append([
+            {'text': '\u2705 Confirm Arrival', 'callback_data': f'act_arrive_{prefix}'},
+            {'text': '\u23f0 Running Late', 'callback_data': f'act_late_{prefix}'},
+        ])
+        if is_no_show_eligible:
+            buttons.append([
+                {'text': '\U0001f6ab Client No-Show', 'callback_data': f'act_client_noshow_{prefix}'},
+            ])
+
+    if status == 'in_progress':
+        buttons.append([
+            {'text': '\u2705 Mark Done', 'callback_data': f'act_done_{prefix}'},
+        ])
+
+    if not buttons:
+        return None
+    return {'inline_keyboard': buttons}
+
+
+def client_appointment_actions(appt_id, appt_type, status, is_no_show_eligible=False):
+    """Action buttons for a client's appointment card.
+    appt_type: 'appt' or 'req'
+    """
+    prefix = f'{appt_type}_{appt_id}'
+    buttons = []
+
+    if status == 'confirmed_paid' and is_no_show_eligible:
+        buttons.append([
+            {'text': '\U0001f6ab Provider No-Show', 'callback_data': f'act_prov_noshow_{prefix}'},
+        ])
+
+    if status == 'work_submitted':
+        buttons.append([
+            {'text': '\u2705 Approve & Complete', 'callback_data': f'act_complete_{prefix}'},
+            {'text': '\u26a0\ufe0f Report Issue', 'callback_data': f'act_dispute_{prefix}'},
+        ])
+
+    if not buttons:
+        return None
+    return {'inline_keyboard': buttons}

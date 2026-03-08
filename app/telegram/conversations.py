@@ -99,6 +99,10 @@ class ConversationManager:
             _process_send_offer(self, telegram_id, text, bot_token, chat_id, session)
         elif flow == 'revise_offer':
             _process_revise_offer(self, telegram_id, text, bot_token, chat_id, session)
+        elif flow == 'report_late':
+            _process_report_late(self, telegram_id, text, bot_token, chat_id, session)
+        elif flow == 'create_dispute':
+            _process_create_dispute(self, telegram_id, text, bot_token, chat_id, session)
 
         # Save if still active (flow handler may have called end())
         if self.is_active(telegram_id):
@@ -542,6 +546,150 @@ def _process_revise_offer(cm, telegram_id, text, bot_token, chat_id, session):
 
     except Exception:
         logger.exception("Error in revise_offer flow step=%s for telegram_id=%s",
+                         session.get('step'), telegram_id)
+        cm.end(telegram_id)
+        send_message(bot_token, chat_id,
+                     "Something went wrong. Please try again.")
+
+
+# ── Report late flow (provider) ──────────────────────────────────
+
+def _process_report_late(cm, telegram_id, text, bot_token, chat_id, session):
+    from .handlers import send_message
+    from .notifications import send_user_telegram
+    from app.models import Appointment, ClientSelfCreatedAppointment
+
+    try:
+        text = text.strip()
+        try:
+            minutes = int(text)
+            if minutes < 1 or minutes > 300:
+                send_message(bot_token, chat_id, "Enter a number between 1 and 300:")
+                return
+        except ValueError:
+            send_message(bot_token, chat_id, "Please enter a number (minutes):")
+            return
+
+        d = session['data']
+        atype = d['atype']
+        obj_id = d['obj_id']
+        svc_name = d['svc_name']
+        client_id = d['client_id']
+
+        if atype == 'appt':
+            obj = Appointment.query.get(obj_id)
+        else:
+            obj = ClientSelfCreatedAppointment.query.get(obj_id)
+
+        if not obj:
+            cm.end(telegram_id)
+            send_message(bot_token, chat_id, "Appointment not found.")
+            return
+
+        from app.extensions import db
+        obj.provider_late_minutes = minutes
+        db.session.commit()
+        cm.end(telegram_id)
+
+        send_message(bot_token, chat_id,
+                     f"\u23f0 Reported {minutes} min late for <b>{svc_name}</b>. Client has been notified.")
+        send_user_telegram(client_id,
+                           f"<b>Provider is running late</b>\n\n"
+                           f"Service: {svc_name}\n"
+                           f"Estimated delay: ~{minutes} minutes")
+
+    except Exception:
+        logger.exception("Error in report_late flow for telegram_id=%s", telegram_id)
+        cm.end(telegram_id)
+        send_message(bot_token, chat_id, "Something went wrong. Please try again.")
+
+
+# ── Create dispute flow (client) ─────────────────────────────────
+
+def _process_create_dispute(cm, telegram_id, text, bot_token, chat_id, session):
+    from .handlers import send_message
+    from .notifications import send_user_telegram
+    from app.models import Appointment, ClientSelfCreatedAppointment, Dispute
+
+    try:
+        step = session['step']
+
+        if step == 0:
+            # Reason selection
+            reason_map = {'1': 'not_completed', '2': 'quality_issue', '3': 'other'}
+            if text.strip() not in reason_map:
+                send_message(bot_token, chat_id, "Enter 1, 2, or 3:")
+                return
+            session['data']['reason'] = reason_map[text.strip()]
+            session['step'] = 1
+            send_message(bot_token, chat_id, "Describe the issue (or type <b>skip</b>):")
+            return
+
+        if step == 1:
+            # Description
+            desc = text.strip()
+            if desc.lower() == 'skip':
+                desc = ''
+            session['data']['description'] = desc
+
+            d = session['data']
+            atype = d['atype']
+            obj_id = d['obj_id']
+            svc_name = d['svc_name']
+            provider_id = d['provider_id']
+
+            user = User.query.filter_by(telegram_id=telegram_id).first()
+            if not user:
+                cm.end(telegram_id)
+                send_message(bot_token, chat_id, "Error: account not found.")
+                return
+
+            if atype == 'appt':
+                obj = Appointment.query.get(obj_id)
+            else:
+                obj = ClientSelfCreatedAppointment.query.get(obj_id)
+
+            if not obj:
+                cm.end(telegram_id)
+                send_message(bot_token, chat_id, "Appointment not found.")
+                return
+
+            from app.extensions import db
+            dispute = Dispute(
+                reporter_id=user.id,
+                reason=d['reason'],
+                description=d['description'] or None,
+                status='open',
+            )
+            if atype == 'appt':
+                dispute.appointment_id = obj_id
+            else:
+                dispute.request_id = obj_id
+
+            obj.status = 'disputed'
+            db.session.add(dispute)
+            db.session.commit()
+            cm.end(telegram_id)
+
+            reason_labels = {
+                'not_completed': 'Not completed',
+                'quality_issue': 'Quality issue',
+                'other': 'Other',
+            }
+
+            send_message(bot_token, chat_id,
+                         f"\u26a0\ufe0f Dispute created for <b>{svc_name}</b>.\n"
+                         f"Reason: {reason_labels.get(d['reason'], d['reason'])}\n"
+                         f"Our team will review it shortly.")
+
+            send_user_telegram(provider_id,
+                               f"<b>Dispute reported</b>\n\n"
+                               f"Service: {svc_name}\n"
+                               f"Reason: {reason_labels.get(d['reason'], d['reason'])}\n"
+                               f"The platform team will review this case.")
+
+    except Exception:
+        logger.exception("Error in create_dispute flow step=%s for telegram_id=%s",
                          session.get('step'), telegram_id)
         cm.end(telegram_id)
         send_message(bot_token, chat_id,

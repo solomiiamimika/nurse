@@ -1,9 +1,9 @@
 from . import provider_bp
 from flask import Blueprint, jsonify, request, current_app, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
-from app.models import User, Message, db, Service, ProviderService, Appointment, ClientSelfCreatedAppointment, RequestOfferResponse, ServiceHistory, CancellationPolicy
+from app.models import User, Message, db, Service, ProviderService, Appointment, ClientSelfCreatedAppointment, RequestOfferResponse, ServiceHistory, CancellationPolicy, NoShowRecord, Dispute
 from app.utils import fuzz_coordinates, haversine_distance, validate_coordinates
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 from app.supabase_storage import get_file_url, delete_from_supabase, upload_to_supabase, buckets, supabase
 import os
@@ -36,9 +36,12 @@ def calendar_appointment_color(Status):
         'confirmed': '#f59e0b',
         'confirmed_paid': 'green',
         'provider_confirmed': 'green',
+        'in_progress': '#10b981',
         'work_submitted': '#0ea5e9',
         'completed': 'blue',
-        'cancelled': 'red'
+        'cancelled': 'red',
+        'no_show': '#6b7280',
+        'disputed': '#f97316',
     }
     return colors_dictionary.get(Status)
 
@@ -79,7 +82,7 @@ def _find_linked_appointment(req):
 
 def sync_appointment_request_status(appointment, new_status):
     """Sync Appointment status → linked Request. Only syncs meaningful statuses."""
-    if new_status not in ('work_submitted', 'completed', 'cancelled', 'confirmed_paid', 'authorized'):
+    if new_status not in ('work_submitted', 'completed', 'cancelled', 'confirmed_paid', 'authorized', 'in_progress', 'no_show', 'disputed'):
         return
     req = _find_linked_request(appointment)
     if req:
@@ -96,7 +99,7 @@ def sync_appointment_request_status(appointment, new_status):
 
 def sync_request_appointment_status(req, new_status):
     """Sync Request status → linked Appointment. Only syncs meaningful statuses."""
-    if new_status not in ('work_submitted', 'completed', 'cancelled', 'confirmed_paid', 'authorized'):
+    if new_status not in ('work_submitted', 'completed', 'cancelled', 'confirmed_paid', 'authorized', 'in_progress', 'no_show', 'disputed'):
         return
     appt = _find_linked_appointment(req)
     if appt:
@@ -776,3 +779,274 @@ def provider_cancel_request(request_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': 'Internal server error'}), 500
+
+
+# ── Arrival & Lateness ──────────────────────────────────────────────────────
+
+@provider_bp.route('/confirm_arrival', methods=['POST'])
+@login_required
+def confirm_arrival():
+    """Provider confirms arrival at client location → status becomes in_progress."""
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    data = request.get_json() or {}
+    appointment_id = data.get('appointment_id')
+    request_id = data.get('request_id')
+
+    try:
+        if appointment_id:
+            item = Appointment.query.filter_by(id=appointment_id, provider_id=current_user.id).first()
+            if not item:
+                return jsonify({'success': False, 'message': 'Appointment not found'}), 404
+            if item.status not in ('confirmed_paid', 'confirmed'):
+                return jsonify({'success': False, 'message': 'Cannot confirm arrival for this status'}), 400
+            item.provider_arrived_at = datetime.now()
+            item.set_status('in_progress')
+            sync_appointment_request_status(item, 'in_progress')
+            db.session.commit()
+            # Notify client
+            try:
+                from app.telegram.notifications import notify_status_change
+                svc = item.provider_service.name if item.provider_service else 'Service'
+                notify_status_change(item.client_id, svc, 'confirmed_paid', 'in_progress')
+            except Exception:
+                pass
+            return jsonify({'success': True, 'message': 'Arrival confirmed'})
+
+        elif request_id:
+            item = ClientSelfCreatedAppointment.query.filter_by(id=request_id, provider_id=current_user.id).first()
+            if not item:
+                return jsonify({'success': False, 'message': 'Request not found'}), 404
+            if item.status not in ('authorized', 'confirmed_paid', 'accepted'):
+                return jsonify({'success': False, 'message': 'Cannot confirm arrival for this status'}), 400
+            item.provider_arrived_at = datetime.now()
+            item.set_status('in_progress')
+            sync_request_appointment_status(item, 'in_progress')
+            db.session.commit()
+            try:
+                from app.telegram.notifications import notify_status_change
+                notify_status_change(item.patient_id, item.service_name or 'Service', 'authorized', 'in_progress')
+            except Exception:
+                pass
+            return jsonify({'success': True, 'message': 'Arrival confirmed'})
+
+        return jsonify({'success': False, 'message': 'appointment_id or request_id required'}), 400
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error confirming arrival: {e}")
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
+
+
+@provider_bp.route('/report_late', methods=['POST'])
+@login_required
+def report_late():
+    """Provider reports they are running late."""
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    data = request.get_json() or {}
+    appointment_id = data.get('appointment_id')
+    request_id = data.get('request_id')
+    delay_minutes = data.get('delay_minutes')
+
+    try:
+        delay_minutes = int(delay_minutes)
+        if delay_minutes < 1:
+            raise ValueError
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Valid delay_minutes required'}), 400
+
+    try:
+        if appointment_id:
+            item = Appointment.query.filter_by(id=appointment_id, provider_id=current_user.id).first()
+            if not item:
+                return jsonify({'success': False, 'message': 'Appointment not found'}), 404
+            item.provider_late_minutes = delay_minutes
+            db.session.commit()
+            try:
+                from app.telegram.notifications import send_user_telegram
+                svc = item.provider_service.name if item.provider_service else 'Service'
+                send_user_telegram(item.client_id,
+                    f"Your provider is running ~{delay_minutes} min late for '{svc}'.")
+            except Exception:
+                pass
+            return jsonify({'success': True, 'message': f'Reported {delay_minutes} min late'})
+
+        elif request_id:
+            item = ClientSelfCreatedAppointment.query.filter_by(id=request_id, provider_id=current_user.id).first()
+            if not item:
+                return jsonify({'success': False, 'message': 'Request not found'}), 404
+            item.provider_late_minutes = delay_minutes
+            db.session.commit()
+            try:
+                from app.telegram.notifications import send_user_telegram
+                send_user_telegram(item.patient_id,
+                    f"Your provider is running ~{delay_minutes} min late for '{item.service_name or 'Service'}'.")
+            except Exception:
+                pass
+            return jsonify({'success': True, 'message': f'Reported {delay_minutes} min late'})
+
+        return jsonify({'success': False, 'message': 'appointment_id or request_id required'}), 400
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error reporting late: {e}")
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
+
+
+# ── No-Show ──────────────────────────────────────────────────────────────────
+
+@provider_bp.route('/report_no_show', methods=['POST'])
+@login_required
+def report_no_show():
+    """Provider reports client no-show → charge based on cancellation policy."""
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    data = request.get_json() or {}
+    appointment_id = data.get('appointment_id')
+    request_id = data.get('request_id')
+    reason = data.get('reason', '')
+
+    try:
+        from app.models import NoShowRecord
+
+        if appointment_id:
+            item = Appointment.query.filter_by(id=appointment_id, provider_id=current_user.id).first()
+            if not item:
+                return jsonify({'success': False, 'message': 'Appointment not found'}), 404
+            if item.status not in ('confirmed_paid', 'confirmed', 'in_progress'):
+                return jsonify({'success': False, 'message': 'Cannot report no-show for this status'}), 400
+
+            # Check 15 min past appointment time
+            now = datetime.now()
+            if now < item.appointment_time + timedelta(minutes=15):
+                return jsonify({'success': False, 'message': 'Must wait 15 minutes after appointment time'}), 400
+
+            # Get policy
+            policy = CancellationPolicy.query.filter_by(provider_id=current_user.id).first()
+            fee_percent = policy.no_show_client_fee_percent if policy else 100
+
+            # Stripe: capture fee from authorized payment
+            if item.status == 'confirmed_paid':
+                from app.models import Payment
+                payment = Payment.query.filter_by(appointment_id=item.id, status='completed').first()
+                if payment and payment.transaction_id:
+                    if fee_percent >= 100:
+                        pi = stripe.PaymentIntent.capture(payment.transaction_id)
+                        # Transfer to provider (minus commission)
+                        amount_cents = pi.amount_received
+                        commission_rate = current_app.config.get('PLATFORM_COMMISSION_RATE', 0.15)
+                        platform_fee = int(round(amount_cents * commission_rate))
+                        payout = amount_cents - platform_fee
+                        if current_user.stripe_account_id:
+                            stripe.Transfer.create(
+                                amount=payout, currency='eur',
+                                destination=current_user.stripe_account_id,
+                                transfer_group=f"noshow_appt_{item.id}",
+                            )
+                    elif fee_percent > 0:
+                        fee_cents = int(payment.amount_cents * fee_percent / 100)
+                        stripe.PaymentIntent.capture(payment.transaction_id, amount_to_capture=fee_cents)
+                    else:
+                        stripe.PaymentIntent.cancel(payment.transaction_id)
+
+            # Record no-show
+            client = User.query.get(item.client_id)
+            record = NoShowRecord(
+                appointment_id=item.id, reported_by_id=current_user.id,
+                no_show_user_id=item.client_id, role='client', reason=reason,
+            )
+            db.session.add(record)
+            if client:
+                client.no_show_count = (client.no_show_count or 0) + 1
+            item.set_status('no_show')
+            sync_appointment_request_status(item, 'no_show')
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Client no-show recorded'})
+
+        elif request_id:
+            item = ClientSelfCreatedAppointment.query.filter_by(id=request_id, provider_id=current_user.id).first()
+            if not item:
+                return jsonify({'success': False, 'message': 'Request not found'}), 404
+            if item.status not in ('authorized', 'confirmed_paid', 'accepted', 'in_progress'):
+                return jsonify({'success': False, 'message': 'Cannot report no-show for this status'}), 400
+
+            now = datetime.now()
+            if now < item.appointment_start_time + timedelta(minutes=15):
+                return jsonify({'success': False, 'message': 'Must wait 15 minutes after appointment time'}), 400
+
+            policy = CancellationPolicy.query.filter_by(provider_id=current_user.id).first()
+            fee_percent = policy.no_show_client_fee_percent if policy else 100
+
+            if item.payment_intent_id and item.status == 'authorized':
+                if fee_percent >= 100:
+                    pi = stripe.PaymentIntent.capture(item.payment_intent_id)
+                    amount_cents = pi.amount_received
+                    commission_rate = current_app.config.get('PLATFORM_COMMISSION_RATE', 0.15)
+                    platform_fee = int(round(amount_cents * commission_rate))
+                    payout = amount_cents - platform_fee
+                    if current_user.stripe_account_id:
+                        stripe.Transfer.create(
+                            amount=payout, currency='eur',
+                            destination=current_user.stripe_account_id,
+                            transfer_group=f"noshow_req_{item.id}",
+                        )
+                elif fee_percent > 0:
+                    fee_cents = int(int(item.payment * 100) * fee_percent / 100)
+                    stripe.PaymentIntent.capture(item.payment_intent_id, amount_to_capture=fee_cents)
+                else:
+                    stripe.PaymentIntent.cancel(item.payment_intent_id)
+
+            client = User.query.get(item.patient_id)
+            record = NoShowRecord(
+                request_id=item.id, reported_by_id=current_user.id,
+                no_show_user_id=item.patient_id, role='client', reason=reason,
+            )
+            db.session.add(record)
+            if client:
+                client.no_show_count = (client.no_show_count or 0) + 1
+            item.set_status('no_show')
+            sync_request_appointment_status(item, 'no_show')
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Client no-show recorded'})
+
+        return jsonify({'success': False, 'message': 'appointment_id or request_id required'}), 400
+
+    except stripe.StripeError as e:
+        current_app.logger.error(f"Stripe error on no-show: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error reporting no-show: {e}")
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
+
+
+# ── Cancellation Policy Summary ─────────────────────────────────────────────
+
+@provider_bp.route('/cancellation_policy_summary', methods=['GET'])
+@login_required
+def cancellation_policy_summary():
+    """Return provider's current cancellation policy for display."""
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    policy = CancellationPolicy.query.filter_by(provider_id=current_user.id).first()
+    if not policy:
+        return jsonify({
+            'success': True,
+            'has_policy': False,
+            'free_cancel_hours': 24,
+            'late_cancel_fee_percent': 25,
+            'no_show_client_fee_percent': 100,
+        })
+
+    return jsonify({
+        'success': True,
+        'has_policy': True,
+        'free_cancel_hours': policy.free_cancel_hours,
+        'late_cancel_fee_percent': policy.late_cancel_fee_percent,
+        'no_show_client_fee_percent': policy.no_show_client_fee_percent,
+    })

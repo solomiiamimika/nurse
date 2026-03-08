@@ -24,14 +24,21 @@ class Appointment(db.Model):
     end_time         = Column(DateTime, nullable=False)
     status           = Column(String(20), default='scheduled')
     previous_status  = Column(String(20), nullable=True)
-    # Possible statuses: scheduled → confirmed → confirmed_paid → work_submitted → completed | cancelled
+    # Possible statuses: scheduled → confirmed → confirmed_paid → in_progress → work_submitted → completed | cancelled | no_show | disputed
     notes   = Column(Text)
     payment = relationship('Payment', backref='appointment', uselist=False)
+
+    # Arrival & lateness tracking
+    provider_arrived_at  = Column(DateTime, nullable=True)
+    provider_late_minutes = Column(Integer, nullable=True)
+    work_submitted_at    = Column(DateTime, nullable=True)
 
     def set_status(self, new_status):
         """Set status while remembering previous one."""
         self.previous_status = self.status
         self.status = new_status
+        if new_status == 'work_submitted':
+            self.work_submitted_at = datetime.now()
 
 
 class ClientSelfCreatedAppointment(db.Model):
@@ -61,6 +68,11 @@ class ClientSelfCreatedAppointment(db.Model):
     created_appo         = Column(DateTime, default=datetime.now)
     payment_intent_id    = Column(String, nullable=True)   # Stripe PI id (for capture/cancel)
 
+    # Arrival & lateness tracking
+    provider_arrived_at  = Column(DateTime, nullable=True)
+    provider_late_minutes = Column(Integer, nullable=True)
+    work_submitted_at    = Column(DateTime, nullable=True)
+
     patient       = relationship('User', foreign_keys=[patient_id])
     provider      = relationship('User', foreign_keys=[provider_id])
     provider_service = relationship('ProviderService')
@@ -70,6 +82,8 @@ class ClientSelfCreatedAppointment(db.Model):
         """Set status while remembering previous one."""
         self.previous_status = self.status
         self.status = new_status
+        if new_status == 'work_submitted':
+            self.work_submitted_at = datetime.now()
 
 
 class RequestOfferResponse(db.Model):
@@ -107,3 +121,45 @@ class ServiceHistory(db.Model):
     provider = relationship('User', foreign_keys=[provider_id])
     client   = relationship('User', foreign_keys=[client_id])
     request  = relationship('ClientSelfCreatedAppointment', foreign_keys=[request_id])
+
+
+class NoShowRecord(db.Model):
+    """Record of a no-show event for tracking purposes."""
+    __tablename__ = 'no_show_record'
+
+    id              = Column(Integer, primary_key=True)
+    appointment_id  = Column(Integer, ForeignKey('appointment.id'), nullable=True)
+    request_id      = Column(Integer, ForeignKey('client_self_create_appointment.id'), nullable=True)
+    reported_by_id  = Column(Integer, ForeignKey('user.id'), nullable=False)
+    no_show_user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    role            = Column(String(20), nullable=False)   # 'client' or 'provider'
+    reason          = Column(Text, nullable=True)
+    created_at      = Column(DateTime, default=datetime.now)
+
+    reported_by  = relationship('User', foreign_keys=[reported_by_id])
+    no_show_user = relationship('User', foreign_keys=[no_show_user_id])
+    appointment  = relationship('Appointment', foreign_keys=[appointment_id])
+    request_rel  = relationship('ClientSelfCreatedAppointment', foreign_keys=[request_id])
+
+
+class Dispute(db.Model):
+    """Client dispute about service quality or completion."""
+    __tablename__ = 'dispute'
+
+    id              = Column(Integer, primary_key=True)
+    appointment_id  = Column(Integer, ForeignKey('appointment.id'), nullable=True)
+    request_id      = Column(Integer, ForeignKey('client_self_create_appointment.id'), nullable=True)
+    reporter_id     = Column(Integer, ForeignKey('user.id'), nullable=False)
+    reason          = Column(String(50), nullable=False)   # 'not_completed', 'quality_issue', 'other'
+    description     = Column(Text, nullable=True)
+    status          = Column(String(20), default='open')   # 'open', 'under_review', 'resolved'
+    admin_notes     = Column(Text, nullable=True)
+    resolution      = Column(String(30), nullable=True)    # 'refunded', 'partial_refund', 'dismissed', 'warning'
+    resolved_by_id  = Column(Integer, ForeignKey('user.id'), nullable=True)
+    created_at      = Column(DateTime, default=datetime.now)
+    resolved_at     = Column(DateTime, nullable=True)
+
+    reporter    = relationship('User', foreign_keys=[reporter_id])
+    resolved_by = relationship('User', foreign_keys=[resolved_by_id])
+    appointment = relationship('Appointment', foreign_keys=[appointment_id])
+    request_rel = relationship('ClientSelfCreatedAppointment', foreign_keys=[request_id])

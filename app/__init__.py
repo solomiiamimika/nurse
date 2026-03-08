@@ -74,6 +74,9 @@ def create_app():
 
     csrf.exempt(api_auth_bp)   # mobile API uses JWT, not CSRF tokens
     csrf.exempt(telegram_bp)   # Telegram webhook sends POST without CSRF
+    csrf.exempt(client_bp)     # mobile app sends JSON without CSRF
+    csrf.exempt(provider_bp)   # mobile app sends JSON without CSRF
+    csrf.exempt(main_bp)       # mobile app sends JSON without CSRF
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -90,6 +93,31 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+    @login_manager.request_loader
+    def load_user_from_request(req):
+        """Load user from JWT Bearer token (mobile app) if no session."""
+        auth_header = req.headers.get('Authorization', '')
+        if auth_header.startswith('Bearer '):
+            try:
+                from flask_jwt_extended import decode_token
+                token_data = decode_token(auth_header[7:])
+                user_id = token_data.get('sub')
+                if user_id:
+                    return User.query.get(int(user_id))
+            except Exception:
+                pass
+        return None
+
+    @login_manager.unauthorized_handler
+    def unauthorized_api():
+        """Return JSON 401 for API requests, redirect for web."""
+        if (request.accept_mimetypes.best == 'application/json'
+                or request.headers.get('Authorization', '').startswith('Bearer ')):
+            from flask import jsonify
+            return jsonify({'error': 'Authentication required'}), 401
+        from flask import redirect, url_for
+        return redirect(url_for('auth.login'))
 
     # ── 4. Jinja2 filters ─────────────────────────────────────────
     @app.template_filter('ts_to_date')
@@ -117,18 +145,31 @@ def create_app():
     # ── 5. Create tables if they don't exist yet ──────────────────
     with app.app_context():
         db.create_all()
-        # Add previous_status columns if missing (no migration tool)
+        # Add missing columns (no migration tool)
         try:
             from sqlalchemy import text, inspect
             insp = inspect(db.engine)
-            for tbl, col in [('appointment', 'previous_status'),
-                             ('client_self_create_appointment', 'previous_status')]:
-                cols = [c['name'] for c in insp.get_columns(tbl)]
-                if col not in cols:
-                    db.session.execute(text(
-                        f'ALTER TABLE {tbl} ADD COLUMN {col} VARCHAR(20)'
-                    ))
-                    db.session.commit()
+            new_columns = [
+                ('appointment', 'previous_status', 'VARCHAR(20)'),
+                ('client_self_create_appointment', 'previous_status', 'VARCHAR(20)'),
+                ('appointment', 'provider_arrived_at', 'TIMESTAMP'),
+                ('appointment', 'provider_late_minutes', 'INTEGER'),
+                ('appointment', 'work_submitted_at', 'TIMESTAMP'),
+                ('client_self_create_appointment', 'provider_arrived_at', 'TIMESTAMP'),
+                ('client_self_create_appointment', 'provider_late_minutes', 'INTEGER'),
+                ('client_self_create_appointment', 'work_submitted_at', 'TIMESTAMP'),
+                ('user', 'no_show_count', 'INTEGER DEFAULT 0'),
+            ]
+            for tbl, col, col_type in new_columns:
+                try:
+                    cols = [c['name'] for c in insp.get_columns(tbl)]
+                    if col not in cols:
+                        db.session.execute(text(
+                            f'ALTER TABLE "{tbl}" ADD COLUMN {col} {col_type}'
+                        ))
+                        db.session.commit()
+                except Exception:
+                    db.session.rollback()
         except Exception:
             db.session.rollback()
 
@@ -217,10 +258,138 @@ def create_app():
             from app.telegram.conversations import conversation_manager
             conversation_manager.cleanup_expired(timeout_minutes=30)
 
+    def auto_approve_work_submitted():
+        """Auto-approve work_submitted appointments after 48 hours."""
+        import stripe as _stripe
+        _stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+
+        with app.app_context():
+            from app.models import Appointment, ClientSelfCreatedAppointment, Payment, User
+            now = datetime.utcnow()
+            cutoff = now - timedelta(hours=48)
+
+            # Auto-approve Appointments
+            appts = Appointment.query.filter(
+                Appointment.status == 'work_submitted',
+                Appointment.work_submitted_at.isnot(None),
+                Appointment.work_submitted_at <= cutoff,
+            ).all()
+
+            for appt in appts:
+                try:
+                    provider = User.query.get(appt.provider_id)
+                    service = appt.provider_service
+                    price = service.price if service else 0
+
+                    if price > 0:
+                        payment = Payment.query.filter_by(appointment_id=appt.id, status='completed').first()
+                        if payment and payment.transaction_id and provider and provider.stripe_account_id:
+                            pi = _stripe.PaymentIntent.capture(payment.transaction_id,
+                                idempotency_key=f"auto_complete_appt_{appt.id}")
+                            amount_cents = pi.amount_received
+                            commission_rate = app.config.get('PLATFORM_COMMISSION_RATE', 0.15)
+                            platform_fee = int(round(amount_cents * commission_rate))
+                            payout = amount_cents - platform_fee
+                            _stripe.Transfer.create(
+                                amount=payout, currency='eur',
+                                destination=provider.stripe_account_id,
+                                transfer_group=f"auto_appt_{appt.id}",
+                                idempotency_key=f"auto_transfer_appt_{appt.id}",
+                            )
+                            payment.status = 'paid'
+                            payment.platform_fee_cents = platform_fee
+
+                    appt.set_status('completed')
+                    from app.routes.provider.appointments import sync_appointment_request_status
+                    sync_appointment_request_status(appt, 'completed')
+                    db.session.commit()
+                    app.logger.info(f"Auto-approved appointment {appt.id}")
+                except Exception as e:
+                    db.session.rollback()
+                    app.logger.error(f"Auto-approve error for appointment {appt.id}: {e}")
+
+            # Auto-approve Requests
+            reqs = ClientSelfCreatedAppointment.query.filter(
+                ClientSelfCreatedAppointment.status == 'work_submitted',
+                ClientSelfCreatedAppointment.work_submitted_at.isnot(None),
+                ClientSelfCreatedAppointment.work_submitted_at <= cutoff,
+            ).all()
+
+            for req in reqs:
+                try:
+                    provider = User.query.get(req.provider_id) if req.provider_id else None
+                    is_free = (req.payment or 0) == 0
+
+                    if not is_free and req.payment_intent_id and provider and provider.stripe_account_id:
+                        pi = _stripe.PaymentIntent.capture(req.payment_intent_id,
+                            idempotency_key=f"auto_complete_req_{req.id}")
+                        amount_cents = pi.amount_received
+                        commission_rate = app.config.get('PLATFORM_COMMISSION_RATE', 0.15)
+                        platform_fee = int(round(amount_cents * commission_rate))
+                        payout = amount_cents - platform_fee
+                        _stripe.Transfer.create(
+                            amount=payout, currency='eur',
+                            destination=provider.stripe_account_id,
+                            transfer_group=f"auto_req_{req.id}",
+                            idempotency_key=f"auto_transfer_req_{req.id}",
+                        )
+
+                    req.set_status('completed')
+                    from app.routes.provider.appointments import sync_request_appointment_status
+                    sync_request_appointment_status(req, 'completed')
+                    db.session.commit()
+                    app.logger.info(f"Auto-approved request {req.id}")
+                except Exception as e:
+                    db.session.rollback()
+                    app.logger.error(f"Auto-approve error for request {req.id}: {e}")
+
+    def remind_work_submitted_approval():
+        """Remind client at 24h mark to approve work_submitted."""
+        with app.app_context():
+            from app.models import Appointment, ClientSelfCreatedAppointment, User
+            now = datetime.utcnow()
+            window_start = now - timedelta(hours=25)
+            window_end = now - timedelta(hours=23)
+
+            # Remind for appointments
+            appts = Appointment.query.filter(
+                Appointment.status == 'work_submitted',
+                Appointment.work_submitted_at.isnot(None),
+                Appointment.work_submitted_at >= window_start,
+                Appointment.work_submitted_at <= window_end,
+            ).all()
+
+            for appt in appts:
+                try:
+                    from app.telegram.notifications import send_user_telegram
+                    svc = appt.provider_service.name if appt.provider_service else 'Service'
+                    send_user_telegram(appt.client_id,
+                        f"Please confirm that '{svc}' was completed. Auto-approval in 24 hours.")
+                except Exception:
+                    pass
+
+            # Remind for requests
+            reqs = ClientSelfCreatedAppointment.query.filter(
+                ClientSelfCreatedAppointment.status == 'work_submitted',
+                ClientSelfCreatedAppointment.work_submitted_at.isnot(None),
+                ClientSelfCreatedAppointment.work_submitted_at >= window_start,
+                ClientSelfCreatedAppointment.work_submitted_at <= window_end,
+            ).all()
+
+            for req in reqs:
+                try:
+                    from app.telegram.notifications import send_user_telegram
+                    send_user_telegram(req.patient_id,
+                        f"Please confirm that '{req.service_name or 'Service'}' was completed. Auto-approval in 24 hours.")
+                except Exception:
+                    pass
+
     if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
         scheduler = BackgroundScheduler(daemon=True)
         scheduler.add_job(send_payment_reminders, 'cron', hour=9, minute=0)
         scheduler.add_job(cleanup_telegram_sessions, 'interval', minutes=10)
+        scheduler.add_job(auto_approve_work_submitted, 'interval', hours=1)
+        scheduler.add_job(remind_work_submitted_approval, 'interval', hours=1)
         scheduler.start()
 
     # ── 7. Set Telegram webhook (production only) ────────────────────

@@ -114,9 +114,9 @@ class CancellationPolicy(db.Model):
     id          = Column(Integer, primary_key=True)
     provider_id = Column(Integer, ForeignKey('user.id'), nullable=False, unique=True)
 
-    free_cancel_hours        = Column(Integer, nullable=True, default=None)   # None = always free
-    late_cancel_fee_percent  = Column(Integer, nullable=False, default=0)
-    no_show_client_fee_percent = Column(Integer, nullable=False, default=0)
+    free_cancel_hours        = Column(Integer, nullable=True, default=24)     # 24h free cancellation
+    late_cancel_fee_percent  = Column(Integer, nullable=False, default=25)   # 25% fee for late cancel
+    no_show_client_fee_percent = Column(Integer, nullable=False, default=100) # 100% if client no-shows
 
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)

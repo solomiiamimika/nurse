@@ -438,6 +438,44 @@ def get_messages(user_id):
     })
 
 
+@main_bp.route('/api/send_message', methods=['POST'])
+@login_required
+def api_send_message():
+    """REST endpoint for sending a message (mobile app fallback for Socket.IO)."""
+    data = request.get_json()
+    recipient_id = data.get('recipient_id')
+    text = data.get('text', '').strip()
+
+    if not recipient_id or not text:
+        return jsonify({'success': False, 'message': 'recipient_id and text required'}), 400
+
+    recipient = User.query.get(recipient_id)
+    if not recipient:
+        return jsonify({'success': False, 'message': 'User not found'}), 404
+
+    msg = Message(
+        sender_id=current_user.id,
+        recipient_id=int(recipient_id),
+        text=text,
+        message_type='text',
+        timestamp=datetime.utcnow(),
+    )
+    db.session.add(msg)
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': {
+            'id': msg.id,
+            'sender_id': msg.sender_id,
+            'text': msg.text,
+            'message_type': 'text',
+            'timestamp': msg.timestamp.isoformat(),
+            'is_read': False,
+        }
+    })
+
+
 @main_bp.route('/api/proposal/<int:message_id>/accept', methods=['POST'])
 @login_required
 def accept_proposal(message_id):

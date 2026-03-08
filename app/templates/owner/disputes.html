@@ -1,0 +1,173 @@
+{% extends "owner/base_owner.html" %}
+{% block page_title %}Disputes{% endblock %}
+
+{% block owner_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('owner.disputes') }}" class="btn btn-sm {% if not status_filter %}btn-dark{% else %}btn-outline-dark{% endif %}">All</a>
+        <a href="{{ url_for('owner.disputes', status='open') }}" class="btn btn-sm {% if status_filter == 'open' %}btn-warning{% else %}btn-outline-warning{% endif %}">Open</a>
+        <a href="{{ url_for('owner.disputes', status='under_review') }}" class="btn btn-sm {% if status_filter == 'under_review' %}btn-info{% else %}btn-outline-info{% endif %}">Under Review</a>
+        <a href="{{ url_for('owner.disputes', status='resolved') }}" class="btn btn-sm {% if status_filter == 'resolved' %}btn-success{% else %}btn-outline-success{% endif %}">Resolved</a>
+    </div>
+</div>
+
+{% if disputes %}
+<div class="bg-white rounded-3 border p-4">
+    <div class="table-responsive">
+        <table class="table owner-table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Service</th>
+                    <th>Client</th>
+                    <th>Provider</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in disputes %}
+                <tr>
+                    <td>#{{ item.dispute.id }}</td>
+                    <td>{{ item.get('service_name', '—') }}</td>
+                    <td>{{ item.get('client').full_name or item.get('client').user_name if item.get('client') else '—' }}</td>
+                    <td>{{ item.get('provider').full_name or item.get('provider').user_name if item.get('provider') else '—' }}</td>
+                    <td>
+                        {% if item.dispute.reason == 'not_completed' %}
+                            <span class="badge bg-danger-subtle text-danger">Not Completed</span>
+                        {% elif item.dispute.reason == 'quality_issue' %}
+                            <span class="badge bg-warning-subtle text-warning">Quality Issue</span>
+                        {% else %}
+                            <span class="badge bg-secondary-subtle text-secondary">Other</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.dispute.status == 'open' %}
+                            <span class="badge bg-warning text-dark">Open</span>
+                        {% elif item.dispute.status == 'under_review' %}
+                            <span class="badge bg-info text-white">Under Review</span>
+                        {% else %}
+                            <span class="badge bg-success text-white">Resolved</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted small">{{ item.dispute.created_at.strftime('%d.%m.%Y %H:%M') if item.dispute.created_at else '—' }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-dark" onclick="showDisputeDetail({{ item.dispute.id }})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Dispute Detail Modal -->
+<div class="modal fade" id="disputeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Dispute Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="disputeModalBody">
+                <!-- Filled by JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showDisputeDetail(id) {
+    const disputes = {{ disputes | tojson(indent=None) | safe if false else '[]' }};
+    // Build detail from page data
+    {% for item in disputes %}
+    if ({{ item.dispute.id }} === id) {
+        let html = `
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <h6 class="fw-bold">Client</h6>
+                    <p>{{ item.get('client').full_name or item.get('client').user_name if item.get('client') else '—' }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold">Provider</h6>
+                    <p>{{ item.get('provider').full_name or item.get('provider').user_name if item.get('provider') else '—' }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold">Service</h6>
+                    <p>{{ item.get('service_name', '—') }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold">Amount</h6>
+                    <p>{{ item.get('amount', 0) }} EUR</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold">Reason</h6>
+                    <p>{{ item.dispute.reason }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="fw-bold">Date</h6>
+                    <p>{{ item.get('date').strftime('%d.%m.%Y %H:%M') if item.get('date') else '—' }}</p>
+                </div>
+                <div class="col-12">
+                    <h6 class="fw-bold">Description</h6>
+                    <p>{{ item.dispute.description or 'No description provided' }}</p>
+                </div>
+                {% if item.dispute.status != 'resolved' %}
+                <div class="col-12">
+                    <hr>
+                    <h6 class="fw-bold">Resolve Dispute</h6>
+                    <div class="mb-2">
+                        <textarea id="adminNotes{{ item.dispute.id }}" class="form-control" rows="2" placeholder="Admin notes..."></textarea>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-sm btn-success" onclick="resolveDispute({{ item.dispute.id }}, 'dismissed')">Dismiss</button>
+                        <button class="btn btn-sm btn-warning" onclick="resolveDispute({{ item.dispute.id }}, 'warning')">Warning</button>
+                        <button class="btn btn-sm btn-danger" onclick="resolveDispute({{ item.dispute.id }}, 'refunded')">Full Refund</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="resolveDispute({{ item.dispute.id }}, 'partial_refund')">Partial Refund (50%)</button>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-12">
+                    <hr>
+                    <h6 class="fw-bold">Resolution</h6>
+                    <p><span class="badge bg-dark">{{ item.dispute.resolution or '—' }}</span></p>
+                    {% if item.dispute.admin_notes %}<p class="text-muted small">{{ item.dispute.admin_notes }}</p>{% endif %}
+                </div>
+                {% endif %}
+            </div>
+        `;
+        document.getElementById('disputeModalBody').innerHTML = html;
+        new bootstrap.Modal(document.getElementById('disputeModal')).show();
+    }
+    {% endfor %}
+}
+
+function resolveDispute(id, resolution) {
+    const notes = document.getElementById('adminNotes' + id)?.value || '';
+    fetch(`/owner/disputes/${id}/resolve`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({resolution, admin_notes: notes, refund_percent: 50})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message || 'Error');
+        }
+    });
+}
+</script>
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+    <h5>No disputes</h5>
+    <p class="text-muted">All clear!</p>
+</div>
+{% endif %}
+{% endblock %}

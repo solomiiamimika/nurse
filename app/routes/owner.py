@@ -2,10 +2,13 @@ from functools import wraps
 import requests as http_requests
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, abort, current_app
 from flask_login import login_required, current_user
-from app.models import User, Appointment, Service, Feedback, InvitationToken, db
+from app.models import User, Appointment, Service, Feedback, InvitationToken, db, NoShowRecord, Dispute, ClientSelfCreatedAppointment
 from sqlalchemy import func
 from datetime import datetime, timedelta
 import secrets
+import stripe
+import os
+stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
 owner_bp = Blueprint('owner', __name__, url_prefix='/owner')
 
@@ -39,13 +42,19 @@ def dashboard():
 
     recent_users = User.query.order_by(User.created_at.desc()).limit(10).all()
 
+    open_disputes = Dispute.query.filter(Dispute.status.in_(['open', 'under_review'])).count()
+    month_start = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    no_shows_month = NoShowRecord.query.filter(NoShowRecord.created_at >= month_start).count()
+
     return render_template('owner/dashboard.html',
                            total_clients=total_clients,
                            total_providers=total_providers,
                            total_completed=total_completed,
                            total_active=total_active,
                            avg_rating=avg_rating,
-                           recent_users=recent_users)
+                           recent_users=recent_users,
+                           open_disputes=open_disputes,
+                           no_shows_month=no_shows_month)
 
 
 # ── Users ─────────────────────────────────────────────────────────────────────
@@ -355,3 +364,140 @@ def telegram_broadcast():
             failed += 1
 
     return jsonify({'success': True, 'sent': sent, 'failed': failed, 'total': len(users)})
+
+
+# ── Disputes ──────────────────────────────────────────────────────────────────
+
+@owner_bp.route('/disputes')
+@owner_required
+def disputes():
+    status_filter = request.args.get('status', '')
+    query = Dispute.query
+    if status_filter in ('open', 'under_review', 'resolved'):
+        query = query.filter_by(status=status_filter)
+    all_disputes = query.order_by(Dispute.created_at.desc()).all()
+
+    # Enrich with appointment/request details
+    enriched = []
+    for d in all_disputes:
+        info = {
+            'dispute': d,
+            'reporter': d.reporter,
+        }
+        if d.appointment_id:
+            appt = Appointment.query.get(d.appointment_id)
+            if appt:
+                info['client'] = User.query.get(appt.client_id)
+                info['provider'] = User.query.get(appt.provider_id)
+                info['service_name'] = appt.provider_service.name if appt.provider_service else 'Service'
+                info['date'] = appt.appointment_time
+                info['amount'] = appt.provider_service.price if appt.provider_service else 0
+                info['item_type'] = 'appointment'
+                info['item_id'] = appt.id
+        elif d.request_id:
+            req = ClientSelfCreatedAppointment.query.get(d.request_id)
+            if req:
+                info['client'] = User.query.get(req.patient_id)
+                info['provider'] = User.query.get(req.provider_id) if req.provider_id else None
+                info['service_name'] = req.service_name or 'Service'
+                info['date'] = req.appointment_start_time
+                info['amount'] = float(req.payment or 0)
+                info['item_type'] = 'request'
+                info['item_id'] = req.id
+        enriched.append(info)
+
+    return render_template('owner/disputes.html', disputes=enriched, status_filter=status_filter)
+
+
+@owner_bp.route('/disputes/<int:dispute_id>/resolve', methods=['POST'])
+@owner_required
+def resolve_dispute(dispute_id):
+    d = Dispute.query.get_or_404(dispute_id)
+    data = request.get_json() or {}
+    resolution = data.get('resolution', 'dismissed')
+    admin_notes = data.get('admin_notes', '')
+
+    if resolution not in ('refunded', 'partial_refund', 'dismissed', 'warning'):
+        return jsonify({'success': False, 'message': 'Invalid resolution'}), 400
+
+    # Handle refunds if needed
+    if resolution in ('refunded', 'partial_refund'):
+        try:
+            if d.appointment_id:
+                from app.models import Payment
+                appt = Appointment.query.get(d.appointment_id)
+                payment = Payment.query.filter_by(appointment_id=appt.id).first() if appt else None
+                if payment and payment.transaction_id:
+                    if resolution == 'refunded':
+                        stripe.Refund.create(payment_intent=payment.transaction_id)
+                    else:
+                        refund_pct = data.get('refund_percent', 50)
+                        refund_amount = int(payment.amount_cents * int(refund_pct) / 100)
+                        stripe.Refund.create(payment_intent=payment.transaction_id, amount=refund_amount)
+            elif d.request_id:
+                req = ClientSelfCreatedAppointment.query.get(d.request_id)
+                if req and req.payment_intent_id:
+                    if resolution == 'refunded':
+                        stripe.Refund.create(payment_intent=req.payment_intent_id)
+                    else:
+                        refund_pct = data.get('refund_percent', 50)
+                        refund_amount = int(int(req.payment * 100) * int(refund_pct) / 100)
+                        stripe.Refund.create(payment_intent=req.payment_intent_id, amount=refund_amount)
+        except stripe.StripeError as e:
+            return jsonify({'success': False, 'message': f'Stripe error: {str(e)}'}), 500
+
+    d.status = 'resolved'
+    d.resolution = resolution
+    d.admin_notes = admin_notes
+    d.resolved_by_id = current_user.id
+    d.resolved_at = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify({'success': True})
+
+
+@owner_bp.route('/disputes/<int:dispute_id>/status', methods=['POST'])
+@owner_required
+def update_dispute_status(dispute_id):
+    d = Dispute.query.get_or_404(dispute_id)
+    new_status = (request.get_json() or {}).get('status', 'under_review')
+    if new_status not in ('open', 'under_review', 'resolved'):
+        return jsonify({'success': False}), 400
+    d.status = new_status
+    db.session.commit()
+    return jsonify({'success': True, 'status': d.status})
+
+
+# ── No-Shows ──────────────────────────────────────────────────────────────────
+
+@owner_bp.route('/no_shows')
+@owner_required
+def no_shows():
+    role_filter = request.args.get('role', '')
+    query = NoShowRecord.query
+    if role_filter in ('client', 'provider'):
+        query = query.filter_by(role=role_filter)
+    all_records = query.order_by(NoShowRecord.created_at.desc()).all()
+
+    enriched = []
+    for r in all_records:
+        info = {
+            'record': r,
+            'no_show_user': r.no_show_user,
+            'reported_by': r.reported_by,
+        }
+        if r.appointment_id:
+            appt = Appointment.query.get(r.appointment_id)
+            if appt:
+                info['service_name'] = appt.provider_service.name if appt.provider_service else 'Service'
+                info['date'] = appt.appointment_time
+                info['item_type'] = 'appointment'
+        elif r.request_id:
+            req = ClientSelfCreatedAppointment.query.get(r.request_id)
+            if req:
+                info['service_name'] = req.service_name or 'Service'
+                info['date'] = req.appointment_start_time
+                info['item_type'] = 'request'
+        enriched.append(info)
+
+    return render_template('owner/no_shows.html', records=enriched, role_filter=role_filter)

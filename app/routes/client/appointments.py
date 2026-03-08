@@ -243,16 +243,17 @@ def cancel_appointment():
         now = datetime.now()
         hours_until = (appointment.appointment_time - now).total_seconds() / 3600
 
-        # Завантажуємо політику провайдера (якщо є)
+        # 3-tier cancellation policy
         policy = CancellationPolicy.query.filter_by(provider_id=appointment.provider_id).first()
+        free_hours = policy.free_cancel_hours if policy and policy.free_cancel_hours is not None else 24
+        late_fee = policy.late_cancel_fee_percent if policy else 25
 
-        # Якщо провайдер не встановив політику — скасування завжди безкоштовне
-        if policy is None or policy.free_cancel_hours is None:
-            fee_percent = 0
-        elif hours_until >= policy.free_cancel_hours:
-            fee_percent = 0
+        if hours_until >= free_hours:
+            fee_percent = 0                          # Tier 1: free cancellation
+        elif hours_until >= 2:
+            fee_percent = late_fee                    # Tier 2: late cancel fee (default 25%)
         else:
-            fee_percent = policy.late_cancel_fee_percent
+            fee_percent = min(late_fee * 2, 100)      # Tier 3: very late (<2h), double fee capped at 100%
 
         if appointment.status == 'confirmed_paid':
             payment = Payment.query.filter_by(
@@ -466,10 +467,30 @@ def client_cancel_request(request_id):
         if req.status not in cancellable:
             return jsonify({'success': False, 'message': 'Cannot cancel this request'}), 400
 
-        # If payment was authorized, cancel the Stripe PaymentIntent
+        # 3-tier cancellation fee for authorized payments
         if req.status == 'authorized' and req.payment_intent_id:
             try:
-                stripe.PaymentIntent.cancel(req.payment_intent_id)
+                now = datetime.now()
+                hours_until = (req.appointment_start_time - now).total_seconds() / 3600
+                policy = CancellationPolicy.query.filter_by(provider_id=req.provider_id).first() if req.provider_id else None
+                free_hours = policy.free_cancel_hours if policy and policy.free_cancel_hours is not None else 24
+                late_fee = policy.late_cancel_fee_percent if policy else 25
+
+                if hours_until >= free_hours:
+                    fee_percent = 0
+                elif hours_until >= 2:
+                    fee_percent = late_fee
+                else:
+                    fee_percent = min(late_fee * 2, 100)
+
+                if fee_percent == 0:
+                    stripe.PaymentIntent.cancel(req.payment_intent_id)
+                else:
+                    fee_cents = int(int((req.payment or 0) * 100) * fee_percent / 100)
+                    if fee_cents > 0:
+                        stripe.PaymentIntent.capture(req.payment_intent_id, amount_to_capture=fee_cents)
+                    else:
+                        stripe.PaymentIntent.cancel(req.payment_intent_id)
             except stripe.StripeError as e:
                 current_app.logger.error(f'Stripe cancel error: {str(e)}')
                 return jsonify({'success': False, 'message': 'Payment cancellation failed'}), 500
@@ -994,7 +1015,8 @@ def complete_appointment():
                     idempotency_key=f"complete_appt_{appointment_id}",
                 )
                 amount_cents = pi.amount_received
-                platform_fee_cents = int(round(amount_cents * 0.10))
+                commission_rate = current_app.config.get('PLATFORM_COMMISSION_RATE', 0.15)
+                platform_fee_cents = int(round(amount_cents * commission_rate))
                 payout_cents = amount_cents - platform_fee_cents
 
                 stripe.Transfer.create(
@@ -1086,7 +1108,8 @@ def complete_request_appointment():
                 idempotency_key=f"complete_req_{request_id}",
             )
             amount_cents = pi.amount_received
-            platform_fee_cents = int(round(amount_cents * 0.10))
+            commission_rate = current_app.config.get('PLATFORM_COMMISSION_RATE', 0.15)
+            platform_fee_cents = int(round(amount_cents * commission_rate))
             payout_cents = amount_cents - platform_fee_cents
 
             stripe.Transfer.create(
@@ -1257,6 +1280,176 @@ def view_receipt(receipt_type, item_id):
         )
     else:
         abort(404)
+
+
+# ── Client No-Show Provider & Disputes ───────────────────────────────────────
+
+@client_bp.route('/report_no_show_provider', methods=['POST'])
+@login_required
+def report_no_show_provider():
+    """Client reports provider no-show → full refund."""
+    if current_user.role != 'client':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    data = request.get_json() or {}
+    appointment_id = data.get('appointment_id')
+    request_id = data.get('request_id')
+    reason = data.get('reason', '')
+
+    try:
+        from app.models import NoShowRecord
+
+        if appointment_id:
+            item = Appointment.query.filter_by(id=appointment_id, client_id=current_user.id).first()
+            if not item:
+                return jsonify({'success': False, 'message': 'Appointment not found'}), 404
+            if item.status not in ('confirmed_paid', 'confirmed'):
+                return jsonify({'success': False, 'message': 'Cannot report no-show for this status'}), 400
+
+            now = datetime.now()
+            if now < item.appointment_time + timedelta(minutes=15):
+                return jsonify({'success': False, 'message': 'Must wait 15 minutes after appointment time'}), 400
+
+            # Full refund to client
+            payment = Payment.query.filter_by(appointment_id=item.id, status='completed').first()
+            if payment and payment.transaction_id:
+                stripe.PaymentIntent.cancel(payment.transaction_id, cancellation_reason='requested_by_customer')
+                payment.status = 'canceled'
+
+            provider = User.query.get(item.provider_id)
+            record = NoShowRecord(
+                appointment_id=item.id, reported_by_id=current_user.id,
+                no_show_user_id=item.provider_id, role='provider', reason=reason,
+            )
+            db.session.add(record)
+            if provider:
+                provider.no_show_count = (provider.no_show_count or 0) + 1
+            item.set_status('no_show')
+            from app.routes.provider.appointments import sync_appointment_request_status
+            sync_appointment_request_status(item, 'no_show')
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Provider no-show recorded. Full refund issued.'})
+
+        elif request_id:
+            item = ClientSelfCreatedAppointment.query.filter_by(id=request_id, patient_id=current_user.id).first()
+            if not item:
+                return jsonify({'success': False, 'message': 'Request not found'}), 404
+            if item.status not in ('authorized', 'confirmed_paid', 'accepted'):
+                return jsonify({'success': False, 'message': 'Cannot report no-show for this status'}), 400
+
+            now = datetime.now()
+            if now < item.appointment_start_time + timedelta(minutes=15):
+                return jsonify({'success': False, 'message': 'Must wait 15 minutes after appointment time'}), 400
+
+            if item.payment_intent_id:
+                stripe.PaymentIntent.cancel(item.payment_intent_id, cancellation_reason='requested_by_customer')
+
+            provider = User.query.get(item.provider_id) if item.provider_id else None
+            record = NoShowRecord(
+                request_id=item.id, reported_by_id=current_user.id,
+                no_show_user_id=item.provider_id, role='provider', reason=reason,
+            )
+            db.session.add(record)
+            if provider:
+                provider.no_show_count = (provider.no_show_count or 0) + 1
+            item.set_status('no_show')
+            from app.routes.provider.appointments import sync_request_appointment_status
+            sync_request_appointment_status(item, 'no_show')
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Provider no-show recorded. Full refund issued.'})
+
+        return jsonify({'success': False, 'message': 'appointment_id or request_id required'}), 400
+
+    except stripe.StripeError as e:
+        current_app.logger.error(f"Stripe error on provider no-show: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error reporting provider no-show: {e}")
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
+
+
+@client_bp.route('/dispute', methods=['POST'])
+@login_required
+def create_dispute():
+    """Client creates a dispute about service quality or completion."""
+    if current_user.role != 'client':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+
+    data = request.get_json() or {}
+    appointment_id = data.get('appointment_id')
+    request_id = data.get('request_id')
+    reason = data.get('reason', 'other')
+    description = data.get('description', '')
+
+    if reason not in ('not_completed', 'quality_issue', 'other'):
+        return jsonify({'success': False, 'message': 'Invalid reason'}), 400
+
+    try:
+        from app.models import Dispute
+
+        if appointment_id:
+            item = Appointment.query.filter_by(id=appointment_id, client_id=current_user.id).first()
+            if not item:
+                return jsonify({'success': False, 'message': 'Appointment not found'}), 404
+            if item.status not in ('work_submitted', 'completed'):
+                return jsonify({'success': False, 'message': 'Can only dispute work_submitted or completed appointments'}), 400
+
+            dispute = Dispute(
+                appointment_id=item.id, reporter_id=current_user.id,
+                reason=reason, description=description,
+            )
+            db.session.add(dispute)
+            item.set_status('disputed')
+            from app.routes.provider.appointments import sync_appointment_request_status
+            sync_appointment_request_status(item, 'disputed')
+            db.session.commit()
+
+            # Notify provider
+            try:
+                from app.telegram.notifications import send_user_telegram
+                svc = item.provider_service.name if item.provider_service else 'Service'
+                send_user_telegram(item.provider_id,
+                    f"A dispute has been filed for '{svc}'. Reason: {reason}.")
+            except Exception:
+                pass
+
+            return jsonify({'success': True, 'message': 'Dispute created'})
+
+        elif request_id:
+            item = ClientSelfCreatedAppointment.query.filter_by(id=request_id, patient_id=current_user.id).first()
+            if not item:
+                return jsonify({'success': False, 'message': 'Request not found'}), 404
+            if item.status not in ('work_submitted', 'completed'):
+                return jsonify({'success': False, 'message': 'Can only dispute work_submitted or completed requests'}), 400
+
+            dispute = Dispute(
+                request_id=item.id, reporter_id=current_user.id,
+                reason=reason, description=description,
+            )
+            db.session.add(dispute)
+            item.set_status('disputed')
+            from app.routes.provider.appointments import sync_request_appointment_status
+            sync_request_appointment_status(item, 'disputed')
+            db.session.commit()
+
+            # Notify provider
+            try:
+                from app.telegram.notifications import send_user_telegram
+                if item.provider_id:
+                    send_user_telegram(item.provider_id,
+                        f"A dispute has been filed for '{item.service_name or 'Service'}'. Reason: {reason}.")
+            except Exception:
+                pass
+
+            return jsonify({'success': True, 'message': 'Dispute created'})
+
+        return jsonify({'success': False, 'message': 'appointment_id or request_id required'}), 400
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error creating dispute: {e}")
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
 
 
 @socketio.on('connect')

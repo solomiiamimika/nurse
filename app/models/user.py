@@ -49,6 +49,7 @@ class User(db.Model, UserMixin):
     verification_method = Column(String(50), nullable=True)   # 'manual', 'stripe_kyc', etc.
     verification_date   = Column(DateTime, nullable=True)
 
+    no_show_count      = Column(Integer, default=0)
     terms_accepted     = Column(Boolean, default=False)
     has_insurance      = Column(Boolean, default=False)
     insurance_document = Column(String)

@@ -52,6 +52,9 @@ class Config:
     JWT_SECRET_KEY           = os.getenv('JWT_SECRET_KEY', 'change-jwt-secret')
     JWT_ACCESS_TOKEN_EXPIRES = 86400   # 24 hours
 
+    # ── Platform fees ────────────────────────────────────────────────
+    PLATFORM_COMMISSION_RATE = 0.15   # 15% platform commission
+
     # ── Internationalisation ───────────────────────────────────────
     BABEL_DEFAULT_LOCALE      = 'en'
     BABEL_SUPPORTED_LOCALES   = ['en', 'uk', 'de', 'pl']

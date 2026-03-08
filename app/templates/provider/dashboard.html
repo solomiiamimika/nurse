@@ -440,9 +440,14 @@
               }
               container.innerHTML = data.history.map(h => {
                   const date = new Date(h.appointment_time).toLocaleDateString();
-                  const statusBadge = h.status === 'completed'
-                      ? '<span class="badge bg-success bg-opacity-10 text-success border border-success">{{ _("Completed") }}</span>'
-                      : `<span class="badge bg-secondary">${h.status}</span>`;
+                  const statusMap = {
+                      completed: '<span class="badge bg-success bg-opacity-10 text-success border border-success">{{ _("Completed") }}</span>',
+                      in_progress: '<span class="badge" style="background:#dcfce7;color:#16a34a;border:1px solid #86efac;">{{ _("In Progress") }}</span>',
+                      no_show: '<span class="badge" style="background:#f3f4f6;color:#6b7280;border:1px solid #d1d5db;">{{ _("No Show") }}</span>',
+                      disputed: '<span class="badge" style="background:#fff7ed;color:#f97316;border:1px solid #fdba74;">{{ _("Disputed") }}</span>',
+                      cancelled: '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger">{{ _("Cancelled") }}</span>',
+                  };
+                  const statusBadge = statusMap[h.status] || `<span class="badge bg-secondary">${h.status}</span>`;
                   return `
                   <div class="content-card mb-2 p-3">
                       <div class="d-flex justify-content-between align-items-start">
@@ -749,8 +754,17 @@
                   </div>` : ''}
                   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                       ${item.offer_status === 'accepted' && (item.req_status === 'authorized' || (item.req_status === 'accepted' && (item.payment || 0) == 0)) ? `
-                          <button class="btn btn-success btn-sm fw-bold" onclick="event.stopPropagation();markRequestDone(${item.req_id})">
+                          <button class="btn btn-success btn-sm fw-bold" onclick="event.stopPropagation();confirmArrivalRequest(${item.req_id})" style="font-size:11px;">
+                              <i class="fas fa-play-circle me-1"></i>{{ _("Confirm Arrival") }}
+                          </button>
+                          <button class="btn btn-success btn-sm fw-bold" onclick="event.stopPropagation();markRequestDone(${item.req_id})" style="font-size:11px;">
                               <i class="fas fa-check me-1"></i>{{ _("Mark Done") }}
+                          </button>
+                          <button class="btn btn-outline-warning btn-sm" onclick="event.stopPropagation();notifyRunningLateRequest(${item.req_id})" style="font-size:11px;">
+                              <i class="fas fa-clock me-1"></i>{{ _("Running Late") }}
+                          </button>
+                          <button class="btn btn-outline-danger btn-sm" onclick="event.stopPropagation();clientNoShowRequest(${item.req_id})" style="font-size:11px;">
+                              <i class="fas fa-user-slash me-1"></i>{{ _("Client No-Show") }}
                           </button>` : ''}
                       ${item.offer_status === 'accepted' && item.req_status === 'accepted' && (item.payment || 0) > 0 ? `
                           <span class="small text-warning"><i class="fas fa-clock me-1"></i>{{ _("Waiting for client payment") }}</span>` : ''}
@@ -766,10 +780,16 @@
                           <button class="btn btn-outline-warning btn-sm" onclick="event.stopPropagation();retractWorkRequest(${item.req_id})" style="font-size:11px;">
                               <i class="fas fa-arrow-left me-1"></i>{{ _("Retract") }}
                           </button>` : ''}
+                      ${item.offer_status === 'accepted' && item.req_status === 'in_progress' ? `<span class="small text-success"><i class="fas fa-spinner fa-spin me-1"></i>{{ _("In Progress") }}</span>
+                          <button class="btn btn-success btn-sm fw-bold" onclick="event.stopPropagation();markRequestDone(${item.req_id})" style="font-size:11px;">
+                              <i class="fas fa-check me-1"></i>{{ _("Mark Done") }}
+                          </button>` : ''}
                       ${item.offer_status === 'accepted' && item.req_status === 'completed' ? `<span class="small text-success"><i class="fas fa-check-circle me-1"></i>{{ _("Completed") }}</span>
                           <a href="/provider/receipt/request/${item.req_id}" target="_blank" class="btn btn-outline-secondary btn-sm" style="font-size:11px;border-radius:8px;">
                               <i class="fas fa-file-invoice me-1"></i>{{ _("Receipt") }}
                           </a>` : ''}
+                      ${item.offer_status === 'accepted' && item.req_status === 'no_show' ? `<span class="small text-secondary"><i class="fas fa-user-slash me-1"></i>{{ _("No Show") }}</span>` : ''}
+                      ${item.offer_status === 'accepted' && item.req_status === 'disputed' ? `<span class="small" style="color:#f97316;"><i class="fas fa-exclamation-triangle me-1"></i>{{ _("Disputed") }}</span>` : ''}
                       ${item.offer_status === 'accepted' && item.req_status === 'cancelled' ? `<span class="small text-danger"><i class="fas fa-times-circle me-1"></i>{{ _("Cancelled") }}</span>` : ''}
                       ${item.offer_status === 'pending' && !hasClientCounter ? `
                           <span class="small text-warning"><i class="fas fa-hourglass-half me-1"></i>{{ _("Awaiting client") }}</span>` : ''}
@@ -1039,6 +1059,79 @@
           }).then(r => r.json()).then(data => {
               if (data.success) {
                   showStatus('{{ _("Work submitted! Waiting for client approval.") }}');
+                  loadMyOffers();
+              } else {
+                  alert(data.message || 'Error');
+              }
+          });
+      });
+  };
+
+  window.confirmArrivalRequest = function(reqId) {
+      confirmAction('{{ _("Confirm that you have arrived and are starting the work?") }}', {
+          title: '{{ _("Confirm Arrival") }}',
+          btnText: '{{ _("Yes, I\\'ve Arrived") }}',
+          btnClass: 'btn-success',
+          icon: 'fa-play-circle',
+          iconColor: '#198754'
+      }).then(ok => {
+          if (!ok) return;
+          fetch('/provider/confirm_arrival', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+              body: JSON.stringify({request_id: reqId})
+          }).then(r => r.json()).then(data => {
+              if (data.success) {
+                  showStatus('{{ _("Arrival confirmed! Work is now in progress.") }}');
+                  loadMyOffers();
+              } else {
+                  alert(data.message || 'Error');
+              }
+          });
+      });
+  };
+
+  window.notifyRunningLateRequest = function(reqId) {
+      confirmAction('{{ _("Notify the client that you are running late?") }}', {
+          title: '{{ _("Running Late") }}',
+          btnText: '{{ _("Yes, Notify") }}',
+          btnClass: 'btn-warning',
+          icon: 'fa-clock',
+          iconColor: '#f59e0b'
+      }).then(ok => {
+          if (!ok) return;
+          const minutes = prompt('{{ _("How many minutes will you be late?") }}');
+          if (!minutes || isNaN(minutes) || parseInt(minutes) < 1) return;
+          fetch('/provider/report_late', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+              body: JSON.stringify({request_id: reqId, delay_minutes: parseInt(minutes)})
+          }).then(r => r.json()).then(data => {
+              if (data.success) {
+                  showStatus('{{ _("Client has been notified.") }}');
+              } else {
+                  alert(data.message || 'Error');
+              }
+          });
+      });
+  };
+
+  window.clientNoShowRequest = function(reqId) {
+      confirmAction('{{ _("Report that the client did not show up? This will be recorded.") }}', {
+          title: '{{ _("Client No-Show") }}',
+          btnText: '{{ _("Yes, No-Show") }}',
+          btnClass: 'btn-danger',
+          icon: 'fa-user-slash',
+          iconColor: '#dc3545'
+      }).then(ok => {
+          if (!ok) return;
+          fetch('/provider/report_no_show', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+              body: JSON.stringify({request_id: reqId})
+          }).then(r => r.json()).then(data => {
+              if (data.success) {
+                  showStatus('{{ _("No-show recorded.") }}');
                   loadMyOffers();
               } else {
                   alert(data.message || 'Error');

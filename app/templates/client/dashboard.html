@@ -1125,6 +1125,52 @@
       }).catch(() => alert('Network error'));
   };
 
+  window.reportNoShowRequest = async function(reqId) {
+      const ok = await confirmAction("{{ _('Report that the provider did not show up? This will be recorded and reviewed.') }}", {
+        title: "{{ _('Provider No-Show') }}",
+        btnText: "{{ _('Yes, Report No-Show') }}",
+        btnClass: 'btn-danger',
+        icon: 'fa-user-slash',
+        iconColor: '#dc3545'
+      });
+      if (!ok) return;
+      fetch('/client/report_no_show_provider', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+          body: JSON.stringify({request_id: reqId})
+      }).then(r=>r.json()).then(res=>{
+          if(res.success) {
+              loadMyRequests();
+              showStatus(res.message || "{{ _('No-show reported.') }}");
+          } else {
+              alert(res.message || res.error || 'Error');
+          }
+      }).catch(() => alert('Network error'));
+  };
+
+  window.reportIssueRequest = async function(reqId) {
+      const ok = await confirmAction("{{ _('Report an issue with this appointment? This will open a dispute for review.') }}", {
+        title: "{{ _('Report Issue') }}",
+        btnText: "{{ _('Yes, Report Issue') }}",
+        btnClass: 'btn-warning',
+        icon: 'fa-flag',
+        iconColor: '#f97316'
+      });
+      if (!ok) return;
+      fetch('/client/dispute', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+          body: JSON.stringify({request_id: reqId, reason: 'other', description: 'Reported via web'})
+      }).then(r=>r.json()).then(res=>{
+          if(res.success) {
+              loadMyRequests();
+              showStatus(res.message || "{{ _('Issue reported. Our team will review it.') }}");
+          } else {
+              alert(res.message || res.error || 'Error');
+          }
+      }).catch(() => alert('Network error'));
+  };
+
   async function updateLocation() {
       if (!navigator.geolocation) return alert("{{ _('Geolocation not supported') }}");
       showStatus("{{ _('Locating...') }}");
@@ -1427,10 +1473,13 @@
       const isCompleted  = req.status === 'completed' || req.status === 'confirmed_paid';
       const isCancelled  = req.status === 'cancelled';
       const isWorkSubmitted = req.status === 'work_submitted';
+      const isInProgress = req.status === 'in_progress';
+      const isNoShow     = req.status === 'no_show';
+      const isDisputed   = req.status === 'disputed';
       const isAuthorized = req.status === 'authorized';
       const isAccepted   = req.status === 'accepted';
-      const isBooked     = isAccepted || isAuthorized || isCompleted || isWorkSubmitted;
-      const hasOffers    = !isBooked && !isCancelled && req.offers && req.offers.length > 0;
+      const isBooked     = isAccepted || isAuthorized || isCompleted || isWorkSubmitted || isInProgress;
+      const hasOffers    = !isBooked && !isCancelled && !isNoShow && !isDisputed && req.offers && req.offers.length > 0;
 
       const daysUntil = (new Date(req.appointment_start_time) - new Date()) / (1000 * 3600 * 24);
       const canPayNow = daysUntil <= 7;
@@ -1439,9 +1488,18 @@
       if (isCancelled) {
           borderColor = '#ef4444';
           badge = `<span class="badge bg-danger" style="height:fit-content">{{ _("Cancelled") }}</span>`;
+      } else if (isNoShow) {
+          borderColor = '#9ca3af';
+          badge = `<span class="badge" style="height:fit-content;background:#f3f4f6;color:#6b7280;border:1px solid #d1d5db;">{{ _("No Show") }}</span>`;
+      } else if (isDisputed) {
+          borderColor = '#f97316';
+          badge = `<span class="badge" style="height:fit-content;background:#fff7ed;color:#f97316;border:1px solid #fdba74;">{{ _("Disputed") }}</span>`;
       } else if (isCompleted) {
           borderColor = '#10b981';
           badge = `<span class="badge bg-success" style="height:fit-content">{{ _("Completed") }}</span>`;
+      } else if (isInProgress) {
+          borderColor = '#16a34a';
+          badge = `<span class="badge" style="height:fit-content;background:#dcfce7;color:#16a34a;border:1px solid #86efac;">{{ _("In Progress") }}</span>`;
       } else if (isWorkSubmitted) {
           borderColor = '#0ea5e9';
           const reqPrice = parseFloat(req.payment) || 0;
@@ -1476,7 +1534,7 @@
               ${req.payment ? `<div class="small text-success fw-bold mt-1">${req.payment}</div>` : ''}
               <div class="d-flex gap-2 mt-2 flex-wrap">`;
 
-      if (isCancelled || isCompleted) {
+      if (isCancelled || isCompleted || isNoShow || isDisputed) {
           const reuseData = encodeURIComponent(JSON.stringify({
               service_name: req.service_name, payment: req.payment,
               address: req.address, district: req.district,
@@ -1494,10 +1552,39 @@
               </button>`;
           }
       }
+      if (isNoShow) {
+          html += `
+          <div class="w-100 mb-2 p-2 rounded" style="background:#f3f4f6;border:1px solid #d1d5db;font-size:12px;">
+              <i class="fas fa-user-slash text-secondary me-1"></i>
+              <strong>{{ _("No-show was recorded for this appointment.") }}</strong>
+          </div>`;
+      }
+      if (isDisputed) {
+          html += `
+          <div class="w-100 mb-2 p-2 rounded" style="background:#fff7ed;border:1px solid #fdba74;font-size:12px;">
+              <i class="fas fa-exclamation-triangle me-1" style="color:#f97316;"></i>
+              <strong>{{ _("This appointment is under dispute. Our support team will review it.") }}</strong>
+          </div>`;
+      }
       if (isCompleted) {
           html += `<a href="/client/receipt/request/${req.id}" target="_blank" class="btn btn-sm btn-outline-secondary" style="font-size:12px;border-radius:8px;">
               <i class="fas fa-file-invoice me-1"></i>{{ _("Receipt") }}
           </a>`;
+      }
+      if (isInProgress) {
+          html += `
+          <div class="w-100 mb-2 p-2 rounded" style="background:#dcfce7;border:1px solid #86efac;font-size:12px;">
+              <i class="fas fa-spinner fa-spin text-success me-1"></i>
+              <strong>{{ _("The provider has arrived and work is in progress.") }}</strong>
+          </div>
+          <button onclick="reportNoShowRequest(${req.id})" class="btn btn-sm btn-outline-danger" style="font-size:12px">
+              <i class="fas fa-user-slash me-1"></i>{{ _("Provider No-Show") }}
+          </button>`;
+      }
+      if (isAuthorized) {
+          html += `<button onclick="reportNoShowRequest(${req.id})" class="btn btn-sm btn-outline-danger" style="font-size:12px">
+              <i class="fas fa-user-slash me-1"></i>{{ _("Provider No-Show") }}
+          </button>`;
       }
       if (isWorkSubmitted) {
           const wsPrice = parseFloat(req.payment) || 0;
@@ -1509,6 +1596,9 @@
           </div>
           <button onclick="approveRequestWork(${req.id}, ${wsPrice})" class="btn btn-sm btn-success flex-grow-1" style="font-size:12px">
               ${wsPrice > 0 ? '<i class="fas fa-hand-holding-usd me-1"></i>{{ _("Approve & Release Payment") }}' : '<i class="fas fa-check me-1"></i>{{ _("Confirm Completion") }}'}
+          </button>
+          <button onclick="reportIssueRequest(${req.id})" class="btn btn-sm btn-outline-warning" style="font-size:12px">
+              <i class="fas fa-flag me-1"></i>{{ _("Report Issue") }}
           </button>`;
       }
       if (isBooked && req.accepted_provider) {
@@ -1537,10 +1627,10 @@
               <i class="fas fa-list me-1"></i>{{ _("View Offers") }} (${req.offers.length})
           </button>`;
       }
-      if ((isAccepted || isAuthorized || isWorkSubmitted) && !isCompleted && !isCancelled) {
+      if ((isAccepted || isAuthorized || isWorkSubmitted || isInProgress) && !isCompleted && !isCancelled && !isNoShow && !isDisputed) {
           html += `<button onclick="undoStep(${req.id})" class="btn btn-sm btn-outline-warning" style="font-size:12px"><i class="fas fa-arrow-left me-1"></i>{{ _("Go Back") }}</button>`;
       }
-      if (!isCompleted && !isCancelled) {
+      if (!isCompleted && !isCancelled && !isNoShow && !isDisputed) {
           html += `<button onclick="cancelRequest(${req.id})" class="btn btn-sm btn-outline-danger" style="font-size:12px"><i class="fas fa-times me-1"></i>{{ _("Cancel") }}</button>`;
       }
       html += `</div>`;
@@ -1642,11 +1732,11 @@
             const allReqs = data.requests || [];
             const now = new Date();
             // Past = completed or cancelled
-            const pastReqs = allReqs.filter(r => r.status === 'completed' || r.status === 'cancelled');
+            const pastReqs = allReqs.filter(r => ['completed', 'cancelled', 'no_show', 'disputed'].includes(r.status));
             // Active = pending/has_offers and date not passed
             const activeReqs = allReqs.filter(r => ['pending', 'has_offers'].includes(r.status) && new Date(r.appointment_start_time) >= now);
-            // Accepted = accepted/authorized/confirmed_paid/work_submitted and date not passed
-            const acceptedReqs = allReqs.filter(r => ['accepted', 'authorized', 'confirmed_paid', 'work_submitted'].includes(r.status) && new Date(r.appointment_start_time) >= now);
+            // Accepted = accepted/authorized/confirmed_paid/work_submitted/in_progress and date not passed
+            const acceptedReqs = allReqs.filter(r => ['accepted', 'authorized', 'confirmed_paid', 'work_submitted', 'in_progress'].includes(r.status) && new Date(r.appointment_start_time) >= now);
 
             // Render active requests
             const activeContainer = document.getElementById('activeRequestsList');

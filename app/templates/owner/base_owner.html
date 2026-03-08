@@ -72,6 +72,12 @@
             <a href="{{ url_for('owner.feedback') }}" class="sidebar-link {% if request.endpoint == 'owner.feedback' %}active{% endif %}">
                 <i class="fas fa-comment-dots"></i> Feedback
             </a>
+            <a href="{{ url_for('owner.disputes') }}" class="sidebar-link {% if request.endpoint == 'owner.disputes' %}active{% endif %}">
+                <i class="fas fa-exclamation-triangle"></i> Disputes
+            </a>
+            <a href="{{ url_for('owner.no_shows') }}" class="sidebar-link {% if request.endpoint == 'owner.no_shows' %}active{% endif %}">
+                <i class="fas fa-user-slash"></i> No-Shows
+            </a>
             <a href="{{ url_for('owner.telegram_panel') }}" class="sidebar-link {% if request.endpoint == 'owner.telegram_panel' %}active{% endif %}">
                 <i class="fab fa-telegram"></i> Telegram
             </a>

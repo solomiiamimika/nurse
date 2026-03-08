@@ -1,0 +1,72 @@
+{% extends "owner/base_owner.html" %}
+{% block page_title %}No-Show Records{% endblock %}
+
+{% block owner_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('owner.no_shows') }}" class="btn btn-sm {% if not role_filter %}btn-dark{% else %}btn-outline-dark{% endif %}">All</a>
+        <a href="{{ url_for('owner.no_shows', role='client') }}" class="btn btn-sm {% if role_filter == 'client' %}btn-primary{% else %}btn-outline-primary{% endif %}">Clients</a>
+        <a href="{{ url_for('owner.no_shows', role='provider') }}" class="btn btn-sm {% if role_filter == 'provider' %}btn-success{% else %}btn-outline-success{% endif %}">Providers</a>
+    </div>
+</div>
+
+{% if records %}
+<div class="bg-white rounded-3 border p-4">
+    <div class="table-responsive">
+        <table class="table owner-table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Total No-Shows</th>
+                    <th>Service</th>
+                    <th>Reported By</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in records %}
+                {% set user = item.no_show_user %}
+                {% set count = user.no_show_count or 0 if user else 0 %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width:32px;height:32px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:#374151;flex-shrink:0;">
+                                {{ (user.full_name or user.user_name)[0].upper() if user else '?' }}
+                            </div>
+                            <span class="fw-semibold">{{ user.full_name or user.user_name if user else 'Unknown' }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if item.record.role == 'client' %}
+                            <span class="role-badge-client">Client</span>
+                        {% else %}
+                            <span class="role-badge-provider">Provider</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if count >= 3 %}
+                            <span class="badge bg-danger">{{ count }} strikes</span>
+                        {% elif count == 2 %}
+                            <span class="badge" style="background:#fb923c;color:#fff;">{{ count }} strikes</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">{{ count }} strike</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.get('service_name', '—') }}</td>
+                    <td>{{ item.reported_by.full_name or item.reported_by.user_name if item.reported_by else '—' }}</td>
+                    <td class="text-muted small">{{ item.record.created_at.strftime('%d.%m.%Y %H:%M') if item.record.created_at else '—' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+    <h5>No no-show records</h5>
+    <p class="text-muted">Everyone is showing up!</p>
+</div>
+{% endif %}
+{% endblock %}

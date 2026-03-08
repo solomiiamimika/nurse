@@ -41,9 +41,34 @@
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <div class="stat-val">{{ avg_rating or '—' }}</div>
-                    <div class="stat-lbl">Avg Rating ⭐</div>
+                    <div class="stat-lbl">Avg Rating</div>
                 </div>
                 <div class="stat-icon" style="background:#fef9c3;color:#ca8a04;"><i class="fas fa-star"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-val">{{ open_disputes }}</div>
+                    <div class="stat-lbl">Open Disputes</div>
+                </div>
+                <div class="stat-icon" style="background:#fef3c7;color:#d97706;"><i class="fas fa-exclamation-triangle"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-val">{{ no_shows_month }}</div>
+                    <div class="stat-lbl">No-Shows This Month</div>
+                </div>
+                <div class="stat-icon" style="background:#fee2e2;color:#dc2626;"><i class="fas fa-user-slash"></i></div>
             </div>
         </div>
     </div>

@@ -199,6 +199,9 @@
     .confirmed_paid { background-color: #dcfce7 !important; border-left: 4px solid #16a34a !important; color: #14532d !important; }
     .completed { background-color: #f3f4f6 !important; border-left: 4px solid #6b7280 !important; color: #374151 !important; }
     .cancelled { background-color: #fef2f2 !important; border-left: 4px solid #ef4444 !important; color: #991b1b !important; text-decoration: line-through; }
+    .in_progress { background-color: #dcfce7 !important; border-left: 4px solid #16a34a !important; color: #14532d !important; }
+    .no_show { background-color: #f3f4f6 !important; border-left: 4px solid #9ca3af !important; color: #4b5563 !important; }
+    .disputed { background-color: #fff7ed !important; border-left: 4px solid #f97316 !important; color: #9a3412 !important; }
 </style>
 
 <script>
@@ -265,8 +268,11 @@
         // Colorize status text
         statusEl.className = "fw-bold";
         if(props.status === 'confirmed' || props.status === 'confirmed_paid') statusEl.classList.add('text-success');
+        else if(props.status === 'in_progress') statusEl.classList.add('text-success');
         else if(props.status === 'scheduled') statusEl.classList.add('text-warning');
         else if(props.status === 'cancelled') statusEl.classList.add('text-danger');
+        else if(props.status === 'no_show') statusEl.classList.add('text-secondary');
+        else if(props.status === 'disputed') { statusEl.style.color = '#f97316'; }
 
         document.getElementById("detailNotes").textContent = props.notes || i18n.noComments;
 
@@ -295,14 +301,34 @@
             </div>
             `;
         }
-        // 3. Paid: Allow Provider to "Submit Work"
+        // 3. Paid: Allow Provider to "Submit Work", "Confirm Arrival", "Running Late", "Client No-Show"
         else if (props.status === "confirmed_paid") {
           const priceVal = parseFloat(props.price) || 0;
           actionsContainer.innerHTML = `
             ${priceVal > 0 ? `<div class="alert alert-info w-100 text-center mb-2 small">
                 <i class="fas fa-shield-alt"></i> {{ _("Payment Secured. Safe to work.") }}
             </div>` : ''}
-            <button class="btn btn-primary fw-bold w-100" onclick="updateStatus(${info.event.id}, 'work_submitted')">
+            <button class="btn btn-success fw-bold w-100 mb-2" onclick="updateStatus(${info.event.id}, 'in_progress')">
+                <i class="fas fa-play-circle me-1"></i> {{ _("Confirm Arrival") }}
+            </button>
+            <button class="btn btn-primary fw-bold w-100 mb-2" onclick="updateStatus(${info.event.id}, 'work_submitted')">
+                <i class="fas fa-check"></i> {{ _("I have finished the work") }}
+            </button>
+            <button class="btn btn-outline-warning fw-bold w-100 mb-2" onclick="notifyRunningLate(${info.event.id})">
+                <i class="fas fa-clock me-1"></i> {{ _("Running Late") }}
+            </button>
+            <button class="btn btn-outline-danger fw-bold w-100" onclick="updateStatus(${info.event.id}, 'no_show')">
+                <i class="fas fa-user-slash me-1"></i> {{ _("Client No-Show") }}
+            </button>
+          `;
+        }
+        // 3b. In Progress: Provider has arrived, work underway
+        else if (props.status === "in_progress") {
+          actionsContainer.innerHTML = `
+            <div class="alert alert-success w-100 text-center mb-2 small">
+                <i class="fas fa-spinner fa-spin me-1"></i> {{ _("Work is in progress...") }}
+            </div>
+            <button class="btn btn-primary fw-bold w-100 mb-2" onclick="updateStatus(${info.event.id}, 'work_submitted')">
                 <i class="fas fa-check"></i> {{ _("I have finished the work") }}
             </button>
           `;
@@ -328,6 +354,22 @@
             </div>
             `;
         }
+        // 6. No Show
+        else if (props.status === "no_show") {
+            actionsContainer.innerHTML = `
+            <div class="alert alert-secondary w-100 text-center mb-0">
+                <i class="fas fa-user-slash me-1"></i> {{ _("Client did not show up for this appointment.") }}
+            </div>
+            `;
+        }
+        // 7. Disputed
+        else if (props.status === "disputed") {
+            actionsContainer.innerHTML = `
+            <div class="alert alert-warning w-100 text-center mb-0">
+                <i class="fas fa-exclamation-triangle me-1"></i> {{ _("This appointment is under dispute. Our support team will review it.") }}
+            </div>
+            `;
+        }
 
         // Receipt button for completed appointments
         if (props.status === 'completed') {
@@ -347,7 +389,7 @@
 
         // Show review section for completed appointments
         const reviewSection = document.getElementById('providerReviewSection');
-        if (['confirmed_paid', 'completed', 'work_submitted'].includes(props.status)) {
+        if (['confirmed_paid', 'completed', 'work_submitted', 'in_progress', 'no_show', 'disputed'].includes(props.status)) {
             checkProviderReviewStatus(info.event.id);
         } else {
             reviewSection.style.display = 'none';
@@ -394,6 +436,12 @@
       if (status === 'work_submitted') {
         confirmMsg = "{{ _('Are you sure you have finished the work? The client will be notified to approve.') }}";
         confirmOpts = { title: '{{ _("Submit Work") }}', btnText: '{{ _("Yes, Submit") }}', btnClass: 'btn-success', icon: 'fa-check-circle', iconColor: '#198754' };
+      } else if (status === 'in_progress') {
+        confirmMsg = "{{ _('Confirm that you have arrived and are starting the work?') }}";
+        confirmOpts = { title: '{{ _("Confirm Arrival") }}', btnText: '{{ _("Yes, I\\'ve Arrived") }}', btnClass: 'btn-success', icon: 'fa-play-circle', iconColor: '#198754' };
+      } else if (status === 'no_show') {
+        confirmMsg = "{{ _('Report that the client did not show up? This will be recorded.') }}";
+        confirmOpts = { title: '{{ _("Client No-Show") }}', btnText: '{{ _("Yes, No-Show") }}', btnClass: 'btn-danger', icon: 'fa-user-slash', iconColor: '#dc3545' };
       } else if (status === 'confirmed') {
         confirmOpts = { title: '{{ _("Accept Request") }}', btnText: '{{ _("Yes, Accept") }}', btnClass: 'btn-success', icon: 'fa-check-circle', iconColor: '#198754' };
       } else if (status === 'cancelled') {
@@ -429,15 +477,50 @@
       });
     };
 
+    window.notifyRunningLate = async function(appointmentId) {
+      const ok = await confirmAction("{{ _('Notify the client that you are running late?') }}", {
+        title: '{{ _("Running Late") }}',
+        btnText: '{{ _("Yes, Notify") }}',
+        btnClass: 'btn-warning',
+        icon: 'fa-clock',
+        iconColor: '#f59e0b'
+      });
+      if (!ok) return;
+
+      const minutes = prompt("{{ _('How many minutes will you be late?') }}");
+      if (!minutes || isNaN(minutes) || parseInt(minutes) < 1) return;
+
+      fetch("/provider/report_late", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify({ appointment_id: appointmentId, delay_minutes: parseInt(minutes) }),
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          alert("{{ _('Client has been notified.') }}");
+        } else {
+          alert("{{ _('Error:') }} " + (data.message || ''));
+        }
+      })
+      .catch(err => console.error("Fetch error:", err));
+    };
+
     function getStatusText(status) {
       const price = parseFloat(currentEventPrice) || 0;
       const statuses = {
         scheduled: "{{ _('Pending Request') }}",
         confirmed: "{{ _('Accepted (Awaiting Payment)') }}",
         confirmed_paid: price > 0 ? "{{ _('Paid - Ready to Start') }}" : "{{ _('Confirmed - Ready to Start') }}",
+        in_progress: "{{ _('In Progress') }}",
         work_submitted: "{{ _('Work Submitted (Pending Approval)') }}",
         completed: price > 0 ? "{{ _('Completed & Paid') }}" : "{{ _('Completed') }}",
         cancelled: "{{ _('Cancelled') }}",
+        no_show: "{{ _('No Show') }}",
+        disputed: "{{ _('Disputed') }}",
       };
       return statuses[status] || status;
     }

@@ -191,6 +191,9 @@
     .cancelled { background-color: #fef2f2 !important; border-left: 3px solid #ef4444 !important; color: #991b1b !important; }
     .completed { background-color: #f3f4f6 !important; border-left: 3px solid #6b7280 !important; color: #374151 !important; }
     .work_submitted { background-color: #e0f2fe !important; border-left: 3px solid #0ea5e9 !important; color: #0369a1 !important; }
+    .in_progress { background-color: #dcfce7 !important; border-left: 3px solid #16a34a !important; color: #14532d !important; }
+    .no_show { background-color: #f3f4f6 !important; border-left: 3px solid #9ca3af !important; color: #4b5563 !important; }
+    .disputed { background-color: #fff7ed !important; border-left: 3px solid #f97316 !important; color: #9a3412 !important; }
 
     .rating-input {
         direction: rtl; 
@@ -263,9 +266,12 @@
         
         // Basic coloring logic
         if(props.status === 'confirmed' || props.status === 'confirmed_paid') statusEl.classList.add('text-success');
+        else if(props.status === 'in_progress') statusEl.classList.add('text-success');
         else if(props.status === 'scheduled') statusEl.classList.add('text-warning');
         else if(props.status === 'cancelled') statusEl.classList.add('text-danger');
         else if(props.status === 'work_submitted') statusEl.classList.add('text-primary');
+        else if(props.status === 'no_show') statusEl.classList.add('text-secondary');
+        else if(props.status === 'disputed') { statusEl.style.color = '#f97316'; }
 
         document.getElementById("detailNotes").textContent = props.notes || "{{ _('No notes provided') }}";
         document.getElementById("detailAmount").textContent = props.amount || "0.00";
@@ -322,8 +328,23 @@
                 paymentStatus.innerHTML = '<i class="fas fa-check-circle"></i> {{ _("Confirmed. Waiting for provider to complete.") }}';
             }
             actionsContainer.innerHTML = `
+                <button class="btn btn-outline-danger w-100 mb-2" onclick="reportNoShow(${info.event.id})">
+                    <i class="fas fa-user-slash me-1"></i> {{ _("Provider No-Show") }}
+                </button>
                 <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(${info.event.id})">
                     {{ _("Cancel appointment") }}
+                </button>
+            `;
+        }
+        else if (props.status === "in_progress") {
+            // State: Provider has arrived, work is underway
+            actionsContainer.innerHTML = `
+                <div class="alert alert-success w-100 text-center">
+                    <i class="fas fa-spinner fa-spin me-1"></i> <strong>{{ _("In Progress") }}</strong><br>
+                    {{ _("The provider has arrived and work is underway.") }}
+                </div>
+                <button class="btn btn-outline-danger w-100" onclick="reportNoShow(${info.event.id})">
+                    <i class="fas fa-user-slash me-1"></i> {{ _("Provider No-Show") }}
                 </button>
             `;
         }
@@ -337,6 +358,9 @@
                 </div>
                 <button class="btn btn-success fw-bold w-100 py-2 mb-2" onclick="approveAndPay(${info.event.id})">
                     <i class="fas fa-check"></i> ${amtWork > 0 ? "{{ _('Approve & Release Payment') }}" : "{{ _('Confirm Completion') }}"}
+                </button>
+                <button class="btn btn-outline-warning w-100 mb-2" onclick="reportIssue(${info.event.id})">
+                    <i class="fas fa-flag me-1"></i> {{ _("Report Issue") }}
                 </button>
                 <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(${info.event.id})">
                     {{ _("Cancel appointment") }}
@@ -371,6 +395,22 @@
                     </div>
                  `;
              }
+        }
+        else if (props.status === "no_show") {
+             // State: No Show
+             actionsContainer.innerHTML = `
+                <div class="alert alert-secondary w-100 text-center">
+                    <i class="fas fa-user-slash me-1"></i> {{ _("No-show was recorded for this appointment.") }}
+                </div>
+             `;
+        }
+        else if (props.status === "disputed") {
+             // State: Disputed
+             actionsContainer.innerHTML = `
+                <div class="alert alert-warning w-100 text-center">
+                    <i class="fas fa-exclamation-triangle me-1"></i> {{ _("This appointment is under dispute. Our support team will review it.") }}
+                </div>
+             `;
         }
 
         const modal = new bootstrap.Modal(document.getElementById("appointmentDetailsModal"));
@@ -565,9 +605,12 @@
       scheduled: "{{ _('Scheduled') }}",
       confirmed: "{{ _('Approved (Awaiting Payment)') }}",
       confirmed_paid: currentAppointmentAmount > 0 ? "{{ _('Paid & Confirmed') }}" : "{{ _('Confirmed') }}",
+      in_progress: "{{ _('In Progress') }}",
       work_submitted: "{{ _('Work Submitted (Action Required)') }}",
       completed: "{{ _('Completed') }}",
-      cancelled: "{{ _('Cancelled') }}"
+      cancelled: "{{ _('Cancelled') }}",
+      no_show: "{{ _('No Show') }}",
+      disputed: "{{ _('Disputed') }}"
     };
     return statuses[status] || status;
   }
@@ -620,6 +663,62 @@
     fetch(`/client/undo_cancel_appointment/${appointmentId}`, {
       method: "POST",
       headers: { "X-CSRFToken": csrfToken },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert("{{ _('Error:') }} " + data.message);
+        }
+      });
+  }
+
+  async function reportNoShow(appointmentId) {
+    const ok = await confirmAction("{{ _('Report that the provider did not show up? This will be recorded and reviewed.') }}", {
+      title: "{{ _('Provider No-Show') }}",
+      btnText: "{{ _('Yes, Report No-Show') }}",
+      btnClass: 'btn-danger',
+      icon: 'fa-user-slash',
+      iconColor: '#dc3545'
+    });
+    if (!ok) return;
+
+    fetch("/client/report_no_show_provider", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
+      },
+      body: JSON.stringify({ appointment_id: appointmentId }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert("{{ _('Error:') }} " + data.message);
+        }
+      });
+  }
+
+  async function reportIssue(appointmentId) {
+    const ok = await confirmAction("{{ _('Report an issue with this appointment? This will open a dispute for review.') }}", {
+      title: "{{ _('Report Issue') }}",
+      btnText: "{{ _('Yes, Report Issue') }}",
+      btnClass: 'btn-warning',
+      icon: 'fa-flag',
+      iconColor: '#f97316'
+    });
+    if (!ok) return;
+
+    fetch("/client/dispute", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
+      },
+      body: JSON.stringify({ appointment_id: appointmentId, reason: 'other', description: 'Reported via web' }),
     })
       .then((response) => response.json())
       .then((data) => {

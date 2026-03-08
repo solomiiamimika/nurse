@@ -1,5 +1,8 @@
 import random
 import math
+from functools import wraps
+from flask import jsonify, request, g
+from flask_login import current_user as flask_current_user
 
 
 def fuzz_coordinates(lat, lng, meters=300):
@@ -44,3 +47,36 @@ def validate_coordinates(lat, lng):
         return False, 'Longitude must be between -180 and 180'
 
     return True, None
+
+
+def api_login_required(f):
+    """
+    Decorator that accepts both Flask-Login sessions (web) and JWT Bearer tokens (mobile).
+    Sets flask_login.current_user in both cases so route handlers work unchanged.
+    """
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        # 1. Check if already authenticated via Flask-Login session
+        if flask_current_user.is_authenticated:
+            return f(*args, **kwargs)
+
+        # 2. Check for JWT Bearer token
+        auth_header = request.headers.get('Authorization', '')
+        if auth_header.startswith('Bearer '):
+            try:
+                from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+                from flask_login import login_user
+                from app.models import User
+
+                verify_jwt_in_request()
+                user_id = get_jwt_identity()
+                user = User.query.get(int(user_id))
+                if user:
+                    login_user(user)
+                    return f(*args, **kwargs)
+            except Exception:
+                pass
+
+        return jsonify({'error': 'Authentication required'}), 401
+
+    return decorated

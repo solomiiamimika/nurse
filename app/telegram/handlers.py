@@ -8,9 +8,11 @@ import logging
 import requests as http_requests
 from flask import current_app
 from app.extensions import db
+from datetime import datetime, timedelta
 from app.models import (
     User, Appointment, ClientSelfCreatedAppointment,
     RequestOfferResponse, ServiceHistory,
+    NoShowRecord, Dispute,
 )
 from . import keyboards
 from .conversations import conversation_manager
@@ -301,6 +303,264 @@ def handle_callback_query(cq, bot_token):
             logger.exception("Error starting revise flow for telegram_id=%s", telegram_id)
             send_message(bot_token, chat_id, "Something went wrong. Please try again.")
 
+    # ── Appointment action callbacks ──────────────────────────────
+    if data.startswith('act_'):
+        _handle_appointment_action(data, telegram_id, chat_id, bot_token)
+        return
+
+
+def _parse_action_target(data):
+    """Parse 'act_<action>_<type>_<id>' → (action, type, id) or None."""
+    parts = data.split('_', 3)  # act, action, type_id
+    if len(parts) < 3:
+        return None
+    action = parts[1]
+    rest = '_'.join(parts[2:])
+    # rest = 'appt_123' or 'req_456' or 'arrive_appt_123' etc.
+    # Some actions have multi-word: act_client_noshow_req_5 → need to handle
+    # Format: act_<action>_<apptType>_<id>
+    # actions: arrive, late, done, client_noshow, prov_noshow, complete, dispute
+    # Let's re-parse from original data
+    prefix = 'act_'
+    rest_full = data[len(prefix):]
+    # Find the appt/req type and id at the end
+    for atype in ('appt', 'req'):
+        marker = f'_{atype}_'
+        idx = rest_full.rfind(marker)
+        if idx >= 0:
+            action_name = rest_full[:idx]
+            try:
+                obj_id = int(rest_full[idx + len(marker):])
+                return action_name, atype, obj_id
+            except ValueError:
+                continue
+    return None
+
+
+def _get_appointment_or_request(atype, obj_id):
+    """Get appointment or request by type and id."""
+    if atype == 'appt':
+        return Appointment.query.get(obj_id), 'appointment'
+    else:
+        return ClientSelfCreatedAppointment.query.get(obj_id), 'request'
+
+
+def _handle_appointment_action(data, telegram_id, chat_id, bot_token):
+    """Handle all appointment action callbacks."""
+    from .notifications import send_user_telegram
+
+    parsed = _parse_action_target(data)
+    if not parsed:
+        logger.warning("Could not parse action callback: %s", data)
+        return
+
+    action, atype, obj_id = parsed
+
+    try:
+        user = User.query.filter_by(telegram_id=telegram_id).first()
+        if not user:
+            send_message(bot_token, chat_id, "Please /register or /link first.")
+            return
+
+        obj, obj_label = _get_appointment_or_request(atype, obj_id)
+        if not obj:
+            send_message(bot_token, chat_id, f"Appointment not found.")
+            return
+
+        # Get service name and times
+        if atype == 'appt':
+            svc_name = obj.provider_service.name if obj.provider_service else 'Service'
+            appt_time = obj.appointment_time
+            client_id = obj.client_id
+            provider_id = obj.provider_id
+        else:
+            svc_name = obj.service_name or 'Service'
+            appt_time = obj.appointment_start_time
+            client_id = obj.patient_id
+            provider_id = obj.provider_id
+
+        now = datetime.now()
+
+        # ── Provider: Confirm Arrival ──
+        if action == 'arrive':
+            if user.id != provider_id:
+                send_message(bot_token, chat_id, "Only the assigned provider can do this.")
+                return
+            if obj.status not in ('confirmed_paid', 'confirmed'):
+                send_message(bot_token, chat_id, f"Cannot confirm arrival for status: {obj.status}")
+                return
+
+            obj.provider_arrived_at = now
+            obj.status = 'in_progress'
+            if hasattr(obj, 'previous_status'):
+                obj.previous_status = 'confirmed_paid'
+            db.session.commit()
+
+            send_message(bot_token, chat_id, f"\u2705 Arrival confirmed for <b>{svc_name}</b>! Work is now in progress.")
+            send_user_telegram(client_id,
+                               f"<b>Provider has arrived!</b>\n\n"
+                               f"Service: {svc_name}\n"
+                               f"Work is now in progress.")
+            return
+
+        # ── Provider: Running Late ──
+        if action == 'late':
+            if user.id != provider_id:
+                send_message(bot_token, chat_id, "Only the assigned provider can do this.")
+                return
+            # Start conversation to ask for minutes
+            conversation_manager.start(telegram_id, 'report_late', {
+                'atype': atype, 'obj_id': obj_id, 'svc_name': svc_name, 'client_id': client_id
+            })
+            send_message(bot_token, chat_id,
+                         f"How many minutes will you be late for <b>{svc_name}</b>?\n"
+                         f"Enter a number:")
+            return
+
+        # ── Provider: Mark Done ──
+        if action == 'done':
+            if user.id != provider_id:
+                send_message(bot_token, chat_id, "Only the assigned provider can do this.")
+                return
+            if obj.status != 'in_progress':
+                send_message(bot_token, chat_id, f"Cannot mark done for status: {obj.status}")
+                return
+
+            obj.status = 'work_submitted'
+            obj.work_submitted_at = now
+            db.session.commit()
+
+            send_message(bot_token, chat_id,
+                         f"\u2705 Work submitted for <b>{svc_name}</b>!\n"
+                         f"Waiting for client approval.")
+            send_user_telegram(client_id,
+                               f"<b>Work completed!</b>\n\n"
+                               f"Service: {svc_name}\n"
+                               f"Please approve the work or report an issue.")
+            return
+
+        # ── Provider: Client No-Show ──
+        if action == 'client_noshow':
+            if user.id != provider_id:
+                send_message(bot_token, chat_id, "Only the assigned provider can do this.")
+                return
+            if not appt_time or now < appt_time + timedelta(minutes=15):
+                send_message(bot_token, chat_id, "You can report no-show only 15 minutes after the appointment time.")
+                return
+
+            # Record no-show
+            record = NoShowRecord(
+                reported_by_id=user.id,
+                no_show_user_id=client_id,
+                role='client',
+                reason='Client did not show up',
+            )
+            if atype == 'appt':
+                record.appointment_id = obj_id
+            else:
+                record.request_id = obj_id
+
+            client = User.query.get(client_id)
+            if client:
+                client.no_show_count = (client.no_show_count or 0) + 1
+
+            obj.status = 'no_show'
+            db.session.add(record)
+            db.session.commit()
+
+            send_message(bot_token, chat_id,
+                         f"\U0001f6ab Client no-show recorded for <b>{svc_name}</b>.")
+            send_user_telegram(client_id,
+                               f"<b>No-show recorded</b>\n\n"
+                               f"You were marked as no-show for: {svc_name}\n"
+                               f"If this is a mistake, please contact support.")
+            return
+
+        # ── Client: Provider No-Show ──
+        if action == 'prov_noshow':
+            if user.id != client_id:
+                send_message(bot_token, chat_id, "Only the client can do this.")
+                return
+            if not appt_time or now < appt_time + timedelta(minutes=15):
+                send_message(bot_token, chat_id, "You can report no-show only 15 minutes after the appointment time.")
+                return
+
+            record = NoShowRecord(
+                reported_by_id=user.id,
+                no_show_user_id=provider_id,
+                role='provider',
+                reason='Provider did not show up',
+            )
+            if atype == 'appt':
+                record.appointment_id = obj_id
+            else:
+                record.request_id = obj_id
+
+            provider = User.query.get(provider_id)
+            if provider:
+                provider.no_show_count = (provider.no_show_count or 0) + 1
+
+            obj.status = 'no_show'
+            db.session.add(record)
+            db.session.commit()
+
+            send_message(bot_token, chat_id,
+                         f"\U0001f6ab Provider no-show recorded for <b>{svc_name}</b>.\n"
+                         f"Any pre-authorized payment will be refunded.")
+            send_user_telegram(provider_id,
+                               f"<b>No-show recorded</b>\n\n"
+                               f"You were marked as no-show for: {svc_name}\n"
+                               f"If this is a mistake, please contact support.")
+            return
+
+        # ── Client: Approve & Complete ──
+        if action == 'complete':
+            if user.id != client_id:
+                send_message(bot_token, chat_id, "Only the client can do this.")
+                return
+            if obj.status != 'work_submitted':
+                send_message(bot_token, chat_id, f"Cannot complete for status: {obj.status}")
+                return
+
+            obj.status = 'completed'
+            db.session.commit()
+
+            send_message(bot_token, chat_id,
+                         f"\u2705 <b>{svc_name}</b> marked as completed! Thank you.")
+            send_user_telegram(provider_id,
+                               f"<b>Work approved!</b>\n\n"
+                               f"Service: {svc_name}\n"
+                               f"The client has approved your work. Payment will be released.")
+            return
+
+        # ── Client: Report Issue (Dispute) ──
+        if action == 'dispute':
+            if user.id != client_id:
+                send_message(bot_token, chat_id, "Only the client can do this.")
+                return
+            if obj.status not in ('work_submitted', 'completed'):
+                send_message(bot_token, chat_id, f"Cannot report issue for status: {obj.status}")
+                return
+
+            # Start conversation to collect dispute details
+            conversation_manager.start(telegram_id, 'create_dispute', {
+                'atype': atype, 'obj_id': obj_id, 'svc_name': svc_name, 'provider_id': provider_id
+            })
+            send_message(bot_token, chat_id,
+                         f"What is the issue with <b>{svc_name}</b>?\n\n"
+                         f"1. Not completed\n"
+                         f"2. Quality issue\n"
+                         f"3. Other\n\n"
+                         f"Enter 1, 2, or 3:")
+            return
+
+        send_message(bot_token, chat_id, "Unknown action.")
+
+    except Exception:
+        db.session.rollback()
+        logger.exception("Error handling action %s for telegram_id=%s", data, telegram_id)
+        send_message(bot_token, chat_id, "Something went wrong. Please try again.")
+
 
 # ── Command handlers ───────────────────────────────────────────────
 
@@ -410,6 +670,31 @@ def handle_link(telegram_id, chat_id, bot_token, from_data):
         send_message(bot_token, chat_id, "Something went wrong. Please try again.")
 
 
+def _status_label(status):
+    """Human-readable status label."""
+    labels = {
+        'pending': 'Pending',
+        'scheduled': 'Pending',
+        'has_offers': 'Has Offers',
+        'confirmed': 'Accepted',
+        'confirmed_paid': 'Paid',
+        'in_progress': 'In Progress',
+        'work_submitted': 'Work Submitted',
+        'completed': 'Completed',
+        'cancelled': 'Cancelled',
+        'no_show': 'No-Show',
+        'disputed': 'Disputed',
+    }
+    return labels.get(status, status)
+
+
+def _is_no_show_eligible(appt_time):
+    """True if appointment time + 15 min has passed."""
+    if not appt_time:
+        return False
+    return datetime.now() >= appt_time + timedelta(minutes=15)
+
+
 def handle_appointments(telegram_id, chat_id, bot_token, from_data):
     try:
         user = User.query.filter_by(telegram_id=telegram_id).first()
@@ -417,52 +702,71 @@ def handle_appointments(telegram_id, chat_id, bot_token, from_data):
             send_message(bot_token, chat_id, "Please /register or /link first.")
             return
 
-        from datetime import datetime
         now = datetime.now()
 
         if user.role == 'client':
-            # Direct appointments
             appts = Appointment.query.filter(
                 Appointment.client_id == user.id,
-                Appointment.appointment_time >= now,
-                Appointment.status.notin_(['cancelled', 'completed']),
+                Appointment.appointment_time >= now - timedelta(hours=24),
+                Appointment.status.notin_(['cancelled', 'completed', 'no_show']),
             ).order_by(Appointment.appointment_time).limit(10).all()
 
-            # Request-based
             reqs = ClientSelfCreatedAppointment.query.filter(
                 ClientSelfCreatedAppointment.patient_id == user.id,
-                ClientSelfCreatedAppointment.appointment_start_time >= now,
-                ClientSelfCreatedAppointment.status.notin_(['cancelled', 'completed']),
+                ClientSelfCreatedAppointment.appointment_start_time >= now - timedelta(hours=24),
+                ClientSelfCreatedAppointment.status.notin_(['cancelled', 'completed', 'no_show']),
             ).order_by(ClientSelfCreatedAppointment.appointment_start_time).limit(10).all()
 
         else:  # provider
             appts = Appointment.query.filter(
                 Appointment.provider_id == user.id,
-                Appointment.appointment_time >= now,
-                Appointment.status.notin_(['cancelled', 'completed']),
+                Appointment.appointment_time >= now - timedelta(hours=24),
+                Appointment.status.notin_(['cancelled', 'completed', 'no_show']),
             ).order_by(Appointment.appointment_time).limit(10).all()
 
             reqs = ClientSelfCreatedAppointment.query.filter(
                 ClientSelfCreatedAppointment.provider_id == user.id,
-                ClientSelfCreatedAppointment.appointment_start_time >= now,
-                ClientSelfCreatedAppointment.status.notin_(['cancelled', 'completed']),
+                ClientSelfCreatedAppointment.appointment_start_time >= now - timedelta(hours=24),
+                ClientSelfCreatedAppointment.status.notin_(['cancelled', 'completed', 'no_show']),
             ).order_by(ClientSelfCreatedAppointment.appointment_start_time).limit(10).all()
 
         if not appts and not reqs:
             send_message(bot_token, chat_id, "No upcoming appointments.")
             return
 
-        lines = ["<b>Upcoming appointments:</b>\n"]
+        # Send each appointment as a separate message with action buttons
         for a in appts:
             dt = a.appointment_time.strftime('%d.%m.%Y %H:%M')
             svc = a.provider_service.name if a.provider_service else 'Service'
-            lines.append(f"• {svc} — {dt} [{a.status}]")
+            late_info = f"\n\u23f0 Late by {a.provider_late_minutes} min" if a.provider_late_minutes else ''
+            text = (
+                f"<b>{svc}</b>\n"
+                f"Date: {dt}\n"
+                f"Status: {_status_label(a.status)}{late_info}"
+            )
+            no_show_ok = _is_no_show_eligible(a.appointment_time)
+            if user.role == 'provider':
+                kb = keyboards.provider_appointment_actions(a.id, 'appt', a.status, no_show_ok)
+            else:
+                kb = keyboards.client_appointment_actions(a.id, 'appt', a.status, no_show_ok)
+            send_message(bot_token, chat_id, text, kb)
 
         for r in reqs:
             dt = r.appointment_start_time.strftime('%d.%m.%Y %H:%M')
-            lines.append(f"• {r.service_name or 'Request'} — {dt} [{r.status}]")
+            svc = r.service_name or 'Request'
+            late_info = f"\n\u23f0 Late by {r.provider_late_minutes} min" if r.provider_late_minutes else ''
+            text = (
+                f"<b>{svc}</b>\n"
+                f"Date: {dt}\n"
+                f"Status: {_status_label(r.status)}{late_info}"
+            )
+            no_show_ok = _is_no_show_eligible(r.appointment_start_time)
+            if user.role == 'provider':
+                kb = keyboards.provider_appointment_actions(r.id, 'req', r.status, no_show_ok)
+            else:
+                kb = keyboards.client_appointment_actions(r.id, 'req', r.status, no_show_ok)
+            send_message(bot_token, chat_id, text, kb)
 
-        send_message(bot_token, chat_id, "\n".join(lines))
     except Exception:
         logger.exception("Error in handle_appointments for telegram_id=%s", telegram_id)
         send_message(bot_token, chat_id, "Something went wrong. Please try again.")
@@ -495,7 +799,6 @@ def handle_open_requests(telegram_id, chat_id, bot_token, from_data):
             send_message(bot_token, chat_id, "Only providers can browse requests.")
             return
 
-        from datetime import datetime
         now = datetime.now()
 
         reqs = ClientSelfCreatedAppointment.query.filter(
