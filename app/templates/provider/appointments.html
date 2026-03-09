@@ -195,6 +195,10 @@
 
     /* Status Colors */
     .scheduled { background-color: #fffbeb !important; border-left: 4px solid #f59e0b !important; color: #92400e !important; }
+    .pending { background-color: #f5f3ff !important; border-left: 4px solid #8b5cf6 !important; color: #5b21b6 !important; }
+    .has_offers { background-color: #f5f3ff !important; border-left: 4px solid #8b5cf6 !important; color: #5b21b6 !important; }
+    .accepted { background-color: #fffbeb !important; border-left: 4px solid #f59e0b !important; color: #92400e !important; }
+    .authorized { background-color: #eff6ff !important; border-left: 4px solid #3b82f6 !important; color: #1e40af !important; }
     .confirmed { background-color: #ecfdf5 !important; border-left: 4px solid #10b981 !important; color: #065f46 !important; }
     .confirmed_paid { background-color: #dcfce7 !important; border-left: 4px solid #16a34a !important; color: #14532d !important; }
     .completed { background-color: #f3f4f6 !important; border-left: 4px solid #6b7280 !important; color: #374151 !important; }
@@ -217,6 +221,8 @@
     const calendarEl = document.getElementById("calendar");
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
     let currentEventPrice = 0;
+    let currentEventType = 'appointment';
+    let currentAppointmentId = null;
 
     function getResponsiveSettings() {
       const isMobile = window.innerWidth < 768;
@@ -257,6 +263,15 @@
       eventClick: function (info) {
         const props = info.event.extendedProps;
         currentEventPrice = parseFloat(props.price) || 0;
+        currentEventType = props.type || 'appointment';
+
+        // Parse ID: request events have "req_123" format
+        const rawId = String(info.event.id);
+        if (rawId.startsWith('req_')) {
+            currentAppointmentId = parseInt(rawId.replace('req_', ''));
+        } else {
+            currentAppointmentId = parseInt(rawId);
+        }
 
         document.getElementById("detailClientName").textContent = props.client_name || 'Unknown';
         document.getElementById("detailServiceName").textContent = props.service_name || 'Service';
@@ -270,6 +285,9 @@
         if(props.status === 'confirmed' || props.status === 'confirmed_paid') statusEl.classList.add('text-success');
         else if(props.status === 'in_progress') statusEl.classList.add('text-success');
         else if(props.status === 'scheduled') statusEl.classList.add('text-warning');
+        else if(props.status === 'pending' || props.status === 'has_offers') { statusEl.style.color = '#8b5cf6'; }
+        else if(props.status === 'accepted') statusEl.classList.add('text-warning');
+        else if(props.status === 'authorized') { statusEl.style.color = '#3b82f6'; }
         else if(props.status === 'cancelled') statusEl.classList.add('text-danger');
         else if(props.status === 'no_show') statusEl.classList.add('text-secondary');
         else if(props.status === 'disputed') { statusEl.style.color = '#f97316'; }
@@ -281,13 +299,38 @@
 
         // --- LOGIC START ---
 
+        // Request-specific statuses
+        if (currentEventType === 'request' && props.status === 'pending') {
+            actionsContainer.innerHTML = `
+            <div class="alert alert-info w-100 text-center mb-0">
+                <i class="fas fa-clock"></i> {{ _("Client request is pending. No offers yet.") }}
+            </div>`;
+        }
+        else if (currentEventType === 'request' && props.status === 'has_offers') {
+            actionsContainer.innerHTML = `
+            <div class="alert alert-info w-100 text-center mb-0">
+                <i class="fas fa-hand-paper"></i> {{ _("Offers have been submitted. Waiting for client to choose.") }}
+            </div>`;
+        }
+        else if (currentEventType === 'request' && props.status === 'accepted') {
+            actionsContainer.innerHTML = `
+            <div class="alert alert-warning w-100 text-center mb-0">
+                <i class="fas fa-check-circle"></i> {{ _("Client accepted your offer. Waiting for payment.") }}
+            </div>`;
+        }
+        else if (currentEventType === 'request' && props.status === 'authorized') {
+            actionsContainer.innerHTML = `
+            <div class="alert alert-info w-100 text-center mb-0">
+                <i class="fas fa-credit-card"></i> {{ _("Payment authorized. Ready to start work.") }}
+            </div>`;
+        }
         // 1. New Request: Accept or Decline
-        if (props.status === "scheduled") {
+        else if (props.status === "scheduled") {
           actionsContainer.innerHTML = `
-            <button class="btn btn-success fw-bold text-white" onclick="updateStatus(${info.event.id}, 'confirmed')">
+            <button class="btn btn-success fw-bold text-white" onclick="updateStatus(${currentAppointmentId}, 'confirmed')">
                 <i class="fas fa-check"></i> ${i18n.acceptRequest}
             </button>
-            <button class="btn btn-outline-danger fw-bold" onclick="updateStatus(${info.event.id}, 'cancelled')">
+            <button class="btn btn-outline-danger fw-bold" onclick="updateStatus(${currentAppointmentId}, 'cancelled')">
                 <i class="fas fa-times"></i> ${i18n.decline}
             </button>
           `;
@@ -308,16 +351,16 @@
             ${priceVal > 0 ? `<div class="alert alert-info w-100 text-center mb-2 small">
                 <i class="fas fa-shield-alt"></i> {{ _("Payment Secured. Safe to work.") }}
             </div>` : ''}
-            <button class="btn btn-success fw-bold w-100 mb-2" onclick="updateStatus(${info.event.id}, 'in_progress')">
+            <button class="btn btn-success fw-bold w-100 mb-2" onclick="updateStatus(${currentAppointmentId}, 'in_progress')">
                 <i class="fas fa-play-circle me-1"></i> {{ _("Confirm Arrival") }}
             </button>
-            <button class="btn btn-primary fw-bold w-100 mb-2" onclick="updateStatus(${info.event.id}, 'work_submitted')">
+            <button class="btn btn-primary fw-bold w-100 mb-2" onclick="updateStatus(${currentAppointmentId}, 'work_submitted')">
                 <i class="fas fa-check"></i> {{ _("I have finished the work") }}
             </button>
-            <button class="btn btn-outline-warning fw-bold w-100 mb-2" onclick="notifyRunningLate(${info.event.id})">
+            <button class="btn btn-outline-warning fw-bold w-100 mb-2" onclick="notifyRunningLate(${currentAppointmentId})">
                 <i class="fas fa-clock me-1"></i> {{ _("Running Late") }}
             </button>
-            <button class="btn btn-outline-danger fw-bold w-100" onclick="updateStatus(${info.event.id}, 'no_show')">
+            <button class="btn btn-outline-danger fw-bold w-100" onclick="updateStatus(${currentAppointmentId}, 'no_show')">
                 <i class="fas fa-user-slash me-1"></i> {{ _("Client No-Show") }}
             </button>
           `;
@@ -328,7 +371,7 @@
             <div class="alert alert-success w-100 text-center mb-2 small">
                 <i class="fas fa-spinner fa-spin me-1"></i> {{ _("Work is in progress...") }}
             </div>
-            <button class="btn btn-primary fw-bold w-100 mb-2" onclick="updateStatus(${info.event.id}, 'work_submitted')">
+            <button class="btn btn-primary fw-bold w-100 mb-2" onclick="updateStatus(${currentAppointmentId}, 'work_submitted')">
                 <i class="fas fa-check"></i> {{ _("I have finished the work") }}
             </button>
           `;
@@ -341,12 +384,12 @@
                 <i class="fas fa-hourglass-half"></i> {{ _("Work Submitted.") }}<br>
                 <small>${priceWs > 0 ? "{{ _('Funds will be released when client approves.') }}" : "{{ _('Waiting for client confirmation.') }}"}</small>
             </div>
-            <button class="btn btn-outline-warning w-100" onclick="retractWorkAppointment(${info.event.id})">
+            <button class="btn btn-outline-warning w-100" onclick="retractWorkAppointment(${currentAppointmentId})">
                 <i class="fas fa-arrow-left me-1"></i> {{ _("Retract (Go Back)") }}
             </button>
             `;
         }
-        // 5. Cancelled: Offer Undo
+        // 5. Cancelled
         else if (props.status === "cancelled") {
             actionsContainer.innerHTML = `
             <div class="alert alert-danger w-100 text-center mb-0">
@@ -373,8 +416,11 @@
 
         // Receipt button for completed appointments
         if (props.status === 'completed') {
+            const receiptUrl = currentEventType === 'request'
+                ? `/provider/receipt/request/${currentAppointmentId}`
+                : `/provider/receipt/appointment/${currentAppointmentId}`;
             actionsContainer.innerHTML += `
-                <a href="/provider/receipt/appointment/${info.event.id}" target="_blank" class="btn btn-outline-secondary w-100 mb-2" style="border-radius:10px;">
+                <a href="${receiptUrl}" target="_blank" class="btn btn-outline-secondary w-100 mb-2" style="border-radius:10px;">
                     <i class="fas fa-file-invoice me-1"></i> {{ _("Download Receipt") }}
                 </a>
             `;
@@ -387,10 +433,10 @@
             actionsContainer.innerHTML = `<button type="button" class="btn btn-light border" data-bs-dismiss="modal">${i18n.close}</button>`;
         }
 
-        // Show review section for completed appointments
+        // Show review section for completed appointments (only for direct appointments, not requests)
         const reviewSection = document.getElementById('providerReviewSection');
-        if (['confirmed_paid', 'completed', 'work_submitted', 'in_progress', 'no_show', 'disputed'].includes(props.status)) {
-            checkProviderReviewStatus(info.event.id);
+        if (currentEventType === 'appointment' && ['confirmed_paid', 'completed', 'work_submitted', 'in_progress', 'no_show', 'disputed'].includes(props.status)) {
+            checkProviderReviewStatus(currentAppointmentId);
         } else {
             reviewSection.style.display = 'none';
         }
@@ -512,6 +558,10 @@
     function getStatusText(status) {
       const price = parseFloat(currentEventPrice) || 0;
       const statuses = {
+        pending: "{{ _('Pending Request') }}",
+        has_offers: "{{ _('Has Offers') }}",
+        accepted: "{{ _('Accepted (Awaiting Payment)') }}",
+        authorized: "{{ _('Payment Authorized') }}",
         scheduled: "{{ _('Pending Request') }}",
         confirmed: "{{ _('Accepted (Awaiting Payment)') }}",
         confirmed_paid: price > 0 ? "{{ _('Paid - Ready to Start') }}" : "{{ _('Confirmed - Ready to Start') }}",

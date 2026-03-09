@@ -57,7 +57,7 @@ def register():
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        return jsonify({"msg": "Database error", "error": str(e)}), 500
+        return jsonify({"msg": "Database error"}), 500
     
     # Генеруємо токен
     access_token = create_access_token(identity=str(new_user.id))

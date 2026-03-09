@@ -65,12 +65,23 @@
           </div>
           
           <div id="paymentSection" class="mb-3" style="display: none">
-            <button id="payNowBtn" class="btn btn-success w-100 fw-bold py-2 mb-2">
-              <i class="fas fa-credit-card"></i> {{ _("Make a payment now") }}
+            <!-- QR Transfer -->
+            <button id="payQrBtn" class="btn btn-primary w-100 fw-bold py-2 mb-2">
+              <i class="fas fa-qrcode"></i> {{ _("Pay by QR Transfer") }}
             </button>
-            <button id="payCashBtn" class="btn btn-outline-secondary w-100 fw-bold py-2">
+            <!-- Cash -->
+            <button id="payCashBtn" class="btn btn-outline-secondary w-100 fw-bold py-2 mb-2">
               <i class="fas fa-money-bill-wave"></i> {{ _("Pay by cash") }}
             </button>
+            <!-- Stripe — hidden for now -->
+            <button id="payNowBtn" class="btn btn-success w-100 fw-bold py-2" style="display:none">
+              <i class="fas fa-credit-card"></i> {{ _("Pay by Card (Stripe)") }}
+            </button>
+            <!-- Deposit info -->
+            <div id="depositInfo" class="alert alert-info mt-2 small" style="display:none">
+              <i class="fas fa-info-circle me-1"></i>
+              {{ _("Deposit required:") }} <strong id="depositAmount"></strong> EUR
+            </div>
           </div>
           
           <div id="paymentStatus" class="alert" style="display: none"></div>
@@ -212,8 +223,10 @@
 
 <script>
   let currentAppointmentId = null;
+  let currentEventType = 'appointment';
   let currentAppointmentAmount = 0;
-  const stripe = Stripe("{{ stripe_public_key }}");
+  const stripeKey = "{{ stripe_public_key or '' }}";
+  const stripe = stripeKey ? Stripe(stripeKey) : null;
   const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
   document.addEventListener("DOMContentLoaded", function () {
@@ -251,7 +264,11 @@
       },
 
       eventClick: function (info) {
-        currentAppointmentId = info.event.id;
+        const evtType = info.event.extendedProps.type || 'appointment';
+        const rawId = info.event.id;
+        // For requests: id is "req_123", extract numeric part
+        currentAppointmentId = evtType === 'request' ? parseInt(rawId.replace('req_', '')) : parseInt(rawId);
+        currentEventType = evtType;
         currentAppointmentAmount = parseFloat(info.event.extendedProps.amount) || 0;
         const props = info.event.extendedProps;
 
@@ -267,7 +284,10 @@
         // Basic coloring logic
         if(props.status === 'confirmed' || props.status === 'confirmed_paid') statusEl.classList.add('text-success');
         else if(props.status === 'in_progress') statusEl.classList.add('text-success');
-        else if(props.status === 'scheduled') statusEl.classList.add('text-warning');
+        else if(props.status === 'scheduled' || props.status === 'pending') statusEl.classList.add('text-warning');
+        else if(props.status === 'has_offers') { statusEl.style.color = '#8b5cf6'; }
+        else if(props.status === 'accepted') statusEl.classList.add('text-warning');
+        else if(props.status === 'authorized') statusEl.classList.add('text-primary');
         else if(props.status === 'cancelled') statusEl.classList.add('text-danger');
         else if(props.status === 'work_submitted') statusEl.classList.add('text-primary');
         else if(props.status === 'no_show') statusEl.classList.add('text-secondary');
@@ -294,7 +314,7 @@
             paymentStatus.innerHTML = '<i class="fas fa-clock"></i> {{ _("Waiting for provider approval.") }}';
             
             actionsContainer.innerHTML = `
-                <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(${info.event.id})">
+                <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(${currentAppointmentId})">
                     {{ _("Cancel appointment") }}
                 </button>
             `;
@@ -312,7 +332,7 @@
             }
             
             actionsContainer.innerHTML = `
-                <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(${info.event.id})">
+                <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(${currentAppointmentId})">
                     {{ _("Cancel appointment") }}
                 </button>
             `;
@@ -328,10 +348,10 @@
                 paymentStatus.innerHTML = '<i class="fas fa-check-circle"></i> {{ _("Confirmed. Waiting for provider to complete.") }}';
             }
             actionsContainer.innerHTML = `
-                <button class="btn btn-outline-danger w-100 mb-2" onclick="reportNoShow(${info.event.id})">
+                <button class="btn btn-outline-danger w-100 mb-2" onclick="reportNoShow(${currentAppointmentId})">
                     <i class="fas fa-user-slash me-1"></i> {{ _("Provider No-Show") }}
                 </button>
-                <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(${info.event.id})">
+                <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(${currentAppointmentId})">
                     {{ _("Cancel appointment") }}
                 </button>
             `;
@@ -343,7 +363,7 @@
                     <i class="fas fa-spinner fa-spin me-1"></i> <strong>{{ _("In Progress") }}</strong><br>
                     {{ _("The provider has arrived and work is underway.") }}
                 </div>
-                <button class="btn btn-outline-danger w-100" onclick="reportNoShow(${info.event.id})">
+                <button class="btn btn-outline-danger w-100" onclick="reportNoShow(${currentAppointmentId})">
                     <i class="fas fa-user-slash me-1"></i> {{ _("Provider No-Show") }}
                 </button>
             `;
@@ -356,13 +376,13 @@
                     <i class="fas fa-check-circle"></i> <strong>{{ _("Job Done?") }}</strong><br>
                     {{ _("The provider has marked this job as finished.") }}
                 </div>
-                <button class="btn btn-success fw-bold w-100 py-2 mb-2" onclick="approveAndPay(${info.event.id})">
+                <button class="btn btn-success fw-bold w-100 py-2 mb-2" onclick="approveAndPay(currentAppointmentId)">
                     <i class="fas fa-check"></i> ${amtWork > 0 ? "{{ _('Approve & Release Payment') }}" : "{{ _('Confirm Completion') }}"}
                 </button>
-                <button class="btn btn-outline-warning w-100 mb-2" onclick="reportIssue(${info.event.id})">
+                <button class="btn btn-outline-warning w-100 mb-2" onclick="reportIssue(currentAppointmentId)">
                     <i class="fas fa-flag me-1"></i> {{ _("Report Issue") }}
                 </button>
-                <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(${info.event.id})">
+                <button class="btn btn-outline-danger w-100" onclick="cancelAppointment(currentAppointmentId)">
                     {{ _("Cancel appointment") }}
                 </button>
             `;
@@ -370,7 +390,7 @@
         else if (props.status === "completed") {
              // State: Finished, Show Reviews + Receipt
              actionsContainer.innerHTML = `
-                <a href="/client/receipt/appointment/${info.event.id}" target="_blank" class="btn btn-outline-secondary w-100 mb-2" style="border-radius:10px;">
+                <a href="/client/receipt/appointment/${currentAppointmentId}" target="_blank" class="btn btn-outline-secondary w-100 mb-2" style="border-radius:10px;">
                     <i class="fas fa-file-invoice me-1"></i> {{ _("Download Receipt") }}
                 </a>
              `;
@@ -384,7 +404,7 @@
                     <div class="alert alert-danger w-100 text-center mb-2">
                         <i class="fas fa-times-circle"></i> {{ _("This appointment was cancelled.") }}
                     </div>
-                    <button class="btn btn-outline-success w-100" onclick="undoCancelAppointment(${info.event.id})">
+                    <button class="btn btn-outline-success w-100" onclick="undoCancelAppointment(${currentAppointmentId})">
                         <i class="fas fa-undo me-1"></i> {{ _("Restore Appointment") }}
                     </button>
                  `;
@@ -409,6 +429,50 @@
              actionsContainer.innerHTML = `
                 <div class="alert alert-warning w-100 text-center">
                     <i class="fas fa-exclamation-triangle me-1"></i> {{ _("This appointment is under dispute. Our support team will review it.") }}
+                </div>
+             `;
+        }
+        // Request-specific statuses
+        else if (props.status === "pending") {
+             actionsContainer.innerHTML = `
+                <div class="alert alert-info w-100 text-center">
+                    <i class="fas fa-clock me-1"></i> {{ _("Waiting for providers to send offers.") }}
+                </div>
+             `;
+        }
+        else if (props.status === "has_offers") {
+             actionsContainer.innerHTML = `
+                <div class="alert alert-success w-100 text-center">
+                    <i class="fas fa-envelope-open-text me-1"></i> {{ _("You have offers! Go to the dashboard to review them.") }}
+                </div>
+                <a href="/client/dashboard" class="btn btn-success w-100">
+                    <i class="fas fa-external-link-alt me-1"></i> {{ _("View Offers") }}
+                </a>
+             `;
+        }
+        else if (props.status === "accepted") {
+             const amt = parseFloat(props.amount) || 0;
+             if (amt > 0) {
+                 actionsContainer.innerHTML = `
+                    <div class="alert alert-warning w-100 text-center">
+                        <i class="fas fa-credit-card me-1"></i> {{ _("Offer accepted! Pay to confirm the booking.") }}
+                    </div>
+                    <a href="/client/dashboard" class="btn btn-success w-100">
+                        <i class="fas fa-external-link-alt me-1"></i> {{ _("Go to Dashboard to Pay") }}
+                    </a>
+                 `;
+             } else {
+                 actionsContainer.innerHTML = `
+                    <div class="alert alert-success w-100 text-center">
+                        <i class="fas fa-check-circle me-1"></i> {{ _("Booked! Free service confirmed.") }}
+                    </div>
+                 `;
+             }
+        }
+        else if (props.status === "authorized") {
+             actionsContainer.innerHTML = `
+                <div class="alert alert-info w-100 text-center">
+                    <i class="fas fa-shield-alt me-1"></i> {{ _("Payment authorized. Waiting for provider.") }}
                 </div>
              `;
         }
@@ -449,6 +513,7 @@
               return response.json();
             })
             .then((data) => {
+              if (!stripe) { showPaymentError("{{ _('Payments are not configured') }}"); return; }
               return stripe.redirectToCheckout({ sessionId: data.sessionId });
             })
             .then((result) => {
@@ -603,6 +668,10 @@
   function getStatusText(status) {
     const statuses = {
       scheduled: "{{ _('Scheduled') }}",
+      pending: "{{ _('Pending') }}",
+      has_offers: "{{ _('Has Offers') }}",
+      accepted: "{{ _('Accepted') }}",
+      authorized: "{{ _('Payment Authorized') }}",
       confirmed: "{{ _('Approved (Awaiting Payment)') }}",
       confirmed_paid: currentAppointmentAmount > 0 ? "{{ _('Paid & Confirmed') }}" : "{{ _('Confirmed') }}",
       in_progress: "{{ _('In Progress') }}",
@@ -632,13 +701,19 @@
     });
     if (!ok) return;
 
-    fetch("/client/cancel_appointment", {
+    const cancelUrl = currentEventType === 'request'
+        ? `/client/client_cancel_request/${appointmentId}`
+        : '/client/cancel_appointment';
+    const cancelBody = currentEventType === 'request'
+        ? {}
+        : { appointment_id: appointmentId };
+    fetch(cancelUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-CSRFToken": csrfToken,
       },
-      body: JSON.stringify({ appointment_id: appointmentId }),
+      body: JSON.stringify(cancelBody),
     })
       .then((response) => response.json())
       .then((data) => {
@@ -684,13 +759,14 @@
     });
     if (!ok) return;
 
+    const bodyKey = currentEventType === 'request' ? 'request_id' : 'appointment_id';
     fetch("/client/report_no_show_provider", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-CSRFToken": csrfToken,
       },
-      body: JSON.stringify({ appointment_id: appointmentId }),
+      body: JSON.stringify({ [bodyKey]: appointmentId }),
     })
       .then((response) => response.json())
       .then((data) => {
@@ -712,13 +788,14 @@
     });
     if (!ok) return;
 
+    const disputeKey = currentEventType === 'request' ? 'request_id' : 'appointment_id';
     fetch("/client/dispute", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-CSRFToken": csrfToken,
       },
-      body: JSON.stringify({ appointment_id: appointmentId, reason: 'other', description: 'Reported via web' }),
+      body: JSON.stringify({ [disputeKey]: appointmentId, reason: 'other', description: 'Reported via web' }),
     })
       .then((response) => response.json())
       .then((data) => {
@@ -781,6 +858,63 @@
     return stars;
   }
 
+  // --- QR PAYMENT HANDLER ---
+  const qrBtn = document.getElementById("payQrBtn");
+  if(qrBtn) {
+      qrBtn.addEventListener("click", async function () {
+          if (!currentAppointmentId) return;
+          const btn = this;
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ _("Loading QR...") }}';
+
+          try {
+              // First fetch QR code
+              const resp = await fetch(`/client/qr_code/appointment/${currentAppointmentId}`);
+              const data = await resp.json();
+              if (!data.success) { alert(data.error || 'Error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-qrcode"></i> {{ _("Pay by QR Transfer") }}'; return; }
+
+              // Show QR modal
+              const qrHtml = `
+                <div class="text-center">
+                  <img src="${data.qr_image}" alt="QR Code" style="max-width:280px;border-radius:12px;border:2px solid #e5e7eb;" class="mb-3">
+                  <div class="bg-light p-3 rounded mb-3 text-start" style="font-size:13px;">
+                    <div class="mb-1"><strong>{{ _("Recipient:") }}</strong> ${data.name}</div>
+                    <div class="mb-1"><strong>IBAN:</strong> <code>${data.iban}</code></div>
+                    <div class="mb-1"><strong>{{ _("Amount:") }}</strong> €${data.amount.toFixed(2)}</div>
+                    <div><strong>{{ _("Reference:") }}</strong> ${data.reference}</div>
+                  </div>
+                  <p class="text-muted small">{{ _("Scan QR with your banking app to transfer") }}</p>
+                </div>`;
+
+              const ok = await confirmAction(qrHtml, {
+                  title: '{{ _("QR Transfer Payment") }}',
+                  btnText: "{{ _('I have paid') }}",
+                  btnClass: 'btn-success',
+                  icon: 'fa-qrcode',
+                  iconColor: '#3b82f6',
+                  rawHtml: true
+              });
+
+              if (ok) {
+                  // Mark as paid via QR
+                  const payResp = await fetch("/client/pay_qr", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+                      body: JSON.stringify({ appointment_id: currentAppointmentId })
+                  });
+                  const payData = await payResp.json();
+                  if (payData.success) location.reload();
+                  else alert(payData.message || 'Error');
+              }
+          } catch(err) {
+              console.error(err);
+              alert('{{ _("Error loading QR code") }}');
+          }
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-qrcode"></i> {{ _("Pay by QR Transfer") }}';
+      });
+  }
+
   // --- APPROVE AND PAY / CONFIRM COMPLETION ---
   window.approveAndPay = async function(appointmentId) {
     const isFree = currentAppointmentAmount <= 0;
@@ -794,13 +928,18 @@
     });
     if (!ok) return;
 
-    fetch("/client/complete_appointment", {
+    const url = currentEventType === 'request'
+        ? '/client/complete_request_appointment'
+        : '/client/complete_appointment';
+    const bodyKey = currentEventType === 'request' ? 'request_id' : 'appointment_id';
+
+    fetch(url, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             "X-CSRFToken": csrfToken,
         },
-        body: JSON.stringify({ appointment_id: appointmentId }),
+        body: JSON.stringify({ [bodyKey]: appointmentId }),
     })
     .then(r => r.json())
     .then(data => {

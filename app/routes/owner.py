@@ -263,7 +263,7 @@ def telegram_send_message():
             return jsonify({'success': True})
         return jsonify({'success': False, 'error': 'Telegram API error'}), 500
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 
 @owner_bp.route('/telegram/send_invite', methods=['POST'])
@@ -320,7 +320,7 @@ def telegram_send_invite():
         error_data = resp.json() if resp.headers.get('content-type', '').startswith('application/json') else {}
         return jsonify({'success': False, 'error': error_data.get('description', 'Telegram API error')}), 500
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 
 @owner_bp.route('/telegram/broadcast', methods=['POST'])
@@ -444,7 +444,8 @@ def resolve_dispute(dispute_id):
                         refund_amount = int(int(req.payment * 100) * int(refund_pct) / 100)
                         stripe.Refund.create(payment_intent=req.payment_intent_id, amount=refund_amount)
         except stripe.StripeError as e:
-            return jsonify({'success': False, 'message': f'Stripe error: {str(e)}'}), 500
+            current_app.logger.error(f"Stripe dispute resolution error: {e}")
+            return jsonify({'success': False, 'message': 'Payment processing error'}), 500
 
     d.status = 'resolved'
     d.resolution = resolution

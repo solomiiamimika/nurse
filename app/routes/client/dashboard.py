@@ -1,7 +1,7 @@
 from . import client_bp
 from flask import render_template, redirect, url_for, flash, request, abort, jsonify, current_app, Blueprint
 from app.extensions import db, bcrypt, socketio, mail
-from app.models import Appointment, ProviderService, User, Message, Payment, ClientSelfCreatedAppointment, Review, RequestOfferResponse, ServiceHistory, CancellationPolicy
+from app.models import Appointment, ProviderService, User, Message, Payment, ClientSelfCreatedAppointment, Review, RequestOfferResponse, ServiceHistory, CancellationPolicy, Favorite, FavoriteShareToken
 from app.models.service import SERVICE_TAG_CATEGORIES
 from app.utils import fuzz_coordinates, validate_coordinates
 from app.supabase_storage import get_file_url, delete_from_supabase, upload_to_supabase, buckets
@@ -159,7 +159,7 @@ def update_location():
         return jsonify({'success': True, 'message': 'Location updated'})
     except Exception as e:
         db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
 
 
 @client_bp.route('/working_hours')
@@ -246,11 +246,6 @@ def get_available_times():
         return jsonify({'error': 'Internal server error'}), 500
 
 
-@client_bp.route("/services")
-@login_required
-def services():
-    return render_template("client/services.html")
-
 
 @client_bp.route("/provider/<int:provider_id>")
 @login_required
@@ -276,7 +271,21 @@ def provider_detail(provider_id):
         except Exception:
             pass
 
-    return render_template("client/provider_public_profile.html", provider=provider, reviews=reviews, services=servises, photo=photo, portfolio_items=portfolio_items)
+    # Favorites context
+    is_provider_favorite = Favorite.query.filter_by(
+        user_id=current_user.id, provider_id=provider.id
+    ).first() is not None
+    fav_svc_rows = Favorite.query.filter(
+        Favorite.user_id == current_user.id,
+        Favorite.service_id.in_([s.id for s in servises])
+    ).all() if servises else []
+    favorite_service_ids = {f.service_id for f in fav_svc_rows}
+
+    return render_template("client/provider_public_profile.html",
+                           provider=provider, reviews=reviews, services=servises,
+                           photo=photo, portfolio_items=portfolio_items,
+                           is_provider_favorite=is_provider_favorite,
+                           favorite_service_ids=favorite_service_ids)
 
 
 @client_bp.route("/api/provider/<int:provider_id>")
@@ -398,3 +407,90 @@ def get_provider_policy():
             f'No-show fee: {policy.no_show_client_fee_percent}%.'
         )
     })
+
+
+# ── Favorites ─────────────────────────────────────────────────────
+
+@client_bp.route("/favorite/toggle", methods=["POST"])
+@login_required
+def favorite_toggle():
+    data = request.get_json(silent=True) or {}
+    provider_id = data.get('provider_id')
+    service_id = data.get('service_id')
+
+    if not provider_id and not service_id:
+        return jsonify({'error': 'provider_id or service_id required'}), 400
+
+    if provider_id:
+        existing = Favorite.query.filter_by(user_id=current_user.id, provider_id=provider_id).first()
+        if existing:
+            db.session.delete(existing)
+            db.session.commit()
+            return jsonify({'is_favorite': False})
+        fav = Favorite(user_id=current_user.id, provider_id=provider_id)
+    else:
+        existing = Favorite.query.filter_by(user_id=current_user.id, service_id=service_id).first()
+        if existing:
+            db.session.delete(existing)
+            db.session.commit()
+            return jsonify({'is_favorite': False})
+        fav = Favorite(user_id=current_user.id, service_id=service_id)
+
+    db.session.add(fav)
+    db.session.commit()
+    return jsonify({'is_favorite': True})
+
+
+@client_bp.route("/favorites")
+@login_required
+def favorites_list():
+    favs = Favorite.query.filter_by(user_id=current_user.id).order_by(Favorite.created_at.desc()).all()
+
+    providers = []
+    services = []
+    for f in favs:
+        if f.provider_id and f.provider:
+            p = f.provider
+            photo = None
+            if p.photo:
+                photo = get_file_url(p.photo, buckets['profile_pictures'])
+            providers.append({
+                'id': p.id,
+                'name': p.full_name or p.user_name,
+                'photo': photo,
+                'rating': round(p.average_rating or 0, 1),
+                'address': p.address or '',
+                'online': p.online if hasattr(p, 'online') else False,
+            })
+        elif f.service_id and f.service:
+            s = f.service
+            prov = User.query.get(s.provider_id)
+            services.append({
+                'id': s.id,
+                'name': s.name,
+                'price': float(s.price or 0),
+                'duration': s.duration,
+                'description': s.description or '',
+                'provider_id': s.provider_id,
+                'provider_name': (prov.full_name or prov.user_name) if prov else '',
+            })
+
+    return jsonify({'providers': providers, 'services': services})
+
+
+@client_bp.route("/favorites/share")
+@login_required
+def favorites_share():
+    import secrets
+    token_obj = FavoriteShareToken.query.filter_by(user_id=current_user.id).first()
+    if not token_obj:
+        token_obj = FavoriteShareToken(
+            user_id=current_user.id,
+            token=secrets.token_hex(16),
+        )
+        db.session.add(token_obj)
+        db.session.commit()
+
+    base_url = current_app.config.get('BASE_URL', request.host_url.rstrip('/'))
+    share_url = f"{base_url}/favorites/shared/{token_obj.token}"
+    return jsonify({'share_url': share_url})

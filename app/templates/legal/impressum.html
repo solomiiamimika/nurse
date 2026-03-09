@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="max-width:800px;margin:60px auto;padding:20px;">
+  <a href="{{ url_for('main.home') }}" class="text-decoration-none" style="color:#3f4a36;">
+    <i class="fas fa-arrow-left me-1"></i> {{ _("Back to Home") }}
+  </a>
+
+  <h1 class="fw-bold mt-3 mb-4" style="color:#3f4a36;">{{ _("Impressum") }}</h1>
+
+  <div class="card border-0 shadow-sm" style="border-radius:16px;">
+    <div class="card-body p-4">
+
+      <h5 class="fw-bold mb-3">{{ _("Information according to DDG Section 5") }}</h5>
+
+      <p class="text-muted">
+        {{ _("This page is currently being prepared. The following information will be provided here:") }}
+      </p>
+
+      <ul class="text-muted">
+        <li>{{ _("Company name and legal form") }}</li>
+        <li>{{ _("Registered address") }}</li>
+        <li>{{ _("Contact information (email, phone)") }}</li>
+        <li>{{ _("Managing director / responsible person") }}</li>
+        <li>{{ _("Commercial register entry (if applicable)") }}</li>
+        <li>{{ _("VAT identification number (if applicable)") }}</li>
+      </ul>
+
+      <hr>
+
+      <h5 class="fw-bold mb-3">{{ _("Dispute Resolution") }}</h5>
+      <p class="text-muted">
+        {{ _("The European Commission provides a platform for online dispute resolution (ODR):") }}
+        <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener">
+          https://ec.europa.eu/consumers/odr
+        </a>
+      </p>
+      <p class="text-muted">
+        {{ _("We are not willing or obliged to participate in dispute resolution proceedings before a consumer arbitration board.") }}
+      </p>
+
+      <hr>
+
+      <h5 class="fw-bold mb-3">{{ _("Liability for Content") }}</h5>
+      <p class="text-muted">
+        {{ _("As a service provider, we are responsible for our own content on these pages in accordance with general laws pursuant to DDG Section 7(1). However, according to DDG Sections 8 to 10, we are not obligated to monitor transmitted or stored third-party information or to investigate circumstances that indicate illegal activity.") }}
+      </p>
+
+      <hr>
+
+      <h5 class="fw-bold mb-3">{{ _("Liability for Links") }}</h5>
+      <p class="text-muted">
+        {{ _("Our website contains links to external third-party websites over whose content we have no influence. Therefore, we cannot assume any liability for this external content. The respective provider or operator of the pages is always responsible for the content of the linked pages.") }}
+      </p>
+
+    </div>
+  </div>
+
+  <p class="text-muted text-center mt-4" style="font-size:13px;">
+    {{ _("Last updated:") }} 2026-03-08
+  </p>
+</div>
+{% endblock %}

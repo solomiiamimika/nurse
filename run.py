@@ -33,6 +33,23 @@ def start_bot_polling(app):
     except Exception:
         logger.warning("Failed to delete webhook")
 
+    # Set bot menu commands
+    try:
+        req.post(f"{API}/setMyCommands", json={'commands': [
+            {'command': 'start', 'description': 'Start the bot'},
+            {'command': 'help', 'description': 'Show available commands'},
+            {'command': 'appointments', 'description': 'My appointments'},
+            {'command': 'create_request', 'description': 'Post a new request'},
+            {'command': 'open_requests', 'description': 'Browse open requests'},
+            {'command': 'my_offers', 'description': 'View sent offers'},
+            {'command': 'favorites', 'description': 'My favorite providers'},
+            {'command': 'notifications', 'description': 'Toggle notifications'},
+            {'command': 'switch_role', 'description': 'Switch Client/Provider'},
+            {'command': 'cancel', 'description': 'Cancel current operation'},
+        ]}, timeout=5)
+    except Exception:
+        logger.warning("Failed to set bot commands")
+
     bot_name = app.config.get('TELEGRAM_BOT_NAME', 'bot')
     logger.info("Polling @%s...", bot_name)
 

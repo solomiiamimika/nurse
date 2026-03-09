@@ -156,7 +156,7 @@ def delete_document():
         try:
             delete_from_supabase(doc_name, buckets['documents'])
         except Exception as e:
-            print(f"Supabase Error {e}")
+            current_app.logger.error(f"Supabase delete error: {e}")
 
         if current_user.documents:
             documents = json.loads(current_user.documents)
@@ -172,6 +172,6 @@ def delete_document():
         return jsonify({'success': False, 'message': 'User has no documents'})
 
     except Exception as e:
-        print(f"CRITICAL ERROR: {str(e)}")
+        current_app.logger.error(f"Profile update error: {e}")
         db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500

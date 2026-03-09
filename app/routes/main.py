@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, current_app
 from flask_login import login_required, current_user
-from app.models import User, ProviderService, Appointment, Message, ServiceHistory, Feedback
+from app.models import User, ProviderService, Appointment, Message, ServiceHistory, Feedback, Favorite, FavoriteShareToken
 from app.models.service import SERVICE_TAG_CATEGORIES
 from app.extensions import db
 from sqlalchemy import or_, func, and_, desc
@@ -11,9 +11,26 @@ import openai
 
 
 main_bp = Blueprint('main', __name__)
+
+
 @main_bp.route('/')
 def home():
     return render_template('home.html', service_tag_categories=SERVICE_TAG_CATEGORIES)
+
+
+@main_bp.route('/impressum')
+def impressum():
+    return render_template('legal/impressum.html')
+
+
+@main_bp.route('/privacy')
+def privacy():
+    return render_template('legal/privacy.html')
+
+
+@main_bp.route('/terms')
+def terms():
+    return render_template('legal/terms.html')
 
 
 @main_bp.route('/search_providers_by_rating')
@@ -25,9 +42,10 @@ def search_providers_by_rating():
     query = User.query.filter(User.role == 'provider')
 
     if q:
+        safe_q = q.replace('%', '\\%').replace('_', '\\_')
         query = query.filter(or_(
-            User.user_name.ilike(f'%{q}%'),
-            (User.full_name.isnot(None) & User.full_name.ilike(f'%{q}%'))
+            User.user_name.ilike(f'%{safe_q}%', escape='\\'),
+            (User.full_name.isnot(None) & User.full_name.ilike(f'%{safe_q}%', escape='\\'))
         ))
 
     providers = query.all()
@@ -298,10 +316,11 @@ def search_providers():
 
         scored.append((p, score))
 
-    # Sort: matched providers first (by score desc), then the rest by rating
-    scored.sort(key=lambda x: (-x[1], -(x[0].average_rating or 0)))
+    # Only return providers that actually match the query (score > 0)
+    matched = [(p, score) for p, score in scored if score > 0]
+    matched.sort(key=lambda x: (-x[1], -(x[0].average_rating or 0)))
 
-    results = [_serialize_provider(p) for p, score in scored[:20]]
+    results = [_serialize_provider(p) for p, score in matched[:20]]
     return jsonify(results)
 
 
@@ -321,11 +340,16 @@ def platform_stats():
 
 
 @main_bp.route('/patient_info/<int:user_id>')
+@login_required
 def patient_info(user_id):
-    user=User.query.get_or_404(user_id)
+    user = User.query.get_or_404(user_id)
+    documents = []
     if user.documents:
-        documents=user.documents.split(',')
-    return render_template('client.html', user=user, documents=documents,now = datetime.now())
+        try:
+            documents = json.loads(user.documents)
+        except (json.JSONDecodeError, TypeError):
+            documents = user.documents.split(',')
+    return render_template('client/profile.html', user=user, documents=documents, now=datetime.now())
 
 
 @main_bp.route('/api/unread_count')
@@ -547,7 +571,8 @@ def accept_proposal(message_id):
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
+        current_app.logger.error(f"Error accepting proposal: {e}")
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
 
 
 @main_bp.route('/api/feedback', methods=['POST'])
@@ -605,5 +630,51 @@ def decline_proposal(message_id):
     db.session.commit()
 
     return jsonify({'success': True, 'message': 'Proposal declined'})
+
+
+# ── Public shared favorites ────────────────────────────────────────
+
+@main_bp.route('/favorites/shared/<token>')
+def shared_favorites(token):
+    from app.supabase_storage import get_file_url, buckets
+    token_obj = FavoriteShareToken.query.filter_by(token=token).first_or_404()
+    owner = User.query.get_or_404(token_obj.user_id)
+    favs = Favorite.query.filter_by(user_id=owner.id).order_by(Favorite.created_at.desc()).all()
+
+    providers = []
+    services = []
+    for f in favs:
+        if f.provider_id and f.provider:
+            p = f.provider
+            photo = None
+            if p.photo:
+                try:
+                    photo = get_file_url(p.photo, buckets['profile_pictures'])
+                except Exception:
+                    pass
+            providers.append({
+                'id': p.id,
+                'name': p.full_name or p.user_name,
+                'photo': photo,
+                'rating': round(p.average_rating or 0, 1),
+                'address': p.address or '',
+            })
+        elif f.service_id and f.service:
+            s = f.service
+            prov = User.query.get(s.provider_id)
+            services.append({
+                'id': s.id,
+                'name': s.name,
+                'price': float(s.price or 0),
+                'duration': s.duration,
+                'provider_id': s.provider_id,
+                'provider_name': (prov.full_name or prov.user_name) if prov else '',
+            })
+
+    owner_name = owner.full_name or owner.user_name
+    return render_template('shared/favorites_shared.html',
+                           owner_name=owner_name,
+                           providers=providers,
+                           services=services)
 
 

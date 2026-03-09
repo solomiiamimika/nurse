@@ -442,6 +442,8 @@
                   const date = new Date(h.appointment_time).toLocaleDateString();
                   const statusMap = {
                       completed: '<span class="badge bg-success bg-opacity-10 text-success border border-success">{{ _("Completed") }}</span>',
+                      confirmed_paid: '<span class="badge" style="background:#dcfce7;color:#16a34a;border:1px solid #86efac;">{{ _("Paid") }}</span>',
+                      work_submitted: '<span class="badge" style="background:#e0f2fe;color:#0ea5e9;border:1px solid #7dd3fc;">{{ _("Work Submitted") }}</span>',
                       in_progress: '<span class="badge" style="background:#dcfce7;color:#16a34a;border:1px solid #86efac;">{{ _("In Progress") }}</span>',
                       no_show: '<span class="badge" style="background:#f3f4f6;color:#6b7280;border:1px solid #d1d5db;">{{ _("No Show") }}</span>',
                       disputed: '<span class="badge" style="background:#fff7ed;color:#f97316;border:1px solid #fdba74;">{{ _("Disputed") }}</span>',
@@ -1031,7 +1033,7 @@
               const btnText = isTripping ? '<i class="fas fa-satellite-dish fa-spin"></i> ' + i18n.stopSharing : '<i class="fas fa-car-side"></i> ' + i18n.imOnMyWay;
 
               footer.innerHTML = `
-                  <button type="button" id="tripBtn" class="btn ${btnClass} fw-bold w-100 mb-2" onclick="toggleTrip(${clientId}, ${item.id})">
+                  <button type="button" id="tripBtn" class="btn ${btnClass} fw-bold w-100 mb-2" onclick="toggleTrip(${clientId}, '${item.id}')">
                       ${btnText}
                   </button>
 

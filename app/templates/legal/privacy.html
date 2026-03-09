@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="max-width:800px;margin:60px auto;padding:20px;">
+  <a href="{{ url_for('main.home') }}" class="text-decoration-none" style="color:#3f4a36;">
+    <i class="fas fa-arrow-left me-1"></i> {{ _("Back to Home") }}
+  </a>
+
+  <h1 class="fw-bold mt-3 mb-4" style="color:#3f4a36;">{{ _("Privacy Policy") }}</h1>
+
+  <div class="card border-0 shadow-sm" style="border-radius:16px;">
+    <div class="card-body p-4">
+
+      <!-- 1. Controller -->
+      <h5 class="fw-bold mb-3">1. {{ _("Data Controller") }}</h5>
+      <p class="text-muted">
+        {{ _("The data controller responsible for data processing on this website is:") }}
+      </p>
+      <p class="text-muted">
+        Human-me<br>
+        <em>{{ _("(Address will be added here)") }}</em><br>
+        {{ _("Email:") }} <em>{{ _("(Will be added)") }}</em>
+      </p>
+
+      <!-- 2. Data We Collect -->
+      <hr>
+      <h5 class="fw-bold mb-3">2. {{ _("Data We Collect") }}</h5>
+      <p class="text-muted">{{ _("We collect and process the following personal data:") }}</p>
+      <ul class="text-muted">
+        <li><strong>{{ _("Account data:") }}</strong> {{ _("Name, email address, phone number, date of birth, profile photo") }}</li>
+        <li><strong>{{ _("Location data:") }}</strong> {{ _("Approximate location (with your consent) to connect you with nearby service providers") }}</li>
+        <li><strong>{{ _("Service data:") }}</strong> {{ _("Appointment details, service descriptions, reviews, messages between users") }}</li>
+        <li><strong>{{ _("Payment data:") }}</strong> {{ _("Payment transactions are processed by Stripe, Inc. We store only transaction references, not card numbers") }}</li>
+        <li><strong>{{ _("Usage data:") }}</strong> {{ _("IP address, browser type, access times (server logs)") }}</li>
+        <li><strong>{{ _("Documents:") }}</strong> {{ _("Uploaded documents such as certificates or insurance documents (providers only)") }}</li>
+      </ul>
+
+      <!-- 3. Legal Basis -->
+      <hr>
+      <h5 class="fw-bold mb-3">3. {{ _("Legal Basis (GDPR Art. 6)") }}</h5>
+      <ul class="text-muted">
+        <li><strong>{{ _("Contract performance (Art. 6(1)(b)):") }}</strong> {{ _("Processing your bookings, payments, and service delivery") }}</li>
+        <li><strong>{{ _("Consent (Art. 6(1)(a)):") }}</strong> {{ _("Location sharing, optional notifications, cookies") }}</li>
+        <li><strong>{{ _("Legitimate interest (Art. 6(1)(f)):") }}</strong> {{ _("Platform security, fraud prevention, analytics") }}</li>
+        <li><strong>{{ _("Legal obligation (Art. 6(1)(c)):") }}</strong> {{ _("Tax records, regulatory compliance") }}</li>
+      </ul>
+
+      <!-- 4. Third-Party Services -->
+      <hr>
+      <h5 class="fw-bold mb-3">4. {{ _("Third-Party Services") }}</h5>
+      <ul class="text-muted">
+        <li><strong>Stripe, Inc.</strong> — {{ _("Payment processing. Stripe processes payments under their own privacy policy:") }}
+          <a href="https://stripe.com/privacy" target="_blank" rel="noopener">stripe.com/privacy</a></li>
+        <li><strong>Google OAuth</strong> — {{ _("Optional login via Google account") }}</li>
+        <li><strong>Telegram Bot API</strong> — {{ _("Optional notifications and account linking") }}</li>
+        <li><strong>Supabase</strong> — {{ _("File storage for profile photos and documents") }}</li>
+        <li><strong>Brevo (SMTP)</strong> — {{ _("Email delivery for confirmations and reminders") }}</li>
+      </ul>
+
+      <!-- 5. Data Retention -->
+      <hr>
+      <h5 class="fw-bold mb-3">5. {{ _("Data Retention") }}</h5>
+      <p class="text-muted">
+        {{ _("We retain your personal data for as long as your account is active. When you delete your account, all personal data is permanently removed from our systems. Financial transaction records are retained for the legally required period (10 years under German tax law, AO Section 147).") }}
+      </p>
+
+      <!-- 6. Your Rights -->
+      <hr>
+      <h5 class="fw-bold mb-3">6. {{ _("Your Rights (GDPR Art. 15-22)") }}</h5>
+      <p class="text-muted">{{ _("You have the right to:") }}</p>
+      <ul class="text-muted">
+        <li>{{ _("Access your personal data (Art. 15)") }}</li>
+        <li>{{ _("Rectify inaccurate data (Art. 16)") }}</li>
+        <li>{{ _("Delete your data / right to be forgotten (Art. 17)") }}</li>
+        <li>{{ _("Restrict processing (Art. 18)") }}</li>
+        <li>{{ _("Data portability (Art. 20)") }}</li>
+        <li>{{ _("Object to processing (Art. 21)") }}</li>
+        <li>{{ _("Withdraw consent at any time (Art. 7(3))") }}</li>
+      </ul>
+      <p class="text-muted">
+        {{ _("To exercise these rights, contact us at the email address listed above or use the account deletion feature in your profile settings.") }}
+      </p>
+
+      <!-- 7. Supervisory Authority -->
+      <hr>
+      <h5 class="fw-bold mb-3">7. {{ _("Right to Lodge a Complaint") }}</h5>
+      <p class="text-muted">
+        {{ _("You have the right to lodge a complaint with a data protection supervisory authority. The competent authority for complaints is the data protection authority of the German federal state where our company is registered.") }}
+      </p>
+
+      <!-- 8. Data Security -->
+      <hr>
+      <h5 class="fw-bold mb-3">8. {{ _("Data Security") }}</h5>
+      <p class="text-muted">
+        {{ _("We use industry-standard security measures including HTTPS encryption, secure password hashing (bcrypt), and Stripe's PCI DSS certified payment infrastructure to protect your data.") }}
+      </p>
+
+      <!-- 9. Cookies -->
+      <hr>
+      <h5 class="fw-bold mb-3">9. {{ _("Cookies") }}</h5>
+      <p class="text-muted">
+        {{ _("We use only essential cookies required for the operation of the platform (session management, language preference). We do not use tracking or advertising cookies.") }}
+      </p>
+
+    </div>
+  </div>
+
+  <p class="text-muted text-center mt-4" style="font-size:13px;">
+    {{ _("Last updated:") }} 2026-03-08
+  </p>
+</div>
+{% endblock %}

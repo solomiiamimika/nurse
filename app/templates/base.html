@@ -114,7 +114,25 @@
         </div>
     </div>
 
-    {% with messages = get_flashed_messages(with_categories=true) %} 
+    {% if profile_incomplete %}
+    <div id="profileBanner" style="position:fixed;top:0;left:0;right:0;z-index:1060;background:linear-gradient(90deg,#e8f4fd,#dbeafe);border-bottom:1px solid #93c5fd;padding:10px 20px;text-align:center;font-size:13px;color:#1e40af;">
+      <i class="fas fa-info-circle me-1"></i>
+      {% if 'full_name' in profile_issues and 'contact_verification' in profile_issues %}
+        {{ _("Add your name and verify your email to unlock all features.") }}
+      {% elif 'full_name' in profile_issues %}
+        {{ _("Add your full name to complete your profile.") }}
+      {% elif 'contact_verification' in profile_issues %}
+        {{ _("Verify your email or link Telegram to get a verified badge.") }}
+      {% endif %}
+      <a href="{{ url_for(current_user.role + '.profile') }}" class="ms-2 fw-semibold" style="color:#1d4ed8;">
+        {{ _("Go to Profile") }} <i class="fas fa-arrow-right" style="font-size:11px;"></i>
+      </a>
+      <button onclick="document.getElementById('profileBanner').style.display='none';document.getElementById('profileSpacer').style.display='none';" class="btn-close ms-3" style="font-size:8px;vertical-align:middle;filter:invert(50%);" aria-label="Close"></button>
+    </div>
+    <div id="profileSpacer" style="height:40px;"></div>
+    {% endif %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     <div class="flashes-container">
       {% for category, message in messages %}
@@ -168,7 +186,11 @@
             const iconColor = options.iconColor || '#3f4a36';
 
             document.getElementById('confirmModalTitle').textContent = title;
-            document.getElementById('confirmModalMessage').textContent = message;
+            if (options.rawHtml) {
+                document.getElementById('confirmModalMessage').innerHTML = message;
+            } else {
+                document.getElementById('confirmModalMessage').textContent = message;
+            }
             document.getElementById('confirmModalIcon').innerHTML = `<i class="fas ${icon} fa-3x" style="color:${iconColor};"></i>`;
 
             const btn = document.getElementById('confirmModalBtn');
@@ -307,5 +329,48 @@
 
     <div class="top-glass-bg"></div>
     {% include 'shared/_faq_chatbot.html' %}
+
+    <!-- Legal Footer -->
+    <footer style="background:#f8f9fa;border-top:1px solid #e9ecef;padding:20px 0;margin-top:40px;">
+      <div class="container">
+        <div class="d-flex flex-wrap justify-content-center gap-3 mb-2" style="font-size:13px;">
+          <a href="{{ url_for('main.impressum') }}" class="text-muted text-decoration-none">{{ _("Impressum") }}</a>
+          <span class="text-muted">|</span>
+          <a href="{{ url_for('main.privacy') }}" class="text-muted text-decoration-none">{{ _("Privacy Policy") }}</a>
+          <span class="text-muted">|</span>
+          <a href="{{ url_for('main.terms') }}" class="text-muted text-decoration-none">{{ _("Terms of Service") }}</a>
+        </div>
+        <p class="text-muted text-center mb-0" style="font-size:12px;">
+          &copy; {{ _("2026 Human-me. All rights reserved.") }}
+        </p>
+      </div>
+    </footer>
+
+    <!-- Cookie Consent Banner (GDPR / TTDSG) -->
+    <div id="cookieConsent" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:3000;background:#fff;border-top:1px solid #e5e7eb;box-shadow:0 -4px 20px rgba(0,0,0,0.1);padding:16px 20px;">
+      <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between gap-3" style="max-width:960px;">
+        <p class="mb-0 text-muted" style="font-size:13px;">
+          {{ _("We use essential cookies to operate this platform. No tracking or advertising cookies are used.") }}
+          <a href="{{ url_for('main.privacy') }}#cookies" class="text-decoration-underline" style="color:#3f4a36;">{{ _("Learn more") }}</a>
+        </p>
+        <div class="d-flex gap-2 flex-shrink-0">
+          <button onclick="acceptCookies()" class="btn btn-sm fw-bold" style="background:#3f4a36;color:#fff;border-radius:8px;padding:6px 20px;">
+            {{ _("Accept") }}
+          </button>
+        </div>
+      </div>
+    </div>
+    <script>
+    (function(){
+      if (!localStorage.getItem('cookieConsent')) {
+        document.getElementById('cookieConsent').style.display = 'block';
+      }
+      window.acceptCookies = function() {
+        localStorage.setItem('cookieConsent', 'accepted');
+        document.getElementById('cookieConsent').style.display = 'none';
+      };
+    })();
+    </script>
+
   </body>
 </html>

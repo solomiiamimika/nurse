@@ -1,9 +1,10 @@
 from . import client_bp
 from flask import render_template, redirect, url_for, flash, request, abort, jsonify, current_app, Blueprint
 from sqlalchemy.sql.sqltypes import DateTime
-from app.extensions import db, bcrypt, socketio, db, mail
+from app.extensions import db, bcrypt, socketio, mail
 from app.models import Appointment, ProviderService, User, Message, Payment, ClientSelfCreatedAppointment, Review, RequestOfferResponse, ServiceHistory, CancellationPolicy
 from app.utils import fuzz_coordinates, validate_coordinates
+from app.utils.qr_payment import generate_epc_qr, validate_iban
 from app.supabase_storage import get_file_url, delete_from_supabase, upload_to_supabase, buckets
 from datetime import datetime, timedelta
 import os
@@ -41,7 +42,7 @@ def send_async_email(app, msg):
         try:
             mail.send(msg)
         except Exception as e:
-            print(f"Email sending error: {str(e)}")
+            app.logger.error(f"Email sending error: {e}")
 
 
 def send_payment_confirmation_email(user_email, user_name, service_name, amount, currency, appointment_date, appointment_time,):
@@ -152,7 +153,7 @@ def create_apple_pay_session():
 
     except Exception as e:
         current_app.logger.error(f"Apple Pay error: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'Payment session creation failed'}), 500
 
 
 @client_bp.route('/payment_success/<int:appointment_id>')
@@ -249,16 +250,6 @@ def payment_cancel():
                     appointment.set_status('payment_canceled')
                     db.session.commit()
 
-        # Creating a record of the canceled payment
-        payment_record = Payment(
-            user_id=current_user.id,
-            status='canceled',
-            payment_date=datetime.utcnow(),
-            payment_method='stripe',
-            amount=0,
-            transaction_id=session_id or 'manual_cancel'
-        )
-        db.session.add(payment_record)
         db.session.commit()
 
     except stripe.error.StripeError as e:
@@ -287,6 +278,7 @@ def pay_cash_request():
         return jsonify({'success': False, 'message': 'Request not in payable state'}), 400
 
     req.set_status('authorized')
+    req.payment_method_type = 'cash'
     db.session.commit()
     return jsonify({'success': True, 'message': 'Cash payment selected'})
 
@@ -380,7 +372,9 @@ def request_payment_success(request_id):
 def payout_after_completion(appointment_id):
     appt = Appointment.query.get_or_404(appointment_id)
 
-    # тут має бути перевірка прав: admin/провайдер/твоя логіка
+    if appt.client_id != current_user.id and appt.provider_id != current_user.id:
+        return jsonify({"error": "Access denied"}), 403
+
     if appt.status != "completed":
         return jsonify({"error": "Appointment not completed"}), 400
 
@@ -545,7 +539,8 @@ def list_cards():
 
         return jsonify({'cards': cards, 'default_pm': default_pm})
     except stripe.StripeError as e:
-        return jsonify({'error': str(e)}), 400
+        current_app.logger.error(f"Stripe list cards error: {e}")
+        return jsonify({'error': 'Failed to load cards'}), 400
 
 
 @client_bp.route('/api/cards/setup', methods=['POST'])
@@ -565,7 +560,8 @@ def create_setup_intent():
             'public_key': stripe_public_key,
         })
     except stripe.StripeError as e:
-        return jsonify({'error': str(e)}), 400
+        current_app.logger.error(f"Stripe setup intent error: {e}")
+        return jsonify({'error': 'Failed to create setup'}), 400
 
 
 @client_bp.route('/api/cards/<pm_id>/default', methods=['POST'])
@@ -582,15 +578,148 @@ def set_default_card(pm_id):
         )
         return jsonify({'success': True})
     except stripe.StripeError as e:
-        return jsonify({'error': str(e)}), 400
+        current_app.logger.error(f"Stripe set default card error: {e}")
+        return jsonify({'error': 'Failed to set default card'}), 400
 
 
 @client_bp.route('/api/cards/<pm_id>', methods=['DELETE'])
 @login_required
 def delete_card(pm_id):
     """Detach a payment method from the customer."""
+    if not current_user.stripe_customer_id:
+        return jsonify({'error': 'No customer'}), 400
     try:
+        pm = stripe.PaymentMethod.retrieve(pm_id)
+        if pm.customer != current_user.stripe_customer_id:
+            return jsonify({'error': 'Access denied'}), 403
         stripe.PaymentMethod.detach(pm_id)
         return jsonify({'success': True})
     except stripe.StripeError as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': 'Card operation failed'}), 400
+
+
+# ── QR Transfer Payment ─────────────────────────────────────
+
+@client_bp.route('/pay_qr', methods=['POST'])
+@login_required
+def pay_qr():
+    """Client chooses QR transfer for a direct appointment."""
+    data = request.get_json() or {}
+    appointment_id = data.get('appointment_id')
+    if not appointment_id:
+        return jsonify({'success': False, 'message': 'Appointment ID required'}), 400
+
+    appt = Appointment.query.get_or_404(appointment_id)
+    if appt.client_id != current_user.id:
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+    if appt.status != 'confirmed':
+        return jsonify({'success': False, 'message': 'Not in payable state'}), 400
+
+    provider = User.query.get(appt.provider_id)
+    if not provider or not provider.iban:
+        return jsonify({'success': False, 'message': 'Provider has no IBAN configured'}), 400
+
+    appt.set_status('confirmed_paid')
+    appt.payment_method_type = 'qr_transfer'
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'QR transfer payment selected'})
+
+
+@client_bp.route('/pay_qr_request', methods=['POST'])
+@login_required
+def pay_qr_request():
+    """Client chooses QR transfer for a request."""
+    data = request.get_json() or {}
+    request_id = data.get('request_id')
+    if not request_id:
+        return jsonify({'success': False, 'message': 'Request ID required'}), 400
+
+    req = ClientSelfCreatedAppointment.query.get_or_404(request_id)
+    if req.patient_id != current_user.id:
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+    if req.status != 'accepted':
+        return jsonify({'success': False, 'message': 'Request not in payable state'}), 400
+
+    provider = User.query.get(req.provider_id)
+    if not provider or not provider.iban:
+        return jsonify({'success': False, 'message': 'Provider has no IBAN configured'}), 400
+
+    req.set_status('authorized')
+    req.payment_method_type = 'qr_transfer'
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'QR transfer payment selected'})
+
+
+@client_bp.route('/qr_code/<item_type>/<int:item_id>')
+@login_required
+def qr_code(item_type, item_id):
+    """Generate EPC QR code for an appointment or request payment."""
+    if item_type == 'appointment':
+        appt = Appointment.query.get_or_404(item_id)
+        if appt.client_id != current_user.id:
+            return jsonify({'error': 'Access denied'}), 403
+        provider = User.query.get(appt.provider_id)
+        amount = appt.provider_service.price if appt.provider_service else 0
+        # Use deposit if set
+        if appt.deposit_amount and appt.deposit_amount > 0:
+            amount = appt.deposit_amount
+        reference = f'Appointment #{item_id}'
+    elif item_type == 'request':
+        req = ClientSelfCreatedAppointment.query.get_or_404(item_id)
+        if req.patient_id != current_user.id:
+            return jsonify({'error': 'Access denied'}), 403
+        provider = User.query.get(req.provider_id)
+        accepted_offer = next((o for o in req.offers if o.status == 'accepted'), None)
+        amount = float(accepted_offer.proposed_price if accepted_offer else req.payment or 0)
+        if req.deposit_amount and req.deposit_amount > 0:
+            amount = req.deposit_amount
+        reference = f'Request #{item_id}'
+    else:
+        return jsonify({'error': 'Invalid type'}), 400
+
+    if not provider or not provider.iban:
+        return jsonify({'error': 'Provider has no IBAN'}), 400
+
+    if not validate_iban(provider.iban):
+        return jsonify({'error': 'Provider IBAN is invalid'}), 400
+
+    qr_data_uri = generate_epc_qr(
+        iban=provider.iban,
+        beneficiary_name=provider.full_name or provider.user_name,
+        amount=float(amount),
+        reference=reference,
+    )
+
+    return jsonify({
+        'success': True,
+        'qr_image': qr_data_uri,
+        'iban': provider.iban,
+        'name': provider.full_name or provider.user_name,
+        'amount': float(amount),
+        'reference': reference,
+    })
+
+
+@client_bp.route('/pay_cash', methods=['POST'])
+@login_required
+def pay_cash():
+    """Client chooses to pay by cash for a direct appointment."""
+    data = request.get_json() or {}
+    appointment_id = data.get('appointment_id')
+    if not appointment_id:
+        return jsonify({'success': False, 'message': 'Appointment ID required'}), 400
+
+    appt = Appointment.query.get_or_404(appointment_id)
+    if appt.client_id != current_user.id:
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+    if appt.status != 'confirmed':
+        return jsonify({'success': False, 'message': 'Not in payable state'}), 400
+
+    appt.set_status('confirmed_paid')
+    appt.payment_method_type = 'cash'
+
+    from app.routes.provider.appointments import sync_appointment_request_status
+    sync_appointment_request_status(appt, 'confirmed_paid')
+
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Cash payment selected'})

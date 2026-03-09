@@ -796,11 +796,11 @@
 
         if (!providers.length) {
             list.innerHTML = `<div class="text-center py-4">
-                <div style="font-size:2rem; margin-bottom:8px;">🤷</div>
-                <div class="fw-bold mb-1">{{ _("No one available right now") }}</div>
-                <div class="text-muted small mb-3">{{ _("Post a request — helpers will come to you!") }}</div>
-                <a href="{{ url_for('auth.register') }}?intent=request" class="btn btn-sm btn-dark rounded-pill px-4">{{ _("Create Request") }}</a>
-                <div class="mt-2"><a href="{{ url_for('auth.register') }}" class="small text-muted" style="text-decoration:underline;">{{ _("or sign up to browse later") }}</a></div>
+                <div style="font-size:2rem; margin-bottom:8px;">🔍</div>
+                <div class="fw-bold mb-1">{{ _("This service doesn't exist yet") }}</div>
+                <div class="text-muted small mb-3">{{ _("Be the first to offer it! Or post a request and helpers will find you.") }}</div>
+                <a href="{{ url_for('auth.register') }}?intent=provider" class="btn btn-sm btn-dark rounded-pill px-4 me-2">{{ _("Become a Provider") }}</a>
+                <a href="{{ url_for('auth.register') }}?intent=request" class="btn btn-sm btn-outline-dark rounded-pill px-4">{{ _("Create Request") }}</a>
             </div>`;
             countEl.textContent = '';
             return;

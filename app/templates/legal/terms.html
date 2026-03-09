@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="max-width:800px;margin:60px auto;padding:20px;">
+  <a href="{{ url_for('main.home') }}" class="text-decoration-none" style="color:#3f4a36;">
+    <i class="fas fa-arrow-left me-1"></i> {{ _("Back to Home") }}
+  </a>
+
+  <h1 class="fw-bold mt-3 mb-4" style="color:#3f4a36;">{{ _("Terms of Service") }}</h1>
+
+  <div class="card border-0 shadow-sm" style="border-radius:16px;">
+    <div class="card-body p-4">
+
+      <!-- 1. Scope -->
+      <h5 class="fw-bold mb-3">1. {{ _("Scope and Provider") }}</h5>
+      <p class="text-muted">
+        {{ _("These Terms of Service govern the use of the Human-me platform, a marketplace that connects clients seeking personal services with independent service providers. By registering an account, you agree to these terms.") }}
+      </p>
+
+      <!-- 2. Platform Role -->
+      <hr>
+      <h5 class="fw-bold mb-3">2. {{ _("Platform Role") }}</h5>
+      <p class="text-muted">
+        {{ _("Human-me acts solely as an intermediary platform. We facilitate the connection between clients and providers but are not a party to the service contracts between them. The service provider is independently responsible for the quality and execution of their services.") }}
+      </p>
+
+      <!-- 3. Registration -->
+      <hr>
+      <h5 class="fw-bold mb-3">3. {{ _("Registration and Account") }}</h5>
+      <ul class="text-muted">
+        <li>{{ _("You must be at least 18 years old to register") }}</li>
+        <li>{{ _("You must provide accurate and complete information") }}</li>
+        <li>{{ _("You are responsible for maintaining the security of your account credentials") }}</li>
+        <li>{{ _("Each person may only maintain one account") }}</li>
+        <li>{{ _("We reserve the right to suspend or delete accounts that violate these terms") }}</li>
+      </ul>
+
+      <!-- 4. Services and Booking -->
+      <hr>
+      <h5 class="fw-bold mb-3">4. {{ _("Services and Booking") }}</h5>
+      <p class="text-muted">
+        {{ _("Clients can book services directly from a provider's profile or post a request that providers can respond to with offers. A booking becomes binding when:") }}
+      </p>
+      <ul class="text-muted">
+        <li>{{ _("Both parties agree on the service, time, and price") }}</li>
+        <li>{{ _("Payment is authorized (for paid services)") }}</li>
+      </ul>
+
+      <!-- 5. Payments -->
+      <hr>
+      <h5 class="fw-bold mb-3">5. {{ _("Payments and Fees") }}</h5>
+      <ul class="text-muted">
+        <li>{{ _("Payments are processed securely through Stripe") }}</li>
+        <li>{{ _("For card payments, funds are authorized (held) at the time of booking and captured only after the service is completed and confirmed") }}</li>
+        <li>{{ _("The platform charges a service fee (commission) on each transaction") }}</li>
+        <li>{{ _("Providers receive their earnings after the client confirms service completion, minus the platform commission") }}</li>
+        <li>{{ _("Cash payments are arranged directly between client and provider") }}</li>
+      </ul>
+
+      <!-- 6. Cancellation -->
+      <hr>
+      <h5 class="fw-bold mb-3">6. {{ _("Cancellation and Refunds") }}</h5>
+      <p class="text-muted">
+        {{ _("Cancellation policies may vary by provider. In general:") }}
+      </p>
+      <ul class="text-muted">
+        <li>{{ _("Cancellations made more than 24 hours before the appointment are free of charge") }}</li>
+        <li>{{ _("Late cancellations or no-shows may result in charges according to the provider's cancellation policy") }}</li>
+        <li>{{ _("If a provider cancels, any held payment will be released back to the client") }}</li>
+      </ul>
+
+      <!-- 7. Reviews -->
+      <hr>
+      <h5 class="fw-bold mb-3">7. {{ _("Reviews and Ratings") }}</h5>
+      <p class="text-muted">
+        {{ _("After a completed service, both parties may leave a review. Reviews must be honest, factual, and respectful. We reserve the right to remove reviews that contain hate speech, personal attacks, or false information.") }}
+      </p>
+
+      <!-- 8. Withdrawal (Widerrufsrecht) -->
+      <hr>
+      <h5 class="fw-bold mb-3">8. {{ _("Right of Withdrawal (Widerrufsrecht)") }}</h5>
+      <p class="text-muted">
+        {{ _("As a consumer within the EU, you have the right to withdraw from a distance contract within 14 days without giving a reason. However, pursuant to BGB Section 356(4) No. 2, the right of withdrawal expires for service contracts if the service has been fully performed and the consumer has given prior express consent that the entrepreneur may begin performance before the withdrawal period has expired.") }}
+      </p>
+      <p class="text-muted">
+        {{ _("By booking and authorizing payment for a service, you expressly consent that the service may begin before the withdrawal period has expired. You acknowledge that you lose your right of withdrawal once the service has been fully performed.") }}
+      </p>
+
+      <!-- 9. Liability -->
+      <hr>
+      <h5 class="fw-bold mb-3">9. {{ _("Limitation of Liability") }}</h5>
+      <p class="text-muted">
+        {{ _("Human-me is not liable for the quality, safety, or legality of services provided by independent service providers. Our liability is limited to intent and gross negligence. This limitation does not apply to damages arising from injury to life, body, or health.") }}
+      </p>
+
+      <!-- 10. Provider Obligations -->
+      <hr>
+      <h5 class="fw-bold mb-3">10. {{ _("Provider Obligations") }}</h5>
+      <ul class="text-muted">
+        <li>{{ _("Providers must have the necessary qualifications and licenses for the services they offer") }}</li>
+        <li>{{ _("Providers are responsible for their own tax obligations and social insurance") }}</li>
+        <li>{{ _("Providers must maintain appropriate liability insurance where required by law") }}</li>
+        <li>{{ _("Providers must accurately describe their services and pricing") }}</li>
+      </ul>
+
+      <!-- 11. Prohibited Conduct -->
+      <hr>
+      <h5 class="fw-bold mb-3">11. {{ _("Prohibited Conduct") }}</h5>
+      <ul class="text-muted">
+        <li>{{ _("Providing false or misleading information") }}</li>
+        <li>{{ _("Harassing, threatening, or discriminating against other users") }}</li>
+        <li>{{ _("Circumventing the platform's payment system to avoid fees") }}</li>
+        <li>{{ _("Creating multiple accounts") }}</li>
+        <li>{{ _("Scraping or automated data collection") }}</li>
+      </ul>
+
+      <!-- 12. Governing Law -->
+      <hr>
+      <h5 class="fw-bold mb-3">12. {{ _("Governing Law and Jurisdiction") }}</h5>
+      <p class="text-muted">
+        {{ _("These terms are governed by the laws of the Federal Republic of Germany. For consumers, mandatory consumer protection laws of their country of residence remain applicable. The European Online Dispute Resolution platform is available at:") }}
+        <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener">
+          https://ec.europa.eu/consumers/odr
+        </a>
+      </p>
+
+      <!-- 13. Changes -->
+      <hr>
+      <h5 class="fw-bold mb-3">13. {{ _("Changes to These Terms") }}</h5>
+      <p class="text-muted">
+        {{ _("We may update these terms from time to time. Registered users will be notified of material changes via email or platform notification. Continued use of the platform after changes take effect constitutes acceptance of the updated terms.") }}
+      </p>
+
+    </div>
+  </div>
+
+  <p class="text-muted text-center mt-4" style="font-size:13px;">
+    {{ _("Last updated:") }} 2026-03-08
+  </p>
+</div>
+{% endblock %}

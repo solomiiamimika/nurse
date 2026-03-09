@@ -38,6 +38,14 @@ def manage_services():
     provider_services = ProviderService.query.filter_by(provider_id=current_user.id).all()
 
     if request.method == 'POST':
+        # Progressive verification: providers need full_name to manage services
+        if not current_user.full_name:
+            flash('Please add your full name in your profile before managing services.', 'warning')
+            return redirect(url_for('provider.profile'))
+        if not current_user.is_contact_verified:
+            flash('Please verify your email or link Telegram before managing services.', 'warning')
+            return redirect(url_for('provider.profile'))
+
         try:
             action = request.form.get('action')
 
@@ -50,6 +58,7 @@ def manage_services():
                     duration=int(request.form.get('duration')),
                     description=request.form.get('description', ''),
                     is_available='is_available' in request.form,
+                    deposit_percentage=int(request.form.get('deposit_percentage', 0)),
                     tags=request.form.get('tags', '')
                 )
                 db.session.add(new_service)
@@ -69,6 +78,7 @@ def manage_services():
                     duration=int(request.form.get('duration')),
                     description=request.form.get('description', ''),
                     is_available='is_available' in request.form,
+                    deposit_percentage=int(request.form.get('deposit_percentage', 0)),
                     tags=request.form.get('tags', '')
                 )
                 db.session.add(new_service)
@@ -96,6 +106,7 @@ def manage_services():
                     service.duration = int(request.form.get('duration'))
                     service.description = request.form.get('description', '')
                     service.is_available = 'is_available' in request.form
+                    service.deposit_percentage = int(request.form.get('deposit_percentage', 0))
                     service.tags = request.form.get('tags', '')
                     flash('Service updated successfully', 'success')
                 else:
@@ -131,7 +142,7 @@ def manage_services():
         except Exception as e:
             db.session.rollback()
             current_app.logger.error(f"Error managing services: {str(e)}")
-            flash(f'Error processing request: {str(e)}', 'danger')
+            flash('Error processing request. Please try again.', 'danger')
 
         return redirect(url_for('provider.manage_services'))
 

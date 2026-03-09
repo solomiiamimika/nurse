@@ -1,7 +1,7 @@
 from . import client_bp
 from flask import render_template, redirect, url_for, flash, request, abort, jsonify, current_app, Blueprint
 from sqlalchemy.sql.sqltypes import DateTime
-from app.extensions import db, bcrypt, socketio, db, mail
+from app.extensions import db, bcrypt, socketio, mail
 from app.models import Appointment, ProviderService, User, Message, Payment, ClientSelfCreatedAppointment, Review, RequestOfferResponse, ServiceHistory, CancellationPolicy
 from app.utils import fuzz_coordinates, validate_coordinates
 from app.supabase_storage import get_file_url, delete_from_supabase, upload_to_supabase, buckets
@@ -39,13 +39,20 @@ os.makedirs(PROFILE_PICTURES_FOLDER, exist_ok=True)
 def get_appointment_color(status):
     colors = {
         'scheduled': 'gray',
+        'pending': '#9ca3af',
+        'has_offers': '#8b5cf6',
+        'accepted': '#f59e0b',
+        'authorized': '#3b82f6',
         'request_sended': '#f59e0b',
         'confirmed': '#f59e0b',
         'confirmed_paid': 'green',
         'provider_confirmed': 'green',
+        'in_progress': '#16a34a',
         'work_submitted': '#0ea5e9',
-        'completed': 'blue',
-        'cancelled': 'red'
+        'completed': '#2563eb',
+        'cancelled': 'red',
+        'no_show': '#6b7280',
+        'disputed': '#f97316',
     }
     return colors.get(status, 'gray')
 
@@ -110,10 +117,51 @@ def get_appointments():
                 'end': app.end_time.isoformat(),
                 'color': get_appointment_color(app.status),
                 'extendedProps': {
+                    'type': 'appointment',
                     'status': app.status,
                     'notes': app.notes or '',
                     'provider_name': provider_name,
                     'service_name': service_name,
+                    'amount': f"{amount:.2f}"
+                }
+            })
+
+        # Also include client requests (ClientSelfCreatedAppointment)
+        req_query = ClientSelfCreatedAppointment.query.filter_by(patient_id=current_user.id)
+        if start_date and end_date:
+            try:
+                req_query = req_query.filter(
+                    ClientSelfCreatedAppointment.appointment_start_time >= start,
+                    ClientSelfCreatedAppointment.appointment_start_time <= end
+                )
+            except Exception:
+                pass
+        requests_list = req_query.order_by(ClientSelfCreatedAppointment.appointment_start_time.asc()).all()
+
+        for r in requests_list:
+            provider_name = ''
+            if r.provider_id:
+                prov = User.query.get(r.provider_id)
+                provider_name = (prov.full_name or prov.user_name) if prov else ''
+            svc_name = r.service_name or 'Request'
+            title = f"{svc_name} - {provider_name}" if provider_name else svc_name
+            amount = float(r.payment or 0)
+
+            end_time = r.end_time or (r.appointment_start_time + timedelta(hours=1))
+
+            result.append({
+                'id': f"req_{r.id}",
+                'title': title,
+                'start': r.appointment_start_time.isoformat(),
+                'end': end_time.isoformat(),
+                'color': get_appointment_color(r.status),
+                'extendedProps': {
+                    'type': 'request',
+                    'request_id': r.id,
+                    'status': r.status,
+                    'notes': r.notes or '',
+                    'provider_name': provider_name,
+                    'service_name': svc_name,
                     'amount': f"{amount:.2f}"
                 }
             })
@@ -130,6 +178,12 @@ def get_appointments():
 def create_appointment():
     if current_user.role != 'client':
         return jsonify({'success': False, 'message': 'access denied'}), 403
+
+    # Progressive verification: require profile basics before first booking
+    if not current_user.full_name:
+        return jsonify({'success': False, 'message': 'Please add your full name in your profile before booking.', 'redirect': url_for('client.profile')}), 400
+    if not current_user.is_contact_verified:
+        return jsonify({'success': False, 'message': 'Please verify your email or link Telegram before booking.', 'redirect': url_for('client.profile')}), 400
 
     try:
         data = request.get_json()
@@ -152,9 +206,10 @@ def create_appointment():
         appointment_time = datetime.strptime(date_time, '%Y-%m-%dT%H:%M')
         end_time = appointment_time + timedelta(minutes=service.duration)
 
+        active_statuses = ('scheduled', 'confirmed', 'confirmed_paid', 'in_progress', 'authorized')
         conflicting_appointments = Appointment.query.filter(
             Appointment.provider_id == provider_id,
-            Appointment.status == 'scheduled',
+            Appointment.status.in_(active_statuses),
             ((Appointment.appointment_time <= appointment_time) & (Appointment.end_time > appointment_time)) |
             ((Appointment.appointment_time < end_time) & (Appointment.end_time >= end_time)) |
             ((Appointment.appointment_time >= appointment_time) & (Appointment.end_time <= end_time))
@@ -185,37 +240,8 @@ def create_appointment():
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Error creating appointment: {str(e)}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
 
-
-@client_bp.route('/pay_cash', methods=['POST'])
-@login_required
-def pay_cash():
-    """Client chooses to pay by cash — skip Stripe, move appointment forward."""
-    if current_user.role != 'client':
-        return jsonify({'success': False, 'message': 'Access denied'}), 403
-
-    data = request.get_json() or {}
-    appointment_id = data.get('appointment_id')
-    if not appointment_id:
-        return jsonify({'success': False, 'message': 'Appointment ID required'}), 400
-
-    appointment = Appointment.query.filter_by(
-        id=appointment_id, client_id=current_user.id
-    ).first()
-    if not appointment:
-        return jsonify({'success': False, 'message': 'Appointment not found'}), 404
-    if appointment.status != 'confirmed':
-        return jsonify({'success': False, 'message': 'Appointment not in payable state'}), 400
-
-    appointment.set_status('confirmed_paid')
-
-    # Sync to linked request
-    from app.routes.provider.appointments import sync_appointment_request_status
-    sync_appointment_request_status(appointment, 'confirmed_paid')
-
-    db.session.commit()
-    return jsonify({'success': True, 'message': 'Cash payment selected'})
 
 
 @client_bp.route('/cancel_appointment', methods=['POST'])
@@ -299,7 +325,7 @@ def cancel_appointment():
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Error cancelling appointment: {str(e)}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
 
 
 @client_bp.route('/client_self_create_appointment', methods=['POST'])
@@ -307,6 +333,12 @@ def cancel_appointment():
 def client_self_create_appointment():
     if current_user.role != 'client':
         return jsonify({'success': False, 'message': 'access denied'}), 403
+
+    # Progressive verification: require profile basics before posting a request
+    if not current_user.full_name:
+        return jsonify({'success': False, 'error': 'Please add your full name in your profile before creating a request.', 'redirect': url_for('client.profile')}), 400
+    if not current_user.is_contact_verified:
+        return jsonify({'success': False, 'error': 'Please verify your email or link Telegram before creating a request.', 'redirect': url_for('client.profile')}), 400
 
     try:
         data = request.get_json()
@@ -782,7 +814,7 @@ def client_accept_request(offer_id):
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Error accepting offer {offer_id}: {str(e)}", exc_info=True)
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500
 
 
 @client_bp.route('/counter_offer/<int:offer_id>', methods=['POST'])
@@ -853,7 +885,7 @@ def leave_review():
     appo = Appointment.query.filter_by(id=appointment_id, client_id=current_user.id).first()
     if not appo:
         return jsonify({'success': False, 'message': 'Appointment not found'}), 404
-    if appo.status != 'confirmed_paid':
+    if appo.status not in ('confirmed_paid', 'completed', 'work_submitted'):
         return jsonify({'success': False, 'message': 'Review can be left only after the visit is completed'}), 400
 
     # Check to prevent duplicate reviews for the same appointment.
@@ -928,7 +960,7 @@ def can_review_appointment(appointment_id):
     if not appointment:
         return jsonify({'can_review': False, 'reason': 'Appointment not found'})
 
-    if appointment.status not in ('confirmed_paid', 'completed'):
+    if appointment.status not in ('confirmed_paid', 'completed', 'work_submitted'):
         return jsonify({'can_review': False, 'reason': 'Appointment not completed'})
 
     existing_review = Review.query.filter_by(
@@ -1067,7 +1099,7 @@ def complete_appointment():
 
     except stripe.StripeError as e:
         current_app.logger.error(f"Stripe error completing appointment {appointment_id}: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Error completing appointment: {e}")
@@ -1158,7 +1190,7 @@ def complete_request_appointment():
 
     except stripe.StripeError as e:
         current_app.logger.error(f"Stripe error completing request {request_id}: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Error completing request: {e}")
@@ -1362,7 +1394,7 @@ def report_no_show_provider():
 
     except stripe.StripeError as e:
         current_app.logger.error(f"Stripe error on provider no-show: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Error reporting provider no-show: {e}")
@@ -1452,20 +1484,5 @@ def create_dispute():
         return jsonify({'success': False, 'message': 'Internal server error'}), 500
 
 
-@socketio.on('connect')
-def handle_connect():
-    print(f"Client connected: {request.sid}")
-    emit('connection_response', {'status': 'connected'})
 
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    print(f"Client disconnected: {request.sid}")
-
-
-@socketio.on('join')
-def handle_join(data):
-    user_id = data.get('user_id')
-    if user_id:
-        join_room(f"user_{user_id}")
-        current_app.logger.info(f'User {user_id} joined the room')
+# SocketIO handlers are defined in provider/dashboard.py (single source of truth)

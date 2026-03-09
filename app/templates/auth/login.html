@@ -217,6 +217,12 @@
             />
           </div>
 
+          <div class="text-end mb-1" style="margin-top:-5px;">
+            <a href="{{ url_for('auth.forgot_password') }}" style="font-size:0.82rem;color:#9ca3af;text-decoration:none;">
+              {{ _("Forgot your password?") }}
+            </a>
+          </div>
+
           <button type="submit" class="btn-submit">{{ _("Login") }}</button>
         </form>
 

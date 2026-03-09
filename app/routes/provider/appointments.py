@@ -33,6 +33,10 @@ def calendar_appointment_color(Status):
     colors_dictionary = {
         'scheduled': 'gray',
         'request_sended': 'yellow',
+        'pending': '#8b5cf6',
+        'has_offers': '#8b5cf6',
+        'accepted': '#f59e0b',
+        'authorized': '#3b82f6',
         'confirmed': '#f59e0b',
         'confirmed_paid': 'green',
         'provider_confirmed': 'green',
@@ -121,7 +125,7 @@ def appointments():
 @provider_bp.route('/get_appointments')
 @login_required
 def get_appointments():
-    print("Received request to /provider/get_appointments")  # Logging
+    current_app.logger.debug("GET /provider/get_appointments")
     if current_user.role != 'provider':
         return jsonify({'error': 'Access denied'}), 403
 
@@ -140,7 +144,7 @@ def get_appointments():
                     Appointment.appointment_time <= end
                 )
             except ValueError as e:
-                print(f"Error parsing date format: {e}")
+                current_app.logger.warning(f"Invalid date format: {e}")
 
         appointments = query.all()
 
@@ -164,6 +168,7 @@ def get_appointments():
                 'end': app.end_time.isoformat(),
                 'color': calendar_appointment_color(app.status),
                 'extendedProps': {
+                    'type': 'appointment',
                     'client_name': app.client.full_name or app.client.user_name,
                     'provider_name': app.provider.full_name or app.provider.user_name,
                     'service_name': service_name,
@@ -174,11 +179,52 @@ def get_appointments():
                 }
             })
 
-        print(f"Returning {len(result)} records")  # Logging
+        # Also include request-based appointments (ClientSelfCreatedAppointment)
+        req_query = ClientSelfCreatedAppointment.query.filter_by(provider_id=current_user.id)
+        if start_date and end_date:
+            try:
+                req_query = req_query.filter(
+                    ClientSelfCreatedAppointment.appointment_start_time >= start,
+                    ClientSelfCreatedAppointment.appointment_start_time <= end
+                )
+            except Exception:
+                pass
+        requests_list = req_query.order_by(ClientSelfCreatedAppointment.appointment_start_time.asc()).all()
+
+        for r in requests_list:
+            client_name = ''
+            if r.patient_id:
+                client = User.query.get(r.patient_id)
+                client_name = (client.full_name or client.user_name) if client else ''
+            svc_name = r.service_name or 'Request'
+            title = f"{svc_name} - {client_name}" if client_name else svc_name
+            price = float(r.payment or 0)
+
+            end_time = r.end_time or (r.appointment_start_time + timedelta(hours=1))
+
+            result.append({
+                'id': f"req_{r.id}",
+                'title': title,
+                'start': r.appointment_start_time.isoformat(),
+                'end': end_time.isoformat(),
+                'color': calendar_appointment_color(r.status),
+                'extendedProps': {
+                    'type': 'request',
+                    'request_id': r.id,
+                    'client_name': client_name,
+                    'provider_name': current_user.full_name or current_user.user_name,
+                    'service_name': svc_name,
+                    'price': price,
+                    'status': r.status,
+                    'notes': r.notes or '',
+                    'photo': client.photo if client else None
+                }
+            })
+
         return jsonify(result)
 
     except Exception as e:
-        print(f"Error in get_appointments: {str(e)}")  # Logging
+        current_app.logger.error(f"Error in get_appointments: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
 
@@ -217,10 +263,32 @@ def get_my_appointments():
                 'client_id': app.client.id
             })
 
+        # Also include request-based appointments
+        requests_list = ClientSelfCreatedAppointment.query.filter(
+            ClientSelfCreatedAppointment.provider_id == current_user.id,
+            ClientSelfCreatedAppointment.appointment_start_time >= datetime.utcnow(),
+            ClientSelfCreatedAppointment.status.in_(['accepted', 'authorized', 'confirmed_paid', 'scheduled', 'work_submitted', 'in_progress'])
+        ).order_by(ClientSelfCreatedAppointment.appointment_start_time.asc()).all()
+
+        for r in requests_list:
+            client = User.query.get(r.patient_id) if r.patient_id else None
+            result.append({
+                'id': f"req_{r.id}",
+                'service_name': r.service_name or 'Request',
+                'patient_name': (client.full_name or client.user_name) if client else 'Client',
+                'appointment_start_time': r.appointment_start_time.isoformat(),
+                'payment': float(r.payment or 0),
+                'notes': r.notes,
+                'latitude': client.latitude if client else None,
+                'longitude': client.longitude if client else None,
+                'type': 'request',
+                'client_id': client.id if client else None
+            })
+
         return jsonify(result)
 
     except Exception as e:
-        print(f"Error in get_my_appointments: {str(e)}")
+        current_app.logger.error(f"Error in get_my_appointments: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
 
@@ -340,7 +408,7 @@ def provider_get_requests():
         return jsonify({'success': True, 'requests': result}), 200
 
     except Exception as e:
-        print(e)
+        current_app.logger.error(f"Error in get_open_requests: {e}")
         return jsonify({'success': False, 'error': 'Server Error'}), 500
 
 
@@ -615,8 +683,8 @@ def complete_request(request_id):
         if not req:
             return jsonify({'success': False, 'message': 'Request not found'}), 404
 
-        if req.status not in ('accepted', 'authorized'):
-            return jsonify({'success': False, 'message': 'Request not in valid state'}), 400
+        if req.status not in ('authorized', 'confirmed_paid', 'in_progress'):
+            return jsonify({'success': False, 'message': 'Payment must be authorized before marking work as done'}), 400
 
         req.set_status('work_submitted')
         sync_request_appointment_status(req, 'work_submitted')
@@ -775,7 +843,7 @@ def provider_cancel_request(request_id):
 
     except stripe.StripeError as e:
         current_app.logger.error(f"Stripe error cancelling request {request_id}: {str(e)}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'Payment processing error'}), 500
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': 'Internal server error'}), 500
@@ -818,8 +886,8 @@ def confirm_arrival():
             item = ClientSelfCreatedAppointment.query.filter_by(id=request_id, provider_id=current_user.id).first()
             if not item:
                 return jsonify({'success': False, 'message': 'Request not found'}), 404
-            if item.status not in ('authorized', 'confirmed_paid', 'accepted'):
-                return jsonify({'success': False, 'message': 'Cannot confirm arrival for this status'}), 400
+            if item.status not in ('authorized', 'confirmed_paid'):
+                return jsonify({'success': False, 'message': 'Payment must be authorized before arrival'}), 400
             item.provider_arrived_at = datetime.now()
             item.set_status('in_progress')
             sync_request_appointment_status(item, 'in_progress')
@@ -1017,7 +1085,7 @@ def report_no_show():
 
     except stripe.StripeError as e:
         current_app.logger.error(f"Stripe error on no-show: {e}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'Payment processing error'}), 500
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Error reporting no-show: {e}")

@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from app.models import (
     User, Appointment, ClientSelfCreatedAppointment,
     RequestOfferResponse, ServiceHistory,
-    NoShowRecord, Dispute,
+    NoShowRecord, Dispute, Favorite, ProviderService,
 )
 from . import keyboards
 from .conversations import conversation_manager
@@ -115,6 +115,7 @@ def dispatch_update(update, bot_token):
             '/open_requests': handle_open_requests,
             '/my_offers': handle_my_offers,
             '/notifications': handle_notifications,
+            '/favorites': handle_favorites,
             '/link': handle_link,
             '/switch_role': handle_switch_role,
         }
@@ -123,8 +124,10 @@ def dispatch_update(update, bot_token):
         handler = commands.get(cmd)
         if handler:
             handler(telegram_id, chat_id, bot_token, message.get('from', {}))
-        else:
-            send_message(bot_token, chat_id, "Unknown command. /help for available commands.")
+        elif _is_greeting(text):
+            handle_greeting(telegram_id, chat_id, bot_token, message.get('from', {}))
+        elif text:
+            handle_free_text(telegram_id, chat_id, bot_token, text, message.get('from', {}))
 
     except Exception:
         logger.exception("Unhandled error processing update_id=%s", update.get('update_id'))
@@ -172,6 +175,7 @@ def handle_callback_query(cq, bot_token):
         'cmd_open_requests': handle_open_requests,
         'cmd_my_offers': handle_my_offers,
         'cmd_notifications': handle_notifications,
+        'cmd_favorites': handle_favorites,
         'cmd_register': handle_register,
         'cmd_link': handle_link,
         'cmd_switch_role': handle_switch_role,
@@ -302,6 +306,39 @@ def handle_callback_query(cq, bot_token):
         except Exception:
             logger.exception("Error starting revise flow for telegram_id=%s", telegram_id)
             send_message(bot_token, chat_id, "Something went wrong. Please try again.")
+
+    # ── FAQ callbacks ─────────────────────────────────────────────
+    if data == 'faq_back':
+        send_message(bot_token, chat_id,
+                     "Choose a topic:", keyboards.faq_menu())
+        return
+
+    if data.startswith('faq_') and not data.startswith('faqq_'):
+        cat_key = data[4:]  # faq_how → how, faq_client → client, etc.
+        cat = FAQ_DATA.get(cat_key)
+        if cat:
+            send_message(bot_token, chat_id,
+                         f"<b>{cat['label']}</b>\n\nSelect a question:",
+                         keyboards.faq_questions(cat_key, cat['qa']))
+        return
+
+    if data.startswith('faqq_'):
+        # faqq_how_0 → category=how, index=0
+        parts = data[5:].rsplit('_', 1)
+        if len(parts) == 2:
+            cat_key, idx_str = parts
+            cat = FAQ_DATA.get(cat_key)
+            if cat:
+                try:
+                    idx = int(idx_str)
+                    q_text, a_text = cat['qa'][idx]
+                    send_message(bot_token, chat_id,
+                                 f"<b>{q_text}</b>\n\n{a_text}",
+                                 keyboards.faq_questions(cat_key, cat['qa']))
+                except (ValueError, IndexError):
+                    send_message(bot_token, chat_id, "Question not found.",
+                                 keyboards.faq_menu())
+        return
 
     # ── Appointment action callbacks ──────────────────────────────
     if data.startswith('act_'):
@@ -562,6 +599,167 @@ def _handle_appointment_action(data, telegram_id, chat_id, bot_token):
         send_message(bot_token, chat_id, "Something went wrong. Please try again.")
 
 
+# ── Greeting & free-text handlers ─────────────────────────────────
+
+GREETINGS = {
+    'привіт', 'привет', 'здоров', 'вітаю', 'доброго дня', 'добрий день',
+    'добрий ранок', 'добрий вечір', 'доброго ранку', 'доброго вечора',
+    'hi', 'hello', 'hey', 'good morning', 'good evening', 'good afternoon',
+    'hallo', 'guten tag', 'guten morgen', 'guten abend', 'moin',
+    'cześć', 'czesc', 'dzień dobry', 'dzien dobry', 'witam', 'siema',
+    'yo', 'sup', 'hej', 'salut', 'хай', 'хей', 'ку', 'шалом',
+    'здравствуйте', 'здрастуйте', 'здрасте', 'доброго',
+}
+
+
+def _is_greeting(text):
+    """Check if text is a greeting in any supported language."""
+    t = text.lower().strip().rstrip('!.,?')
+    if t in GREETINGS:
+        return True
+    # Check if starts with a greeting word
+    for g in GREETINGS:
+        if t.startswith(g):
+            return True
+    return False
+
+
+def handle_greeting(telegram_id, chat_id, bot_token, from_data):
+    """Respond to greetings with a friendly message and action options."""
+    try:
+        user = User.query.filter_by(telegram_id=telegram_id).first()
+        first_name = from_data.get('first_name', '')
+
+        if user:
+            name = user.full_name or user.user_name or first_name
+            role_label = 'Client' if user.role == 'client' else 'Provider'
+            menu = keyboards.main_menu(user.role)
+            send_message(bot_token, chat_id,
+                         f"Hi, <b>{name}</b>! 👋\n\n"
+                         f"How can I help you today?\n\n"
+                         f"You are logged in as <b>{role_label}</b>.\n"
+                         f"Choose what you'd like to do:",
+                         menu)
+        else:
+            send_message(bot_token, chat_id,
+                         f"Hello, <b>{first_name}</b>! 👋\n"
+                         f"Welcome to <b>Human-me</b>!\n\n"
+                         f"I can help you:\n"
+                         f"• Find a helper for any task\n"
+                         f"• Offer your services and earn money\n"
+                         f"• Manage bookings and payments\n\n"
+                         f"To get started, create an account or link your existing one:",
+                         keyboards.unregistered_menu())
+    except Exception:
+        logger.exception("Error in handle_greeting for telegram_id=%s", telegram_id)
+        send_message(bot_token, chat_id, "Hello! Use /help for available commands.")
+
+
+FAQ_DATA = {
+    'how': {
+        'label': '💡 How it works',
+        'qa': [
+            ('What is Human-me?', 'Human-me is a platform connecting clients who need home health and care services with verified service providers in their area.'),
+            ('How do I get started?', 'Register as a Client or Provider, fill in your profile, and you\'re ready! Clients can post requests, and providers can browse and send offers.'),
+            ('Is it safe?', 'Yes! Providers can upload documents and insurance. You can view profiles, reviews, and ratings before booking. Payments are processed securely through Stripe.'),
+        ]
+    },
+    'client': {
+        'label': '👤 For Clients',
+        'qa': [
+            ('How to post a request?', 'Go to your Dashboard and click \'Post a Request\'. Fill in the service name, date, address, district, and notes. Providers in your area will see it.'),
+            ('How to choose a provider?', 'When providers send offers, you\'ll see their price, profile, and rating. You can accept, reject, or send a counter-offer.'),
+            ('How to pay?', 'After accepting an offer, you can pay securely through Stripe. Add your card in Profile → Payment Methods.'),
+            ('Can I cancel a booking?', 'Yes! Free cancellation 24+ hours before. 2-24 hours = 25% fee. Under 2 hours = 50% fee.'),
+        ]
+    },
+    'provider': {
+        'label': '💼 For Providers',
+        'qa': [
+            ('How to receive requests?', 'Go to Dashboard → \'New Requests\' to browse open requests from clients in your area.'),
+            ('How to send an offer?', 'Click on a request and enter your proposed price. The client will see your offer along with your profile and rating.'),
+            ('How do payouts work?', 'Payments go through Stripe. Connect your bank account in Profile → Payout Settings, then earnings are transferred automatically.'),
+            ('How to set up Stripe?', 'Go to Profile → Payout Settings → Connect with Stripe. Select your country and follow Stripe\'s onboarding steps.'),
+        ]
+    },
+    'pricing': {
+        'label': '💳 Pricing & Payments',
+        'qa': [
+            ('Is registration free?', 'Yes! Registration is completely free for both clients and providers.'),
+            ('What are the platform fees?', 'A 15% service fee is applied to transactions. You\'ll see the exact amount before confirming payment.'),
+            ('How does payment work?', 'Clients pay through Stripe (credit/debit card). Providers receive payouts to their connected bank account.'),
+        ]
+    },
+    'account': {
+        'label': '⚙️ Account',
+        'qa': [
+            ('How to switch roles?', 'You can switch between Client and Provider from the menu. Your data is preserved for both roles.'),
+            ('How to connect Telegram?', 'Use the Telegram Login widget on the login page, or send /link to this bot and follow the instructions.'),
+            ('How to delete my account?', 'Go to Profile → Danger Zone → Delete Account. This action is permanent.'),
+        ]
+    },
+}
+
+
+def _search_faq(query):
+    """Search FAQ for matching answers."""
+    q = query.lower()
+    results = []
+    for cat_key, cat in FAQ_DATA.items():
+        for question, answer in cat['qa']:
+            if q in question.lower() or q in answer.lower():
+                results.append((question, answer))
+            else:
+                # Check individual words (3+ chars)
+                words = [w for w in q.split() if len(w) >= 3]
+                if words and any(w in question.lower() or w in answer.lower() for w in words):
+                    results.append((question, answer))
+    # Deduplicate
+    seen = set()
+    unique = []
+    for q_text, a_text in results:
+        if q_text not in seen:
+            seen.add(q_text)
+            unique.append((q_text, a_text))
+    return unique[:5]
+
+
+def handle_free_text(telegram_id, chat_id, bot_token, text, from_data):
+    """Handle non-command, non-greeting text — search FAQ and provide helpful answers."""
+    try:
+        user = User.query.filter_by(telegram_id=telegram_id).first()
+
+        # Search FAQ
+        results = _search_faq(text)
+
+        if results:
+            if len(results) == 1:
+                q_text, a_text = results[0]
+                send_message(bot_token, chat_id,
+                             f"<b>{q_text}</b>\n\n{a_text}",
+                             keyboards.faq_menu())
+            else:
+                lines = ["I found these related topics:\n"]
+                for i, (q_text, a_text) in enumerate(results, 1):
+                    lines.append(f"{i}. <b>{q_text}</b>\n{a_text}\n")
+                send_message(bot_token, chat_id, "\n".join(lines), keyboards.faq_menu())
+        else:
+            # No FAQ match — show helpful menu
+            if user:
+                send_message(bot_token, chat_id,
+                             "I don't have an answer for that yet.\n\n"
+                             "Choose a topic below or use /help for commands:",
+                             keyboards.faq_menu())
+            else:
+                send_message(bot_token, chat_id,
+                             "I don't have an answer for that yet.\n\n"
+                             "To get started, register or link your account:",
+                             keyboards.unregistered_menu())
+    except Exception:
+        logger.exception("Error in handle_free_text for telegram_id=%s", telegram_id)
+        send_message(bot_token, chat_id, "Use /help for available commands.")
+
+
 # ── Command handlers ───────────────────────────────────────────────
 
 def handle_cancel(telegram_id, chat_id, bot_token, from_data):
@@ -586,10 +784,14 @@ def handle_start(telegram_id, chat_id, bot_token, from_data):
                          f"Choose an action:",
                          menu)
         else:
+            base_url = current_app.config.get('BASE_URL', '')
             send_message(bot_token, chat_id,
                          f"Hello, <b>{first_name}</b>! Welcome to Human-me.\n\n"
                          f"Find help or offer your services — all in one place.\n\n"
-                         f"To get started, register or link your existing account:",
+                         f"To get started, register or link your existing account:\n\n"
+                         f"<a href=\"{base_url}/impressum\">Impressum</a> | "
+                         f"<a href=\"{base_url}/privacy\">Privacy</a> | "
+                         f"<a href=\"{base_url}/terms\">Terms</a>",
                          keyboards.unregistered_menu())
     except Exception:
         logger.exception("Error in handle_start for telegram_id=%s", telegram_id)
@@ -625,7 +827,15 @@ def handle_help(telegram_id, chat_id, bot_token, from_data):
             )
         base += "/switch_role — Switch between Client / Provider\n"
         base += "/cancel — Cancel current operation\n"
-        base += "/help — This message"
+        base += "/help — This message\n\n"
+
+        base_url = current_app.config.get('BASE_URL', '')
+        base += (
+            f"<b>Legal:</b>\n"
+            f"<a href=\"{base_url}/impressum\">Impressum</a> | "
+            f"<a href=\"{base_url}/privacy\">Privacy Policy</a> | "
+            f"<a href=\"{base_url}/terms\">Terms of Service</a>"
+        )
 
         menu = keyboards.main_menu(user.role)
         send_message(bot_token, chat_id, base, menu)
@@ -869,6 +1079,50 @@ def handle_notifications(telegram_id, chat_id, bot_token, from_data):
                      keyboards.notification_toggle(user.telegram_notifications))
     except Exception:
         logger.exception("Error in handle_notifications for telegram_id=%s", telegram_id)
+        send_message(bot_token, chat_id, "Something went wrong. Please try again.")
+
+
+def handle_favorites(telegram_id, chat_id, bot_token, from_data):
+    try:
+        user = User.query.filter_by(telegram_id=telegram_id).first()
+        if not user:
+            send_message(bot_token, chat_id, "Please /register or /link first.")
+            return
+
+        favs = Favorite.query.filter_by(user_id=user.id).order_by(Favorite.created_at.desc()).all()
+
+        if not favs:
+            send_message(bot_token, chat_id,
+                         "You don't have any favorites yet.\n\n"
+                         "Add providers or services from the website to your favorites list!")
+            return
+
+        providers = []
+        services = []
+        for f in favs:
+            if f.provider_id and f.provider:
+                p = f.provider
+                providers.append(f"{p.full_name or p.user_name} — {round(p.average_rating or 0, 1)} ★")
+            elif f.service_id and f.service:
+                s = f.service
+                prov = User.query.get(s.provider_id)
+                prov_name = (prov.full_name or prov.user_name) if prov else ''
+                services.append(f"{s.name} ({float(s.price or 0):.0f} €) — {prov_name}")
+
+        lines = ["<b>Your Favorites</b>\n"]
+        if providers:
+            lines.append("<b>Providers:</b>")
+            for i, p in enumerate(providers, 1):
+                lines.append(f"  {i}. {p}")
+            lines.append("")
+        if services:
+            lines.append("<b>Services:</b>")
+            for i, s in enumerate(services, 1):
+                lines.append(f"  {i}. {s}")
+
+        send_message(bot_token, chat_id, "\n".join(lines))
+    except Exception:
+        logger.exception("Error in handle_favorites for telegram_id=%s", telegram_id)
         send_message(bot_token, chat_id, "Something went wrong. Please try again.")
 
 

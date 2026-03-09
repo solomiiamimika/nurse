@@ -37,6 +37,7 @@ class ProviderService(db.Model):
     duration     = Column(Integer, nullable=False)   # minutes
     description  = Column(Text)
     is_available = Column(Boolean, default=True)
+    deposit_percentage = Column(Integer, default=0)     # 0 = no deposit, e.g. 20 = 20%
     tags         = Column(String(500), nullable=True)  # comma-separated tags
 
     appointments = relationship('Appointment', backref='provider_service', lazy=True)

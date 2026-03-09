@@ -22,3 +22,4 @@ flask-babel
 flask_jwt_extended
 openai
 apscheduler
+segno

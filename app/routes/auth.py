@@ -1,15 +1,46 @@
 from flask import render_template, redirect, url_for, flash, request, abort, Blueprint, session, jsonify, current_app
-from flask_login import login_user, logout_user, current_user,login_required
-from app.extensions import db, bcrypt
-from app.models import User,Review,Appointment,Message,Payment,ClientSelfCreatedAppointment,InvitationToken
+from flask_login import login_user, logout_user, current_user, login_required
+from app.extensions import db, bcrypt, mail
+from app.models import User, Review, Appointment, Message, Payment, ClientSelfCreatedAppointment, InvitationToken, RequestOfferResponse, ServiceHistory, Favorite, FavoriteShareToken
+from app.models.appointment import NoShowRecord, Dispute
+from app.models.feedback import Feedback
 
 from app.extensions import google_blueprint
 from app.supabase_storage import delete_from_supabase
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+from flask_mail import Message as MailMessage
+from threading import Thread
 import json
+import os
 import secrets
 from datetime import datetime, timedelta
 
 auth_bp = Blueprint('auth', __name__, template_folder='templates/auth')
+
+
+# ── Token helpers (password reset & email verification) ───────────
+
+def _get_serializer():
+    return URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+
+
+def _generate_token(user_id, salt='password-reset'):
+    return _get_serializer().dumps(user_id, salt=salt)
+
+
+def _verify_token(token, salt='password-reset', max_age=3600):
+    try:
+        return _get_serializer().loads(token, salt=salt, max_age=max_age)
+    except (SignatureExpired, BadSignature):
+        return None
+
+
+def _send_async_email(app, msg):
+    with app.app_context():
+        try:
+            mail.send(msg)
+        except Exception as e:
+            app.logger.error(f"Email send error: {e}")
 
 def _generate_referral_code():
     """Генерує унікальний 8-символьний реферальний код."""
@@ -65,8 +96,8 @@ def register():
             errors.append('Username must be at least 2 characters long')
         if not email or '@' not in email:
             errors.append('Invalid email address')
-        if password and len(password) < 6:
-            errors.append('Password must be at least 6 characters long')
+        if not password or len(password) < 8:
+            errors.append('Password must be at least 8 characters long')
         if password and password != confirm_password:
             errors.append('Passwords do not match')
         if role not in ['client', 'provider']:
@@ -109,7 +140,28 @@ def register():
                 invitation.used_at = datetime.now()
 
             db.session.commit()
-            flash('Registration successful! Please login.', 'success')
+
+            # Send email verification
+            try:
+                token = _generate_token(user.id, salt='email-verify')
+                verify_url = url_for('auth.verify_email', token=token, _external=True)
+                msg = MailMessage(
+                    subject='Verify your email — Human-me',
+                    sender=os.getenv('MAIL_DEFAULT_SENDER'),
+                    recipients=[user.email],
+                    body=(
+                        f"Hi {user.full_name or user.user_name},\n\n"
+                        f"Please verify your email by clicking:\n{verify_url}\n\n"
+                        f"This link expires in 24 hours.\n\n"
+                        f"— The Human-me Team"
+                    )
+                )
+                app_obj = current_app._get_current_object()
+                Thread(target=_send_async_email, args=(app_obj, msg)).start()
+            except Exception:
+                pass
+
+            flash('Registration successful! Check your email to verify your account.', 'success')
             return redirect(url_for('auth.login'))
 
     return render_template('auth/register.html',
@@ -237,6 +289,7 @@ def google_login():
         if user:
             # Link the Google ID to an existing account
             user.google_id = google_data["id"]
+            user.email_verified = True  # Google confirms email
             db.session.commit()
         else:
             # Create a new user
@@ -256,10 +309,11 @@ def google_login():
                 google_id=google_data["id"],
                 email=google_data["email"],
                 user_name=username,
-                role=role, 
+                role=role,
                 online=True,
-                password_hash = bcrypt.generate_password_hash(password).decode('utf-8'),
-                full_name=google_data.get("name", "")
+                password_hash=bcrypt.generate_password_hash(password).decode('utf-8'),
+                full_name=google_data.get("name", ""),
+                email_verified=True,  # Google confirms email
             )
             db.session.add(user)
             db.session.commit()
@@ -328,9 +382,37 @@ def delete_account():
         Message.query.filter(
             (Message.sender_id == user_id) | (Message.recipient_id == user_id)
         ).delete(synchronize_session=False)
-        
+
         # E. Delete Payments
         Payment.query.filter_by(user_id=user_id).delete(synchronize_session=False)
+
+        # F. Delete Favorites and Share Tokens
+        Favorite.query.filter_by(user_id=user_id).delete(synchronize_session=False)
+        FavoriteShareToken.query.filter_by(user_id=user_id).delete(synchronize_session=False)
+
+        # G. Delete ServiceHistory
+        ServiceHistory.query.filter(
+            (ServiceHistory.provider_id == user_id) | (ServiceHistory.client_id == user_id)
+        ).delete(synchronize_session=False)
+
+        # H. Delete RequestOfferResponses
+        RequestOfferResponse.query.filter_by(provider_id=user_id).delete(synchronize_session=False)
+
+        # I. Delete NoShowRecords
+        NoShowRecord.query.filter(
+            (NoShowRecord.reporter_id == user_id) | (NoShowRecord.reported_user_id == user_id)
+        ).delete(synchronize_session=False)
+
+        # J. Delete Disputes
+        Dispute.query.filter(
+            (Dispute.filed_by_user_id == user_id)
+        ).delete(synchronize_session=False)
+
+        # K. Delete Feedback
+        Feedback.query.filter_by(user_id=user_id).delete(synchronize_session=False)
+
+        # L. Delete InvitationTokens
+        InvitationToken.query.filter_by(created_by=user_id).delete(synchronize_session=False)
 
         # 4. Finally, Delete the User
         db.session.delete(current_user)
@@ -345,14 +427,14 @@ def delete_account():
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Delete Error: {e}")
-        flash(f'Error deleting account: {str(e)}', 'danger')
+        flash('An error occurred while deleting your account. Please try again.', 'danger')
         return redirect(url_for('client.profile'))
     
 @auth_bp.route('/set_language/<lang_code>')    
 def set_language(lang_code):
         # set language
         session['lang'] = lang_code
-        return redirect(request.referrer or url_for('main.index'))
+        return redirect(request.referrer or url_for('main.home'))
 
 @auth_bp.route('/change_password', methods=['POST'])
 @login_required
@@ -366,8 +448,8 @@ def change_password():
 
     if new_pw != confirm:
         flash('New passwords do not match.', 'danger')
-    elif len(new_pw) < 6:
-        flash('Password must be at least 6 characters.', 'danger')
+    elif len(new_pw) < 8:
+        flash('Password must be at least 8 characters.', 'danger')
     elif set_new and not has_bcrypt:
         # User registered via Telegram/Google — setting password for the first time
         current_user.password = new_pw
@@ -390,9 +472,148 @@ def google_role(role):
     if role not in ['client', 'provider']:
         flash('Invalid role selection', 'danger')
         return redirect(url_for('auth.register'))
-    
+
     session['google_role'] = role
     return redirect(url_for('google.login'))
 
 
+# ── Password Recovery ─────────────────────────────────────────────
+
+@auth_bp.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if current_user.is_authenticated:
+        return redirect(url_for(f'{current_user.role}.dashboard'))
+
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip()
+        if not email:
+            flash('Please enter your email address.', 'danger')
+            return redirect(url_for('auth.forgot_password'))
+
+        user = User.query.filter_by(email=email).first()
+        if user:
+            token = _generate_token(user.id, salt='password-reset')
+            reset_url = url_for('auth.reset_password', token=token, _external=True)
+            msg = MailMessage(
+                subject='Password Reset — Human-me',
+                sender=os.getenv('MAIL_DEFAULT_SENDER'),
+                recipients=[user.email],
+                body=(
+                    f"Hi {user.full_name or user.user_name},\n\n"
+                    f"You requested a password reset. Click the link below:\n\n"
+                    f"{reset_url}\n\n"
+                    f"This link expires in 1 hour.\n\n"
+                    f"If you did not request this, please ignore this email.\n\n"
+                    f"— The Human-me Team"
+                )
+            )
+            app_obj = current_app._get_current_object()
+            Thread(target=_send_async_email, args=(app_obj, msg)).start()
+
+        flash('If an account with that email exists, a reset link has been sent.', 'info')
+        return redirect(url_for('auth.login'))
+
+    return render_template('auth/forgot_password.html')
+
+
+@auth_bp.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for(f'{current_user.role}.dashboard'))
+
+    user_id = _verify_token(token, salt='password-reset', max_age=3600)
+    if not user_id:
+        flash('Invalid or expired reset link. Please request a new one.', 'danger')
+        return redirect(url_for('auth.forgot_password'))
+
+    user = User.query.get(user_id)
+    if not user:
+        flash('User not found.', 'danger')
+        return redirect(url_for('auth.forgot_password'))
+
+    if request.method == 'POST':
+        new_pw = request.form.get('new_password', '')
+        confirm = request.form.get('confirm_password', '')
+
+        if len(new_pw) < 8:
+            flash('Password must be at least 8 characters.', 'danger')
+            return render_template('auth/reset_password.html')
+        if new_pw != confirm:
+            flash('Passwords do not match.', 'danger')
+            return render_template('auth/reset_password.html')
+
+        user.password = new_pw
+        db.session.commit()
+        flash('Password has been reset! Please log in.', 'success')
+        return redirect(url_for('auth.login'))
+
+    return render_template('auth/reset_password.html')
+
+
+@auth_bp.route('/verification_status')
+@login_required
+def verification_status():
+    """Return current user's verification status."""
+    return jsonify({
+        'phone_verified': current_user.phone_verified,
+        'email_verified': current_user.email_verified,
+        'id_verified': current_user.id_verified,
+        'is_verified': current_user.is_verified,
+        'telegram_linked': current_user.telegram_id is not None,
+    })
+
+
+# ── Email Verification ───────────────────────────────────────────
+
+@auth_bp.route('/verify_email/<token>')
+def verify_email(token):
+    """Verify email address from link in email."""
+    user_id = _verify_token(token, salt='email-verify', max_age=86400)  # 24 hours
+    if not user_id:
+        flash('Invalid or expired verification link.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    user = User.query.get(user_id)
+    if not user:
+        flash('User not found.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    user.email_verified = True
+    db.session.commit()
+    flash('Email verified successfully!', 'success')
+
+    if current_user.is_authenticated:
+        return redirect(url_for(f'{current_user.role}.profile'))
+    return redirect(url_for('auth.login'))
+
+
+@auth_bp.route('/resend_verification_email', methods=['POST'])
+@login_required
+def resend_verification_email():
+    """Resend email verification link."""
+    if current_user.email_verified:
+        return jsonify({'success': False, 'message': 'Email already verified'})
+
+    # Don't send to placeholder Telegram emails
+    if current_user.email and '@telegram.placeholder' in current_user.email:
+        return jsonify({'success': False, 'message': 'Please set a real email address first'})
+
+    token = _generate_token(current_user.id, salt='email-verify')
+    verify_url = url_for('auth.verify_email', token=token, _external=True)
+
+    msg = MailMessage(
+        subject='Verify your email — Human-me',
+        sender=os.getenv('MAIL_DEFAULT_SENDER'),
+        recipients=[current_user.email],
+        body=(
+            f"Hi {current_user.full_name or current_user.user_name},\n\n"
+            f"Please verify your email by clicking:\n{verify_url}\n\n"
+            f"This link expires in 24 hours.\n\n"
+            f"— The Human-me Team"
+        )
+    )
+    app_obj = current_app._get_current_object()
+    Thread(target=_send_async_email, args=(app_obj, msg)).start()
+
+    return jsonify({'success': True, 'message': 'Verification email sent!'})
 

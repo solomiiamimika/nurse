@@ -52,6 +52,15 @@ def profile():
             current_user.phone_number = request.form.get('phone_number')
             current_user.about_me = request.form.get('about_me')
             current_user.address = request.form.get('address')
+            iban_input = request.form.get('iban', '').strip()
+            if iban_input:
+                from app.utils.qr_payment import validate_iban
+                if validate_iban(iban_input):
+                    current_user.iban = iban_input.replace(' ', '').upper()
+                else:
+                    flash('Invalid IBAN format', 'danger')
+            elif iban_input == '':
+                current_user.iban = None
             new_password = request.form.get('password', '').strip()
             if new_password:
                 current_user.password_hash = bcrypt.generate_password_hash(new_password).decode('utf-8')
@@ -99,7 +108,7 @@ def profile():
         except Exception as e:
             db.session.rollback()
             current_app.logger.error(f"Error updating profile: {str(e)}")
-            flash(f'Error updating profile: {str(e)}', 'danger')
+            flash('Error updating profile. Please try again.', 'danger')
 
         return redirect(url_for('provider.profile'))
 
@@ -170,6 +179,8 @@ def profile():
 @provider_bp.route('/delete_document', methods=['POST'])
 @login_required
 def delete_document():
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
     try:
         data = request.get_json()
         doc_name = data.get('doc_name')
@@ -186,12 +197,14 @@ def delete_document():
 
         return jsonify({'success': False, 'message': 'Doc not found'})
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
 
 
 @provider_bp.route('/update_insurance_flag', methods=['POST'])
 @login_required
 def update_insurance_flag():
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
     data = request.get_json()
     current_user.has_insurance = bool(data.get('has_insurance'))
     db.session.commit()
@@ -201,6 +214,8 @@ def update_insurance_flag():
 @provider_bp.route('/upload_insurance_doc', methods=['POST'])
 @login_required
 def upload_insurance_doc():
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
     file = request.files.get('insurance_document')
     if not file or file.filename == '':
         return jsonify({'success': False, 'message': 'No file provided'})
@@ -216,12 +231,14 @@ def upload_insurance_doc():
             return jsonify({'success': True})
         return jsonify({'success': False, 'message': 'Upload failed'})
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
 
 
 @provider_bp.route('/delete_insurance_doc', methods=['POST'])
 @login_required
 def delete_insurance_doc():
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
     if current_user.insurance_document:
         delete_from_supabase(current_user.insurance_document, buckets['documents'])
         current_user.insurance_document = None
@@ -238,6 +255,8 @@ PORTFOLIO_ALL_EXTENSIONS = PORTFOLIO_PHOTO_EXTENSIONS | PORTFOLIO_VIDEO_EXTENSIO
 @login_required
 def portfolio_upload():
     """Upload a photo or video to portfolio gallery."""
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
     file = request.files.get('file')
     if not file or file.filename == '':
         return jsonify({'success': False, 'message': 'No file provided'}), 400
@@ -270,13 +289,15 @@ def portfolio_upload():
         })
     except Exception as e:
         db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
 
 
 @provider_bp.route('/portfolio/delete', methods=['POST'])
 @login_required
 def portfolio_delete():
     """Remove a photo or video from portfolio gallery."""
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
     data = request.get_json()
     filename = data.get('filename')
     if not filename:
@@ -298,11 +319,16 @@ def portfolio_delete():
 @provider_bp.route('/update_visibility', methods=['POST'])
 @login_required
 def update_visibility():
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
     data = request.get_json()
     field = data.get('field')
     visible = data.get('visible')
+    allowed_fields = ('full_name', 'photo', 'about_me', 'phone_number', 'email', 'address', 'date_birth')
+    if field not in allowed_fields:
+        return jsonify({'success': False, 'message': 'Invalid field'}), 400
     vis = json.loads(current_user.profile_visibility or '{}')
-    vis[field] = visible
+    vis[field] = bool(visible)
     current_user.profile_visibility = json.dumps(vis)
     db.session.commit()
     return jsonify({'success': True})

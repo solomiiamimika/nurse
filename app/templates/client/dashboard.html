@@ -101,6 +101,9 @@
           <button class="nav-link rounded-pill fw-bold small py-2" id="tab-past" onclick="switchTab('past')">
             <i class="fas fa-history me-1"></i>{{ _("Past") }} <span id="pastBadge" class="badge bg-secondary ms-1 d-none"></span>
           </button>
+          <button class="nav-link rounded-pill fw-bold small py-2" id="tab-favorites" onclick="switchTab('favorites')">
+            <i class="fas fa-heart me-1"></i>{{ _("Favorites") }}
+          </button>
         </div>
 
         <!-- Providers Filters: shown only on Providers tab -->
@@ -193,6 +196,22 @@
             <div class="text-center p-3 text-muted" style="border: 1px dashed #d1d5db; border-radius: 8px; background: rgba(255,255,255,0.6);">
               <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
               <small class="ms-2">{{ _("Loading providers...") }}</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 5: Favorites -->
+        <div id="favoritesContent" class="d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0"><i class="fas fa-heart text-danger me-1"></i> {{ _("My Favorites") }}</h6>
+            <button class="btn btn-sm btn-outline-secondary" onclick="shareFavorites()">
+              <i class="fas fa-share-alt me-1"></i>{{ _("Share") }}
+            </button>
+          </div>
+          <div id="favoritesList">
+            <div class="text-center p-3 text-muted" style="border: 1px dashed #d1d5db; border-radius: 8px; background: rgba(255,255,255,0.6);">
+              <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+              <small class="ms-2">{{ _("Loading...") }}</small>
             </div>
           </div>
         </div>
@@ -577,30 +596,28 @@
   let activeCatFilter = null;
 
   // --- TAB SWITCHING ---
+  let _favoritesLoaded = false;
+
   window.switchTab = function(mode) {
       currentTab = mode;
 
       // Toggle content visibility
-      ['active', 'accepted', 'past', 'find'].forEach(t => {
+      ['active', 'accepted', 'past', 'find', 'favorites'].forEach(t => {
           document.getElementById(t + 'Content').classList.toggle('d-none', mode !== t);
       });
 
-      // The 3 small tabs (active/accepted/past)
-      ['active', 'accepted', 'past'].forEach(t => {
+      // The small tabs (active/accepted/past/favorites)
+      ['active', 'accepted', 'past', 'favorites'].forEach(t => {
           document.getElementById('tab-' + t).classList.toggle('active', mode === t);
       });
 
       // Big "Find Provider" button active state
       document.getElementById('tab-find').classList.toggle('active', mode === 'find');
 
-      // If switching to a small tab, remove active from small tabs if find is active
-      if (mode !== 'find') {
-          // Deselect none of the small tabs — already handled above
-      }
-
       // Filters visibility
       document.getElementById('providersFilters').style.display = (mode === 'find') ? 'block' : 'none';
       if (mode === 'find' && !_providersLoaded) loadProvidersList();
+      if (mode === 'favorites') loadFavorites();
   };
 
   function showStatus(message, isError = false) {
@@ -818,7 +835,8 @@
 
   // --- PAYMENT & ACTIONS ---
 
-  const stripe = Stripe("{{ stripe_public_key }}");
+  const stripeKey = "{{ stripe_public_key or '' }}";
+  const stripe = stripeKey ? Stripe(stripeKey) : null;
 
   window.payForRequest = function(reqId, price) {
       fetch('/client/create_request_payment_session', {
@@ -853,6 +871,49 @@
           if (data.success) location.reload();
           else alert(data.message || 'Error');
       });
+  };
+
+  window.payQrForRequest = async function(reqId) {
+      try {
+          const resp = await fetch(`/client/qr_code/request/${reqId}`);
+          const data = await resp.json();
+          if (!data.success) { alert(data.error || 'Error'); return; }
+
+          const qrHtml = `
+            <div class="text-center">
+              <img src="${data.qr_image}" alt="QR Code" style="max-width:250px;border-radius:12px;border:2px solid #e5e7eb;" class="mb-3">
+              <div class="bg-light p-3 rounded mb-3 text-start" style="font-size:13px;">
+                <div class="mb-1"><strong>{{ _("Recipient:") }}</strong> ${data.name}</div>
+                <div class="mb-1"><strong>IBAN:</strong> <code>${data.iban}</code></div>
+                <div class="mb-1"><strong>{{ _("Amount:") }}</strong> €${data.amount.toFixed(2)}</div>
+                <div><strong>{{ _("Reference:") }}</strong> ${data.reference}</div>
+              </div>
+              <p class="text-muted small">{{ _("Scan QR with your banking app to transfer") }}</p>
+            </div>`;
+
+          const ok = await confirmAction(qrHtml, {
+              title: '{{ _("QR Transfer Payment") }}',
+              btnText: "{{ _('I have paid') }}",
+              btnClass: 'btn-success',
+              icon: 'fa-qrcode',
+              iconColor: '#3b82f6',
+              rawHtml: true
+          });
+
+          if (ok) {
+              const payResp = await fetch("/client/pay_qr_request", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+                  body: JSON.stringify({ request_id: reqId })
+              });
+              const payData = await payResp.json();
+              if (payData.success) location.reload();
+              else alert(payData.message || 'Error');
+          }
+      } catch(err) {
+          console.error(err);
+          alert('{{ _("Error loading QR code") }}');
+      }
   };
 
   window.showOffers = function(reqId) {
@@ -1036,7 +1097,7 @@
               bootstrap.Modal.getInstance(document.getElementById('createRequestModal')).hide();
               loadMyRequests();
               alert("{{ _('Request published successfully!') }}");
-          } else { alert(res.error || res.message || 'Error'); }
+          } else { alert(res.error || res.message || 'Error'); if(res.redirect) { window.location.href = res.redirect; return; } }
       }).catch(err => { console.error('Request error:', err); alert('Network error: ' + err); });
   });
 
@@ -1254,7 +1315,7 @@
               celebrateBooking();
               setTimeout(() => { alert("{{ _('Appointment confirmed!') }}"); location.reload(); }, 1500);
           }
-          else { alert("{{ _('Error:') }} " + data.message); }
+          else { alert("{{ _('Error:') }} " + data.message); if(data.redirect) { window.location.href = data.redirect; return; } }
       });
   });
 
@@ -1609,8 +1670,8 @@
       if (isAccepted && canPayNow && req.accepted_provider) {
           const price = req.accepted_provider.agreed_price || req.payment || 0;
           if (price > 0) {
-              html += `<button onclick="payForRequest(${req.id}, ${price})" class="btn btn-sm btn-success flex-grow-1" style="font-size:12px">
-                  <i class="fas fa-lock me-1"></i>{{ _("Hold payment") }} €${parseFloat(price).toFixed(2)}
+              html += `<button onclick="payQrForRequest(${req.id})" class="btn btn-sm btn-primary flex-grow-1" style="font-size:12px">
+                  <i class="fas fa-qrcode me-1"></i>{{ _("QR Transfer") }} €${parseFloat(price).toFixed(2)}
               </button>`;
               html += `<button onclick="payCashForRequest(${req.id})" class="btn btn-sm btn-outline-secondary" style="font-size:12px">
                   <i class="fas fa-money-bill-wave me-1"></i>{{ _("Cash") }}
@@ -1883,6 +1944,103 @@
           minuteIncrement: 15,
       });
   });
+
+  // ── Favorites ──────────────────────────────────────────
+  function loadFavorites() {
+      const container = document.getElementById('favoritesList');
+      container.innerHTML = '<div class="text-center p-3 text-muted"><div class="spinner-border spinner-border-sm"></div> {{ _("Loading...") }}</div>';
+
+      fetch('/client/favorites')
+          .then(r => r.json())
+          .then(data => {
+              const providers = data.providers || [];
+              const services = data.services || [];
+
+              if (!providers.length && !services.length) {
+                  container.innerHTML = `
+                      <div class="text-center p-4" style="border:1px dashed #d1d5db;border-radius:8px;background:rgba(255,255,255,0.6);">
+                          <i class="far fa-heart fa-2x text-muted mb-2"></i>
+                          <p class="text-muted mb-0">{{ _("No favorites yet. Add providers or services you like!") }}</p>
+                      </div>`;
+                  return;
+              }
+
+              let html = '';
+
+              if (providers.length) {
+                  html += '<h6 class="fw-bold small text-muted mb-2">{{ _("PROVIDERS") }}</h6>';
+                  providers.forEach(p => {
+                      const photo = p.photo
+                          ? `<img src="${p.photo}" class="rounded-circle" style="width:40px;height:40px;object-fit:cover;">`
+                          : `<div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width:40px;height:40px;"><i class="fas fa-user text-muted"></i></div>`;
+                      html += `
+                      <div class="d-flex align-items-center gap-3 p-3 mb-2 bg-white rounded-3 border" style="cursor:pointer;">
+                          <a href="/client/provider/${p.id}" class="d-flex align-items-center gap-3 text-decoration-none text-dark flex-grow-1">
+                              ${photo}
+                              <div>
+                                  <div class="fw-bold">${p.name}</div>
+                                  <div class="small text-muted"><i class="fas fa-star text-warning"></i> ${p.rating} &bull; ${p.address || ''}</div>
+                              </div>
+                          </a>
+                          <button class="btn btn-link p-0" onclick="removeFav('provider', ${p.id}, this)" title="{{ _('Remove') }}">
+                              <i class="fas fa-heart" style="color:#e74c3c;"></i>
+                          </button>
+                      </div>`;
+                  });
+              }
+
+              if (services.length) {
+                  html += '<h6 class="fw-bold small text-muted mb-2 mt-3">{{ _("SERVICES") }}</h6>';
+                  services.forEach(s => {
+                      html += `
+                      <div class="d-flex align-items-center gap-3 p-3 mb-2 bg-white rounded-3 border">
+                          <div class="flex-grow-1">
+                              <div class="fw-bold">${s.name} <span class="text-success fw-bold">${s.price} &euro;</span></div>
+                              <div class="small text-muted">${s.provider_name} &bull; ${s.duration || ''} min</div>
+                          </div>
+                          <button class="btn btn-link p-0" onclick="removeFav('service', ${s.id}, this)" title="{{ _('Remove') }}">
+                              <i class="fas fa-heart" style="color:#e74c3c;"></i>
+                          </button>
+                      </div>`;
+                  });
+              }
+
+              container.innerHTML = html;
+          });
+  }
+
+  function removeFav(type, id, btn) {
+      const body = type === 'provider' ? {provider_id: id} : {service_id: id};
+      fetch('/client/favorite/toggle', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+          body: JSON.stringify(body)
+      })
+      .then(r => r.json())
+      .then(() => {
+          btn.closest('.d-flex.align-items-center.gap-3.p-3').remove();
+          const container = document.getElementById('favoritesList');
+          if (!container.querySelector('.p-3.mb-2')) {
+              container.innerHTML = `
+                  <div class="text-center p-4" style="border:1px dashed #d1d5db;border-radius:8px;background:rgba(255,255,255,0.6);">
+                      <i class="far fa-heart fa-2x text-muted mb-2"></i>
+                      <p class="text-muted mb-0">{{ _("No favorites yet.") }}</p>
+                  </div>`;
+          }
+      });
+  }
+
+  function shareFavorites() {
+      fetch('/client/favorites/share')
+          .then(r => r.json())
+          .then(data => {
+              if (navigator.share) {
+                  navigator.share({title: '{{ _("My Favorites") }}', url: data.share_url});
+              } else {
+                  navigator.clipboard.writeText(data.share_url).then(() => alert('{{ _("Link copied!") }}'));
+              }
+          });
+  }
 
   document.addEventListener('DOMContentLoaded', () => {
       initMap();

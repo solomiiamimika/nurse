@@ -123,6 +123,116 @@
       </div>
     </div>
 
+    <!-- Verification Section -->
+    <div class="profile-card mt-3">
+      <h5 class="fw-bold mb-3"><i class="fas fa-shield-alt me-2 text-primary"></i>{{ _("Verification") }}</h5>
+
+      <div class="d-flex flex-column gap-2">
+        <!-- Email verification -->
+        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-envelope {% if current_user.email_verified or current_user.google_id %}text-success{% else %}text-muted{% endif %}"></i>
+            <div>
+              <div class="fw-bold small">{{ _("Email") }}</div>
+              <div class="text-muted" style="font-size:12px;">
+                {% if current_user.email_verified %}
+                  {{ current_user.email }} — {{ _("Verified") }}
+                {% elif current_user.google_id %}
+                  {{ current_user.email }} — {{ _("Verified via Google") }}
+                {% else %}
+                  {{ current_user.email }} — {{ _("Not verified") }}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% if current_user.email_verified or current_user.google_id %}
+            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Verified") }}</span>
+          {% else %}
+            <button onclick="resendVerificationEmail(this)" class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-paper-plane me-1"></i>{{ _("Send Verification") }}
+            </button>
+          {% endif %}
+        </div>
+
+        <!-- Phone verification -->
+        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-phone {% if current_user.phone_verified %}text-success{% else %}text-muted{% endif %}"></i>
+            <div>
+              <div class="fw-bold small">{{ _("Phone Number") }}</div>
+              <div class="text-muted" style="font-size:12px;">
+                {% if current_user.phone_verified %}
+                  {{ current_user.phone_number or '' }} — {{ _("Verified") }}
+                {% elif current_user.telegram_id %}
+                  {{ _("Verified via Telegram") }}
+                {% else %}
+                  {{ _("Link Telegram to verify phone") }}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% if current_user.phone_verified or current_user.telegram_id %}
+            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Verified") }}</span>
+          {% else %}
+            {% if telegram_bot_name %}
+            <a href="https://t.me/{{ telegram_bot_name }}" target="_blank" class="btn btn-sm btn-outline-info">
+              <i class="fab fa-telegram me-1"></i>{{ _("Link Telegram") }}
+            </a>
+            {% endif %}
+          {% endif %}
+        </div>
+
+        <!-- ID verification -->
+        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-id-card {% if current_user.id_verified %}text-success{% else %}text-muted{% endif %}"></i>
+            <div>
+              <div class="fw-bold small">{{ _("ID Document") }}</div>
+              <div class="text-muted" style="font-size:12px;">
+                {% if current_user.id_verified %}
+                  {{ _("Verified") }}
+                {% else %}
+                  {{ _("Upload ID in documents section above") }}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% if current_user.id_verified %}
+            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Verified") }}</span>
+          {% else %}
+            <span class="badge bg-warning text-dark">{{ _("Pending") }}</span>
+          {% endif %}
+        </div>
+
+        <!-- Telegram link -->
+        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fab fa-telegram {% if current_user.telegram_id %}text-info{% else %}text-muted{% endif %}"></i>
+            <div>
+              <div class="fw-bold small">Telegram</div>
+              <div class="text-muted" style="font-size:12px;">
+                {% if current_user.telegram_id %}
+                  {{ _("Linked") }} — {{ _("auto-verifies phone") }}
+                {% else %}
+                  {{ _("Not linked") }}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% if current_user.telegram_id %}
+            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Linked") }}</span>
+          {% else %}
+            {% if config.TELEGRAM_BOT_NAME %}
+            <a href="https://t.me/{{ config.TELEGRAM_BOT_NAME }}" target="_blank" class="btn btn-sm btn-outline-info">
+              <i class="fab fa-telegram me-1"></i>{{ _("Link") }}
+            </a>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+
     <!-- Visibility Settings -->
     {% set vis = current_user.profile_visibility | from_json %}
     {% set visibility_fields = [
@@ -339,5 +449,23 @@
   }
 
   document.addEventListener('DOMContentLoaded', loadCards);
+
+  // ── Email Verification ─────────────────────────────────
+  function resendVerificationEmail(btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    fetch('/auth/resend_verification_email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
+    }).then(r => r.json()).then(data => {
+      if (data.success) {
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>{{ _("Sent!") }}';
+        btn.classList.replace('btn-outline-primary', 'btn-outline-success');
+      } else {
+        btn.innerHTML = data.message || 'Error';
+        btn.disabled = false;
+      }
+    }).catch(() => { btn.disabled = false; btn.innerHTML = '{{ _("Send Verification") }}'; });
+  }
 </script>
 {% endblock %}

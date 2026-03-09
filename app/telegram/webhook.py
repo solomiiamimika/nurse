@@ -104,6 +104,7 @@ def complete_registration():
             if existing:
                 existing.telegram_id = pending['telegram_id']
                 existing.telegram_notifications = True
+                existing.phone_verified = True  # Telegram requires phone → auto-verify
                 db.session.commit()
                 login_user(existing)
                 session.pop('telegram_pending', None)
@@ -129,6 +130,7 @@ def complete_registration():
             full_name=full_name or username,
             telegram_id=pending['telegram_id'],
             telegram_notifications=True,
+            phone_verified=True,  # Telegram requires phone → auto-verify
             password_hash=secrets.token_urlsafe(32),
             referral_code=secrets.token_urlsafe(6)[:8],
             terms_accepted=True,
@@ -162,6 +164,7 @@ def link_telegram():
 
     current_user.telegram_id = tg_id
     current_user.telegram_notifications = True
+    current_user.phone_verified = True  # Telegram requires phone → auto-verify
     db.session.commit()
     flash('Telegram linked successfully! Go back to the bot and type /start.', 'success')
 

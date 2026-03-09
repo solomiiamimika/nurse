@@ -132,7 +132,7 @@ def update_location():
         return jsonify({'success': True, 'message': 'Location updated'})
     except Exception as e:
         db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
 
 
 @provider_bp.route('/toggle_online', methods=['POST'])
@@ -150,57 +150,61 @@ def toggle_online():
         })
     except Exception as e:
         db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
 
 
 @socketio.on('connect')
 def handle_connect():
-    print(f"Client connected: {request.sid}")
+    if not current_user.is_authenticated:
+        return False  # Reject unauthenticated connections
+    current_app.logger.info(f"SocketIO connected: user={current_user.id} sid={request.sid}")
     emit('connection_response', {'status': 'connected'})
 
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print(f"Client disconnected: {request.sid}")
+    current_app.logger.info(f"SocketIO disconnected: sid={request.sid}")
 
 
 @socketio.on('join')
 def handle_join(data):
+    if not current_user.is_authenticated:
+        return
     user_id = data.get('user_id')
-    if user_id:
+    # Only allow joining your own room
+    if user_id and int(user_id) == current_user.id:
         join_room(f"user_{user_id}")
-        current_app.logger.info(f'User {user_id} joined the room')
+        current_app.logger.info(f'User {user_id} joined room')
 
 
 @socketio.on('send_message')
 def handle_send_message(data):
     try:
-        print(f"Received data: {data}")  # Logging incoming data
+        if not current_user.is_authenticated:
+            emit('error', {'message': 'Not authenticated'}, room=request.sid)
+            return
 
-        if not all(key in data for key in ['text', 'sender_id', 'recipient_id']):
-            raise ValueError("Not enough data")
+        if not all(key in data for key in ['text', 'recipient_id']):
+            emit('error', {'message': 'Missing required fields'}, room=request.sid)
+            return
 
         msg_type = data.get('message_type', 'text')
         proposal_status = 'pending' if msg_type == 'proposal' else None
 
-        # Create a message
+        # Always use current_user.id as sender (prevents spoofing)
         message = Message(
-            sender_id=int(data['sender_id']),
+            sender_id=current_user.id,
             recipient_id=int(data['recipient_id']),
             text=data['text'],
             message_type=msg_type,
             proposal_status=proposal_status
         )
 
-        # Save in DB
         db.session.add(message)
         db.session.commit()
 
-        # get the senders name
-        sender = User.query.get(message.sender_id)
-        sender_name = sender.user_name if sender else "Unknown"
+        sender_name = current_user.user_name
 
-        # Send to the recipient
         emit('new_message', {
             'id': message.id,
             'sender_id': message.sender_id,
@@ -211,25 +215,25 @@ def handle_send_message(data):
             'timestamp': message.timestamp.isoformat()
         }, room=f"user_{message.recipient_id}")
 
-        # Confirmation to the sender
         emit('message_sent', {
             'id': message.id,
             'status': 'delivered'
         }, room=request.sid)
 
     except Exception as e:
-        print(f"Error: {str(e)}")
-        emit('Error', {'message': str(e)}, room=request.sid)
+        current_app.logger.error(f"SocketIO send_message error: {e}")
+        emit('error', {'message': 'Failed to send message'}, room=request.sid)
         db.session.rollback()
 
 
 @socketio.on('start_trip')
 def handle_start_trip(data):
-    # data = {'appointment_id': 123, 'client_id': 45}
+    if not current_user.is_authenticated or current_user.role != 'provider':
+        return
     client_id = data.get('client_id')
-    print(f"Provider {current_user.id} started trip to Client {client_id}")
-
-    # Відправляємо клієнту сигнал, що медсестра виїхала
+    if not client_id:
+        return
+    current_app.logger.info(f"Provider {current_user.id} started trip to Client {client_id}")
     emit('trip_started', {
         'message': f"{current_user.full_name} is on the way!",
         'provider_id': current_user.id
@@ -238,19 +242,24 @@ def handle_start_trip(data):
 
 @socketio.on('update_location')
 def handle_location_update(data):
-    # data = {'client_id': 45, 'lat': 50.0, 'lng': 30.0}
+    if not current_user.is_authenticated or current_user.role != 'provider':
+        return
     client_id = data.get('client_id')
-
-    # Пересилаємо точні координати клієнту
+    if not client_id:
+        return
     emit('provider_location_update', {
-        'lat': data['lat'],
-        'lng': data['lng']
+        'lat': data.get('lat'),
+        'lng': data.get('lng')
     }, room=f"user_{client_id}")
 
 
 @socketio.on('end_trip')
 def handle_end_trip(data):
+    if not current_user.is_authenticated or current_user.role != 'provider':
+        return
     client_id = data.get('client_id')
+    if not client_id:
+        return
     emit('trip_ended', {'message': "Arrived!"}, room=f"user_{client_id}")
 
 

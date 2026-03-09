@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ owner_name }}'s Favorites — Human-me</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .page-header { background: linear-gradient(135deg, #3f4a36 0%, #5a6b4e 100%); color: white; padding: 40px 0; }
+        .fav-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 16px; transition: box-shadow 0.2s; }
+        .fav-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .provider-avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }
+        .provider-avatar-placeholder { width: 56px; height: 56px; border-radius: 50%; background: #f3f4f6; display: flex; align-items: center; justify-content: center; color: #9ca3af; }
+    </style>
+</head>
+<body>
+
+<div class="page-header text-center">
+    <div class="container">
+        <h2 class="fw-bold mb-1"><i class="fas fa-heart me-2"></i>{{ owner_name }}'s Favorites</h2>
+        <p class="mb-0 opacity-75">Shared from Human-me</p>
+    </div>
+</div>
+
+<div class="container py-4" style="max-width: 700px;">
+
+    {% if providers %}
+    <h5 class="fw-bold text-muted mb-3"><i class="fas fa-user-md me-1"></i> Providers</h5>
+    {% for p in providers %}
+    <div class="fav-card d-flex align-items-center gap-3 mb-3">
+        {% if p.photo %}
+            <img src="{{ p.photo }}" class="provider-avatar" alt="{{ p.name }}">
+        {% else %}
+            <div class="provider-avatar-placeholder"><i class="fas fa-user fa-lg"></i></div>
+        {% endif %}
+        <div class="flex-grow-1">
+            <div class="fw-bold">{{ p.name }}</div>
+            <div class="small text-muted">
+                <i class="fas fa-star text-warning"></i> {{ p.rating }}
+                {% if p.address %}&bull; {{ p.address }}{% endif %}
+            </div>
+        </div>
+        <a href="{{ url_for('client.provider_detail', provider_id=p.id) }}" class="btn btn-sm btn-outline-success">View</a>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if services %}
+    <h5 class="fw-bold text-muted mb-3 {% if providers %}mt-4{% endif %}"><i class="fas fa-concierge-bell me-1"></i> Services</h5>
+    {% for s in services %}
+    <div class="fav-card d-flex align-items-center gap-3 mb-3">
+        <div class="flex-grow-1">
+            <div class="fw-bold">{{ s.name }} <span class="text-success">{{ s.price }} &euro;</span></div>
+            <div class="small text-muted">
+                {{ s.provider_name }}
+                {% if s.duration %}&bull; {{ s.duration }} min{% endif %}
+            </div>
+        </div>
+        {% if s.provider_id %}
+        <a href="{{ url_for('client.provider_detail', provider_id=s.provider_id) }}" class="btn btn-sm btn-outline-success">View</a>
+        {% endif %}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if not providers and not services %}
+    <div class="text-center py-5">
+        <i class="far fa-heart fa-3x text-muted mb-3"></i>
+        <p class="text-muted">This list is empty.</p>
+    </div>
+    {% endif %}
+
+    <div class="text-center mt-4 pt-3 border-top">
+        <a href="{{ url_for('main.home') }}" class="text-decoration-none" style="color: #3f4a36;">
+            <strong>Human-me</strong> — Find help or offer your services
+        </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

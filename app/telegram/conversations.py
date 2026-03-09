@@ -183,6 +183,7 @@ def _process_register(cm, telegram_id, text, bot_token, chat_id, session):
                 if existing:
                     existing.telegram_id = telegram_id
                     existing.telegram_notifications = True
+                    existing.phone_verified = True  # Telegram requires phone → auto-verify
                     db.session.commit()
                     cm.end(telegram_id)
                     send_message(bot_token, chat_id,
@@ -232,6 +233,7 @@ def _process_register(cm, telegram_id, text, bot_token, chat_id, session):
                 role=d['role'],
                 telegram_id=telegram_id,
                 telegram_notifications=True,
+                phone_verified=True,  # Telegram requires phone → auto-verify
                 password_hash=secrets.token_urlsafe(32),
                 referral_code=secrets.token_urlsafe(6)[:8],
                 terms_accepted=True,

@@ -22,8 +22,7 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from apscheduler.schedulers.background import BackgroundScheduler
 
-# Allow OAuth over plain HTTP during local development
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+# OAuth: only allow insecure transport in development
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
 
 
@@ -60,7 +59,11 @@ def create_app():
     babel.init_app(app, locale_selector=get_locale)
 
     JWTManager(app)
-    CORS(app)   # allows the mobile app to make requests to this server
+    CORS(app, origins=[
+        app.config.get('BASE_URL', 'http://127.0.0.1:5000'),
+        'http://localhost:5000',
+        'http://127.0.0.1:5000',
+    ])
 
     # ── 2. Register blueprints (URL route groups) ─────────────────
     from app.routes.auth     import auth_bp
@@ -74,9 +77,11 @@ def create_app():
 
     csrf.exempt(api_auth_bp)   # mobile API uses JWT, not CSRF tokens
     csrf.exempt(telegram_bp)   # Telegram webhook sends POST without CSRF
-    csrf.exempt(client_bp)     # mobile app sends JSON without CSRF
-    csrf.exempt(provider_bp)   # mobile app sends JSON without CSRF
-    csrf.exempt(main_bp)       # mobile app sends JSON without CSRF
+    # TODO: Add {{ csrf_token() }} to all web form templates, then remove
+    # these blanket exemptions and use per-endpoint @csrf.exempt for mobile API
+    csrf.exempt(client_bp)
+    csrf.exempt(provider_bp)
+    csrf.exempt(main_bp)
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -137,9 +142,20 @@ def create_app():
     # ── 5. Make google_oauth_enabled available in every template ──
     @app.context_processor
     def inject_globals():
+        from flask_login import current_user as _cu
+        profile_incomplete = False
+        profile_issues = []
+        if _cu and _cu.is_authenticated and not _cu.is_owner:
+            if not _cu.full_name:
+                profile_issues.append('full_name')
+            if not _cu.is_contact_verified:
+                profile_issues.append('contact_verification')
+            profile_incomplete = len(profile_issues) > 0
         return dict(
             google_oauth_enabled=app.config.get('GOOGLE_OAUTH_CLIENT_ID') is not None,
             telegram_bot_name=app.config.get('TELEGRAM_BOT_NAME'),
+            profile_incomplete=profile_incomplete,
+            profile_issues=profile_issues,
         )
 
     # ── 5. Create tables if they don't exist yet ──────────────────
@@ -159,6 +175,15 @@ def create_app():
                 ('client_self_create_appointment', 'provider_late_minutes', 'INTEGER'),
                 ('client_self_create_appointment', 'work_submitted_at', 'TIMESTAMP'),
                 ('user', 'no_show_count', 'INTEGER DEFAULT 0'),
+                ('user', 'iban', 'VARCHAR(34)'),
+                ('user', 'phone_verified', 'BOOLEAN DEFAULT FALSE'),
+                ('user', 'email_verified', 'BOOLEAN DEFAULT FALSE'),
+                ('user', 'id_verified', 'BOOLEAN DEFAULT FALSE'),
+                ('appointment', 'payment_method_type', 'VARCHAR(20)'),
+                ('appointment', 'deposit_amount', 'FLOAT'),
+                ('client_self_create_appointment', 'payment_method_type', 'VARCHAR(20)'),
+                ('client_self_create_appointment', 'deposit_amount', 'FLOAT'),
+                ('provider_service', 'deposit_percentage', 'INTEGER DEFAULT 0'),
             ]
             for tbl, col, col_type in new_columns:
                 try:
@@ -403,6 +428,23 @@ def create_app():
             _req.post(
                 f"https://api.telegram.org/bot{bot_token}/setWebhook",
                 json={'url': f"{base_url}/telegram/webhook", 'secret_token': secret},
+                timeout=5,
+            )
+            # Set bot menu commands
+            _req.post(
+                f"https://api.telegram.org/bot{bot_token}/setMyCommands",
+                json={'commands': [
+                    {'command': 'start', 'description': 'Start the bot'},
+                    {'command': 'help', 'description': 'Show available commands'},
+                    {'command': 'appointments', 'description': 'My appointments'},
+                    {'command': 'create_request', 'description': 'Post a new request'},
+                    {'command': 'open_requests', 'description': 'Browse open requests'},
+                    {'command': 'my_offers', 'description': 'View sent offers'},
+                    {'command': 'favorites', 'description': 'My favorite providers'},
+                    {'command': 'notifications', 'description': 'Toggle notifications'},
+                    {'command': 'switch_role', 'description': 'Switch Client/Provider'},
+                    {'command': 'cancel', 'description': 'Cancel current operation'},
+                ]},
                 timeout=5,
             )
         except Exception:

@@ -30,7 +30,24 @@
                     </div>
 
                     <div class="flex-grow-1 text-center text-md-start">
-                        <h2 class="fw-bold mb-1">{{ provider.full_name or provider.user_name }}</h2>
+                        <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2 mb-1">
+                            <h2 class="fw-bold mb-0">{{ provider.full_name or provider.user_name }}</h2>
+                            {% if provider.is_verified or provider.phone_verified or provider.telegram_id %}
+                            <span class="badge bg-success" style="font-size:11px;" title="{{ _('Verified') }}">
+                              <i class="fas fa-check-circle me-1"></i>{{ _("Verified") }}
+                            </span>
+                            {% endif %}
+                            <button class="btn btn-link p-0 fs-4 fav-provider-btn" id="favProviderBtn"
+                                    data-provider-id="{{ provider.id }}"
+                                    onclick="toggleFavProvider(this)"
+                                    title="{{ _('Remove from favorites') if is_provider_favorite else _('Add to favorites') }}">
+                                <i class="{{ 'fas' if is_provider_favorite else 'far' }} fa-heart"
+                                   style="color: {{ '#e74c3c' if is_provider_favorite else '#adb5bd' }};"></i>
+                            </button>
+                            <button class="btn btn-link p-0 fs-5 text-muted" onclick="shareProvider()" title="{{ _('Share') }}">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                        </div>
                         <div class="text-muted mb-3">
                             <i class="fas fa-map-marker-alt me-1"></i> {{ provider.address or _('No address provided') }}
                         </div>
@@ -156,9 +173,18 @@
                             </p>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="small text-muted"><i class="far fa-clock me-1"></i> {{ service.duration }} {{ _("min") }}</span>
-                                <button class="btn btn-sm btn-success fw-bold" onclick="openBookingModal('{{ provider.id }}', '{{ provider.full_name }}', '{{ service.id }}')">
-                                    {{ _("Book Now") }}
-                                </button>
+                                <div class="d-flex align-items-center gap-1">
+                                    <button class="btn btn-link btn-sm p-0 fav-svc-btn"
+                                            data-service-id="{{ service.id }}"
+                                            onclick="toggleFavService(this)"
+                                            title="{{ _('Favorite') }}">
+                                        <i class="{{ 'fas' if service.id in favorite_service_ids else 'far' }} fa-heart"
+                                           style="color: {{ '#e74c3c' if service.id in favorite_service_ids else '#adb5bd' }}; font-size: 14px;"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-success fw-bold" onclick="openBookingModal('{{ provider.id }}', '{{ provider.full_name }}', '{{ service.id }}')">
+                                        {{ _("Book Now") }}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         {% endfor %}
@@ -376,7 +402,7 @@
                     window.location.href = "{{ url_for('client.appointments') }}";
                 }, 1500);
             }
-            else { alert("{{ _('Error:') }} " + data.message); btn.disabled = false; btn.innerText = "{{ _('Confirm Booking') }}"; }
+            else { alert("{{ _('Error:') }} " + data.message); if(data.redirect) { window.location.href = data.redirect; return; } btn.disabled = false; btn.innerText = "{{ _('Confirm Booking') }}"; }
         });
     });
 
@@ -425,5 +451,46 @@
         if (e.key === 'ArrowLeft') lightboxPrev();
         if (e.key === 'ArrowRight') lightboxNext();
     });
+
+    // ── Favorites ──────────────────────────────────────────
+    function toggleFavProvider(btn) {
+        const providerId = btn.dataset.providerId;
+        fetch('/client/favorite/toggle', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+            body: JSON.stringify({provider_id: parseInt(providerId)})
+        })
+        .then(r => r.json())
+        .then(data => {
+            const icon = btn.querySelector('i');
+            icon.className = data.is_favorite ? 'fas fa-heart' : 'far fa-heart';
+            icon.style.color = data.is_favorite ? '#e74c3c' : '#adb5bd';
+        });
+    }
+
+    function toggleFavService(btn) {
+        const serviceId = btn.dataset.serviceId;
+        fetch('/client/favorite/toggle', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+            body: JSON.stringify({service_id: parseInt(serviceId)})
+        })
+        .then(r => r.json())
+        .then(data => {
+            const icon = btn.querySelector('i');
+            icon.className = data.is_favorite ? 'fas fa-heart' : 'far fa-heart';
+            icon.style.color = data.is_favorite ? '#e74c3c' : '#adb5bd';
+        });
+    }
+
+    function shareProvider() {
+        const url = window.location.href;
+        const name = "{{ provider.full_name or provider.user_name }}";
+        if (navigator.share) {
+            navigator.share({title: name, url: url});
+        } else {
+            navigator.clipboard.writeText(url).then(() => alert('{{ _("Link copied!") }}'));
+        }
+    }
 </script>
 {% endblock %}

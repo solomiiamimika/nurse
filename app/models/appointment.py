@@ -26,6 +26,8 @@ class Appointment(db.Model):
     previous_status  = Column(String(20), nullable=True)
     # Possible statuses: scheduled → confirmed → confirmed_paid → in_progress → work_submitted → completed | cancelled | no_show | disputed
     notes   = Column(Text)
+    payment_method_type = Column(String(20), nullable=True)   # 'stripe', 'cash', 'qr_transfer'
+    deposit_amount      = Column(Float, nullable=True)         # deposit amount if required
     payment = relationship('Payment', backref='appointment', uselist=False)
 
     # Arrival & lateness tracking
@@ -60,6 +62,8 @@ class ClientSelfCreatedAppointment(db.Model):
     nurse_service_id     = Column(Integer, ForeignKey('provider_service.id'), nullable=True)
     service_name         = Column(String, nullable=True)
     service_description  = Column(Text, nullable=True)
+    payment_method_type  = Column(String(20), nullable=True)   # 'stripe', 'cash', 'qr_transfer'
+    deposit_amount       = Column(Float, nullable=True)
     latitude             = Column(Float)
     longitude            = Column(Float)
     address              = Column(String, nullable=True)

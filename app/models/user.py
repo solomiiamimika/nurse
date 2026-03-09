@@ -40,6 +40,7 @@ class User(db.Model, UserMixin):
 
     stripe_account_id  = Column(String)   # Provider's Stripe Connected Account
     stripe_customer_id = Column(String)   # Client's Stripe Customer (for saved cards)
+    iban               = Column(String(34), nullable=True)   # IBAN for QR SEPA transfers (provider)
     referral_code     = Column(String(20), unique=True, nullable=True)
     referred_by       = Column(String(20), nullable=True)
 
@@ -49,6 +50,9 @@ class User(db.Model, UserMixin):
     verification_method = Column(String(50), nullable=True)   # 'manual', 'stripe_kyc', etc.
     verification_date   = Column(DateTime, nullable=True)
 
+    phone_verified     = Column(Boolean, default=False)
+    email_verified     = Column(Boolean, default=False)
+    id_verified        = Column(Boolean, default=False)
     no_show_count      = Column(Integer, default=0)
     terms_accepted     = Column(Boolean, default=False)
     has_insurance      = Column(Boolean, default=False)
@@ -93,6 +97,16 @@ class User(db.Model, UserMixin):
     @property
     def review_count(self):
         return len(self.reviews_received)
+
+    @property
+    def is_contact_verified(self):
+        """At least one contact method is verified."""
+        return self.phone_verified or self.email_verified or bool(self.telegram_id)
+
+    @property
+    def profile_complete(self):
+        """Minimum profile requirements met."""
+        return bool(self.full_name) and self.is_contact_verified
 
     # ── Gamification ──────────────────────────────────────────────
     LEVEL_THRESHOLDS = [
@@ -155,6 +169,8 @@ class User(db.Model, UserMixin):
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
 
     def verify_password(self, password):
+        if not self.password_hash:
+            return False
         return bcrypt.check_password_hash(self.password_hash, password)
 
 

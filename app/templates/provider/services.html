@@ -38,6 +38,7 @@
               <th style="width: 30%">{{ _("Description") }}</th>
               <th>{{ _("Price") }}</th>
               <th>{{ _("Duration") }}</th>
+              <th>{{ _("Deposit") }}</th>
               <th>{{ _("Status") }}</th>
               <th class="text-end">{{ _("Actions") }}</th>
             </tr>
@@ -60,6 +61,7 @@
               <td class="text-muted small">{{ service.description or (service.base_service.description if service.base_service else '') }}</td>
               <td>{{ service.price }} €</td>
               <td>{{ service.duration }} {{ _("min") }}</td>
+              <td>{{ service.deposit_percentage or 0 }}%</td>
               <td>
                 {% if service.is_available %}
                   <span class="badge bg-success bg-opacity-10 text-success border border-success">{{ _("Available") }}</span>
@@ -79,6 +81,7 @@
                     data-available="{{ service.is_available }}"
                     data-name="{{ service.name or '' }}"
                     data-tags="{{ service.tags or '' }}"
+                    data-deposit="{{ service.deposit_percentage or 0 }}"
                     data-custom="{{ 'true' if not service.service_id else 'false' }}"
                     title="{{ _('Edit') }}"
                   >
@@ -148,9 +151,22 @@
             </div>
           </div>
 
-          <div class="mb-3">
-            <label for="description" class="form-label fw-bold small text-muted">{{ _("DESCRIPTION") }}</label>
-            <textarea class="form-control" id="description" name="description" rows="3" placeholder="{{ _('Optional details...') }}"></textarea>
+          <div class="row">
+            <div class="col-12 mb-3">
+              <label for="description" class="form-label fw-bold small text-muted">{{ _("DESCRIPTION") }}</label>
+              <textarea class="form-control" id="description" name="description" rows="3" placeholder="{{ _('Optional details...') }}"></textarea>
+            </div>
+            <div class="col-6 mb-3">
+              <label for="deposit_percentage" class="form-label fw-bold small text-muted">{{ _("DEPOSIT (%)") }}</label>
+              <select class="form-select" id="deposit_percentage" name="deposit_percentage">
+                <option value="0">{{ _("No deposit") }}</option>
+                <option value="10">10%</option>
+                <option value="20">20%</option>
+                <option value="30">30%</option>
+                <option value="50">50%</option>
+              </select>
+              <div class="form-text">{{ _("Client pays this % upfront") }}</div>
+            </div>
           </div>
 
           <div class="mb-3">
@@ -351,6 +367,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById('duration').value = '';
     document.getElementById('description').value = '';
     document.getElementById('is_available').checked = true;
+    document.getElementById('deposit_percentage').value = '0';
     setTagsFromString('');
     new bootstrap.Modal(document.getElementById('serviceModal')).show();
   });
@@ -375,6 +392,7 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById('duration').value = this.dataset.duration;
       document.getElementById('description').value = this.dataset.description;
       document.getElementById('is_available').checked = this.dataset.available === 'True';
+      document.getElementById('deposit_percentage').value = this.dataset.deposit || '0';
       setTagsFromString(this.dataset.tags || '');
       dropdown.style.display = 'none';
 

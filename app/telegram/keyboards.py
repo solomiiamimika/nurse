@@ -32,6 +32,7 @@ def client_menu():
         'inline_keyboard': [
             [{'text': '\U0001f4cb My Appointments', 'callback_data': 'cmd_appointments'}],
             [{'text': '\u2795 Create Request', 'callback_data': 'cmd_create_request'}],
+            [{'text': '\u2764\ufe0f Favorites', 'callback_data': 'cmd_favorites'}],
             [{'text': '\U0001f514 Notifications', 'callback_data': 'cmd_notifications'}],
             [{'text': '\U0001f504 Switch to Provider', 'callback_data': 'cmd_switch_role'}],
         ]
@@ -127,6 +128,35 @@ def provider_appointment_actions(appt_id, appt_type, status, is_no_show_eligible
 
     if not buttons:
         return None
+    return {'inline_keyboard': buttons}
+
+
+def faq_menu():
+    """Main FAQ category buttons."""
+    return {
+        'inline_keyboard': [
+            [
+                {'text': '\U0001f4a1 How it works', 'callback_data': 'faq_how'},
+                {'text': '\U0001f464 For Clients', 'callback_data': 'faq_client'},
+            ],
+            [
+                {'text': '\U0001f4bc For Providers', 'callback_data': 'faq_provider'},
+                {'text': '\U0001f4b3 Pricing', 'callback_data': 'faq_pricing'},
+            ],
+            [
+                {'text': '\u2699\ufe0f Account', 'callback_data': 'faq_account'},
+            ],
+        ]
+    }
+
+
+def faq_questions(category, qa_list):
+    """Buttons for individual questions in a FAQ category."""
+    buttons = []
+    for i, (question, _) in enumerate(qa_list):
+        short = question[:40] + ('...' if len(question) > 40 else '')
+        buttons.append([{'text': short, 'callback_data': f'faqq_{category}_{i}'}])
+    buttons.append([{'text': '\u25c0 Back to FAQ', 'callback_data': 'faq_back'}])
     return {'inline_keyboard': buttons}
 
 
