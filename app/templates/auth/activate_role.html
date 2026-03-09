@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="max-width:500px;margin:60px auto;padding:0 16px;">
+  <div class="card shadow-sm" style="border-radius:16px;overflow:hidden;">
+    <div class="card-body p-4 text-center">
+
+      {% if target_role == 'provider' %}
+        <div style="width:64px;height:64px;margin:0 auto 16px;background:#e0f2fe;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+          <i class="fas fa-user-nurse" style="font-size:28px;color:#0284c7;"></i>
+        </div>
+        <h4 class="mb-2">{{ _("Become a Provider") }}</h4>
+        <p class="text-muted mb-4">
+          {{ _("You're about to activate a provider account. You'll be able to offer services, accept bookings, and earn money — all with the same account.") }}
+        </p>
+      {% else %}
+        <div style="width:64px;height:64px;margin:0 auto 16px;background:#fef3c7;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+          <i class="fas fa-user" style="font-size:28px;color:#d97706;"></i>
+        </div>
+        <h4 class="mb-2">{{ _("Become a Client") }}</h4>
+        <p class="text-muted mb-4">
+          {{ _("You're about to activate a client account. You'll be able to search for providers, book services, and leave reviews — all with the same account.") }}
+        </p>
+      {% endif %}
+
+      <form method="POST" action="{{ url_for('auth.activate_role', target_role=target_role) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <button type="submit" class="btn w-100 mb-2" style="background:#3f4a36;color:#fff;border-radius:10px;padding:12px;font-weight:600;">
+          <i class="fas fa-check-circle me-2"></i>{{ _("Activate") }} {{ _(target_role|capitalize) }}
+        </button>
+      </form>
+      <a href="{{ url_for(current_user.role + '.dashboard') }}" class="btn btn-outline-secondary w-100" style="border-radius:10px;padding:10px;">
+        {{ _("Cancel") }}
+      </a>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

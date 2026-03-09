@@ -40,6 +40,13 @@
                     <span class="status-indicator"></span>
                     <span id="status-text">{{ _('You are Online') if current_user.online else _('You are Offline') }}</span>
                 </button>
+                <form action="{{ url_for('auth.switch_role') }}" method="post" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="target_role" value="client">
+                    <button type="submit" class="btn-tool" style="color:#d97706;font-weight:600;" title="{{ _('Switch to Client') }}">
+                        <i class="fas fa-exchange-alt"></i> {% if current_user.has_role('client') %}{{ _("Switch to Client") }}{% else %}{{ _("Also become a Client") }}{% endif %}
+                    </button>
+                </form>
                 <form action="{{url_for('auth.logout')}}" method="post" style="display:inline">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button class="btn-icon text-danger" title="{{ _('Exit') }}"><i class="fas fa-sign-out-alt"></i></button>
@@ -52,7 +59,7 @@
     <div class="custom-container pb-5">
         <div class="row g-4">
 
-            <div class="col-lg-8">
+            <div class="col-lg-6">
                 <div class="content-card h-100">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="mb-0 fw-bold text-dark">{{ _("Map View") }}</h5>
@@ -65,7 +72,7 @@
                 </div>
             </div>
 
-            <div class="col-lg-4">
+            <div class="col-lg-6">
 
                     <div class="nav nav-pills nav-fill p-1 bg-white border rounded-pill mb-2 shadow-sm" role="tablist">
                         <button class="nav-link rounded-pill active fw-bold small py-2" id="tab-requests" onclick="switchTab('requests')">
@@ -723,7 +730,9 @@
       };
       offers.forEach(item => {
           const cfg = statusConfig[item.offer_status] || statusConfig.pending;
-          const time = new Date(item.appointment_start_time).toLocaleString('uk-UA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+          const time = item.is_flexible_date
+              ? '<i class="fas fa-calendar-alt me-1"></i>{{ _("Flexible date") }}'
+              : new Date(item.appointment_start_time).toLocaleString('uk-UA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
           const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
           const opacity = item.offer_status === 'rejected' ? 'opacity: 0.6;' : '';
           const hasClientCounter = item.counter_price != null && item.last_action_by === 'client';
@@ -910,7 +919,9 @@
           return;
       }
       items.forEach(item => {
-          const time = new Date(item.appointment_start_time || item.appointment_time).toLocaleString('uk-UA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+          const time = item.is_flexible_date
+              ? '<i class="fas fa-calendar-alt me-1"></i>{{ _("Flexible date") }}'
+              : new Date(item.appointment_start_time || item.appointment_time).toLocaleString('uk-UA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
           const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
 
           let btnText = "View Route & Details";
@@ -921,7 +932,10 @@
               <div class="provider-item p-3 ${itemClass}" onclick="handleItemClick(${itemJson})">
                   <div class="d-flex justify-content-between align-items-start mb-2">
                       <h6 class="fw-bold text-dark mb-0">${item.service_name || item.service}</h6>
-                      <span class="badge bg-secondary bg-opacity-10 text-dark">${item.payment || item.price || 0} €</span>
+                      <div class="d-flex align-items-center gap-1">
+                          ${item.is_flexible_date ? '<span class="badge" style="background:#dbeafe;color:#2563eb;border:1px solid #93c5fd;font-size:10px;">{{ _("Flexible") }}</span>' : ''}
+                          <span class="badge bg-secondary bg-opacity-10 text-dark">${item.payment || item.price || 0} €</span>
+                      </div>
                   </div>
                   <div class="small text-muted mb-1"><i class="fas fa-user me-1"></i> ${(item.client_id || item.patient_id) ? `<a href="/provider/client/${item.client_id || item.patient_id}" onclick="event.stopPropagation()" class="text-primary text-decoration-none fw-semibold">${item.patient_name || item.client_name || 'Client'}</a>` : (item.patient_name || item.client_name || 'Client')}</div>
                   <div class="small text-muted mb-1"><i class="fas fa-clock me-1"></i> ${time}</div>
@@ -968,7 +982,7 @@
           nameEl.textContent = item.patient_name || item.client_name || 'Unknown';
       }
       document.getElementById('detailServiceName').textContent = item.service_name || item.service || 'Service';
-      document.getElementById('detailDateTime').textContent = new Date(item.appointment_start_time || item.appointment_time).toLocaleString('uk-UA');
+      document.getElementById('detailDateTime').textContent = item.is_flexible_date ? '{{ _("Flexible date — arrange with client") }}' : new Date(item.appointment_start_time || item.appointment_time).toLocaleString('uk-UA');
       document.getElementById('detailNotes').textContent = item.notes || i18n.noNotesProvided;
       document.getElementById('detailPayment').textContent = item.payment || item.price || '0';
       document.getElementById('detailDistance').textContent = i18n.calculating;

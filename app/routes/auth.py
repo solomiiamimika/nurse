@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, request, abort, Blueprint, session, jsonify, current_app
 from flask_login import login_user, logout_user, current_user, login_required
 from app.extensions import db, bcrypt, mail
-from app.models import User, Review, Appointment, Message, Payment, ClientSelfCreatedAppointment, InvitationToken, RequestOfferResponse, ServiceHistory, Favorite, FavoriteShareToken
+from app.models import User, Review, Appointment, Message, Payment, ClientSelfCreatedAppointment, InvitationToken, RequestOfferResponse, ServiceHistory, Favorite, FavoriteShareToken, DeletedAccount
 from app.models.appointment import NoShowRecord, Dispute
 from app.models.feedback import Feedback
 
@@ -13,7 +13,7 @@ from threading import Thread
 import json
 import os
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 
 auth_bp = Blueprint('auth', __name__, template_folder='templates/auth')
 
@@ -90,6 +90,8 @@ def register():
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
         role = request.form.get('role')
+        dob_str = request.form.get('date_of_birth')
+        parent_email = request.form.get('parent_email', '').strip()
 
         errors = []
         if not username or len(username) < 2:
@@ -103,10 +105,39 @@ def register():
         if role not in ['client', 'provider']:
             errors.append('Invalid role')
 
+        # Age validation
+        user_dob = None
+        user_age = None
+        is_young = False
+        if dob_str:
+            try:
+                user_dob = date.fromisoformat(dob_str)
+                today = date.today()
+                user_age = today.year - user_dob.year - (
+                    (today.month, today.day) < (user_dob.month, user_dob.day)
+                )
+            except ValueError:
+                errors.append('Invalid date of birth')
+
+        if user_age is not None and user_age < 13:
+            errors.append('You must be at least 13 years old to register.')
+        elif user_age is not None and user_age < 18:
+            is_young = True
+            if not parent_email or '@' not in parent_email:
+                errors.append('Parent/guardian email is required for users under 18.')
+            if parent_email and parent_email.lower() == email.lower():
+                errors.append('Parent email must be different from your email.')
+
         if User.query.filter_by(user_name=username).first():
             errors.append('User already exists')
         if User.query.filter_by(email=email).first():
             errors.append('Email already exists')
+
+        # Scam protection: check if email was previously deleted as provider
+        if role == 'provider':
+            prev_deleted = DeletedAccount.query.filter_by(email=email, role='provider').first()
+            if prev_deleted:
+                errors.append('This email was previously used by a deleted provider account. Please contact support.')
 
         if errors:
             for e in errors:
@@ -122,11 +153,21 @@ def register():
                 user_name=username,
                 email=email,
                 role=role,
+                roles=json.dumps([role]),
                 full_name=fullname,
+                date_birth=user_dob,
                 referral_code=_generate_referral_code(),
                 referred_by=referred_by,
                 terms_accepted=True,
             )
+
+            if is_young:
+                consent_token = secrets.token_urlsafe(48)
+                user.is_young_helper = True
+                user.parent_email = parent_email
+                user.parent_consent_status = 'pending'
+                user.parent_consent_token = consent_token
+
             if password:
                 user.password = password
 
@@ -160,6 +201,36 @@ def register():
                 Thread(target=_send_async_email, args=(app_obj, msg)).start()
             except Exception:
                 pass
+
+            # Send parental consent email for young helpers
+            if is_young and parent_email:
+                try:
+                    consent_url = url_for('auth.parent_consent', token=user.parent_consent_token, _external=True)
+                    consent_msg = MailMessage(
+                        subject='Parental Consent Required — Human-me',
+                        sender=os.getenv('MAIL_DEFAULT_SENDER'),
+                        recipients=[parent_email],
+                        body=(
+                            f"Hello,\n\n"
+                            f"{user.full_name or user.user_name} (age {user_age}) has registered on Human-me "
+                            f"as a Young Helper.\n\n"
+                            f"Under German youth labour law (JArbSchG), minors aged 13-17 need parental consent "
+                            f"to offer services on our platform.\n\n"
+                            f"If you approve, please click the link below:\n"
+                            f"{consent_url}\n\n"
+                            f"Restrictions for Young Helpers:\n"
+                            f"- Age 13-14: max 2 hours/day, light work only\n"
+                            f"- Age 15-17: max 8 hours/day, not during school hours\n"
+                            f"- Limited to safe categories (pet care, errands, tutoring, etc.)\n"
+                            f"- Payments go to parent/guardian IBAN\n\n"
+                            f"If you did not expect this email, you can safely ignore it.\n\n"
+                            f"— The Human-me Team"
+                        )
+                    )
+                    app_obj = current_app._get_current_object()
+                    Thread(target=_send_async_email, args=(app_obj, consent_msg)).start()
+                except Exception:
+                    pass
 
             flash('Registration successful! Check your email to verify your account.', 'success')
             return redirect(url_for('auth.login'))
@@ -310,6 +381,7 @@ def google_login():
                 email=google_data["email"],
                 user_name=username,
                 role=role,
+                roles=json.dumps([role]),
                 online=True,
                 password_hash=bcrypt.generate_password_hash(password).decode('utf-8'),
                 full_name=google_data.get("name", ""),
@@ -343,7 +415,32 @@ def logout():
 def delete_account():
     try:
         user_id = current_user.id
-        
+        user_role = current_user.role
+
+        # Block deletion if provider has active/in-progress appointments
+        active_statuses = ['scheduled', 'confirmed', 'confirmed_paid', 'in_progress', 'work_submitted', 'authorized']
+        if user_role == 'provider':
+            active_appts = Appointment.query.filter(
+                Appointment.provider_id == user_id,
+                Appointment.status.in_(active_statuses)
+            ).count()
+            active_reqs = ClientSelfCreatedAppointment.query.filter(
+                ClientSelfCreatedAppointment.provider_id == user_id,
+                ClientSelfCreatedAppointment.status.in_(active_statuses)
+            ).count()
+            if active_appts + active_reqs > 0:
+                flash('Cannot delete account while you have active appointments. Please complete or cancel them first.', 'danger')
+                return redirect(url_for('provider.profile'))
+
+        # Save record for scam protection (re-registration detection)
+        deleted_record = DeletedAccount(
+            email=current_user.email,
+            phone=current_user.phone_number,
+            telegram_id=str(current_user.telegram_id) if current_user.telegram_id else None,
+            role=user_role,
+        )
+        db.session.add(deleted_record)
+
         # 1. Delete Supabase Files (Photo)
         if current_user.photo:
             try:
@@ -428,6 +525,8 @@ def delete_account():
         db.session.rollback()
         current_app.logger.error(f"Delete Error: {e}")
         flash('An error occurred while deleting your account. Please try again.', 'danger')
+        if current_user.is_authenticated and current_user.role == 'provider':
+            return redirect(url_for('provider.profile'))
         return redirect(url_for('client.profile'))
     
 @auth_bp.route('/set_language/<lang_code>')    
@@ -587,6 +686,35 @@ def verify_email(token):
     return redirect(url_for('auth.login'))
 
 
+@auth_bp.route('/parent_consent/<token>')
+def parent_consent(token):
+    """Parent confirms consent for a young helper account."""
+    user = User.query.filter_by(parent_consent_token=token).first()
+    if not user:
+        flash('Invalid or expired consent link.', 'danger')
+        return redirect(url_for('main.home'))
+
+    if user.parent_consent_status == 'confirmed':
+        flash('Consent has already been confirmed.', 'info')
+        return redirect(url_for('main.home'))
+
+    user.parent_consent_status = 'confirmed'
+    user.parent_consent_token = None
+    db.session.commit()
+
+    # Notify user via Telegram if linked
+    try:
+        from app.telegram.notifications import send_user_telegram
+        if user.telegram_id and user.telegram_notifications:
+            send_user_telegram(user.id,
+                "Your parent/guardian has confirmed consent! You can now offer services as a Young Helper.")
+    except Exception:
+        pass
+
+    flash('Parental consent confirmed! The Young Helper account is now active.', 'success')
+    return redirect(url_for('main.home'))
+
+
 @auth_bp.route('/resend_verification_email', methods=['POST'])
 @login_required
 def resend_verification_email():
@@ -616,4 +744,49 @@ def resend_verification_email():
     Thread(target=_send_async_email, args=(app_obj, msg)).start()
 
     return jsonify({'success': True, 'message': 'Verification email sent!'})
+
+
+# ── Dual-Role: Switch & Activate ──────────────────────────────────
+
+@auth_bp.route('/switch_role', methods=['POST'])
+@login_required
+def switch_role():
+    """Switch between client/provider if user has both roles."""
+    target = request.form.get('target_role')
+    if target not in ('client', 'provider'):
+        flash('Invalid role.', 'danger')
+        return redirect(request.referrer or url_for('main.home'))
+
+    if target == current_user.role:
+        return redirect(url_for(f'{target}.dashboard'))
+
+    if current_user.has_role(target):
+        current_user.role = target
+        db.session.commit()
+        return redirect(url_for(f'{target}.dashboard'))
+    else:
+        return redirect(url_for('auth.activate_role', target_role=target))
+
+
+@auth_bp.route('/activate_role/<target_role>', methods=['GET', 'POST'])
+@login_required
+def activate_role(target_role):
+    """Activate a second role for the current user."""
+    if target_role not in ('client', 'provider'):
+        flash('Invalid role.', 'danger')
+        return redirect(url_for(f'{current_user.role}.dashboard'))
+
+    if current_user.has_role(target_role):
+        current_user.role = target_role
+        db.session.commit()
+        return redirect(url_for(f'{target_role}.dashboard'))
+
+    if request.method == 'POST':
+        current_user.add_role(target_role)
+        current_user.role = target_role
+        db.session.commit()
+        flash(f'You are now also a {target_role}! Welcome.', 'success')
+        return redirect(url_for(f'{target_role}.dashboard'))
+
+    return render_template('auth/activate_role.html', target_role=target_role)
 

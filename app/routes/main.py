@@ -271,6 +271,7 @@ def _serialize_provider(n):
         'review_count': n.review_count,
         'about_me': n.about_me if vis.get('about_me', True) else None,
         'services': services_list,
+        'is_young_helper': n.is_young_helper or False,
     }
 
 
@@ -486,6 +487,21 @@ def api_send_message():
     )
     db.session.add(msg)
     db.session.commit()
+
+    # Forward to Telegram if recipient has it linked
+    try:
+        if recipient.telegram_id and recipient.telegram_notifications:
+            from app.telegram.notifications import send_user_telegram
+            sender_display = current_user.full_name or current_user.user_name
+            base_url = current_app.config.get('BASE_URL', 'https://human-me.com')
+            tg_text = f"<b>{sender_display}:</b>\n{text}"
+            send_user_telegram(recipient.id, tg_text, reply_markup={
+                'inline_keyboard': [[
+                    {'text': 'Reply on website', 'url': f"{base_url}/chat/{current_user.id}"}
+                ]]
+            })
+    except Exception:
+        current_app.logger.error("Failed to forward chat message to Telegram")
 
     return jsonify({
         'success': True,

@@ -73,6 +73,15 @@ def role_select():
     }
 
 
+def flexible_date_option():
+    """Show 'Flexible date' button alongside the date prompt."""
+    return {
+        'inline_keyboard': [
+            [{'text': '\U0001f4c5 Date is flexible — arrange later', 'callback_data': 'flexible_date'}],
+        ]
+    }
+
+
 def offer_button(request_id):
     return {
         'inline_keyboard': [

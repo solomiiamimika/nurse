@@ -107,6 +107,22 @@ SERVICE_TAGS = []
 for _tags in SERVICE_TAG_CATEGORIES.values():
     SERVICE_TAGS.extend(_tags)
 
+# Young Helper (13-17): allowed service categories per JArbSchG
+YOUNG_HELPER_ALLOWED_TAGS = {
+    'Pets': ['Dog Walking', 'Pet Sitting', 'Pet Feeding', 'Cat Care'],
+    'Errands': ['Grocery Shopping', 'Delivery', 'Package Pickup', 'Gift Shopping'],
+    'Home': ['Garden/Balcony', 'Cleaning', 'Decluttering'],
+    'Childcare': ['Babysitting', 'Homework Help', 'Creative Activities'],
+    'Lessons & Skills': None,  # all tags allowed
+}
+
+YOUNG_HELPER_ALLOWED_TAGS_FLAT = set()
+for _cat, _allowed in YOUNG_HELPER_ALLOWED_TAGS.items():
+    if _allowed is None:
+        YOUNG_HELPER_ALLOWED_TAGS_FLAT.update(SERVICE_TAG_CATEGORIES.get(_cat, []))
+    else:
+        YOUNG_HELPER_ALLOWED_TAGS_FLAT.update(_allowed)
+
 
 class CancellationPolicy(db.Model):
     """How much a client pays if they cancel late or don't show up."""

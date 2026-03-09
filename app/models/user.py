@@ -9,7 +9,8 @@ from app.extensions import db, bcrypt, login_manager
 from flask_login import UserMixin
 from sqlalchemy import Column, Integer, Text, Boolean, DateTime, ForeignKey, Float, String, Date
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, date
+import json
 
 
 class User(db.Model, UserMixin):
@@ -53,11 +54,24 @@ class User(db.Model, UserMixin):
     phone_verified     = Column(Boolean, default=False)
     email_verified     = Column(Boolean, default=False)
     id_verified        = Column(Boolean, default=False)
+    id_document            = Column(String, nullable=True)       # Supabase filename
+    id_verification_status = Column(String(20), nullable=True)   # null/'pending'/'approved'/'rejected'
+    id_rejection_reason    = Column(String, nullable=True)
     no_show_count      = Column(Integer, default=0)
     terms_accepted     = Column(Boolean, default=False)
     has_insurance      = Column(Boolean, default=False)
     insurance_document = Column(String)
     profile_visibility = Column(Text, default='{}')
+
+    # ── Dual-role ─────────────────────────────────────────────────
+    roles = Column(Text, default='[]')   # JSON: '["client"]' or '["client","provider"]'
+
+    # ── Young Helper (13-17) ──────────────────────────────────────
+    is_young_helper       = Column(Boolean, default=False)
+    parent_email          = Column(String(255), nullable=True)
+    parent_consent_status = Column(String(20), nullable=True)   # 'pending' / 'confirmed'
+    parent_consent_token  = Column(String(100), nullable=True)
+    parent_iban           = Column(String(34), nullable=True)
 
     created_at = Column(DateTime, default=datetime.now)
 
@@ -107,6 +121,48 @@ class User(db.Model, UserMixin):
     def profile_complete(self):
         """Minimum profile requirements met."""
         return bool(self.full_name) and self.is_contact_verified
+
+    # ── Dual-role helpers ─────────────────────────────────────────
+    @property
+    def roles_list(self):
+        try:
+            return json.loads(self.roles or '[]')
+        except (json.JSONDecodeError, TypeError):
+            return [self.role] if self.role else []
+
+    def has_role(self, name):
+        return name in self.roles_list
+
+    def add_role(self, name):
+        roles = self.roles_list
+        if name not in roles:
+            roles.append(name)
+            self.roles = json.dumps(roles)
+
+    # ── Young Helper helpers ──────────────────────────────────────
+    @property
+    def age(self):
+        if not self.date_birth:
+            return None
+        today = date.today()
+        return today.year - self.date_birth.year - (
+            (today.month, today.day) < (self.date_birth.month, self.date_birth.day)
+        )
+
+    @property
+    def young_helper_age_group(self):
+        a = self.age
+        if a is None:
+            return None
+        if 13 <= a <= 14:
+            return '13-14'
+        if 15 <= a <= 17:
+            return '15-17'
+        return None
+
+    @property
+    def parent_consent_confirmed(self):
+        return self.parent_consent_status == 'confirmed'
 
     # ── Gamification ──────────────────────────────────────────────
     LEVEL_THRESHOLDS = [
@@ -193,3 +249,16 @@ class InvitationToken(db.Model):
 
     creator      = relationship('User', foreign_keys=[created_by])
     used_by_user = relationship('User', foreign_keys=[used_by])
+
+
+class DeletedAccount(db.Model):
+    """Record of deleted accounts — used to prevent scam re-registration."""
+    __tablename__ = 'deleted_account'
+
+    id          = Column(Integer, primary_key=True)
+    email       = Column(String(255), nullable=True)
+    phone       = Column(String(50), nullable=True)
+    telegram_id = Column(String(100), nullable=True)
+    role        = Column(String(20), nullable=True)
+    reason      = Column(String(500), nullable=True)
+    deleted_at  = Column(DateTime, default=datetime.now)

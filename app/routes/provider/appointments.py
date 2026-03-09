@@ -181,6 +181,13 @@ def get_appointments():
 
         # Also include request-based appointments (ClientSelfCreatedAppointment)
         req_query = ClientSelfCreatedAppointment.query.filter_by(provider_id=current_user.id)
+        # Exclude flexible-date requests (sentinel 2099) from calendar view
+        req_query = req_query.filter(
+            db.or_(
+                ClientSelfCreatedAppointment.is_flexible_date == False,
+                ClientSelfCreatedAppointment.is_flexible_date == None
+            )
+        )
         if start_date and end_date:
             try:
                 req_query = req_query.filter(
@@ -394,6 +401,7 @@ def provider_get_requests():
                 'service_name': req.service_name,
                 'service_tags': req.service_tags or '',
                 'appointment_start_time': req.appointment_start_time.isoformat(),
+                'is_flexible_date': req.is_flexible_date or False,
                 'lat': f_lat,          # розмиті координати для карти
                 'lng': f_lng,
                 'district': req.district or '',  # тільки район, не точна адреса
@@ -579,6 +587,7 @@ def provider_get_accepted_requests():
                 'service_tags': req.service_tags or '',
                 'status': req.status,
                 'appointment_start_time': req.appointment_start_time.isoformat(),
+                'is_flexible_date': req.is_flexible_date or False,
                 'created_appo': req.created_appo.isoformat(),
                 'latitude': req.latitude if show_address else None,
                 'longitude': req.longitude if show_address else None,

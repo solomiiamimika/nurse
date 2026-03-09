@@ -6,7 +6,7 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
-        <h2 style="margin-bottom: 5px;">{{ _("Profile Settings") }}</h2>
+        <h2 style="margin-bottom: 5px; font-weight: 700; color: #1f2937;">{{ _("Profile Settings") }}</h2>
         <span class="text-muted">{{ _("Update your personal information") }}</span>
       </div>
       <a href="{{ url_for('client.dashboard') }}" class="btn-tool">
@@ -14,7 +14,12 @@
       </a>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════
+         SECTION 1: Personal Information
+         ═══════════════════════════════════════════════════════════ -->
     <div class="profile-card">
+      <h5 class="fw-bold mb-3"><i class="fas fa-user me-2 text-primary"></i>{{ _("Personal Information") }}</h5>
+
       <form method="POST" enctype="multipart/form-data">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
@@ -44,52 +49,159 @@
 
           <div class="col-md-6">
             <label class="form-label fw-bold small text-muted">{{ _("ADDRESS") }}</label>
-            <input type="text" name="address" class="form-control" value="{{ user.address or '' }}" />
+            <div class="input-group">
+              <input type="text" name="address" id="addressInput" class="form-control" value="{{ user.address or '' }}" />
+              <button type="button" class="btn btn-outline-secondary" onclick="detectLocation()" title="{{ _('Detect my location') }}">
+                <i class="fas fa-location-crosshairs"></i>
+              </button>
+            </div>
           </div>
 
           <div class="col-12">
             <label class="form-label fw-bold small text-muted">{{ _("ABOUT ME") }}</label>
             <textarea name="about_me" class="form-control" rows="3">{{ user.about_me or '' }}</textarea>
           </div>
-
-          {% if user.google_id and user.password_hash and user.password_hash.startswith('$') %}
-          <div class="col-12">
-            <label class="form-label fw-bold small text-muted">LOGIN</label>
-            <input type="text" name="login" class="form-control" value="{{ user.user_name }}" />
-
-            <label class="form-label fw-bold small text-muted mt-2">PASSWORD</label>
-            <div class="password-wrapper">
-              <input id="password-input" type="password" name="password" class="form-control" placeholder="{{ _('Enter new password to change') }}" />
-              <button type="button" id="toggle-password" class="password-toggle-btn">
-                <i class="fa-solid fa-eye"></i>
-              </button>
-            </div>
-          </div>
-          {% endif %}
-
-          <div class="col-12 mt-4">
-            <label class="form-label fw-bold small text-muted">{{ _("UPLOAD NEW DOCUMENTS") }}</label>
-            <div class="input-group">
-              <input type="file" name="documents" id="documents" multiple class="form-control" />
-              <span class="input-group-text text-muted"><i class="fas fa-file-upload"></i></span>
-            </div>
-            <div class="form-text">{{ _("You can select multiple files (PDF, JPG, PNG)") }}</div>
-          </div>
         </div>
 
         <div class="d-flex justify-content-end mt-4 pt-3 border-top">
-          <button type="submit" class="btn btn-success px-4 fw-bold">{{ _("Update Profile") }}</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4">{{ _("Update Profile") }}</button>
         </div>
       </form>
-
-      {% set delete_doc_endpoint = 'client.delete_document' %}
-      {% include 'shared/_documents_grid.html' %}
     </div>
 
     {% include 'shared/_change_password_accordion.html' %}
 
-    <!-- Payment Methods (Amazon-style) -->
-    <div class="profile-card mt-3">
+    <!-- ═══════════════════════════════════════════════════════════
+         SECTION 2: Documents & Verification
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="profile-card mt-4">
+      <h5 class="fw-bold mb-3"><i class="fas fa-shield-alt me-2 text-primary"></i>{{ _("Documents & Verification") }}</h5>
+      <p class="text-muted small mb-3">{{ _("Verify your identity to unlock all features") }}</p>
+
+      <div class="d-flex flex-column gap-3">
+
+        <!-- ID Document Upload -->
+        <div class="p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
+          <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fas fa-id-card {% if current_user.id_verification_status == 'approved' %}text-success{% elif current_user.id_verification_status == 'pending' %}text-warning{% elif current_user.id_verification_status == 'rejected' %}text-danger{% else %}text-muted{% endif %}" style="font-size:1.1rem;"></i>
+              <div>
+                <div class="fw-bold small">{{ _("ID Document") }}</div>
+                <div class="text-muted" style="font-size:12px;">
+                  {% if current_user.id_verification_status == 'approved' %}
+                    {{ _("Your identity has been verified") }}
+                  {% elif current_user.id_verification_status == 'pending' %}
+                    {{ _("Document uploaded — under review") }}
+                  {% elif current_user.id_verification_status == 'rejected' %}
+                    {{ _("Rejected") }}{% if current_user.id_rejection_reason %}: {{ current_user.id_rejection_reason }}{% endif %}
+                  {% else %}
+                    {{ _("Upload your passport or ID card") }}
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% if current_user.id_verification_status == 'approved' %}
+              <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Verified") }}</span>
+            {% elif current_user.id_verification_status == 'pending' %}
+              <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>{{ _("Pending") }}</span>
+            {% elif current_user.id_verification_status == 'rejected' %}
+              <span class="badge bg-danger"><i class="fas fa-times me-1"></i>{{ _("Rejected") }}</span>
+            {% endif %}
+          </div>
+
+          {% if current_user.id_verification_status != 'approved' %}
+          <div class="mt-2">
+            {% if id_doc_url %}
+            <div class="d-flex align-items-center gap-2 mb-2 p-2 bg-white rounded border">
+              <i class="fas fa-file-alt text-primary"></i>
+              <a href="{{ id_doc_url }}" target="_blank" class="small text-truncate">{{ _("View uploaded document") }}</a>
+            </div>
+            {% endif %}
+            <div class="d-flex align-items-center gap-2">
+              <input type="file" id="idDocInput" class="form-control form-control-sm" accept=".jpg,.jpeg,.png,.pdf" style="max-width:300px;">
+              <button onclick="uploadIdDocument()" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-upload me-1"></i>{{ _("Upload") }}
+              </button>
+            </div>
+            <div class="form-text">{{ _("JPG, PNG or PDF. Max 5MB.") }}</div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Email verification -->
+        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-envelope {% if current_user.email_verified or current_user.google_id %}text-success{% else %}text-muted{% endif %}"></i>
+            <div>
+              <div class="fw-bold small">{{ _("Email") }}</div>
+              <div class="text-muted" style="font-size:12px;">
+                {% if current_user.email_verified %}{{ current_user.email }} — {{ _("Verified") }}
+                {% elif current_user.google_id %}{{ current_user.email }} — {{ _("Verified via Google") }}
+                {% else %}{{ current_user.email }} — {{ _("Not verified") }}{% endif %}
+              </div>
+            </div>
+          </div>
+          {% if current_user.email_verified or current_user.google_id %}
+            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Verified") }}</span>
+          {% else %}
+            <button onclick="resendVerificationEmail(this)" class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-paper-plane me-1"></i>{{ _("Send Verification") }}
+            </button>
+          {% endif %}
+        </div>
+
+        <!-- Phone / Telegram verification -->
+        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-phone {% if current_user.phone_verified or current_user.telegram_id %}text-success{% else %}text-muted{% endif %}"></i>
+            <div>
+              <div class="fw-bold small">{{ _("Phone Number") }}</div>
+              <div class="text-muted" style="font-size:12px;">
+                {% if current_user.phone_verified %}{{ current_user.phone_number or '' }} — {{ _("Verified") }}
+                {% elif current_user.telegram_id %}{{ _("Verified via Telegram") }}
+                {% else %}{{ _("Link Telegram to verify phone") }}{% endif %}
+              </div>
+            </div>
+          </div>
+          {% if current_user.phone_verified or current_user.telegram_id %}
+            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Verified") }}</span>
+          {% else %}
+            {% if config.TELEGRAM_BOT_NAME %}
+            <a href="https://t.me/{{ config.TELEGRAM_BOT_NAME }}" target="_blank" class="btn btn-sm btn-outline-info">
+              <i class="fab fa-telegram me-1"></i>{{ _("Link Telegram") }}
+            </a>
+            {% endif %}
+          {% endif %}
+        </div>
+
+        <!-- Telegram link -->
+        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fab fa-telegram {% if current_user.telegram_id %}text-info{% else %}text-muted{% endif %}"></i>
+            <div>
+              <div class="fw-bold small">Telegram</div>
+              <div class="text-muted" style="font-size:12px;">
+                {% if current_user.telegram_id %}{{ _("Linked") }} — {{ _("auto-verifies phone") }}
+                {% else %}{{ _("Not linked") }}{% endif %}
+              </div>
+            </div>
+          </div>
+          {% if current_user.telegram_id %}
+            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Linked") }}</span>
+          {% elif config.TELEGRAM_BOT_NAME %}
+            <a href="https://t.me/{{ config.TELEGRAM_BOT_NAME }}" target="_blank" class="btn btn-sm btn-outline-info">
+              <i class="fab fa-telegram me-1"></i>{{ _("Link") }}
+            </a>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SECTION 3: Payment Methods
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="profile-card mt-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="fw-bold mb-0"><i class="fas fa-credit-card me-2 text-primary"></i>{{ _("Payment Methods") }}</h5>
         <button onclick="addNewCard()" class="btn btn-outline-primary btn-sm" id="addCardBtn">
@@ -97,14 +209,12 @@
         </button>
       </div>
 
-      <!-- Card list -->
       <div id="cardsList">
         <div class="text-center py-3">
           <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
         </div>
       </div>
 
-      <!-- Add card form (hidden) -->
       <div id="addCardForm" style="display:none;" class="mt-3">
         <div class="border rounded-3 p-3" style="background:#f8fafc;">
           <div class="d-flex justify-content-between align-items-center mb-3">
@@ -123,117 +233,9 @@
       </div>
     </div>
 
-    <!-- Verification Section -->
-    <div class="profile-card mt-3">
-      <h5 class="fw-bold mb-3"><i class="fas fa-shield-alt me-2 text-primary"></i>{{ _("Verification") }}</h5>
-
-      <div class="d-flex flex-column gap-2">
-        <!-- Email verification -->
-        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
-          <div class="d-flex align-items-center gap-2">
-            <i class="fas fa-envelope {% if current_user.email_verified or current_user.google_id %}text-success{% else %}text-muted{% endif %}"></i>
-            <div>
-              <div class="fw-bold small">{{ _("Email") }}</div>
-              <div class="text-muted" style="font-size:12px;">
-                {% if current_user.email_verified %}
-                  {{ current_user.email }} — {{ _("Verified") }}
-                {% elif current_user.google_id %}
-                  {{ current_user.email }} — {{ _("Verified via Google") }}
-                {% else %}
-                  {{ current_user.email }} — {{ _("Not verified") }}
-                {% endif %}
-              </div>
-            </div>
-          </div>
-          {% if current_user.email_verified or current_user.google_id %}
-            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Verified") }}</span>
-          {% else %}
-            <button onclick="resendVerificationEmail(this)" class="btn btn-sm btn-outline-primary">
-              <i class="fas fa-paper-plane me-1"></i>{{ _("Send Verification") }}
-            </button>
-          {% endif %}
-        </div>
-
-        <!-- Phone verification -->
-        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
-          <div class="d-flex align-items-center gap-2">
-            <i class="fas fa-phone {% if current_user.phone_verified %}text-success{% else %}text-muted{% endif %}"></i>
-            <div>
-              <div class="fw-bold small">{{ _("Phone Number") }}</div>
-              <div class="text-muted" style="font-size:12px;">
-                {% if current_user.phone_verified %}
-                  {{ current_user.phone_number or '' }} — {{ _("Verified") }}
-                {% elif current_user.telegram_id %}
-                  {{ _("Verified via Telegram") }}
-                {% else %}
-                  {{ _("Link Telegram to verify phone") }}
-                {% endif %}
-              </div>
-            </div>
-          </div>
-          {% if current_user.phone_verified or current_user.telegram_id %}
-            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Verified") }}</span>
-          {% else %}
-            {% if telegram_bot_name %}
-            <a href="https://t.me/{{ telegram_bot_name }}" target="_blank" class="btn btn-sm btn-outline-info">
-              <i class="fab fa-telegram me-1"></i>{{ _("Link Telegram") }}
-            </a>
-            {% endif %}
-          {% endif %}
-        </div>
-
-        <!-- ID verification -->
-        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
-          <div class="d-flex align-items-center gap-2">
-            <i class="fas fa-id-card {% if current_user.id_verified %}text-success{% else %}text-muted{% endif %}"></i>
-            <div>
-              <div class="fw-bold small">{{ _("ID Document") }}</div>
-              <div class="text-muted" style="font-size:12px;">
-                {% if current_user.id_verified %}
-                  {{ _("Verified") }}
-                {% else %}
-                  {{ _("Upload ID in documents section above") }}
-                {% endif %}
-              </div>
-            </div>
-          </div>
-          {% if current_user.id_verified %}
-            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Verified") }}</span>
-          {% else %}
-            <span class="badge bg-warning text-dark">{{ _("Pending") }}</span>
-          {% endif %}
-        </div>
-
-        <!-- Telegram link -->
-        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
-          <div class="d-flex align-items-center gap-2">
-            <i class="fab fa-telegram {% if current_user.telegram_id %}text-info{% else %}text-muted{% endif %}"></i>
-            <div>
-              <div class="fw-bold small">Telegram</div>
-              <div class="text-muted" style="font-size:12px;">
-                {% if current_user.telegram_id %}
-                  {{ _("Linked") }} — {{ _("auto-verifies phone") }}
-                {% else %}
-                  {{ _("Not linked") }}
-                {% endif %}
-              </div>
-            </div>
-          </div>
-          {% if current_user.telegram_id %}
-            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Linked") }}</span>
-          {% else %}
-            {% if config.TELEGRAM_BOT_NAME %}
-            <a href="https://t.me/{{ config.TELEGRAM_BOT_NAME }}" target="_blank" class="btn btn-sm btn-outline-info">
-              <i class="fab fa-telegram me-1"></i>{{ _("Link") }}
-            </a>
-            {% endif %}
-          {% endif %}
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Visibility Settings -->
+    <!-- ═══════════════════════════════════════════════════════════
+         SECTION 4: Settings
+         ═══════════════════════════════════════════════════════════ -->
     {% set vis = current_user.profile_visibility | from_json %}
     {% set visibility_fields = [
       ('photo',        _('Profile Photo')),
@@ -295,17 +297,65 @@
 {% block scripts %}
 <script src="https://js.stripe.com/v3/"></script>
 <script>
-  const passwordInput = document.getElementById('password-input');
-  const togglePassword = document.getElementById('toggle-password');
-  if (togglePassword) {
-    togglePassword.addEventListener('click', function () {
-      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-      passwordInput.setAttribute('type', type);
-    });
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+  // ── Geolocation ────────────────────────────────────────────
+  function detectLocation() {
+      if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
+      const btn = event.currentTarget;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      btn.disabled = true;
+      navigator.geolocation.getCurrentPosition(pos => {
+          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json&accept-language={{ session.get('lang','en') }}`)
+          .then(r => r.json()).then(data => {
+              document.getElementById('addressInput').value = data.display_name || '';
+              btn.innerHTML = '<i class="fas fa-location-crosshairs"></i>';
+              btn.disabled = false;
+          }).catch(() => { btn.innerHTML = '<i class="fas fa-location-crosshairs"></i>'; btn.disabled = false; });
+      }, () => {
+          alert('Could not detect location. Please allow location access.');
+          btn.innerHTML = '<i class="fas fa-location-crosshairs"></i>';
+          btn.disabled = false;
+      });
+  }
+
+  // ── ID Document Upload ─────────────────────────────────────
+  function uploadIdDocument() {
+      const input = document.getElementById('idDocInput');
+      if (!input.files.length) return;
+      const file = input.files[0];
+      if (file.size > 5 * 1024 * 1024) { alert('Max 5MB'); return; }
+      const fd = new FormData();
+      fd.append('id_document', file);
+      fetch('/client/upload_id_document', {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrfToken },
+          body: fd
+      }).then(r => r.json()).then(data => {
+          if (data.success) location.reload();
+          else alert(data.message || 'Upload failed');
+      });
+  }
+
+  // ── Email Verification ─────────────────────────────────────
+  function resendVerificationEmail(btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    fetch('/auth/resend_verification_email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
+    }).then(r => r.json()).then(data => {
+      if (data.success) {
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>{{ _("Sent!") }}';
+        btn.classList.replace('btn-outline-primary', 'btn-outline-success');
+      } else {
+        btn.innerHTML = data.message || 'Error';
+        btn.disabled = false;
+      }
+    }).catch(() => { btn.disabled = false; btn.innerHTML = '{{ _("Send Verification") }}'; });
   }
 
   // ── Card Management ──────────────────────────────────────────
-  const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
   let stripe, elements, cardElement, clientSecret;
 
   const brandIcons = {
@@ -367,7 +417,6 @@
     document.getElementById('addCardBtn').style.display = 'none';
     document.getElementById('card-errors').style.display = 'none';
 
-    // Create SetupIntent and init Stripe Elements
     fetch('/client/api/cards/setup', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
@@ -378,7 +427,6 @@
         return;
       }
       clientSecret = data.client_secret;
-
       if (!stripe) {
         stripe = Stripe(data.public_key);
         elements = stripe.elements();
@@ -449,23 +497,5 @@
   }
 
   document.addEventListener('DOMContentLoaded', loadCards);
-
-  // ── Email Verification ─────────────────────────────────
-  function resendVerificationEmail(btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    fetch('/auth/resend_verification_email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
-    }).then(r => r.json()).then(data => {
-      if (data.success) {
-        btn.innerHTML = '<i class="fas fa-check me-1"></i>{{ _("Sent!") }}';
-        btn.classList.replace('btn-outline-primary', 'btn-outline-success');
-      } else {
-        btn.innerHTML = data.message || 'Error';
-        btn.disabled = false;
-      }
-    }).catch(() => { btn.disabled = false; btn.innerHTML = '{{ _("Send Verification") }}'; });
-  }
 </script>
 {% endblock %}

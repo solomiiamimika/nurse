@@ -220,6 +220,22 @@ def handle_send_message(data):
             'status': 'delivered'
         }, room=request.sid)
 
+        # Forward to Telegram if recipient has it linked
+        try:
+            recipient = User.query.get(int(data['recipient_id']))
+            if recipient and recipient.telegram_id and recipient.telegram_notifications:
+                from app.telegram.notifications import send_user_telegram
+                sender_display = current_user.full_name or current_user.user_name
+                base_url = current_app.config.get('BASE_URL', 'https://human-me.com')
+                tg_text = f"<b>{sender_display}:</b>\n{data['text']}"
+                send_user_telegram(recipient.id, tg_text, reply_markup={
+                    'inline_keyboard': [[
+                        {'text': 'Reply on website', 'url': f"{base_url}/chat/{current_user.id}"}
+                    ]]
+                })
+        except Exception:
+            current_app.logger.error("Failed to forward chat message to Telegram")
+
     except Exception as e:
         current_app.logger.error(f"SocketIO send_message error: {e}")
         emit('error', {'message': 'Failed to send message'}, room=request.sid)

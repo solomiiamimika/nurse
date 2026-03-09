@@ -132,6 +132,11 @@ class ConversationManager:
             self.process(telegram_id, role, bot_token, chat_id)
             return True
 
+        # Flexible date during create_request flow
+        if data == 'flexible_date' and session['flow'] == 'create_request':
+            self.process(telegram_id, '__flexible_date__', bot_token, chat_id)
+            return True
+
         return False
 
     def cleanup_expired(self, timeout_minutes=SESSION_TIMEOUT_MINUTES):
@@ -278,15 +283,19 @@ def _process_create_request(cm, telegram_id, text, bot_token, chat_id, session):
 
         if step < len(prompts):
             if step == 2:
-                try:
-                    dt = datetime.strptime(text.strip(), '%Y-%m-%d %H:%M')
-                    if dt < datetime.now():
-                        send_message(bot_token, chat_id, "Date must be in the future. Try again:")
+                if text == '__flexible_date__':
+                    session['data']['datetime'] = None
+                    session['data']['is_flexible_date'] = True
+                else:
+                    try:
+                        dt = datetime.strptime(text.strip(), '%Y-%m-%d %H:%M')
+                        if dt < datetime.now():
+                            send_message(bot_token, chat_id, "Date must be in the future. Try again:")
+                            return
+                        session['data']['datetime'] = dt.strftime('%Y-%m-%d %H:%M:%S')
+                    except ValueError:
+                        send_message(bot_token, chat_id, "Invalid format. Use <b>YYYY-MM-DD HH:MM</b>:")
                         return
-                    session['data']['datetime'] = dt.strftime('%Y-%m-%d %H:%M:%S')
-                except ValueError:
-                    send_message(bot_token, chat_id, "Invalid format. Use <b>YYYY-MM-DD HH:MM</b>:")
-                    return
             elif step == 3:
                 try:
                     dur = int(text.strip())
@@ -316,18 +325,24 @@ def _process_create_request(cm, telegram_id, text, bot_token, chat_id, session):
             session['step'] += 1
 
             if session['step'] < len(prompts):
-                send_message(bot_token, chat_id, prompts[session['step']])
+                # At date step, show "Flexible date" inline button
+                if session['step'] == 2:
+                    send_message(bot_token, chat_id, prompts[session['step']],
+                                 keyboards.flexible_date_option())
+                else:
+                    send_message(bot_token, chat_id, prompts[session['step']])
                 return
 
             # All info collected — show summary
             d = session['data']
-            dt = datetime.strptime(d['datetime'], '%Y-%m-%d %H:%M:%S')
+            is_flex = d.get('is_flexible_date', False)
+            date_str = 'Flexible (arrange later)' if is_flex else datetime.strptime(d['datetime'], '%Y-%m-%d %H:%M:%S').strftime('%d.%m.%Y %H:%M')
             session['step'] = len(prompts)
             send_message(bot_token, chat_id,
                          f"<b>Your request:</b>\n\n"
                          f"Service: {d['service_name']}\n"
                          f"Description: {d.get('description') or '—'}\n"
-                         f"Date: {dt.strftime('%d.%m.%Y %H:%M')}\n"
+                         f"Date: {date_str}\n"
                          f"Duration: {d['duration']} min\n"
                          f"Address: {d['address']}\n"
                          f"Budget: {d['budget']:.2f} EUR",
@@ -347,13 +362,19 @@ def _process_create_request(cm, telegram_id, text, bot_token, chat_id, session):
             return
 
         d = session['data']
-        dt = datetime.strptime(d['datetime'], '%Y-%m-%d %H:%M:%S')
+        is_flex = d.get('is_flexible_date', False)
         dur = d['duration']
+
+        if is_flex:
+            dt = datetime(2099, 1, 1)
+        else:
+            dt = datetime.strptime(d['datetime'], '%Y-%m-%d %H:%M:%S')
 
         appt = ClientSelfCreatedAppointment(
             patient_id=user.id,
             appointment_start_time=dt,
             end_time=dt + timedelta(minutes=dur),
+            is_flexible_date=is_flex,
             status='pending',
             service_name=d['service_name'],
             service_description=d.get('description') or None,

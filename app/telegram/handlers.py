@@ -725,9 +725,68 @@ def _search_faq(query):
 
 
 def handle_free_text(telegram_id, chat_id, bot_token, text, from_data):
-    """Handle non-command, non-greeting text — search FAQ and provide helpful answers."""
+    """Handle non-command, non-greeting text.
+
+    If the user has a recent chat partner (within 24h), forward the message
+    to the web chat.  Otherwise, search FAQ.
+    """
+    from app.models import Message as ChatMessage
+
     try:
         user = User.query.filter_by(telegram_id=telegram_id).first()
+
+        # Try to forward as a chat reply if user has recent web chat partner
+        if user:
+            last_msg = (
+                ChatMessage.query
+                .filter(
+                    db.or_(
+                        ChatMessage.sender_id == user.id,
+                        ChatMessage.recipient_id == user.id,
+                    )
+                )
+                .order_by(ChatMessage.timestamp.desc())
+                .first()
+            )
+
+            if last_msg and (datetime.utcnow() - last_msg.timestamp).total_seconds() < 86400:
+                # Determine the chat partner
+                partner_id = (
+                    last_msg.recipient_id
+                    if last_msg.sender_id == user.id
+                    else last_msg.sender_id
+                )
+                partner = User.query.get(partner_id)
+
+                if partner:
+                    # Save message to DB
+                    new_msg = ChatMessage(
+                        sender_id=user.id,
+                        recipient_id=partner_id,
+                        text=text,
+                        message_type='text',
+                    )
+                    db.session.add(new_msg)
+                    db.session.commit()
+
+                    # Emit via SocketIO to the web
+                    try:
+                        from app.extensions import socketio
+                        socketio.emit('new_message', {
+                            'id': new_msg.id,
+                            'sender_id': new_msg.sender_id,
+                            'sender_name': user.full_name or user.user_name,
+                            'text': new_msg.text,
+                            'message_type': 'text',
+                            'timestamp': new_msg.timestamp.isoformat(),
+                        }, room=f"user_{partner_id}", namespace='/')
+                    except Exception:
+                        logger.exception("Failed to emit SocketIO message from Telegram")
+
+                    partner_name = partner.full_name or partner.user_name
+                    send_message(bot_token, chat_id,
+                                 f"Message sent to <b>{partner_name}</b>.")
+                    return
 
         # Search FAQ
         results = _search_faq(text)
@@ -1134,6 +1193,7 @@ def handle_switch_role(telegram_id, chat_id, bot_token, from_data):
             return
 
         new_role = 'provider' if user.role == 'client' else 'client'
+        user.add_role(new_role)
         user.role = new_role
         db.session.commit()
 

@@ -69,6 +69,7 @@ class ClientSelfCreatedAppointment(db.Model):
     address              = Column(String, nullable=True)
     district             = Column(String(100), nullable=True)  # neighborhood shown to provider before acceptance
     service_tags         = Column(String(500), nullable=True)  # comma-separated tags
+    is_flexible_date     = Column(Boolean, default=False)       # date not fixed, arrange later
     created_appo         = Column(DateTime, default=datetime.now)
     payment_intent_id    = Column(String, nullable=True)   # Stripe PI id (for capture/cancel)
 

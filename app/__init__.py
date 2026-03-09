@@ -184,6 +184,18 @@ def create_app():
                 ('client_self_create_appointment', 'payment_method_type', 'VARCHAR(20)'),
                 ('client_self_create_appointment', 'deposit_amount', 'FLOAT'),
                 ('provider_service', 'deposit_percentage', 'INTEGER DEFAULT 0'),
+                ('client_self_create_appointment', 'is_flexible_date', 'BOOLEAN DEFAULT FALSE'),
+                ('user', 'id_document', 'VARCHAR'),
+                ('user', 'id_verification_status', 'VARCHAR(20)'),
+                ('user', 'id_rejection_reason', 'VARCHAR'),
+                # Dual-role
+                ('user', 'roles', "TEXT DEFAULT '[]'"),
+                # Young Helper
+                ('user', 'is_young_helper', 'BOOLEAN DEFAULT FALSE'),
+                ('user', 'parent_email', 'VARCHAR(255)'),
+                ('user', 'parent_consent_status', 'VARCHAR(20)'),
+                ('user', 'parent_consent_token', 'VARCHAR(100)'),
+                ('user', 'parent_iban', 'VARCHAR(34)'),
             ]
             for tbl, col, col_type in new_columns:
                 try:
@@ -195,6 +207,16 @@ def create_app():
                         db.session.commit()
                 except Exception:
                     db.session.rollback()
+
+            # Backfill roles from role column for existing users
+            try:
+                db.session.execute(text(
+                    """UPDATE "user" SET roles = '["' || role || '"]' """
+                    """WHERE role IS NOT NULL AND (roles IS NULL OR roles = '[]' OR roles = '')"""
+                ))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
         except Exception:
             db.session.rollback()
 

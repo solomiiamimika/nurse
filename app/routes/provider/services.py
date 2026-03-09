@@ -2,7 +2,7 @@ from . import provider_bp
 from flask import Blueprint, jsonify, request, current_app, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app.models import User, Message, db, Service, ProviderService, Appointment, ClientSelfCreatedAppointment, RequestOfferResponse, ServiceHistory, CancellationPolicy, SERVICE_TAGS
-from app.models.service import SERVICE_TAG_CATEGORIES
+from app.models.service import SERVICE_TAG_CATEGORIES, YOUNG_HELPER_ALLOWED_TAGS_FLAT
 from app.utils import fuzz_coordinates, haversine_distance, validate_coordinates
 from datetime import datetime
 import json
@@ -46,8 +46,23 @@ def manage_services():
             flash('Please verify your email or link Telegram before managing services.', 'warning')
             return redirect(url_for('provider.profile'))
 
+        # Young helper: block if parent consent not confirmed
+        if current_user.is_young_helper and not current_user.parent_consent_confirmed:
+            flash('Your parent/guardian must confirm consent before you can manage services.', 'warning')
+            return redirect(url_for('provider.manage_services'))
+
         try:
             action = request.form.get('action')
+
+            # Young helper: validate tags are in allowed set
+            if current_user.is_young_helper and action in ('add_custom', 'add', 'update'):
+                submitted_tags = request.form.get('tags', '')
+                if submitted_tags:
+                    tag_list = [t.strip() for t in submitted_tags.split(',') if t.strip()]
+                    forbidden = [t for t in tag_list if t not in YOUNG_HELPER_ALLOWED_TAGS_FLAT]
+                    if forbidden:
+                        flash(f'Young Helpers cannot use these tags: {", ".join(forbidden)}', 'danger')
+                        return redirect(url_for('provider.manage_services'))
 
             if action == 'add_custom':
                 new_service = ProviderService(
@@ -146,11 +161,15 @@ def manage_services():
 
         return redirect(url_for('provider.manage_services'))
 
+    young_allowed = list(YOUNG_HELPER_ALLOWED_TAGS_FLAT) if current_user.is_young_helper else None
     return render_template('provider/services.html',
                            standard_services=standard_services,
                            provider_services=provider_services,
                            service_tags=SERVICE_TAGS,
-                           service_tag_categories=SERVICE_TAG_CATEGORIES)
+                           service_tag_categories=SERVICE_TAG_CATEGORIES,
+                           is_young_helper=current_user.is_young_helper,
+                           young_consent_pending=current_user.is_young_helper and not current_user.parent_consent_confirmed,
+                           young_allowed_tags=young_allowed)
 
 
 @provider_bp.route('/service_history', methods=['GET'])

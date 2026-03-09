@@ -37,6 +37,11 @@
                               <i class="fas fa-check-circle me-1"></i>{{ _("Verified") }}
                             </span>
                             {% endif %}
+                            {% if provider.is_young_helper %}
+                            <span class="badge" style="font-size:11px;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;" title="{{ _('Young Helper') }}">
+                              <i class="fas fa-seedling me-1"></i>{{ _("Young Helper") }}
+                            </span>
+                            {% endif %}
                             <button class="btn btn-link p-0 fs-4 fav-provider-btn" id="favProviderBtn"
                                     data-provider-id="{{ provider.id }}"
                                     onclick="toggleFavProvider(this)"

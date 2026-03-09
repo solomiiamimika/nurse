@@ -13,7 +13,7 @@ Importing from here works exactly as before:
   from app.models import User, Appointment, Payment  ✓
 """
 from app.extensions import db
-from .user        import User, InvitationToken
+from .user        import User, InvitationToken, DeletedAccount
 from .service     import Service, ProviderService, CancellationPolicy, SERVICE_TAGS
 from .appointment import Appointment, ClientSelfCreatedAppointment, RequestOfferResponse, ServiceHistory, NoShowRecord, Dispute
 from .payment     import Payment

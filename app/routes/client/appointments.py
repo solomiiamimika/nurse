@@ -128,6 +128,13 @@ def get_appointments():
 
         # Also include client requests (ClientSelfCreatedAppointment)
         req_query = ClientSelfCreatedAppointment.query.filter_by(patient_id=current_user.id)
+        # Exclude flexible-date requests (sentinel 2099) from calendar view
+        req_query = req_query.filter(
+            db.or_(
+                ClientSelfCreatedAppointment.is_flexible_date == False,
+                ClientSelfCreatedAppointment.is_flexible_date == None
+            )
+        )
         if start_date and end_date:
             try:
                 req_query = req_query.filter(
@@ -342,8 +349,9 @@ def client_self_create_appointment():
 
     try:
         data = request.get_json()
+        is_flexible = bool(data.get('is_flexible_date'))
 
-        if not data.get('appointment_start_time'):
+        if not is_flexible and not data.get('appointment_start_time'):
             return jsonify({'success': False, 'error': 'Time is required'}), 400
 
         if not data.get('address', '').strip():
@@ -352,18 +360,22 @@ def client_self_create_appointment():
         if not data.get('district', '').strip():
             return jsonify({'success': False, 'error': 'District / neighborhood is required'}), 400
 
-        appointment_start_time = datetime.fromisoformat(data['appointment_start_time'].replace('Z', '+00:00'))
-
-        end_time = data.get('end_time')
-        if end_time:
-            end_time = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+        if is_flexible:
+            appointment_start_time = datetime(2099, 1, 1)
+            end_time = datetime(2099, 1, 1, 1, 0)
         else:
-            end_time = appointment_start_time + timedelta(hours=1)
+            appointment_start_time = datetime.fromisoformat(data['appointment_start_time'].replace('Z', '+00:00'))
+            end_time = data.get('end_time')
+            if end_time:
+                end_time = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+            else:
+                end_time = appointment_start_time + timedelta(hours=1)
 
         appointment = ClientSelfCreatedAppointment(
             patient_id=current_user.id,
             appointment_start_time=appointment_start_time,
             end_time=end_time,
+            is_flexible_date=is_flexible,
             latitude=data.get('latitude') or 0,
             longitude=data.get('longitude') or 0,
             address=data['address'].strip(),
@@ -453,6 +465,7 @@ def client_get_requests():
                 'address': req.address,
                 'district': req.district,
                 'service_tags': req.service_tags,
+                'is_flexible_date': req.is_flexible_date or False,
                 'offers': offers,
                 'accepted_provider': accepted_provider,
             })
@@ -1217,18 +1230,20 @@ def client_get_history():
             provider_name = None
             if req.provider:
                 provider_name = req.provider.full_name or req.provider.user_name
+            is_flex = getattr(req, 'is_flexible_date', False) or False
             items.append({
                 'id': req.id,
                 'type': 'request',
                 'service_name': req.service_name or 'Service',
                 'status': req.status,
                 'price': float(req.payment or 0),
-                'date': req.appointment_start_time.isoformat() if req.appointment_start_time else None,
-                'date_display': req.appointment_start_time.strftime('%d.%m.%Y %H:%M') if req.appointment_start_time else '',
+                'date': None if is_flex else (req.appointment_start_time.isoformat() if req.appointment_start_time else None),
+                'date_display': 'Flexible date' if is_flex else (req.appointment_start_time.strftime('%d.%m.%Y %H:%M') if req.appointment_start_time else ''),
+                'is_flexible_date': is_flex,
                 'provider_name': provider_name,
                 'notes': req.notes,
                 'receipt_number': f"REQ-{req.id}",
-                'sort_key': req.appointment_start_time.isoformat() if req.appointment_start_time else '1970-01-01',
+                'sort_key': req.created_appo.isoformat() if is_flex and req.created_appo else (req.appointment_start_time.isoformat() if req.appointment_start_time else '1970-01-01'),
             })
 
         # Direct bookings

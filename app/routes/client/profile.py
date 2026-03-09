@@ -124,7 +124,16 @@ def profile():
         documents = json.loads(current_user.documents)
         for i in documents:
             documents_urls[i] = get_file_url(i, buckets['documents'])
-    return render_template('client/profile.html', profile_photo=profile_photo, documents_urls=documents_urls, user=current_user)
+    id_doc_url = None
+    if current_user.id_document:
+        id_doc_url = get_file_url(current_user.id_document, buckets['documents'])
+
+    return render_template('client/profile.html',
+                           formatted_date=formatted_date,
+                           profile_photo=profile_photo,
+                           documents_urls=documents_urls,
+                           id_doc_url=id_doc_url,
+                           user=current_user)
 
 
 @client_bp.route('/update_visibility', methods=['POST'])
@@ -138,6 +147,34 @@ def update_visibility():
     current_user.profile_visibility = json.dumps(vis)
     db.session.commit()
     return jsonify({'success': True})
+
+
+@client_bp.route('/upload_id_document', methods=['POST'])
+@login_required
+def upload_id_document():
+    if current_user.role != 'client':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+    file = request.files.get('id_document')
+    if not file or file.filename == '':
+        return jsonify({'success': False, 'message': 'No file provided'})
+    ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+    if ext not in ('jpg', 'jpeg', 'png', 'pdf'):
+        return jsonify({'success': False, 'message': 'Allowed: JPG, PNG, PDF'})
+    try:
+        if current_user.id_document:
+            delete_from_supabase(current_user.id_document, buckets['documents'])
+        filename, _ = upload_to_supabase(file, buckets['documents'], current_user.id, 'id_document')
+        if filename:
+            current_user.id_document = filename
+            current_user.id_verification_status = 'pending'
+            current_user.id_verified = False
+            current_user.id_rejection_reason = None
+            db.session.commit()
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'message': 'Upload failed'})
+    except Exception:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
 
 
 @client_bp.route('/delete_document', methods=['POST'])

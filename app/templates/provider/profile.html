@@ -14,7 +14,12 @@
       </a>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════
+         SECTION 1: Personal Information
+         ═══════════════════════════════════════════════════════════ -->
     <div class="profile-card">
+      <h5 class="fw-bold mb-3"><i class="fas fa-user me-2 text-primary"></i>{{ _("Personal Information") }}</h5>
+
       <form method="POST" enctype="multipart/form-data">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
@@ -44,9 +49,23 @@
 
           <div class="col-md-6">
             <label class="form-label fw-bold small text-muted">{{ _("ADDRESS") }}</label>
-            <input type="text" name="address" class="form-control" value="{{ user.address or '' }}" />
+            <div class="input-group">
+              <input type="text" name="address" id="addressInput" class="form-control" value="{{ user.address or '' }}" />
+              <button type="button" class="btn btn-outline-secondary" onclick="detectLocation()" title="{{ _('Detect my location') }}">
+                <i class="fas fa-location-crosshairs"></i>
+              </button>
+            </div>
           </div>
 
+          {% if current_user.is_young_helper %}
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-muted"><i class="fas fa-seedling me-1" style="color:#10b981;"></i>{{ _("Parent/Guardian IBAN") }}</label>
+            <input type="text" name="parent_iban" class="form-control" value="{{ user.parent_iban or '' }}"
+                   placeholder="DE89 3704 0044 0532 0130 00" maxlength="34"
+                   style="font-family:monospace;letter-spacing:1px;" />
+            <div class="form-text">{{ _("Payments go to your parent/guardian's account (required for minors)") }}</div>
+          </div>
+          {% else %}
           <div class="col-md-6">
             <label class="form-label fw-bold small text-muted">IBAN</label>
             <input type="text" name="iban" class="form-control" value="{{ user.iban or '' }}"
@@ -54,19 +73,11 @@
                    style="font-family:monospace;letter-spacing:1px;" />
             <div class="form-text">{{ _("Required for receiving QR transfer payments") }}</div>
           </div>
+          {% endif %}
 
           <div class="col-12">
             <label class="form-label fw-bold small text-muted">{{ _("ABOUT ME") }}</label>
             <textarea name="about_me" class="form-control" rows="3">{{ user.about_me or '' }}</textarea>
-          </div>
-
-          <div class="col-12 mt-4">
-            <label class="form-label fw-bold small text-muted">{{ _("UPLOAD DOCUMENTS") }}</label>
-            <div class="input-group">
-              <input type="file" name="documents" id="documents" multiple class="form-control" />
-              <span class="input-group-text text-muted"><i class="fas fa-file-upload"></i></span>
-            </div>
-            <div class="form-text">{{ _("You can select multiple files (PDF, JPG, PNG)") }}</div>
           </div>
         </div>
 
@@ -74,14 +85,180 @@
           <button type="submit" class="btn btn-primary fw-bold px-4">{{ _("Update Profile") }}</button>
         </div>
       </form>
-
-      {% set delete_doc_endpoint = 'provider.delete_document' %}
-      {% include 'shared/_documents_grid.html' %}
     </div>
 
     {% include 'shared/_change_password_accordion.html' %}
 
-    <!-- Portfolio Gallery -->
+    <!-- ═══════════════════════════════════════════════════════════
+         SECTION 2: Documents & Verification
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="profile-card mt-4">
+      <h5 class="fw-bold mb-3"><i class="fas fa-shield-alt me-2 text-primary"></i>{{ _("Documents & Verification") }}</h5>
+      <p class="text-muted small mb-3">{{ _("Upload documents and verify your identity to build trust with clients") }}</p>
+
+      <div class="d-flex flex-column gap-3">
+
+        <!-- ID Document Upload -->
+        <div class="p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
+          <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fas fa-id-card {% if current_user.id_verification_status == 'approved' %}text-success{% elif current_user.id_verification_status == 'pending' %}text-warning{% elif current_user.id_verification_status == 'rejected' %}text-danger{% else %}text-muted{% endif %}" style="font-size:1.1rem;"></i>
+              <div>
+                <div class="fw-bold small">{{ _("ID Document") }}</div>
+                <div class="text-muted" style="font-size:12px;">
+                  {% if current_user.id_verification_status == 'approved' %}
+                    {{ _("Your identity has been verified") }}
+                  {% elif current_user.id_verification_status == 'pending' %}
+                    {{ _("Document uploaded — under review") }}
+                  {% elif current_user.id_verification_status == 'rejected' %}
+                    {{ _("Rejected") }}{% if current_user.id_rejection_reason %}: {{ current_user.id_rejection_reason }}{% endif %}
+                  {% else %}
+                    {{ _("Upload your passport or ID card") }}
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% if current_user.id_verification_status == 'approved' %}
+              <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Verified") }}</span>
+            {% elif current_user.id_verification_status == 'pending' %}
+              <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>{{ _("Pending") }}</span>
+            {% elif current_user.id_verification_status == 'rejected' %}
+              <span class="badge bg-danger"><i class="fas fa-times me-1"></i>{{ _("Rejected") }}</span>
+            {% endif %}
+          </div>
+
+          {% if current_user.id_verification_status != 'approved' %}
+          <div class="mt-2">
+            {% if id_doc_url %}
+            <div class="d-flex align-items-center gap-2 mb-2 p-2 bg-white rounded border">
+              <i class="fas fa-file-alt text-primary"></i>
+              <a href="{{ id_doc_url }}" target="_blank" class="small text-truncate">{{ _("View uploaded document") }}</a>
+            </div>
+            {% endif %}
+            <div class="d-flex align-items-center gap-2">
+              <input type="file" id="idDocInput" class="form-control form-control-sm" accept=".jpg,.jpeg,.png,.pdf" style="max-width:300px;">
+              <button onclick="uploadIdDocument()" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-upload me-1"></i>{{ _("Upload") }}
+              </button>
+            </div>
+            <div class="form-text">{{ _("JPG, PNG or PDF. Max 5MB.") }}</div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Email verification -->
+        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-envelope {% if current_user.email_verified or current_user.google_id %}text-success{% else %}text-muted{% endif %}"></i>
+            <div>
+              <div class="fw-bold small">{{ _("Email") }}</div>
+              <div class="text-muted" style="font-size:12px;">
+                {% if current_user.email_verified %}{{ current_user.email }} — {{ _("Verified") }}
+                {% elif current_user.google_id %}{{ current_user.email }} — {{ _("Verified via Google") }}
+                {% else %}{{ current_user.email }} — {{ _("Not verified") }}{% endif %}
+              </div>
+            </div>
+          </div>
+          {% if current_user.email_verified or current_user.google_id %}
+            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Verified") }}</span>
+          {% else %}
+            <button onclick="resendVerificationEmail(this)" class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-paper-plane me-1"></i>{{ _("Send Verification") }}
+            </button>
+          {% endif %}
+        </div>
+
+        <!-- Phone / Telegram verification -->
+        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-phone {% if current_user.phone_verified or current_user.telegram_id %}text-success{% else %}text-muted{% endif %}"></i>
+            <div>
+              <div class="fw-bold small">{{ _("Phone Number") }}</div>
+              <div class="text-muted" style="font-size:12px;">
+                {% if current_user.phone_verified %}{{ current_user.phone_number or '' }} — {{ _("Verified") }}
+                {% elif current_user.telegram_id %}{{ _("Verified via Telegram") }}
+                {% else %}{{ _("Link Telegram to verify phone") }}{% endif %}
+              </div>
+            </div>
+          </div>
+          {% if current_user.phone_verified or current_user.telegram_id %}
+            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Verified") }}</span>
+          {% else %}
+            {% if config.TELEGRAM_BOT_NAME %}
+            <a href="https://t.me/{{ config.TELEGRAM_BOT_NAME }}" target="_blank" class="btn btn-sm btn-outline-info">
+              <i class="fab fa-telegram me-1"></i>{{ _("Link Telegram") }}
+            </a>
+            {% endif %}
+          {% endif %}
+        </div>
+
+        <!-- Telegram link -->
+        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fab fa-telegram {% if current_user.telegram_id %}text-info{% else %}text-muted{% endif %}"></i>
+            <div>
+              <div class="fw-bold small">Telegram</div>
+              <div class="text-muted" style="font-size:12px;">
+                {% if current_user.telegram_id %}{{ _("Linked") }}{% else %}{{ _("Not linked") }}{% endif %}
+              </div>
+            </div>
+          </div>
+          {% if current_user.telegram_id %}
+            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Linked") }}</span>
+          {% elif config.TELEGRAM_BOT_NAME %}
+            <a href="https://t.me/{{ config.TELEGRAM_BOT_NAME }}" target="_blank" class="btn btn-sm btn-outline-info">
+              <i class="fab fa-telegram me-1"></i>{{ _("Link") }}
+            </a>
+          {% endif %}
+        </div>
+
+        <!-- Insurance -->
+        <div class="p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fas fa-file-medical {% if current_user.has_insurance and current_user.insurance_document %}text-success{% else %}text-muted{% endif %}"></i>
+              <div>
+                <div class="fw-bold small">{{ _("Insurance") }}</div>
+                <div class="text-muted" style="font-size:12px;">{{ _("Professional liability insurance") }}</div>
+              </div>
+            </div>
+            {% if current_user.has_insurance and current_user.insurance_document %}
+              <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Uploaded") }}</span>
+            {% endif %}
+          </div>
+
+          <div class="form-check mb-2">
+            <input type="checkbox" id="insuranceCheck" class="form-check-input"
+                   {% if current_user.has_insurance %}checked{% endif %}
+                   onchange="saveInsuranceFlag(this.checked)">
+            <label for="insuranceCheck" class="form-check-label small">
+              {{ _("I have professional liability insurance") }}
+            </label>
+          </div>
+
+          <div class="d-flex align-items-center gap-2">
+            <input type="file" id="insuranceFileInput" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
+                   onchange="uploadInsuranceDoc(this)" style="max-width:300px;">
+          </div>
+          <div class="form-text">{{ _("PDF, JPG or PNG accepted") }}</div>
+
+          {% if current_user.insurance_document %}
+          <div class="mt-2 p-2 bg-white rounded border d-flex align-items-center gap-2">
+            <i class="fas fa-file-alt text-success"></i>
+            <a href="{{ insurance_doc_url }}" target="_blank" class="small">{{ _("View insurance document") }}</a>
+            <button type="button" class="btn btn-sm btn-outline-danger ms-auto" onclick="deleteInsuranceDoc()">
+              <i class="fas fa-trash" style="font-size:12px;"></i>
+            </button>
+          </div>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SECTION 3: Portfolio Gallery
+         ═══════════════════════════════════════════════════════════ -->
     <div class="profile-card mt-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="fw-bold mb-0"><i class="fas fa-images me-2 text-primary"></i>{{ _("Portfolio") }}</h5>
@@ -118,40 +295,110 @@
       </div>
     </div>
 
-    <!-- Insurance Section -->
+    <!-- ═══════════════════════════════════════════════════════════
+         SECTION 4: Payout Settings
+         ═══════════════════════════════════════════════════════════ -->
     <div class="profile-card mt-4">
-      <h6 class="fw-bold mb-3">{{ _("Insurance") }}</h6>
-      <div class="form-check mb-3">
-        <input type="checkbox" id="insuranceCheck" class="form-check-input"
-               {% if current_user.has_insurance %}checked{% endif %}
-               onchange="saveInsuranceFlag(this.checked)">
-        <label for="insuranceCheck" class="form-check-label">
-          {{ _("I have professional liability insurance") }}
-        </label>
-      </div>
+      <h5 class="fw-bold mb-3"><i class="fas fa-wallet me-2 text-primary"></i>{{ _("Payout Settings") }}</h5>
 
-      <div class="mb-2">
-        <label class="form-label fw-bold small text-muted">{{ _("UPLOAD INSURANCE DOCUMENT") }}</label>
-        <input type="file" id="insuranceFileInput" class="form-control" accept=".pdf,.jpg,.jpeg,.png"
-               onchange="uploadInsuranceDoc(this)">
-        <div class="form-text">{{ _("PDF, JPG or PNG accepted") }}</div>
-      </div>
+      {% if current_user.is_young_helper %}
+        <div class="alert alert-info mb-3" style="border-radius:12px;">
+          <i class="fas fa-seedling me-2"></i>
+          <strong>{{ _("Young Helper") }}</strong> — {{ _("As a minor, payments are sent to your parent/guardian's IBAN. Stripe onboarding is not available until you turn 18.") }}
+        </div>
+        <div class="p-3 rounded-3 mb-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
+          <div class="small text-muted fw-bold mb-1">{{ _("PARENT/GUARDIAN IBAN") }}</div>
+          {% if current_user.parent_iban %}
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-university text-primary"></i>
+            <span style="font-family:monospace;letter-spacing:1px;">{{ current_user.parent_iban }}</span>
+            <span class="badge bg-success"><i class="fas fa-check"></i></span>
+          </div>
+          {% else %}
+          <div class="text-muted">{{ _("Not set yet — please add it in the profile form above.") }}</div>
+          {% endif %}
+        </div>
+      {% elif current_user.stripe_account_id %}
+        {% if stripe_info and not stripe_info.get('error') %}
+          <div class="d-flex gap-2 mb-3 flex-wrap">
+            {% if stripe_info.charges_enabled %}
+              <span class="badge bg-success">{{ _("Payments") }} ✓</span>
+            {% else %}
+              <span class="badge bg-warning text-dark">{{ _("Payments pending") }}</span>
+            {% endif %}
+            {% if stripe_info.payouts_enabled %}
+              <span class="badge bg-success">{{ _("Payouts") }} ✓</span>
+            {% else %}
+              <span class="badge bg-warning text-dark">{{ _("Payouts pending") }}</span>
+            {% endif %}
+          </div>
 
-      {% if current_user.insurance_document %}
-      <div class="mt-2 p-3 bg-light rounded d-flex align-items-center gap-2">
-        <i class="fas fa-file-alt text-success"></i>
-        <a href="{{ insurance_doc_url }}" target="_blank" class="small">
-          {{ _("View insurance document") }}
-        </a>
-        <button type="button" class="btn btn-sm btn-outline-danger ms-auto"
-                onclick="deleteInsuranceDoc()">
-          <i class="fas fa-trash"></i>
-        </button>
-      </div>
+          {% if stripe_info.bank_name or stripe_info.last4 %}
+          <div class="mb-3 p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
+            <div class="small text-muted fw-bold mb-1">{{ _("CONNECTED BANK ACCOUNT") }}</div>
+            <div class="d-flex align-items-center gap-2">
+              <i class="fas fa-university text-primary"></i>
+              <span>{{ stripe_info.bank_name or _("Bank") }} •••• {{ stripe_info.last4 }}</span>
+            </div>
+            {% if stripe_info.account_holder %}
+            <div class="small text-muted mt-1">{{ stripe_info.account_holder }}</div>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <div class="mb-3 p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
+            <div class="small text-muted fw-bold mb-1">{{ _("AVAILABLE BALANCE") }}</div>
+            <div class="fs-5 fw-bold text-success">{{ "%.2f"|format(stripe_info.available_balance) }} {{ stripe_info.currency }}</div>
+          </div>
+
+          <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ url_for('provider.stripe_login_link') }}" class="btn btn-primary">
+              <i class="fab fa-stripe-s"></i> {{ _("Open Stripe Dashboard") }}
+            </a>
+            <a href="{{ url_for('provider.provider_finances_management') }}" class="btn btn-outline-secondary">
+              <i class="fas fa-receipt"></i> {{ _("Transactions") }}
+            </a>
+          </div>
+        {% else %}
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            {{ _("Could not load Stripe account info.") }}
+            <a href="{{ url_for('provider.connect_stripe') }}" class="alert-link">{{ _("Retry") }}</a>
+          </div>
+          <a href="{{ url_for('provider.provider_finances_management') }}" class="btn btn-outline-secondary mt-2">
+            <i class="fas fa-receipt"></i> {{ _("Transactions") }}
+          </a>
+        {% endif %}
+      {% else %}
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle"></i>
+          {{ _("Connect your bank account to receive payments.") }}
+        </div>
+        <form action="{{ url_for('provider.connect_stripe') }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <div class="mb-3">
+            <label class="form-label">{{ _("Select your country:") }}</label>
+            <select name="country" class="form-select" required>
+              <option value="UA">Ukraine (UA)</option>
+              <option value="US">United States (US)</option>
+              <option value="PL">Poland (PL)</option>
+              <option value="DE">Germany (DE)</option>
+              <option value="GB">United Kingdom (GB)</option>
+              <option value="FR">France (FR)</option>
+              <option value="ES">Spain (ES)</option>
+              <option value="IT">Italy (IT)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">
+            <i class="fab fa-stripe-s"></i> {{ _("Connect with Stripe") }}
+          </button>
+        </form>
       {% endif %}
     </div>
 
-    <!-- Visibility Settings -->
+    <!-- ═══════════════════════════════════════════════════════════
+         SECTION 5: Settings
+         ═══════════════════════════════════════════════════════════ -->
     {% set vis = current_user.profile_visibility | from_json %}
     {% set visibility_fields = [
       ('photo',        _('Profile Photo')),
@@ -165,182 +412,50 @@
     ] %}
     {% include 'shared/_visibility_settings.html' %}
 
-    <!-- Verification Section -->
-    <div class="profile-card mt-4">
-      <h5 class="fw-bold mb-3"><i class="fas fa-shield-alt me-2 text-primary"></i>{{ _("Verification") }}</h5>
-      <div class="d-flex flex-column gap-2">
-        <!-- Email verification -->
-        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
-          <div class="d-flex align-items-center gap-2">
-            <i class="fas fa-envelope {% if current_user.email_verified or current_user.google_id %}text-success{% else %}text-muted{% endif %}"></i>
-            <div>
-              <div class="fw-bold small">{{ _("Email") }}</div>
-              <div class="text-muted" style="font-size:12px;">
-                {% if current_user.email_verified %}{{ current_user.email }} — {{ _("Verified") }}
-                {% elif current_user.google_id %}{{ current_user.email }} — {{ _("Verified via Google") }}
-                {% else %}{{ current_user.email }} — {{ _("Not verified") }}{% endif %}
-              </div>
-            </div>
-          </div>
-          {% if current_user.email_verified or current_user.google_id %}
-            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Verified") }}</span>
-          {% else %}
-            <button onclick="resendVerificationEmail(this)" class="btn btn-sm btn-outline-primary">
-              <i class="fas fa-paper-plane me-1"></i>{{ _("Send Verification") }}
+    <div class="mt-3">
+      <div class="accordion" id="dangerZoneAccordion">
+        <div class="accordion-item border-danger">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed bg-white text-danger fw-bold" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#collapseDanger">
+              <i class="fas fa-exclamation-triangle me-2"></i> {{ _("Danger Zone") }}
             </button>
-          {% endif %}
-        </div>
-        <!-- Phone verification -->
-        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
-          <div class="d-flex align-items-center gap-2">
-            <i class="fas fa-phone {% if current_user.phone_verified or current_user.telegram_id %}text-success{% else %}text-muted{% endif %}"></i>
-            <div>
-              <div class="fw-bold small">{{ _("Phone Number") }}</div>
-              <div class="text-muted" style="font-size:12px;">
-                {% if current_user.phone_verified %}{{ current_user.phone_number or '' }} — {{ _("Verified") }}
-                {% elif current_user.telegram_id %}{{ _("Verified via Telegram") }}
-                {% else %}{{ _("Link Telegram to verify phone") }}{% endif %}
-              </div>
-            </div>
-          </div>
-          {% if current_user.phone_verified or current_user.telegram_id %}
-            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Verified") }}</span>
-          {% else %}
-            {% if config.TELEGRAM_BOT_NAME %}
-            <a href="https://t.me/{{ config.TELEGRAM_BOT_NAME }}" target="_blank" class="btn btn-sm btn-outline-info">
-              <i class="fab fa-telegram me-1"></i>{{ _("Link Telegram") }}
-            </a>
-            {% endif %}
-          {% endif %}
-        </div>
-        <!-- ID verification -->
-        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
-          <div class="d-flex align-items-center gap-2">
-            <i class="fas fa-id-card {% if current_user.id_verified or current_user.is_verified %}text-success{% else %}text-muted{% endif %}"></i>
-            <div>
-              <div class="fw-bold small">{{ _("ID / Identity") }}</div>
-              <div class="text-muted" style="font-size:12px;">
-                {% if current_user.is_verified %}{{ _("Verified") }} ({{ current_user.verification_method or 'manual' }})
-                {% elif current_user.id_verified %}{{ _("Verified") }}
-                {% else %}{{ _("Upload ID in documents above for review") }}{% endif %}
-              </div>
-            </div>
-          </div>
-          {% if current_user.is_verified or current_user.id_verified %}
-            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Verified") }}</span>
-          {% else %}
-            <span class="badge bg-warning text-dark">{{ _("Pending") }}</span>
-          {% endif %}
-        </div>
-        <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f8fafc;border:1px solid #e5e7eb;">
-          <div class="d-flex align-items-center gap-2">
-            <i class="fab fa-telegram {% if current_user.telegram_id %}text-info{% else %}text-muted{% endif %}"></i>
-            <div>
-              <div class="fw-bold small">Telegram</div>
-              <div class="text-muted" style="font-size:12px;">
-                {% if current_user.telegram_id %}{{ _("Linked") }}{% else %}{{ _("Not linked") }}{% endif %}
-              </div>
-            </div>
-          </div>
-          {% if current_user.telegram_id %}
-            <span class="badge bg-success"><i class="fas fa-check me-1"></i>{{ _("Linked") }}</span>
-          {% elif config.TELEGRAM_BOT_NAME %}
-            <a href="https://t.me/{{ config.TELEGRAM_BOT_NAME }}" target="_blank" class="btn btn-sm btn-outline-info">
-              <i class="fab fa-telegram me-1"></i>{{ _("Link") }}
-            </a>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-
-    <div class="mt-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title fw-bold">{{ _("Payout Settings") }}</h5>
-
-          {% if current_user.stripe_account_id %}
-            {% if stripe_info and not stripe_info.get('error') %}
-              <div class="d-flex gap-2 mb-3 flex-wrap">
-                {% if stripe_info.charges_enabled %}
-                  <span class="badge bg-success">{{ _("Payments") }} ✓</span>
-                {% else %}
-                  <span class="badge bg-warning text-dark">{{ _("Payments pending") }}</span>
-                {% endif %}
-                {% if stripe_info.payouts_enabled %}
-                  <span class="badge bg-success">{{ _("Payouts") }} ✓</span>
-                {% else %}
-                  <span class="badge bg-warning text-dark">{{ _("Payouts pending") }}</span>
-                {% endif %}
-              </div>
-
-              {% if stripe_info.bank_name or stripe_info.last4 %}
-              <div class="mb-3 p-3 bg-light rounded">
-                <div class="small text-muted fw-bold mb-1">{{ _("CONNECTED BANK ACCOUNT") }}</div>
-                <div class="d-flex align-items-center gap-2">
-                  <i class="fas fa-university text-primary"></i>
-                  <span>{{ stripe_info.bank_name or _("Bank") }} •••• {{ stripe_info.last4 }}</span>
-                </div>
-                {% if stripe_info.account_holder %}
-                <div class="small text-muted mt-1">{{ stripe_info.account_holder }}</div>
-                {% endif %}
-              </div>
-              {% endif %}
-
-              <div class="mb-3 p-3 bg-light rounded">
-                <div class="small text-muted fw-bold mb-1">{{ _("AVAILABLE BALANCE") }}</div>
-                <div class="fs-5 fw-bold text-success">{{ "%.2f"|format(stripe_info.available_balance) }} {{ stripe_info.currency }}</div>
-              </div>
-
-              <div class="d-flex gap-2 flex-wrap">
-                <a href="{{ url_for('provider.stripe_login_link') }}" class="btn btn-primary">
-                  <i class="fab fa-stripe-s"></i> {{ _("Open Stripe Dashboard") }}
-                </a>
-                <a href="{{ url_for('provider.provider_finances_management') }}" class="btn btn-outline-secondary">
-                  <i class="fas fa-receipt"></i> {{ _("Transactions") }}
-                </a>
-              </div>
-
-            {% else %}
-              <div class="alert alert-warning">
-                <i class="fas fa-exclamation-triangle"></i>
-                {{ _("Could not load Stripe account info.") }}
-                <a href="{{ url_for('provider.connect_stripe') }}" class="alert-link">{{ _("Retry") }}</a>
-              </div>
-              <a href="{{ url_for('provider.provider_finances_management') }}" class="btn btn-outline-secondary mt-2">
-                <i class="fas fa-receipt"></i> {{ _("Transactions") }}
-              </a>
-            {% endif %}
-
-          {% else %}
-            <div class="alert alert-warning">
-              <i class="fas fa-exclamation-triangle"></i>
-              {{ _("Connect your bank account to receive payments.") }}
-            </div>
-            <form action="{{ url_for('provider.connect_stripe') }}" method="POST">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-              <div class="mb-3">
-                <label class="form-label">{{ _("Select your country:") }}</label>
-                <select name="country" class="form-select" required>
-                  <option value="UA">Ukraine (UA)</option>
-                  <option value="US">United States (US)</option>
-                  <option value="PL">Poland (PL)</option>
-                  <option value="DE">Germany (DE)</option>
-                  <option value="GB">United Kingdom (GB)</option>
-                  <option value="FR">France (FR)</option>
-                  <option value="ES">Spain (ES)</option>
-                  <option value="IT">Italy (IT)</option>
-                </select>
-              </div>
-              <button type="submit" class="btn btn-primary">
-                <i class="fab fa-stripe-s"></i> {{ _("Connect with Stripe") }}
+          </h2>
+          <div id="collapseDanger" class="accordion-collapse collapse" data-bs-parent="#dangerZoneAccordion">
+            <div class="accordion-body">
+              <p class="small text-muted">{{ _("Once you delete your account, there is no going back. Please be certain.") }}</p>
+              <p class="small text-muted">{{ _("You cannot delete your account while you have active appointments.") }}</p>
+              <button type="button" class="btn btn-outline-danger btn-sm"
+                      data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                {{ _("Delete Account") }}
               </button>
-            </form>
-          {% endif %}
-
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
+  </div>
+</div>
+
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title text-danger fw-bold">{{ _("Delete Account?") }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Close') }}"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-0">{{ _("Are you absolutely sure? This action cannot be undone. All your data, photos, and history will be permanently erased.") }}</p>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ _("Cancel") }}</button>
+        <form action="{{ url_for('auth.delete_account') }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-danger">{{ _("Yes, Delete Everything") }}</button>
+        </form>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -350,6 +465,45 @@
 <script>
 const _csrf = document.querySelector('meta[name="csrf-token"]').content;
 
+// ── Geolocation ────────────────────────────────────────────
+function detectLocation() {
+    if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
+    const btn = event.currentTarget;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    btn.disabled = true;
+    navigator.geolocation.getCurrentPosition(pos => {
+        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json&accept-language={{ session.get('lang','en') }}`)
+        .then(r => r.json()).then(data => {
+            document.getElementById('addressInput').value = data.display_name || '';
+            btn.innerHTML = '<i class="fas fa-location-crosshairs"></i>';
+            btn.disabled = false;
+        }).catch(() => { btn.innerHTML = '<i class="fas fa-location-crosshairs"></i>'; btn.disabled = false; });
+    }, () => {
+        alert('Could not detect location. Please allow location access.');
+        btn.innerHTML = '<i class="fas fa-location-crosshairs"></i>';
+        btn.disabled = false;
+    });
+}
+
+// ── ID Document Upload ─────────────────────────────────────
+function uploadIdDocument() {
+    const input = document.getElementById('idDocInput');
+    if (!input.files.length) return;
+    const file = input.files[0];
+    if (file.size > 5 * 1024 * 1024) { alert('Max 5MB'); return; }
+    const fd = new FormData();
+    fd.append('id_document', file);
+    fetch('/provider/upload_id_document', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': _csrf },
+        body: fd
+    }).then(r => r.json()).then(data => {
+        if (data.success) location.reload();
+        else alert(data.message || 'Upload failed');
+    });
+}
+
+// ── Insurance ──────────────────────────────────────────────
 function saveInsuranceFlag(checked) {
     fetch('/provider/update_insurance_flag', {
         method: 'POST',
@@ -393,13 +547,31 @@ function deleteInsuranceDoc() {
     });
 }
 
+// ── Email Verification ───────────────────────────────────────
+function resendVerificationEmail(btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    fetch('/auth/resend_verification_email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': _csrf }
+    }).then(r => r.json()).then(data => {
+      if (data.success) {
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>{{ _("Sent!") }}';
+        btn.classList.replace('btn-outline-primary', 'btn-outline-success');
+      } else {
+        btn.innerHTML = data.message || 'Error';
+        btn.disabled = false;
+      }
+    }).catch(() => { btn.disabled = false; btn.innerHTML = '{{ _("Send Verification") }}'; });
+}
+
 // ── Portfolio Gallery ──────────────────────────────────────
 document.getElementById('portfolioUpload').addEventListener('change', function() {
     const files = Array.from(this.files);
     if (!files.length) return;
 
-    const maxPhoto = 5 * 1024 * 1024;   // 5MB
-    const maxVideo = 20 * 1024 * 1024;   // 20MB
+    const maxPhoto = 5 * 1024 * 1024;
+    const maxVideo = 20 * 1024 * 1024;
     const validImg = ['image/jpeg','image/png','image/gif','image/webp'];
     const validVid = ['video/mp4','video/quicktime','video/webm'];
 
@@ -412,7 +584,6 @@ document.getElementById('portfolioUpload').addEventListener('change', function()
 
         const fd = new FormData();
         fd.append('file', file);
-
         fetch('/provider/portfolio/upload', {
             method: 'POST',
             headers: { 'X-CSRFToken': _csrf },
@@ -451,24 +622,6 @@ function addPortfolioItemToGrid(item) {
     grid.appendChild(col);
 }
 
-// ── Email Verification ───────────────────────────────────────
-function resendVerificationEmail(btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    fetch('/auth/resend_verification_email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': _csrf }
-    }).then(r => r.json()).then(data => {
-      if (data.success) {
-        btn.innerHTML = '<i class="fas fa-check me-1"></i>{{ _("Sent!") }}';
-        btn.classList.replace('btn-outline-primary', 'btn-outline-success');
-      } else {
-        btn.innerHTML = data.message || 'Error';
-        btn.disabled = false;
-      }
-    }).catch(() => { btn.disabled = false; btn.innerHTML = '{{ _("Send Verification") }}'; });
-}
-
 function deletePortfolioItem(filename) {
     confirmAction("{{ _('Remove this item?') }}", {
         title: '{{ _("Delete Item") }}',
@@ -478,7 +631,6 @@ function deletePortfolioItem(filename) {
         iconColor: '#dc3545'
     }).then(ok => {
         if (!ok) return;
-
         fetch('/provider/portfolio/delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': _csrf },

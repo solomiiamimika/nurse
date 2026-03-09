@@ -61,6 +61,19 @@ def profile():
                     flash('Invalid IBAN format', 'danger')
             elif iban_input == '':
                 current_user.iban = None
+
+            # Young helper: parent IBAN
+            if current_user.is_young_helper:
+                parent_iban_input = request.form.get('parent_iban', '').strip()
+                if parent_iban_input:
+                    from app.utils.qr_payment import validate_iban
+                    if validate_iban(parent_iban_input):
+                        current_user.parent_iban = parent_iban_input.replace(' ', '').upper()
+                    else:
+                        flash('Invalid parent IBAN format', 'danger')
+                elif parent_iban_input == '':
+                    current_user.parent_iban = None
+
             new_password = request.form.get('password', '').strip()
             if new_password:
                 current_user.password_hash = bcrypt.generate_password_hash(new_password).decode('utf-8')
@@ -166,6 +179,10 @@ def profile():
         except (json.JSONDecodeError, KeyError):
             pass
 
+    id_doc_url = None
+    if current_user.id_document:
+        id_doc_url = get_file_url(current_user.id_document, buckets['documents'])
+
     return render_template('provider/profile.html',
                            formatted_date=formatted_date,
                            documents_urls=documents_urls,
@@ -173,6 +190,7 @@ def profile():
                            stripe_info=stripe_info,
                            insurance_doc_url=insurance_doc_url,
                            portfolio_items=portfolio_items,
+                           id_doc_url=id_doc_url,
                            user=current_user)
 
 
@@ -314,6 +332,34 @@ def portfolio_delete():
     db.session.commit()
 
     return jsonify({'success': True})
+
+
+@provider_bp.route('/upload_id_document', methods=['POST'])
+@login_required
+def upload_id_document():
+    if current_user.role != 'provider':
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+    file = request.files.get('id_document')
+    if not file or file.filename == '':
+        return jsonify({'success': False, 'message': 'No file provided'})
+    ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+    if ext not in ('jpg', 'jpeg', 'png', 'pdf'):
+        return jsonify({'success': False, 'message': 'Allowed: JPG, PNG, PDF'})
+    try:
+        if current_user.id_document:
+            delete_from_supabase(current_user.id_document, buckets['documents'])
+        filename, _ = upload_to_supabase(file, buckets['documents'], current_user.id, 'id_document')
+        if filename:
+            current_user.id_document = filename
+            current_user.id_verification_status = 'pending'
+            current_user.id_verified = False
+            current_user.id_rejection_reason = None
+            db.session.commit()
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'message': 'Upload failed'})
+    except Exception:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
 
 
 @provider_bp.route('/update_visibility', methods=['POST'])

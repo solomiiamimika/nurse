@@ -47,6 +47,13 @@
       <button class="btn-tool btn-tool-accent" data-bs-toggle="modal" data-bs-target="#createRequestModal">
         <i class="fas fa-plus"></i> {{ _("Post a Request") }}
       </button>
+      <form action="{{ url_for('auth.switch_role') }}" method="post" style="display:inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="target_role" value="provider" />
+        <button type="submit" class="btn-tool" style="color:#0284c7;font-weight:600;" title="{{ _('Switch to Provider') }}">
+          <i class="fas fa-exchange-alt"></i> {% if current_user.has_role('provider') %}{{ _("Switch to Provider") }}{% else %}{{ _("Also become a Provider") }}{% endif %}
+        </button>
+      </form>
       <form action="{{url_for('auth.logout')}}" method="post" style="display:inline">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <button type="submit" class="btn-icon text-danger" title="{{ _('Exit') }}"><i class="fas fa-sign-out-alt"></i></button>
@@ -60,7 +67,7 @@
   <div class="row g-4">
 
       <!-- Left: Map -->
-      <div class="col-lg-8">
+      <div class="col-lg-6">
         <div class="content-card h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
                   <h5 class="mb-0 fw-bold text-dark">{{ _("Map View") }}</h5>
@@ -74,7 +81,7 @@
       </div>
 
       <!-- Right: Tabs -->
-      <div class="col-lg-4">
+      <div class="col-lg-6">
 
         <!-- Tracking banner (hidden by default) -->
         <div id="trackingBanner" class="d-none mb-3 p-3 rounded-3 shadow-sm" style="background:linear-gradient(135deg,#1dbf73 0%,#0ea5e9 100%);color:#fff;">
@@ -269,14 +276,22 @@
                   <label class="form-label fw-bold small text-muted">{{ _("SERVICE NEEDED") }}</label>
                   <input type="text" class="form-control" id="reqServiceName" required placeholder="{{ _('e.g. Home Injection') }}">
               </div>
-              <div class="row">
+              <div class="mb-3">
+                  <div class="form-check">
+                      <input type="checkbox" class="form-check-input" id="reqFlexibleDate" onchange="toggleFlexibleDate(this.checked)">
+                      <label class="form-check-label small" for="reqFlexibleDate">
+                          <i class="fas fa-calendar-alt me-1 text-muted"></i>{{ _("Date is flexible — I'll arrange the schedule with the provider") }}
+                      </label>
+                  </div>
+              </div>
+              <div class="row" id="dateTimeRow">
                   <div class="col-6 mb-3">
                       <label class="form-label fw-bold small text-muted">{{ _("BUDGET (EUR)") }}</label>
                       <input type="number" class="form-control" id="reqPayment" required>
                   </div>
-                  <div class="col-6 mb-3">
+                  <div class="col-6 mb-3" id="dateTimeField">
                       <label class="form-label fw-bold small text-muted">{{ _("WHEN?") }}</label>
-                      <input type="text" class="form-control flatpickr-datetime" id="reqTime" required placeholder="{{ _('Select date & time') }}">
+                      <input type="text" class="form-control flatpickr-datetime" id="reqTime" placeholder="{{ _('Select date & time') }}">
                   </div>
               </div>
               <div class="mb-3">
@@ -1076,11 +1091,19 @@
       }
       const latLng = { lat, lng };
 
+      const isFlexible = document.getElementById('reqFlexibleDate').checked;
+      const timeVal = document.getElementById('reqTime').value;
+      if (!isFlexible && !timeVal) {
+          alert("{{ _('Please select a date or mark as flexible.') }}");
+          return;
+      }
+
       const data = {
           service_name: document.getElementById('reqServiceName').value,
           notes: document.getElementById('reqNotes').value,
           payment: document.getElementById('reqPayment').value,
-          appointment_start_time: document.getElementById('reqTime').value,
+          appointment_start_time: timeVal || null,
+          is_flexible_date: isFlexible,
           address: address,
           district: district,
           service_tags: document.getElementById('reqServiceTags').value,
@@ -1523,6 +1546,9 @@
                       <button onclick="event.stopPropagation();openBookingModal('${p.id}','${(p.name||'').replace(/'/g, "\\'")}')" class="btn btn-sm flex-grow-1" style="font-size:0.8rem;font-weight:600;background:var(--primary-green,#3f4a36);color:#fff;">
                           <i class="fas fa-calendar-plus me-1"></i>{{ _("Book") }}
                       </button>
+                      <button onclick="event.stopPropagation();toggleFavoriteProvider(${p.id}, this)" class="btn btn-sm btn-outline-danger" style="font-size:0.8rem;padding:4px 8px;" title="{{ _('Favorite') }}">
+                          <i class="far fa-heart"></i>
+                      </button>
                   </div>
               </div>
           </div>`;
@@ -1591,7 +1617,7 @@
                   <strong>${req.service_name}</strong>
                   ${badge}
               </div>
-              <small class="text-muted">${new Date(req.appointment_start_time).toLocaleString()}</small>
+              <small class="text-muted">${req.is_flexible_date ? '<i class="fas fa-calendar-alt me-1"></i>{{ _("Flexible date") }}' : new Date(req.appointment_start_time).toLocaleString()}</small>
               ${req.payment ? `<div class="small text-success fw-bold mt-1">${req.payment}</div>` : ''}
               <div class="d-flex gap-2 mt-2 flex-wrap">`;
 
@@ -1865,10 +1891,25 @@
         });
   }
 
+  // Toggle flexible date — hide/show date field
+  window.toggleFlexibleDate = function(checked) {
+      const dateField = document.getElementById('dateTimeField');
+      const reqTime = document.getElementById('reqTime');
+      if (checked) {
+          dateField.style.display = 'none';
+          reqTime.value = '';
+      } else {
+          dateField.style.display = '';
+      }
+  };
+
   // Reset detected coords when the request modal is closed
   document.getElementById('createRequestModal').addEventListener('hidden.bs.modal', () => {
       _detectedLat = null; _detectedLng = null;
       document.getElementById('reqAddressStatus').textContent = '';
+      // Reset flexible date checkbox
+      document.getElementById('reqFlexibleDate').checked = false;
+      toggleFlexibleDate(false);
   });
 
   function loadUnreadCount() {
@@ -2041,6 +2082,26 @@
               }
           });
   }
+
+  window.toggleFavoriteProvider = function(providerId, btn) {
+      fetch('/client/favorite/toggle', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+          body: JSON.stringify({provider_id: providerId})
+      })
+      .then(r => r.json())
+      .then(data => {
+          const icon = btn.querySelector('i');
+          if (data.is_favorite) {
+              icon.className = 'fas fa-heart';
+              icon.style.color = '#e74c3c';
+          } else {
+              icon.className = 'far fa-heart';
+              icon.style.color = '';
+          }
+          _favoritesLoaded = false;
+      });
+  };
 
   document.addEventListener('DOMContentLoaded', () => {
       initMap();
