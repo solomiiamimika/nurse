@@ -22,6 +22,12 @@ class Config:
     # ── Database ───────────────────────────────────────────────────
     SQLALCHEMY_DATABASE_URI      = os.getenv('DATABASE_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+        'pool_size': 5,
+        'max_overflow': 10,
+    }
 
     # ── Google OAuth ───────────────────────────────────────────────
     GOOGLE_OAUTH_CLIENT_ID     = os.getenv('GOOGLE_OAUTH_CLIENT_ID')
