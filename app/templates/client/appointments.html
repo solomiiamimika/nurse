@@ -873,18 +873,46 @@
               const data = await resp.json();
               if (!data.success) { alert(data.error || 'Error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-qrcode"></i> {{ _("Pay by QR Transfer") }}'; return; }
 
-              // Show QR modal
-              const qrHtml = `
-                <div class="text-center">
-                  <img src="${data.qr_image}" alt="QR Code" style="max-width:280px;border-radius:12px;border:2px solid #e5e7eb;" class="mb-3">
-                  <div class="bg-light p-3 rounded mb-3 text-start" style="font-size:13px;">
-                    <div class="mb-1"><strong>{{ _("Recipient:") }}</strong> ${data.name}</div>
-                    <div class="mb-1"><strong>IBAN:</strong> <code>${data.iban}</code></div>
-                    <div class="mb-1"><strong>{{ _("Amount:") }}</strong> €${data.amount.toFixed(2)}</div>
-                    <div><strong>{{ _("Reference:") }}</strong> ${data.reference}</div>
-                  </div>
-                  <p class="text-muted small">{{ _("Scan QR with your banking app to transfer") }}</p>
-                </div>`;
+              // Show QR (desktop) or copy-details (mobile)
+              const isMobile = window.innerWidth < 768;
+              const copyBtnHtml = (label, value) => {
+                  const escaped = value.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                  return `
+                  <div class="d-flex align-items-center justify-content-between mb-2 p-2 rounded" style="background:#f8fafc;border:1px solid #e5e7eb;">
+                    <div class="text-start" style="min-width:0;overflow:hidden;">
+                      <div class="text-muted" style="font-size:11px;">${label}</div>
+                      <div class="fw-bold" style="font-size:14px;word-break:break-all;">${value}</div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary ms-2" style="white-space:nowrap;"
+                      onclick="navigator.clipboard.writeText('${escaped}').then(()=>{this.innerHTML='<i class=\\'fas fa-check\\'></i>';this.classList.replace('btn-outline-primary','btn-success');setTimeout(()=>{this.innerHTML='<i class=\\'fas fa-copy\\'></i>';this.classList.replace('btn-success','btn-outline-primary');},1500);})">
+                      <i class="fas fa-copy"></i>
+                    </button>
+                  </div>`;
+              };
+
+              let qrHtml;
+              if (isMobile) {
+                  qrHtml = `
+                    <div>
+                      ${copyBtnHtml('{{ _("Recipient") }}', data.name)}
+                      ${copyBtnHtml('IBAN', data.iban)}
+                      ${copyBtnHtml('{{ _("Amount") }}', '€' + data.amount.toFixed(2))}
+                      ${copyBtnHtml('{{ _("Reference") }}', data.reference)}
+                      <p class="text-muted small text-center mt-3 mb-0">{{ _("Copy the details and paste them in your banking app") }}</p>
+                    </div>`;
+              } else {
+                  qrHtml = `
+                    <div class="text-center">
+                      <img src="${data.qr_image}" alt="QR Code" style="max-width:280px;border-radius:12px;border:2px solid #e5e7eb;" class="mb-3">
+                      <div class="bg-light p-3 rounded mb-3 text-start" style="font-size:13px;">
+                        <div class="mb-1"><strong>{{ _("Recipient:") }}</strong> ${data.name}</div>
+                        <div class="mb-1"><strong>IBAN:</strong> <code>${data.iban}</code></div>
+                        <div class="mb-1"><strong>{{ _("Amount:") }}</strong> €${data.amount.toFixed(2)}</div>
+                        <div><strong>{{ _("Reference:") }}</strong> ${data.reference}</div>
+                      </div>
+                      <p class="text-muted small">{{ _("Scan QR with your banking app to transfer") }}</p>
+                    </div>`;
+              }
 
               const ok = await confirmAction(qrHtml, {
                   title: '{{ _("QR Transfer Payment") }}',
