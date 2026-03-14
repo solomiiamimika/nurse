@@ -589,7 +589,7 @@ def forgot_password():
             flash('Please enter your email address.', 'danger')
             return redirect(url_for('auth.forgot_password'))
 
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter((User.email == email) | (User.user_name == email)).first()
         if user:
             token = _generate_token(user.id, salt='password-reset')
             reset_url = url_for('auth.reset_password', token=token, _external=True)
