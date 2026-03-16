@@ -649,6 +649,51 @@ def reset_password(token):
     return render_template('auth/reset_password.html')
 
 
+# ── Account Setup (owner-created accounts) ───────────────────────
+
+@auth_bp.route('/setup/<token>', methods=['GET', 'POST'])
+def setup_account(token):
+    if current_user.is_authenticated:
+        return redirect(url_for(f'{current_user.role}.dashboard'))
+
+    user_id = _verify_token(token, salt='account-setup', max_age=604800)  # 7 days
+    if not user_id:
+        flash('Invalid or expired setup link. Please contact support.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    user = User.query.get(user_id)
+    if not user:
+        flash('User not found.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    if request.method == 'POST':
+        new_email = request.form.get('new_email', '').strip()
+        new_pw    = request.form.get('new_password', '')
+        confirm   = request.form.get('confirm_password', '')
+
+        if new_email and new_email != user.email:
+            existing = User.query.filter(User.email == new_email, User.id != user.id).first()
+            if existing:
+                flash('This email is already in use.', 'danger')
+                return render_template('auth/setup_account.html', user=user)
+            user.email = new_email
+
+        if new_pw:
+            if len(new_pw) < 8:
+                flash('Password must be at least 8 characters.', 'danger')
+                return render_template('auth/setup_account.html', user=user)
+            if new_pw != confirm:
+                flash('Passwords do not match.', 'danger')
+                return render_template('auth/setup_account.html', user=user)
+            user.password = new_pw
+
+        db.session.commit()
+        flash('Account set up successfully! Please log in.', 'success')
+        return redirect(url_for('auth.login'))
+
+    return render_template('auth/setup_account.html', user=user)
+
+
 @auth_bp.route('/verification_status')
 @login_required
 def verification_status():

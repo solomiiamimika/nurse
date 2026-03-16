@@ -5,16 +5,21 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
 <div class="bg-white rounded-3 border p-4 mb-4">
-    <form class="d-flex gap-2 flex-wrap" method="GET">
-        <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" style="max-width:240px;" placeholder="Search name, email...">
-        <select name="role" class="form-select form-select-sm" style="max-width:150px;">
-            <option value="">All roles</option>
-            <option value="client" {% if role_filter == 'client' %}selected{% endif %}>Client</option>
-            <option value="provider" {% if role_filter == 'provider' %}selected{% endif %}>Provider</option>
-        </select>
-        <button type="submit" class="btn btn-sm btn-dark">Filter</button>
-        <a href="{{ url_for('owner.users') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
-    </form>
+    <div class="d-flex gap-2 flex-wrap justify-content-between align-items-center">
+        <form class="d-flex gap-2 flex-wrap" method="GET">
+            <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" style="max-width:240px;" placeholder="Search name, email...">
+            <select name="role" class="form-select form-select-sm" style="max-width:150px;">
+                <option value="">All roles</option>
+                <option value="client" {% if role_filter == 'client' %}selected{% endif %}>Client</option>
+                <option value="provider" {% if role_filter == 'provider' %}selected{% endif %}>Provider</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-dark">Filter</button>
+            <a href="{{ url_for('owner.users') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+        </form>
+        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#createUserModal">
+            <i class="fas fa-plus me-1"></i>Create User
+        </button>
+    </div>
 </div>
 
 <div class="bg-white rounded-3 border">
@@ -60,13 +65,22 @@
                     </td>
                     <td class="text-muted small">{{ u.created_at.strftime('%d.%m.%Y') if u.created_at else '—' }}</td>
                     <td id="verified-{{ u.id }}">
-                        {% if u.is_verified %}
-                            <span class="badge bg-success-subtle text-success"><i class="fas fa-check-circle"></i> Yes</span>
-                        {% elif u.role == 'provider' %}
-                            <span class="badge bg-warning-subtle text-warning">No</span>
-                        {% else %}
-                            <span class="text-muted small">—</span>
+                        <div class="d-flex flex-column gap-1">
+                        {% if u.role == 'provider' %}
+                            <span class="badge {% if u.is_verified %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %}" style="font-size:.7rem;">
+                                <i class="fas fa-{% if u.is_verified %}check{% else %}times{% endif %}-circle"></i> Provider
+                            </span>
                         {% endif %}
+                            <span class="badge {% if u.email_verified %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-secondary{% endif %}" style="font-size:.7rem;">
+                                <i class="fas fa-{% if u.email_verified %}check{% else %}times{% endif %}"></i> Email
+                            </span>
+                            <span class="badge {% if u.phone_verified %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-secondary{% endif %}" style="font-size:.7rem;">
+                                <i class="fas fa-{% if u.phone_verified %}check{% else %}times{% endif %}"></i> Phone
+                            </span>
+                            <span class="badge {% if u.id_verified %}bg-success-subtle text-success{% else %}bg-secondary-subtle text-secondary{% endif %}" style="font-size:.7rem;">
+                                <i class="fas fa-{% if u.id_verified %}check{% else %}times{% endif %}"></i> ID
+                            </span>
+                        </div>
                     </td>
                     <td id="status-{{ u.id }}">
                         {% if u.is_active %}
@@ -76,7 +90,7 @@
                         {% endif %}
                     </td>
                     <td>
-                        <div class="d-flex gap-1">
+                        <div class="d-flex flex-column gap-1">
                         {% if not u.is_owner and u.id != current_user.id %}
                         <button class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
                                 id="toggle-btn-{{ u.id }}"
@@ -91,6 +105,12 @@
                             {% if u.is_verified %}Unverify{% else %}Verify{% endif %}
                         </button>
                         {% endif %}
+                        <button class="btn btn-sm btn-outline-primary" onclick="getSetupLink({{ u.id }})">
+                            <i class="fas fa-link"></i> Setup Link
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="showVerifyModal({{ u.id }}, {{ 'true' if u.email_verified else 'false' }}, {{ 'true' if u.phone_verified else 'false' }}, {{ 'true' if u.id_verified else 'false' }})">
+                            <i class="fas fa-shield-alt"></i> Verify
+                        </button>
                         </div>
                     </td>
                 </tr>
@@ -100,8 +120,166 @@
     </div>
 </div>
 
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Create User</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-bold small">Username *</label>
+          <input type="text" id="newUsername" class="form-control" placeholder="johndoe" required minlength="2">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold small">Email *</label>
+          <input type="email" id="newEmail" class="form-control" placeholder="john@example.com" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold small">Full Name</label>
+          <input type="text" id="newFullName" class="form-control" placeholder="John Doe">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold small">Role *</label>
+          <select id="newRole" class="form-select">
+            <option value="client">Client</option>
+            <option value="provider">Provider</option>
+          </select>
+        </div>
+        <div id="createResult" class="alert alert-success" style="display:none;"></div>
+        <div id="createError" class="alert alert-danger" style="display:none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success" id="createUserBtn" onclick="createUser()">
+          <i class="fas fa-plus me-1"></i>Create
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Manual Verify Modal -->
+<div class="modal fade" id="verifyModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-shield-alt me-2"></i>Manual Verification</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="verifyUserId">
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" id="verifyEmail">
+          <label class="form-check-label fw-bold" for="verifyEmail"><i class="fas fa-envelope me-1"></i> Email Verified</label>
+        </div>
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" id="verifyPhone">
+          <label class="form-check-label fw-bold" for="verifyPhone"><i class="fas fa-phone me-1"></i> Phone Verified</label>
+        </div>
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" id="verifyId">
+          <label class="form-check-label fw-bold" for="verifyId"><i class="fas fa-id-card me-1"></i> ID Verified</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="saveVerification()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Setup Link Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100;">
+  <div class="toast align-items-center text-bg-success" id="linkToast" role="alert">
+    <div class="d-flex">
+      <div class="toast-body"><i class="fas fa-check me-1"></i> Setup link copied to clipboard!</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
 <script>
 const csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+function createUser() {
+    const username = document.getElementById('newUsername').value.trim();
+    const email = document.getElementById('newEmail').value.trim();
+    const fullName = document.getElementById('newFullName').value.trim();
+    const role = document.getElementById('newRole').value;
+    const resultEl = document.getElementById('createResult');
+    const errorEl = document.getElementById('createError');
+    resultEl.style.display = 'none';
+    errorEl.style.display = 'none';
+
+    if (!username || !email) { errorEl.textContent = 'Username and email are required'; errorEl.style.display = 'block'; return; }
+
+    document.getElementById('createUserBtn').disabled = true;
+
+    fetch('/owner/users/create', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, full_name: fullName, role })
+    }).then(r => r.json()).then(data => {
+        document.getElementById('createUserBtn').disabled = false;
+        if (!data.success) { errorEl.textContent = data.message; errorEl.style.display = 'block'; return; }
+        resultEl.innerHTML = `
+            <strong>User created!</strong><br>
+            Username: <code>${data.username}</code><br>
+            Temp password: <code>${data.temp_password}</code><br>
+            <a href="${data.setup_url}" target="_blank">Setup Link</a>
+            <button class="btn btn-sm btn-outline-success ms-2" onclick="navigator.clipboard.writeText('${data.setup_url}');this.textContent='Copied!';">
+                <i class="fas fa-copy"></i> Copy Link
+            </button>`;
+        resultEl.style.display = 'block';
+        // Reload page after 3 seconds to show new user in table
+        setTimeout(() => location.reload(), 3000);
+    }).catch(() => {
+        document.getElementById('createUserBtn').disabled = false;
+        errorEl.textContent = 'Network error'; errorEl.style.display = 'block';
+    });
+}
+
+function getSetupLink(userId) {
+    fetch(`/owner/users/${userId}/setup_link`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' }
+    }).then(r => r.json()).then(data => {
+        if (!data.success) { alert('Error generating link'); return; }
+        navigator.clipboard.writeText(data.setup_url).then(() => {
+            const toast = new bootstrap.Toast(document.getElementById('linkToast'));
+            toast.show();
+        });
+    });
+}
+
+function showVerifyModal(userId, emailV, phoneV, idV) {
+    document.getElementById('verifyUserId').value = userId;
+    document.getElementById('verifyEmail').checked = emailV;
+    document.getElementById('verifyPhone').checked = phoneV;
+    document.getElementById('verifyId').checked = idV;
+    new bootstrap.Modal(document.getElementById('verifyModal')).show();
+}
+
+function saveVerification() {
+    const userId = document.getElementById('verifyUserId').value;
+    fetch(`/owner/users/${userId}/manual_verify`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email_verified: document.getElementById('verifyEmail').checked,
+            phone_verified: document.getElementById('verifyPhone').checked,
+            id_verified: document.getElementById('verifyId').checked,
+        })
+    }).then(r => r.json()).then(data => {
+        if (!data.success) { alert('Error'); return; }
+        bootstrap.Modal.getInstance(document.getElementById('verifyModal')).hide();
+        location.reload();
+    });
+}
 
 function toggleActive(userId, currentlyActive) {
     fetch(`/owner/users/${userId}/toggle_active`, {
@@ -141,15 +319,12 @@ function toggleVerify(userId, currentlyVerified) {
         body: JSON.stringify({ method: 'manual' })
     }).then(r => r.json()).then(data => {
         if (!data.success) { alert(data.message); return; }
-        const verEl = document.getElementById(`verified-${userId}`);
         const btn = document.getElementById(`verify-btn-${userId}`);
         if (data.is_verified) {
-            verEl.innerHTML = '<span class="badge bg-success-subtle text-success"><i class="fas fa-check-circle"></i> Yes</span>';
             btn.textContent = 'Unverify';
             btn.className = 'btn btn-sm btn-outline-secondary';
             btn.setAttribute('onclick', `toggleVerify(${userId}, true)`);
         } else {
-            verEl.innerHTML = '<span class="badge bg-warning-subtle text-warning">No</span>';
             btn.textContent = 'Verify';
             btn.className = 'btn btn-sm btn-outline-success';
             btn.setAttribute('onclick', `toggleVerify(${userId}, false)`);

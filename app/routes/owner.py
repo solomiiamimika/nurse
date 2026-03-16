@@ -1,4 +1,5 @@
 from functools import wraps
+import json
 import requests as http_requests
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, abort, current_app
 from flask_login import login_required, current_user
@@ -100,6 +101,103 @@ def change_role(user_id):
     user.role = new_role
     db.session.commit()
     return jsonify({'success': True, 'role': user.role})
+
+
+# ── Create User (manual) ──────────────────────────────────────────────────────
+
+@owner_bp.route('/users/create', methods=['POST'])
+@owner_required
+def create_user():
+    """Owner creates a user account manually."""
+    data = request.get_json() or {}
+    username  = data.get('username', '').strip()
+    email     = data.get('email', '').strip()
+    full_name = data.get('full_name', '').strip()
+    role      = data.get('role', 'client')
+
+    if not username or len(username) < 2:
+        return jsonify({'success': False, 'message': 'Username must be at least 2 characters'}), 400
+    if not email:
+        return jsonify({'success': False, 'message': 'Email is required'}), 400
+    if role not in ('client', 'provider'):
+        return jsonify({'success': False, 'message': 'Invalid role'}), 400
+    if User.query.filter_by(user_name=username).first():
+        return jsonify({'success': False, 'message': 'Username already taken'}), 400
+    if User.query.filter_by(email=email).first():
+        return jsonify({'success': False, 'message': 'Email already registered'}), 400
+
+    temp_password = secrets.token_urlsafe(12)
+
+    # Generate unique referral code
+    while True:
+        ref_code = secrets.token_urlsafe(6)[:8].upper()
+        if not User.query.filter_by(referral_code=ref_code).first():
+            break
+
+    user = User(
+        user_name=username,
+        email=email,
+        full_name=full_name or None,
+        role=role,
+        roles=json.dumps([role]),
+        referral_code=ref_code,
+        terms_accepted=True,
+        email_verified=False,
+        phone_verified=False,
+        id_verified=False,
+    )
+    user.password = temp_password
+    db.session.add(user)
+    db.session.commit()
+
+    # Generate setup link
+    from app.routes.auth import _generate_token
+    token = _generate_token(user.id, salt='account-setup')
+    setup_url = url_for('auth.setup_account', token=token, _external=True)
+
+    return jsonify({
+        'success': True,
+        'user_id': user.id,
+        'username': user.user_name,
+        'temp_password': temp_password,
+        'setup_url': setup_url,
+    })
+
+
+@owner_bp.route('/users/<int:user_id>/setup_link', methods=['POST'])
+@owner_required
+def generate_setup_link(user_id):
+    """Generate a new setup link for an existing user."""
+    user = User.query.get_or_404(user_id)
+    from app.routes.auth import _generate_token
+    token = _generate_token(user.id, salt='account-setup')
+    setup_url = url_for('auth.setup_account', token=token, _external=True)
+    return jsonify({'success': True, 'setup_url': setup_url})
+
+
+@owner_bp.route('/users/<int:user_id>/manual_verify', methods=['POST'])
+@owner_required
+def manual_verify(user_id):
+    """Owner manually toggles verification flags."""
+    user = User.query.get_or_404(user_id)
+    data = request.get_json() or {}
+
+    if 'email_verified' in data:
+        user.email_verified = bool(data['email_verified'])
+    if 'phone_verified' in data:
+        user.phone_verified = bool(data['phone_verified'])
+    if 'id_verified' in data:
+        user.id_verified = bool(data['id_verified'])
+        if user.id_verified:
+            user.id_verification_status = 'approved'
+
+    db.session.commit()
+    return jsonify({
+        'success': True,
+        'email_verified': user.email_verified,
+        'phone_verified': user.phone_verified,
+        'id_verified': user.id_verified,
+    })
 
 
 # ── Services ──────────────────────────────────────────────────────────────────
