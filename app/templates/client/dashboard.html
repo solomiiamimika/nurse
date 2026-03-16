@@ -1284,26 +1284,51 @@
   };
 
   async function updateLocation() {
-      if (!navigator.geolocation) return alert("{{ _('Geolocation not supported') }}");
+      if (!navigator.geolocation) { alert("{{ _('Geolocation not supported') }}"); return; }
+      const btn = document.getElementById('location-btn');
+      const origHTML = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ _("Locating...") }}';
+      btn.disabled = true;
       showStatus("{{ _('Locating...') }}");
-      navigator.geolocation.getCurrentPosition(async (position) => {
-          const {latitude, longitude} = position.coords;
-          if (map) {
-              createUserMarker(latitude, longitude);
-              map.setView([latitude, longitude], 13);
-          }
 
-          await fetch('{{ url_for("client.update_location") }}', {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
-              body: JSON.stringify({latitude, longitude})
-          });
-          showStatus("{{ _('Location updated') }}");
+      navigator.geolocation.getCurrentPosition(async (position) => {
+          try {
+              const {latitude, longitude} = position.coords;
+              if (map) {
+                  createUserMarker(latitude, longitude);
+                  map.setView([latitude, longitude], 13);
+              }
+
+              const resp = await fetch('{{ url_for("client.update_location") }}', {
+                  method: 'POST',
+                  headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+                  body: JSON.stringify({latitude, longitude})
+              });
+              const data = await resp.json();
+              if (data.success) {
+                  showStatus("{{ _('Location updated') }}");
+              } else {
+                  showStatus(data.message || "{{ _('Error updating location') }}", true);
+              }
+          } catch (e) {
+              showStatus("{{ _('Network error. Please try again.') }}", true);
+          } finally {
+              btn.innerHTML = origHTML;
+              btn.disabled = false;
+          }
       }, (err) => {
-              if (err.code === 1) showStatus("{{ _('Location access denied. Please allow location in browser settings.') }}", true);
-          else if (err.code === 2) showStatus("{{ _('Location unavailable. Please try again.') }}", true);
-          else showStatus("{{ _('Location request timed out. Please try again.') }}", true);
-      }, {enableHighAccuracy: true, timeout: 10000, maximumAge: 60000});
+          btn.innerHTML = origHTML;
+          btn.disabled = false;
+          if (err.code === 1) {
+              showStatus("{{ _('Location access denied. Please allow location in browser settings.') }}", true);
+              alert("{{ _('Location access denied. Please allow location access in your browser settings and try again.') }}");
+          } else if (err.code === 2) {
+              showStatus("{{ _('Location unavailable. Please check that location services are enabled on your device.') }}", true);
+              alert("{{ _('Location unavailable. Please check that location services are enabled on your device and try again.') }}");
+          } else {
+              showStatus("{{ _('Location request timed out. Please try again.') }}", true);
+          }
+      }, {enableHighAccuracy: true, timeout: 15000, maximumAge: 300000});
   }
 
   window.openBookingModal = function(providerId, providerName) {

@@ -1344,6 +1344,10 @@
 
   document.getElementById('location-btn').addEventListener('click', () => {
       if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
+      const btn = document.getElementById('location-btn');
+      const origHTML = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ _("Locating...") }}';
+      btn.disabled = true;
       showStatus('{{ _("Locating...") }}');
       navigator.geolocation.getCurrentPosition(
           (pos) => {
@@ -1354,6 +1358,8 @@
                   headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
                   body: JSON.stringify({latitude: lat, longitude: lng})
               }).then(r => r.json()).then(data => {
+                  btn.innerHTML = origHTML;
+                  btn.disabled = false;
                   if (data.success) {
                       showStatus('{{ _("Location updated!") }}');
                       if (userMarker) userMarker.setLatLng([lat, lng]);
@@ -1362,14 +1368,26 @@
                   } else {
                       showStatus(data.message || 'Error', true);
                   }
+              }).catch(() => {
+                  btn.innerHTML = origHTML;
+                  btn.disabled = false;
+                  showStatus("{{ _('Network error. Please try again.') }}", true);
               });
           },
           (err) => {
-              if (err.code === 1) showStatus("{{ _('Location access denied. Please allow location in browser settings.') }}", true);
-              else if (err.code === 2) showStatus("{{ _('Location unavailable. Please try again.') }}", true);
-              else showStatus("{{ _('Location request timed out. Please try again.') }}", true);
+              btn.innerHTML = origHTML;
+              btn.disabled = false;
+              if (err.code === 1) {
+                  showStatus("{{ _('Location access denied. Please allow location in browser settings.') }}", true);
+                  alert("{{ _('Location access denied. Please allow location access in your browser settings and try again.') }}");
+              } else if (err.code === 2) {
+                  showStatus("{{ _('Location unavailable. Please check that location services are enabled on your device.') }}", true);
+                  alert("{{ _('Location unavailable. Please check that location services are enabled on your device and try again.') }}");
+              } else {
+                  showStatus("{{ _('Location request timed out. Please try again.') }}", true);
+              }
           },
-          {enableHighAccuracy: true, timeout: 10000, maximumAge: 60000}
+          {enableHighAccuracy: true, timeout: 15000, maximumAge: 300000}
       );
   });
 

@@ -743,7 +743,20 @@
                 btn.style.color = '#4caf50';
                 setTimeout(() => { btn.className = 'fas fa-location-arrow'; btn.style.color = 'var(--primary-green)'; btn.style.pointerEvents = ''; }, 2000);
             },
-            () => { btn.className = 'fas fa-location-arrow'; btn.style.pointerEvents = ''; input.placeholder = '{{ _("Location access denied") }}'; }
+            (err) => {
+                btn.className = 'fas fa-location-arrow';
+                btn.style.pointerEvents = '';
+                if (err.code === 1) {
+                    input.placeholder = '{{ _("Location access denied") }}';
+                    alert("{{ _('Location access denied. Please allow location access in your browser settings and try again.') }}");
+                } else if (err.code === 2) {
+                    input.placeholder = '{{ _("Location unavailable") }}';
+                    alert("{{ _('Location unavailable. Please check that location services are enabled on your device.') }}");
+                } else {
+                    input.placeholder = '{{ _("Location timed out") }}';
+                }
+            },
+            {enableHighAccuracy: true, timeout: 15000, maximumAge: 300000}
         );
     }
 
