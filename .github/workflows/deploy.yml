@@ -18,4 +18,5 @@ jobs:
             cd /var/www/human-me.com/nurse
             git pull origin main
             /var/www/human-me.com/venv/bin/pip install -r requirements.txt --quiet
+            /var/www/human-me.com/venv/bin/pybabel compile -d translations
             systemctl restart gunicorn.service
