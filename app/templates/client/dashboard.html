@@ -481,10 +481,22 @@
 
     /* Mobile responsive */
     @media (max-width: 768px) {
-        .sticky-toolbar-wrapper { padding: 12px 0 16px; border-radius: 0 0 12px 12px; }
-        .toolbar-inner { overflow-x: auto; white-space: nowrap; justify-content: flex-start !important; padding-bottom: 5px; }
-        .btn-tool { padding: 8px 12px; font-size: 0.8rem; }
+        .sticky-toolbar-wrapper { padding: 8px 0 10px; border-radius: 0 0 12px 12px; }
+        .toolbar-inner { overflow-x: auto; white-space: nowrap; justify-content: flex-start !important; padding-bottom: 5px; flex-wrap: nowrap !important; -webkit-overflow-scrolling: touch; }
+        .btn-tool { padding: 6px 10px; font-size: 0.78rem; flex-shrink: 0; }
         .requests-scroll-area { max-height: 400px; }
+        #providersMap { height: 350px !important; }
+        .greeting-section { padding: 20px 0 10px; }
+        .greeting-section h2 { font-size: 1.2rem; }
+        .hero-subtitle { font-size: 0.8rem; }
+        .player-badge { font-size: 0.75rem !important; padding: 4px 10px !important; }
+        /* Move Leaflet controls away from toolbar */
+        .leaflet-top.leaflet-left { top: 10px !important; left: 6px !important; }
+        .leaflet-top.leaflet-right { top: 10px !important; right: 6px !important; }
+        .leaflet-control-zoom a { width: 30px !important; height: 30px !important; line-height: 30px !important; font-size: 14px !important; }
+        .leaflet-draw-toolbar a { width: 28px !important; height: 28px !important; line-height: 28px !important; }
+        /* Hide draw controls on mobile - too small to use with fingers */
+        .leaflet-draw { display: none !important; }
     }
 </style>
 

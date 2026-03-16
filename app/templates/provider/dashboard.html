@@ -283,6 +283,20 @@
     /* Animation for tracking */
     @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
     .tracking-active { animation: pulse-red 2s infinite; border-color: #ef4444 !important; color: #ef4444 !important; }
+
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+        .sticky-toolbar-wrapper { padding: 8px 0 10px; border-radius: 0 0 12px 12px; }
+        .toolbar-inner { overflow-x: auto; white-space: nowrap; justify-content: flex-start !important; padding-bottom: 5px; flex-wrap: nowrap !important; -webkit-overflow-scrolling: touch; }
+        .btn-tool { padding: 6px 10px; font-size: 0.78rem; flex-shrink: 0; }
+        .greeting-section { padding: 20px 0 10px; }
+        .greeting-section h2 { font-size: 1.2rem; }
+        #combinedMap { height: 350px !important; }
+        .requests-scroll-area { max-height: 350px; }
+        .leaflet-top.leaflet-left { top: 10px !important; left: 6px !important; }
+        .leaflet-top.leaflet-right { top: 10px !important; right: 6px !important; }
+        .leaflet-control-zoom a { width: 30px !important; height: 30px !important; line-height: 30px !important; font-size: 14px !important; }
+    }
 </style>
 
 <script>
