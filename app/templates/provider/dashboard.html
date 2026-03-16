@@ -1364,7 +1364,12 @@
                   }
               });
           },
-          (err) => { showStatus('Could not get location: ' + err.message, true); }
+          (err) => {
+              if (err.code === 1) showStatus("{{ _('Location access denied. Please allow location in browser settings.') }}", true);
+              else if (err.code === 2) showStatus("{{ _('Location unavailable. Please try again.') }}", true);
+              else showStatus("{{ _('Location request timed out. Please try again.') }}", true);
+          },
+          {enableHighAccuracy: true, timeout: 10000, maximumAge: 60000}
       );
   });
 

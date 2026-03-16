@@ -734,7 +734,7 @@
         navigator.geolocation.getCurrentPosition(
             async (pos) => {
                 try {
-                    const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json&zoom=16&addressdetails=1`);
+                    const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json&zoom=16&addressdetails=1&accept-language={{ session.get('lang','en') }}`);
                     const data = await resp.json();
                     const a = data.address || {};
                     input.value = a.suburb || a.city_district || a.neighbourhood || a.city || a.town || data.display_name.split(',')[0] || '';

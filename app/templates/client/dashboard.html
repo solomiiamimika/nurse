@@ -1075,7 +1075,7 @@
           (pos) => {
               _detectedLat = pos.coords.latitude;
               _detectedLng = pos.coords.longitude;
-              fetch(`https://nominatim.openstreetmap.org/reverse?lat=${_detectedLat}&lon=${_detectedLng}&format=json`)
+              fetch(`https://nominatim.openstreetmap.org/reverse?lat=${_detectedLat}&lon=${_detectedLng}&format=json&accept-language={{ session.get('lang','en') }}`)
                   .then(r => r.json())
                   .then(geo => {
                       const addr = geo.display_name || `${_detectedLat.toFixed(5)}, ${_detectedLng.toFixed(5)}`;
@@ -1300,8 +1300,10 @@
           });
           showStatus("{{ _('Location updated') }}");
       }, (err) => {
-          showStatus("{{ _('Error getting location') }}", true);
-      });
+              if (err.code === 1) showStatus("{{ _('Location access denied. Please allow location in browser settings.') }}", true);
+          else if (err.code === 2) showStatus("{{ _('Location unavailable. Please try again.') }}", true);
+          else showStatus("{{ _('Location request timed out. Please try again.') }}", true);
+      }, {enableHighAccuracy: true, timeout: 10000, maximumAge: 60000});
   }
 
   window.openBookingModal = function(providerId, providerName) {
