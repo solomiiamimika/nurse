@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Human-me 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-07 17:56+0100\n"
+"POT-Creation-Date: 2026-03-14 19:46+0100\n"
 "PO-Revision-Date: 2026-03-07 18:00+0100\n"
 "Last-Translator: Human-me Team\n"
 "Language: pl\n"
@@ -22,149 +22,203 @@ msgstr ""
 msgid "My Cool App"
 msgstr "Human"
 
-#: app/templates/base.html:143 app/templates/client/appointments.html:119
-#: app/templates/client/dashboard.html:218
-#: app/templates/client/dashboard.html:1450
-#: app/templates/client/profile.html:120 app/templates/client/profile.html:173
-#: app/templates/client/provider_public_profile.html:206
+#: app/templates/base.html:121
+msgid "Add your name and verify your email to unlock all features."
+msgstr ""
+
+#: app/templates/base.html:123
+msgid "Add your full name to complete your profile."
+msgstr ""
+
+#: app/templates/base.html:125
+msgid "Verify your email or link Telegram to get a verified badge."
+msgstr ""
+
+#: app/templates/base.html:128
+#, fuzzy
+msgid "Go to Profile"
+msgstr "Edytuj profil"
+
+#: app/templates/auth/activate_role.html:33 app/templates/base.html:163
+#: app/templates/client/appointments.html:130
+#: app/templates/client/dashboard.html:258
+#: app/templates/client/dashboard.html:1749
+#: app/templates/client/profile.html:230 app/templates/client/profile.html:285
+#: app/templates/client/provider_public_profile.html:237
 #: app/templates/provider/appointments.html:88
-#: app/templates/provider/dashboard.html:700
-#: app/templates/provider/dashboard.html:704
-#: app/templates/provider/dashboard.html:1279
-#: app/templates/provider/services.html:172
-#: app/templates/provider/services.html:193
+#: app/templates/provider/dashboard.html:784
+#: app/templates/provider/dashboard.html:788
+#: app/templates/provider/dashboard.html:1447
+#: app/templates/provider/profile.html:452
+#: app/templates/provider/services.html:211
+#: app/templates/provider/services.html:232
 msgid "Cancel"
 msgstr "Anuluj"
 
-#: app/templates/auth/register.html:256 app/templates/base.html:146
-#: app/templates/base.html:163 app/templates/client/dashboard.html:1366
-#: app/templates/client/dashboard.html:1522
-#: app/templates/provider/appointments.html:392
+#: app/templates/auth/register.html:292 app/templates/base.html:166
+#: app/templates/base.html:183 app/templates/client/dashboard.html:1623
+#: app/templates/client/dashboard.html:1821
+#: app/templates/provider/appointments.html:480
 msgid "Confirm"
 msgstr "Potwierdź"
 
-#: app/templates/base.html:162
+#: app/templates/base.html:182
 msgid "Are you sure?"
 msgstr "Na pewno?"
 
-#: app/templates/base.html:207
+#: app/templates/base.html:231
 msgid "Feedback"
 msgstr "Feedback"
 
-#: app/templates/base.html:212
+#: app/templates/base.html:236
 msgid "Bug"
 msgstr "Błąd"
 
-#: app/templates/base.html:215
+#: app/templates/base.html:239
 msgid "Suggestion"
 msgstr "Pomysł"
 
-#: app/templates/base.html:218
+#: app/templates/base.html:242
 msgid "Describe the issue or your idea..."
 msgstr "Opisz problem lub swój pomysł..."
 
-#: app/templates/base.html:222 app/templates/base.html:300
+#: app/templates/base.html:246 app/templates/base.html:324
 msgid "Send feedback"
 msgstr "Wyślij"
 
-#: app/templates/base.html:227
+#: app/templates/base.html:251
 msgid "Thank you!"
 msgstr "Dzięki!"
 
-#: app/templates/base.html:228
+#: app/templates/base.html:252
 msgid "Your feedback has been sent."
 msgstr "Twój feedback został wysłany."
 
-#: app/templates/auth/register.html:292 app/templates/home.html:447
+#: app/templates/base.html:337 app/templates/legal/impressum.html:8
+#, fuzzy
+msgid "Impressum"
+msgstr "Premium"
+
+#: app/templates/base.html:339 app/templates/legal/privacy.html:8
+#, fuzzy
+msgid "Privacy Policy"
+msgstr "Polityka prywatności"
+
+#: app/templates/base.html:341 app/templates/legal/terms.html:8
+#, fuzzy
+msgid "Terms of Service"
+msgstr "Regulamin"
+
+#: app/templates/base.html:344
+#, fuzzy
+msgid "2026 Human-me. All rights reserved."
+msgstr "Wszelkie prawa zastrzeżone"
+
+#: app/templates/base.html:353
+msgid ""
+"We use essential cookies to operate this platform. No tracking or "
+"advertising cookies are used."
+msgstr ""
+
+#: app/templates/base.html:354
+msgid "Learn more"
+msgstr "Dowiedz się więcej"
+
+#: app/templates/base.html:358 app/templates/chat/conversation.html:180
+#: app/templates/provider/dashboard.html:759
+msgid "Accept"
+msgstr "Akceptuj"
+
+#: app/templates/auth/register.html:328 app/templates/home.html:448
 msgid "Log in"
 msgstr "Zaloguj się"
 
-#: app/templates/home.html:448
+#: app/templates/home.html:449
 msgid "Join Now"
 msgstr "Dołącz teraz"
 
-#: app/templates/home.html:464
+#: app/templates/home.html:465
 msgid "Instant Help"
 msgstr "Pomoc od ręki"
 
-#: app/templates/home.html:467
+#: app/templates/home.html:468
 msgid "Local People"
 msgstr "Ludzie w pobliżu"
 
-#: app/templates/home.html:473
+#: app/templates/home.html:474
 msgid "це твоє місце щоб видихнути"
 msgstr "twoje miejsce żeby odetchnąć"
 
-#: app/templates/home.html:481
+#: app/templates/home.html:482
 msgid "How can we help?"
 msgstr "Jak możemy pomóc?"
 
-#: app/templates/home.html:482
+#: app/templates/home.html:483
 msgid "e.g. walk the dog, help grandma, clean the flat..."
 msgstr "np. wyprowadzić psa, pomóc babci, posprzątać mieszkanie..."
 
-#: app/templates/home.html:483
+#: app/templates/home.html:484
 msgid "Your area (optional)"
 msgstr "Twoja okolica (opcjonalnie)"
 
-#: app/templates/home.html:483
+#: app/templates/home.html:484
 msgid "Use my location"
 msgstr "Moja lokalizacja"
 
-#: app/templates/home.html:484
+#: app/templates/home.html:485
 msgid "Find Help"
 msgstr "Znajdź pomoc"
 
-#: app/templates/home.html:485
+#: app/templates/home.html:486
 msgid "Free. No sign-up needed to browse."
 msgstr "Za darmo. Przeglądaj bez rejestracji."
 
-#: app/templates/home.html:489
+#: app/templates/home.html:496
 msgid "Looking for helpers near you..."
 msgstr "Szukamy pomocników w pobliżu..."
 
-#: app/templates/home.html:497
+#: app/templates/home.html:504
 msgid "Available Helpers"
 msgstr "Dostępni pomocnicy"
 
-#: app/templates/home.html:498
+#: app/templates/home.html:505
 msgid "New search"
 msgstr "Nowe wyszukiwanie"
 
-#: app/templates/home.html:511
+#: app/templates/home.html:518
 msgid "How It Works"
 msgstr "Jak to działa"
 
-#: app/templates/home.html:512
+#: app/templates/home.html:519
 msgid "From request to relaxation in 3 simple steps"
 msgstr "Od zapytania do relaksu w 3 krokach"
 
-#: app/templates/home.html:527
+#: app/templates/home.html:534
 msgid "STEP 1"
 msgstr "KROK 1"
 
-#: app/templates/home.html:528
+#: app/templates/home.html:535
 msgid "Describe what you need"
 msgstr "Opisz czego potrzebujesz"
 
-#: app/templates/home.html:529
+#: app/templates/home.html:536
 msgid ""
 "Post your task in seconds — cleaning, childcare, errands, elderly care, "
 "or anything else. Set your preferred time and budget."
 msgstr ""
-"Opublikuj zadanie w kilka sekund — sprzątanie, opieka nad dziećmi, sprawy "
-"do załatwienia, opieka nad osobami starszymi lub cokolwiek innego. Ustaw "
-"preferowany czas i budżet."
+"Opublikuj zadanie w kilka sekund — sprzątanie, opieka nad dziećmi, sprawy"
+" do załatwienia, opieka nad osobami starszymi lub cokolwiek innego. Ustaw"
+" preferowany czas i budżet."
 
-#: app/templates/home.html:545
+#: app/templates/home.html:552
 msgid "STEP 2"
 msgstr "KROK 2"
 
-#: app/templates/home.html:546
+#: app/templates/home.html:553
 msgid "Get matched with a local helper"
 msgstr "Znajdź pomocnika w okolicy"
 
-#: app/templates/home.html:547
+#: app/templates/home.html:554
 msgid ""
 "Verified helpers from your neighborhood respond with offers. Compare "
 "profiles, ratings and prices — then pick your favorite."
@@ -172,31 +226,31 @@ msgstr ""
 "Zweryfikowani pomocnicy z Twojej okolicy odpowiadają ofertami. Porównaj "
 "profile, oceny i ceny — a potem wybierz ulubionego."
 
-#: app/templates/home.html:563
+#: app/templates/home.html:570
 msgid "STEP 3"
 msgstr "KROK 3"
 
-#: app/templates/home.html:564
+#: app/templates/home.html:571
 msgid "Relax — it's handled"
 msgstr "Relax — ogarnięte"
 
-#: app/templates/home.html:565
+#: app/templates/home.html:572
 msgid ""
 "Your helper arrives at the agreed time. Pay securely through the app. "
 "Rate your experience and enjoy your free time!"
 msgstr ""
-"Pomocnik przychodzi o umówionej porze. Zapłać bezpiecznie przez aplikację. "
-"Oceń doświadczenie i ciesz się wolnym czasem!"
+"Pomocnik przychodzi o umówionej porze. Zapłać bezpiecznie przez "
+"aplikację. Oceń doświadczenie i ciesz się wolnym czasem!"
 
-#: app/templates/home.html:581
+#: app/templates/home.html:588
 msgid "OR EARN"
 msgstr "LUB ZARABIAJ"
 
-#: app/templates/home.html:582
+#: app/templates/home.html:589
 msgid "Help neighbors & get paid"
 msgstr "Pomagaj sąsiadom i zarabiaj"
 
-#: app/templates/home.html:583
+#: app/templates/home.html:590
 msgid ""
 "Register as a helper, set your own schedule and prices. Accept tasks "
 "nearby, complete them, and receive same-day payouts."
@@ -204,113 +258,110 @@ msgstr ""
 "Zarejestruj się jako pomocnik, ustal własny grafik i ceny. Przyjmuj "
 "zadania w pobliżu, wykonuj je i otrzymuj wypłaty tego samego dnia."
 
-#: app/templates/home.html:603
+#: app/templates/home.html:610
 msgid "Active Providers"
 msgstr "Aktywnych wykonawców"
 
-#: app/templates/home.html:608
+#: app/templates/home.html:615
 msgid "Tasks Completed"
 msgstr "Wykonanych zadań"
 
-#: app/templates/home.html:613
+#: app/templates/home.html:620
 msgid "Avg. Rating"
 msgstr "Śr. ocena"
 
-#: app/templates/home.html:621
+#: app/templates/home.html:628
 msgid "Smash the Easter Egg"
 msgstr "Rozbij pisankę"
 
-#: app/templates/home.html:622
+#: app/templates/home.html:629
 msgid "Hit the egg to crack it open and reveal your fortune!"
 msgstr "Uderz w jajko żeby je rozbić i poznać swoje szczęście!"
 
-#: app/templates/home.html:668 app/templates/home.html:1321
+#: app/templates/home.html:675 app/templates/home.html:1338
 msgid "Tap to smash!"
 msgstr "Kliknij żeby rozbić!"
 
-#: app/templates/home.html:672
+#: app/templates/home.html:679
 msgid "New Egg"
 msgstr "Nowe jajko"
 
-#: app/templates/home.html:678
+#: app/templates/home.html:685
 msgid "Who are you?"
 msgstr "Kim jesteś?"
 
-#: app/templates/home.html:683
+#: app/templates/home.html:690
 msgid "Need help?"
 msgstr "Potrzebujesz pomocy?"
 
-#: app/templates/home.html:684
+#: app/templates/home.html:691
 msgid "Post a task, pick a local, get it done. No hassle, no contracts."
 msgstr "Dodaj zadanie, wybierz wykonawcę, gotowe. Bez stresu, bez umów."
 
-#: app/templates/home.html:685
+#: app/templates/home.html:692
 msgid "Get Help Now"
 msgstr "Uzyskaj pomoc"
 
-#: app/templates/home.html:688 app/templates/home.html:1382
+#: app/templates/home.html:695 app/templates/home.html:1399
 msgid "Meet your neighbors"
 msgstr "Poznaj swoich sąsiadów"
 
-#: app/templates/home.html:696
+#: app/templates/home.html:703
 msgid "Want to earn?"
 msgstr "Chcesz zarobić?"
 
-#: app/templates/home.html:697
+#: app/templates/home.html:704
 msgid "Help neighbors on your own schedule. Get paid the same day."
 msgstr "Pomagaj sąsiadom w swoim tempie. Kasa tego samego dnia."
 
-#: app/templates/home.html:698
+#: app/templates/auth/activate_role.html:12 app/templates/home.html:705
+#: app/templates/home.html:802
 msgid "Become a Provider"
 msgstr "Zostań wykonawcą"
 
-#: app/templates/home.html:701
+#: app/templates/home.html:708
 msgid "Set your own price"
 msgstr "Własna cena"
 
-#: app/templates/home.html:702
+#: app/templates/home.html:709
 msgid "Stripe payouts"
 msgstr "Wypłaty przez Stripe"
 
-#: app/templates/home.html:703
+#: app/templates/home.html:710
 msgid "Work near home"
 msgstr "Pracuj blisko domu"
 
-#: app/templates/client/dashboard.html:928
-#: app/templates/client/dashboard.html:1094 app/templates/home.html:724
+#: app/templates/client/dashboard.html:1066
+#: app/templates/client/dashboard.html:1287 app/templates/home.html:731
 msgid "Geolocation not supported"
 msgstr "Geolokalizacja nie jest wspierana"
 
-#: app/templates/home.html:739
+#: app/templates/home.html:746
 msgid "Location access denied"
 msgstr "Brak dostępu do lokalizacji"
 
-#: app/templates/home.html:783
-msgid "No one available right now"
-msgstr "Nikt teraz nie jest dostępny"
+#: app/templates/home.html:800
+msgid "This service doesn't exist yet"
+msgstr ""
 
-#: app/templates/home.html:784
-msgid "Post a request — helpers will come to you!"
-msgstr "Dodaj zapytanie — pomocnicy się znajdą!"
+#: app/templates/home.html:801
+msgid "Be the first to offer it! Or post a request and helpers will find you."
+msgstr ""
 
-#: app/templates/home.html:785
+#: app/templates/home.html:803
 msgid "Create Request"
 msgstr "Utwórz zapytanie"
 
-#: app/templates/home.html:786
-msgid "or sign up to browse later"
-msgstr "lub zarejestruj się żeby przeglądać później"
-
-#: app/templates/client/dashboard.html:775
-#: app/templates/client/dashboard.html:1333 app/templates/home.html:813
+#: app/templates/client/dashboard.html:841
+#: app/templates/client/dashboard.html:1575 app/templates/home.html:830
 msgid "Book"
 msgstr "Zarezerwuj"
 
-#: app/templates/home.html:819
+#: app/templates/home.html:836
 msgid "helpers available"
 msgstr "dostępnych pomocników"
 
-#: app/templates/home.html:1289
+#: app/templates/home.html:1306
 msgid "Smashed!"
 msgstr "Rozbite!"
 
@@ -318,7 +369,8 @@ msgstr "Rozbite!"
 msgid "Payment for:"
 msgstr "Płatność za:"
 
-#: app/templates/payment_form.html:3
+#: app/templates/client/appointments.html:910
+#: app/templates/client/dashboard.html:930 app/templates/payment_form.html:3
 msgid "Amount:"
 msgstr "Kwota:"
 
@@ -327,10 +379,10 @@ msgstr "Kwota:"
 msgid "Pay Now"
 msgstr "Zapłać"
 
-#: app/templates/client/appointments.html:395
-#: app/templates/client/appointments.html:446
-#: app/templates/client/provider_public_profile.html:363
-#: app/templates/payment_form.html:18 app/templates/provider/dashboard.html:389
+#: app/templates/client/appointments.html:499
+#: app/templates/client/appointments.html:551
+#: app/templates/client/provider_public_profile.html:394
+#: app/templates/payment_form.html:18 app/templates/provider/dashboard.html:398
 msgid "Processing..."
 msgstr "Przetwarzanie..."
 
@@ -342,39 +394,95 @@ msgstr "Sieć nie odpowiada"
 msgid "Payment failed:"
 msgstr "Płatność nieudana:"
 
-#: app/templates/auth/login.html:7 app/templates/auth/login.html:210
+#: app/templates/auth/activate_role.html:14
+msgid ""
+"You're about to activate a provider account. You'll be able to offer "
+"services, accept bookings, and earn money — all with the same account."
+msgstr ""
+
+#: app/templates/auth/activate_role.html:20
+#, fuzzy
+msgid "Become a Client"
+msgstr "Zostań wykonawcą"
+
+#: app/templates/auth/activate_role.html:22
+msgid ""
+"You're about to activate a client account. You'll be able to search for "
+"providers, book services, and leave reviews — all with the same account."
+msgstr ""
+
+#: app/templates/auth/activate_role.html:29
+msgid "Activate"
+msgstr "Aktywuj"
+
+#: app/templates/auth/forgot_password.html:7
+#: app/templates/auth/forgot_password.html:32
+#: app/templates/auth/reset_password.html:57
+#, fuzzy
+msgid "Reset Password"
+msgstr "Zresetuj hasło"
+
+#: app/templates/auth/forgot_password.html:33
+msgid "Enter your email or username and we'll send you a reset link."
+msgstr ""
+
+#: app/templates/auth/forgot_password.html:48
+#, fuzzy
+msgid "Email or username"
+msgstr "Email lub nazwa użytkownika"
+
+#: app/templates/auth/forgot_password.html:52
+msgid "Send Reset Link"
+msgstr ""
+
+#: app/templates/auth/forgot_password.html:57
+#: app/templates/auth/reset_password.html:62
+#, fuzzy
+msgid "Back to Login"
+msgstr "Na stronę główną"
+
+#: app/templates/auth/login.html:7 app/templates/auth/login.html:226
 msgid "Login"
 msgstr "Logowanie"
 
-#: app/templates/auth/login.html:171 app/templates/auth/register.html:207
+#: app/templates/auth/login.html:171 app/templates/auth/register.html:209
 msgid "Home"
 msgstr "Start"
 
-#: app/templates/auth/login.html:174
+#: app/templates/auth/login.html:184
 msgid "Welcome Back"
 msgstr "Witaj z powrotem!"
 
-#: app/templates/auth/login.html:175
+#: app/templates/auth/login.html:185
 msgid "Enter your details to continue."
 msgstr "Wpisz swoje dane żeby kontynuować."
 
-#: app/templates/auth/login.html:194
+#: app/templates/auth/login.html:204
 msgid "Email or Username"
 msgstr "Email lub nazwa użytkownika"
 
-#: app/templates/auth/login.html:205 app/templates/auth/register.html:251
+#: app/templates/auth/login.html:215 app/templates/auth/register.html:287
 msgid "Password"
 msgstr "Hasło"
 
-#: app/templates/auth/login.html:214 app/templates/auth/register.html:270
+#: app/templates/auth/login.html:222
+#, fuzzy
+msgid "Forgot your password?"
+msgstr "Zresetuj hasło"
+
+#: app/templates/auth/login.html:230 app/templates/auth/register.html:306
 msgid "or"
 msgstr "lub"
 
-#: app/templates/auth/login.html:226
+#: app/templates/auth/login.html:235
+msgid "Sign in with Google"
+msgstr "Zaloguj się przez Google"
+
+#: app/templates/auth/login.html:251
 msgid "Don't have an account?"
 msgstr "Nie masz konta?"
 
-#: app/templates/auth/login.html:229 app/templates/auth/register.html:267
+#: app/templates/auth/login.html:254 app/templates/auth/register.html:303
 #: app/templates/auth/telegram_complete.html:129
 msgid "Create Account"
 msgstr "Utwórz konto"
@@ -383,56 +491,113 @@ msgstr "Utwórz konto"
 msgid "Register"
 msgstr "Rejestracja"
 
-#: app/templates/auth/register.html:210
+#: app/templates/auth/register.html:222
 msgid "Join Human"
 msgstr "Dołącz do Human"
 
-#: app/templates/auth/register.html:211
+#: app/templates/auth/register.html:223
 msgid "Create an account to book services or find work."
 msgstr "Utwórz konto żeby zamówić usługę lub znaleźć pracę."
 
-#: app/templates/auth/register.html:227
+#: app/templates/auth/register.html:239
 msgid "Username"
 msgstr "Nazwa użytkownika"
 
-#: app/templates/auth/register.html:232 app/templates/client/profile.html:130
-#: app/templates/provider/profile.html:150
+#: app/templates/auth/register.html:244 app/templates/client/profile.html:242
+#: app/templates/provider/profile.html:405
 msgid "Full Name"
 msgstr "Imię i nazwisko"
 
-#: app/templates/auth/register.html:237
+#: app/templates/auth/register.html:249
 msgid "Email Address"
 msgstr "Adres email"
 
-#: app/templates/auth/register.html:243
+#: app/templates/auth/register.html:255
 msgid "I want to find care (Client)"
 msgstr "Szukam pomocy (Klient)"
 
-#: app/templates/auth/register.html:244
+#: app/templates/auth/register.html:256
 msgid "I want to offer services (Provider)"
 msgstr "Chcę pomagać (Wykonawca)"
 
-#: app/templates/auth/register.html:275
-msgid "Sign up as Client"
-msgstr "Zarejestruj się jako klient"
+#: app/templates/auth/register.html:263
+msgid "Date of Birth"
+msgstr ""
 
-#: app/templates/auth/register.html:277
-msgid "Sign up as Provider"
-msgstr "Zarejestruj się jako wykonawca"
+#: app/templates/auth/register.html:269
+#: app/templates/client/provider_public_profile.html:41
+#: app/templates/client/provider_public_profile.html:42
+#: app/templates/provider/profile.html:307
+#: app/templates/provider/services.html:25
+msgid "Young Helper"
+msgstr ""
+
+#: app/templates/auth/register.html:269
+msgid ""
+"Under 18? You'll register as a Young Helper with restricted categories "
+"and parental consent required."
+msgstr ""
+
+#: app/templates/auth/register.html:275
+msgid "Parent/Guardian Email (required)"
+msgstr ""
 
 #: app/templates/auth/register.html:281
+msgid "You must be at least 13 years old to register."
+msgstr ""
+
+#: app/templates/auth/register.html:299
+msgid ""
+"I understand that the platform is not responsible for any damages caused "
+"by a provider to a client or vice versa. All interactions are at my own "
+"risk."
+msgstr ""
+"Rozumiem, że platforma nie ponosi odpowiedzialności za szkody wyrządzone "
+"przez wykonawcę klientowi lub odwrotnie. Wszystkie interakcje odbywają "
+"się na moje własne ryzyko."
+
+#: app/templates/auth/register.html:308
 msgid "or sign up with Google"
 msgstr "lub przez Google"
 
+#: app/templates/auth/register.html:311
+msgid "Sign up as Client"
+msgstr "Zarejestruj się jako klient"
+
+#: app/templates/auth/register.html:313
+msgid "Sign up as Provider"
+msgstr "Zarejestruj się jako wykonawca"
+
+#: app/templates/auth/register.html:317
 msgid "or sign up with Telegram"
 msgstr "lub przez Telegram"
 
-msgid "I understand that the platform is not responsible for any damages caused by a provider to a client or vice versa. All interactions are at my own risk."
-msgstr "Rozumiem, że platforma nie ponosi odpowiedzialności za szkody wyrządzone przez wykonawcę klientowi lub odwrotnie. Wszystkie interakcje odbywają się na moje własne ryzyko."
-
-#: app/templates/auth/register.html:292
+#: app/templates/auth/register.html:328
 msgid "Already have an account?"
 msgstr "Masz już konto?"
+
+#: app/templates/auth/reset_password.html:7
+#, fuzzy
+msgid "New Password"
+msgstr "NOWE HASŁO"
+
+#: app/templates/auth/reset_password.html:32
+#, fuzzy
+msgid "Set New Password"
+msgstr "Ustaw hasło"
+
+#: app/templates/auth/reset_password.html:33
+msgid "Choose a strong password (at least 8 characters)."
+msgstr ""
+
+#: app/templates/auth/reset_password.html:48
+#, fuzzy
+msgid "New password"
+msgstr "NOWE HASŁO"
+
+#: app/templates/auth/reset_password.html:53
+msgid "Confirm password"
+msgstr "Potwierdź hasło"
 
 #: app/templates/auth/telegram_complete.html:7
 #: app/templates/auth/telegram_complete.html:94
@@ -449,16 +614,19 @@ msgstr "Wybierz rolę i gotowe."
 
 #: app/templates/auth/telegram_complete.html:115
 #: app/templates/client/receipt.html:237
+#: app/templates/provider/dashboard.html:465
 msgid "Client"
 msgstr "Klient"
 
 #: app/templates/auth/telegram_complete.html:118
-#: app/templates/client/receipt.html:233
+#: app/templates/client/history.html:169 app/templates/client/receipt.html:233
 msgid "Provider"
 msgstr "Wykonawca"
 
 #: app/templates/auth/telegram_complete.html:123
+#: app/templates/client/profile.html:136
 #: app/templates/provider/client_profile.html:41
+#: app/templates/provider/profile.html:154
 msgid "Email"
 msgstr "Email"
 
@@ -483,12 +651,12 @@ msgstr "Czaty"
 msgid "Back"
 msgstr "Wróć"
 
-#: app/templates/chat/chats.html:14 app/templates/client/dashboard.html:110
-#: app/templates/client/dashboard.html:118
-#: app/templates/client/dashboard.html:124 app/templates/client/history.html:21
-#: app/templates/provider/dashboard.html:86
-#: app/templates/provider/dashboard.html:94
-#: app/templates/provider/dashboard.html:101
+#: app/templates/chat/chats.html:14 app/templates/client/dashboard.html:120
+#: app/templates/client/dashboard.html:128
+#: app/templates/client/dashboard.html:134 app/templates/client/history.html:21
+#: app/templates/provider/dashboard.html:96
+#: app/templates/provider/dashboard.html:104
+#: app/templates/provider/dashboard.html:111
 msgid "All"
 msgstr "Wszystkie"
 
@@ -521,15 +689,15 @@ msgid "Mark as important"
 msgstr "Oznacz jako ważne"
 
 #: app/templates/chat/conversation.html:16
-#: app/templates/client/dashboard.html:119
-#: app/templates/client/dashboard.html:1302
+#: app/templates/client/dashboard.html:129
+#: app/templates/client/dashboard.html:1544
 #: app/templates/client/provider_public_profile.html:28
 msgid "Online"
 msgstr "Online"
 
 #: app/templates/chat/conversation.html:16
-#: app/templates/client/dashboard.html:120
-#: app/templates/client/dashboard.html:1303
+#: app/templates/client/dashboard.html:130
+#: app/templates/client/dashboard.html:1545
 #: app/templates/client/provider_public_profile.html:28
 msgid "Offline"
 msgstr "Offline"
@@ -544,7 +712,7 @@ msgid "Service name"
 msgstr "Nazwa usługi"
 
 #: app/templates/chat/conversation.html:40
-#: app/templates/provider/services.html:39
+#: app/templates/provider/services.html:51
 msgid "Price"
 msgstr "Cena"
 
@@ -553,9 +721,9 @@ msgid "Duration (min)"
 msgstr "Czas trwania (min)"
 
 #: app/templates/chat/conversation.html:47
-#: app/templates/client/dashboard.html:209
-#: app/templates/client/dashboard.html:246
-#: app/templates/client/provider_public_profile.html:197
+#: app/templates/client/dashboard.html:249
+#: app/templates/client/dashboard.html:294
+#: app/templates/client/provider_public_profile.html:228
 msgid "Select date & time"
 msgstr "Wybierz datę i czas"
 
@@ -572,8 +740,9 @@ msgid "Write a message..."
 msgstr "Napisz wiadomość..."
 
 #: app/templates/chat/conversation.html:173
-#: app/templates/client/dashboard.html:99
-#: app/templates/provider/dashboard.html:655
+#: app/templates/client/appointments.html:673
+#: app/templates/client/dashboard.html:106
+#: app/templates/provider/dashboard.html:728
 msgid "Accepted"
 msgstr "Zaakceptowane"
 
@@ -581,18 +750,16 @@ msgstr "Zaakceptowane"
 msgid "Declined"
 msgstr "Odrzucone"
 
-#: app/templates/chat/conversation.html:180
-#: app/templates/provider/dashboard.html:684
-msgid "Accept"
-msgstr "Akceptuj"
-
 #: app/templates/chat/conversation.html:183
-#: app/templates/provider/appointments.html:208
+#: app/templates/provider/appointments.html:215
 msgid "Decline"
 msgstr "Odrzuć"
 
 #: app/templates/chat/conversation.html:187
-#: app/templates/client/dashboard.html:1381
+#: app/templates/client/appointments.html:671
+#: app/templates/client/dashboard.html:1638
+#: app/templates/client/profile.html:106
+#: app/templates/provider/profile.html:124
 msgid "Pending"
 msgstr "Oczekuje"
 
@@ -601,10 +768,11 @@ msgid "Proposal"
 msgstr "Oferta"
 
 #: app/templates/chat/conversation.html:202
-#: app/templates/client/dashboard.html:505
-#: app/templates/client/provider_public_profile.html:158
-#: app/templates/provider/services.html:62
-#: app/templates/provider/services.html:259
+#: app/templates/client/dashboard.html:566
+#: app/templates/client/history.html:193
+#: app/templates/client/provider_public_profile.html:180
+#: app/templates/provider/services.html:75
+#: app/templates/provider/services.html:298
 msgid "min"
 msgstr "min"
 
@@ -637,9 +805,9 @@ msgid "Accept Proposal"
 msgstr "Przyjmij ofertę"
 
 #: app/templates/chat/conversation.html:381
-#: app/templates/client/dashboard.html:837
-#: app/templates/provider/appointments.html:398
-#: app/templates/provider/dashboard.html:1068
+#: app/templates/client/dashboard.html:975
+#: app/templates/provider/appointments.html:492
+#: app/templates/provider/dashboard.html:1236
 msgid "Yes, Accept"
 msgstr "Tak, przyjmij"
 
@@ -679,8 +847,9 @@ msgstr "Nowa wizyta"
 
 #: app/templates/client/appointments.html:26
 #: app/templates/client/appointments.html:40
-#: app/templates/client/profile.html:167
-#: app/templates/provider/appointments.html:209
+#: app/templates/client/profile.html:279
+#: app/templates/provider/appointments.html:216
+#: app/templates/provider/profile.html:446
 msgid "Close"
 msgstr "Zamknij"
 
@@ -690,15 +859,15 @@ msgid "Appointment Details"
 msgstr "Szczegóły wizyty"
 
 #: app/templates/client/appointments.html:46
-#: app/templates/client/provider_public_profile.html:191
+#: app/templates/client/provider_public_profile.html:222
 #: app/templates/provider/appointments.html:41
-#: app/templates/provider/dashboard.html:160
+#: app/templates/provider/dashboard.html:172
 msgid "SERVICE"
 msgstr "USŁUGA"
 
 #: app/templates/client/appointments.html:50
-#: app/templates/client/dashboard.html:208
-#: app/templates/client/provider_public_profile.html:196
+#: app/templates/client/dashboard.html:248
+#: app/templates/client/provider_public_profile.html:227
 #: app/templates/provider/appointments.html:45
 msgid "DATE & TIME"
 msgstr "DATA I CZAS"
@@ -714,294 +883,515 @@ msgstr "KWOTA"
 
 #: app/templates/client/appointments.html:62
 #: app/templates/provider/appointments.html:53
-#: app/templates/provider/dashboard.html:188
+#: app/templates/provider/dashboard.html:200
 msgid "NOTES"
 msgstr "NOTATKI"
 
-#: app/templates/client/appointments.html:69
-#: app/templates/client/appointments.html:418
-#: app/templates/client/appointments.html:425
-msgid "Make a payment now"
-msgstr "Zapłać teraz"
+#: app/templates/client/appointments.html:70
+#: app/templates/client/appointments.html:874
+#: app/templates/client/appointments.html:942
+#, fuzzy
+msgid "Pay by QR Transfer"
+msgstr "Przelew bankowy"
 
-#: app/templates/client/appointments.html:72
-#: app/templates/client/appointments.html:456
-#: app/templates/client/appointments.html:458
+#: app/templates/client/appointments.html:74
+#: app/templates/client/appointments.html:561
+#: app/templates/client/appointments.html:563
 msgid "Pay by cash"
 msgstr "Płatność gotówką"
 
-#: app/templates/client/appointments.html:82
+#: app/templates/client/appointments.html:78
+#, fuzzy
+msgid "Pay by Card (Stripe)"
+msgstr "Płatność gotówką"
+
+#: app/templates/client/appointments.html:83
+#, fuzzy
+msgid "Deposit required:"
+msgstr "Dodaj zapytanie"
+
+#: app/templates/client/appointments.html:93
 msgid "Your Review"
 msgstr "Twoja opinia"
 
-#: app/templates/client/appointments.html:87
+#: app/templates/client/appointments.html:98
 msgid "RATING"
 msgstr "OCENA"
 
-#: app/templates/client/appointments.html:97
+#: app/templates/client/appointments.html:108
 msgid "Edit Review"
 msgstr "Edytuj opinię"
 
-#: app/templates/client/appointments.html:106
+#: app/templates/client/appointments.html:117
 #: app/templates/provider/appointments.html:75
 msgid "stars"
 msgstr "gwiazdek"
 
-#: app/templates/client/appointments.html:109
+#: app/templates/client/appointments.html:120
 #: app/templates/provider/appointments.html:78
 msgid "Tap a star to rate"
 msgstr "Kliknij gwiazdkę żeby ocenić"
 
-#: app/templates/client/appointments.html:112
-#: app/templates/client/appointments.html:557
+#: app/templates/client/appointments.html:123
+#: app/templates/client/appointments.html:662
 msgid "Share your experience..."
 msgstr "Podziel się wrażeniami..."
 
-#: app/templates/client/appointments.html:114
+#: app/templates/client/appointments.html:125
 #: app/templates/provider/appointments.html:83
 msgid "Reason is required for ratings of 3 stars or below"
 msgstr "Dla oceny 3 gwiazdki lub niżej wymagany jest powód"
 
-#: app/templates/client/appointments.html:118
-#: app/templates/client/appointments.html:541
+#: app/templates/client/appointments.html:129
+#: app/templates/client/appointments.html:646
 #: app/templates/provider/appointments.html:87
-#: app/templates/provider/appointments.html:510
-#: app/templates/provider/dashboard.html:1114
-#: app/templates/provider/dashboard.html:1278
+#: app/templates/provider/appointments.html:643
+#: app/templates/provider/dashboard.html:1282
+#: app/templates/provider/dashboard.html:1446
 msgid "Send"
 msgstr "Wyślij"
 
-#: app/templates/client/appointments.html:124
+#: app/templates/client/appointments.html:135
 msgid "You haven't left a review yet."
 msgstr "Nie zostawiłeś jeszcze opinii."
 
-#: app/templates/client/appointments.html:126
+#: app/templates/client/appointments.html:137
 #: app/templates/provider/appointments.html:95
 msgid "Write a Review"
 msgstr "Napisz opinię"
 
-#: app/templates/client/appointments.html:270
-#: app/templates/provider/dashboard.html:386
+#: app/templates/client/appointments.html:296
+#: app/templates/provider/dashboard.html:395
 msgid "No notes provided"
 msgstr "Brak notatek"
 
-#: app/templates/client/appointments.html:288
+#: app/templates/client/appointments.html:314
 msgid "Waiting for provider approval."
 msgstr "Czekamy na potwierdzenie od wykonawcy."
 
-#: app/templates/client/appointments.html:292
-#: app/templates/client/appointments.html:310
-#: app/templates/client/appointments.html:326
-#: app/templates/client/appointments.html:342
+#: app/templates/client/appointments.html:318
+#: app/templates/client/appointments.html:336
+#: app/templates/client/appointments.html:355
+#: app/templates/client/appointments.html:386
 msgid "Cancel appointment"
 msgstr "Anuluj wizytę"
 
-#: app/templates/client/appointments.html:305
+#: app/templates/client/appointments.html:331
 msgid "Free service — no payment required."
 msgstr "Za darmo — płatność nie jest wymagana."
 
-#: app/templates/client/appointments.html:320
+#: app/templates/client/appointments.html:346
 msgid "Payment held securely. Waiting for provider."
 msgstr "Płatność zabezpieczona. Czekamy na wykonawcę."
 
-#: app/templates/client/appointments.html:322
+#: app/templates/client/appointments.html:348
 msgid "Confirmed. Waiting for provider to complete."
 msgstr "Potwierdzone. Czekamy na zakończenie."
 
-#: app/templates/client/appointments.html:335
+#: app/templates/client/appointments.html:352
+#: app/templates/client/appointments.html:367
+#: app/templates/client/appointments.html:754
+#: app/templates/client/dashboard.html:1242
+#: app/templates/client/dashboard.html:1696
+#: app/templates/client/dashboard.html:1701
+#, fuzzy
+msgid "Provider No-Show"
+msgstr "Wykonawca"
+
+#: app/templates/client/appointments.html:363
+#: app/templates/client/appointments.html:677
+#: app/templates/client/dashboard.html:1617
+#: app/templates/provider/appointments.html:568
+#: app/templates/provider/dashboard.html:454
+#: app/templates/provider/dashboard.html:794
+#, fuzzy
+msgid "In Progress"
+msgstr "W toku"
+
+#: app/templates/client/appointments.html:364
+msgid "The provider has arrived and work is underway."
+msgstr ""
+
+#: app/templates/client/appointments.html:376
 msgid "Job Done?"
 msgstr "Robota zrobiona?"
 
-#: app/templates/client/appointments.html:336
+#: app/templates/client/appointments.html:377
 msgid "The provider has marked this job as finished."
 msgstr "Wykonawca oznaczył pracę jako zakończoną."
 
-#: app/templates/client/appointments.html:339
-#: app/templates/client/dashboard.html:1417
+#: app/templates/client/appointments.html:380
+#: app/templates/client/dashboard.html:1713
 msgid "Approve & Release Payment"
 msgstr "Potwierdź i zapłać"
 
-#: app/templates/client/appointments.html:339
-#: app/templates/client/appointments.html:690
-#: app/templates/client/dashboard.html:1072
-#: app/templates/client/dashboard.html:1417
-#: app/templates/provider/dashboard.html:970
+#: app/templates/client/appointments.html:380
+#: app/templates/client/appointments.html:951
+#: app/templates/client/dashboard.html:1219
+#: app/templates/client/dashboard.html:1713
+#: app/templates/provider/dashboard.html:1065
 msgid "Confirm Completion"
 msgstr "Potwierdź zakończenie"
 
-#: app/templates/client/appointments.html:350
-#: app/templates/provider/appointments.html:336
+#: app/templates/client/appointments.html:383
+#: app/templates/client/appointments.html:783
+#: app/templates/client/dashboard.html:1265
+#: app/templates/client/dashboard.html:1716
+#, fuzzy
+msgid "Report Issue"
+msgstr "Zgłoś"
+
+#: app/templates/client/appointments.html:394
+#: app/templates/provider/appointments.html:424
 msgid "Download Receipt"
 msgstr "Pobierz rachunek"
 
-#: app/templates/client/appointments.html:361
-#: app/templates/client/appointments.html:370
-#: app/templates/provider/appointments.html:327
+#: app/templates/client/appointments.html:405
+#: app/templates/client/appointments.html:414
+#: app/templates/provider/appointments.html:396
 msgid "This appointment was cancelled."
 msgstr "Ta wizyta została anulowana."
 
-#: app/templates/client/appointments.html:364
-#: app/templates/client/appointments.html:612
+#: app/templates/client/appointments.html:408
+#: app/templates/client/appointments.html:730
 msgid "Restore Appointment"
 msgstr "Przywróć wizytę"
 
-#: app/templates/client/appointments.html:408
+#: app/templates/client/appointments.html:423
+#: app/templates/client/dashboard.html:1674
+msgid "No-show was recorded for this appointment."
+msgstr ""
+
+#: app/templates/client/appointments.html:431
+#: app/templates/client/dashboard.html:1681
+#: app/templates/provider/appointments.html:412
+msgid "This appointment is under dispute. Our support team will review it."
+msgstr ""
+
+#: app/templates/client/appointments.html:439
+#, fuzzy
+msgid "Waiting for providers to send offers."
+msgstr "Czekamy na potwierdzenie od wykonawcy."
+
+#: app/templates/client/appointments.html:446
+msgid "You have offers! Go to the dashboard to review them."
+msgstr ""
+
+#: app/templates/client/appointments.html:449
+#: app/templates/client/dashboard.html:1742
+msgid "View Offers"
+msgstr "Zobacz oferty"
+
+#: app/templates/client/appointments.html:458
+msgid "Offer accepted! Pay to confirm the booking."
+msgstr ""
+
+#: app/templates/client/appointments.html:461
+#, fuzzy
+msgid "Go to Dashboard to Pay"
+msgstr "Na stronę główną"
+
+#: app/templates/client/appointments.html:467
+#, fuzzy
+msgid "Booked! Free service confirmed."
+msgstr "Rezerwacja potwierdzona"
+
+#: app/templates/client/appointments.html:475
+#, fuzzy
+msgid "Payment authorized. Waiting for provider."
+msgstr "Płatność zabezpieczona. Czekamy na wykonawcę."
+
+#: app/templates/client/appointments.html:512
 msgid "Network error"
 msgstr "Błąd sieci"
 
-#: app/templates/client/appointments.html:435
-#: app/templates/client/dashboard.html:806
+#: app/templates/client/appointments.html:516
+#, fuzzy
+msgid "Payments are not configured"
+msgstr "Płatność otrzymana"
+
+#: app/templates/client/appointments.html:523
+#: app/templates/client/appointments.html:530
+msgid "Make a payment now"
+msgstr "Zapłać teraz"
+
+#: app/templates/client/appointments.html:540
+#: app/templates/client/dashboard.html:873
 msgid "Pay by cash directly to the provider?"
 msgstr "Zapłacić gotówką bezpośrednio wykonawcy?"
 
-#: app/templates/client/appointments.html:436
-#: app/templates/client/dashboard.html:807
+#: app/templates/client/appointments.html:541
+#: app/templates/client/dashboard.html:874
 msgid "Cash Payment"
 msgstr "Płatność gotówką"
 
-#: app/templates/client/appointments.html:437
-#: app/templates/client/dashboard.html:808
+#: app/templates/client/appointments.html:542
+#: app/templates/client/dashboard.html:875
 msgid "Yes, pay by cash"
 msgstr "Tak, gotówką"
 
-#: app/templates/client/appointments.html:506
-#: app/templates/provider/appointments.html:490
+#: app/templates/client/appointments.html:611
+#: app/templates/provider/appointments.html:623
 msgid "Please select a rating"
 msgstr "Wybierz ocenę"
 
-#: app/templates/client/appointments.html:512
+#: app/templates/client/appointments.html:617
 msgid "Sending..."
 msgstr "Wysyłanie..."
 
-#: app/templates/client/appointments.html:529
-#: app/templates/provider/appointments.html:503
+#: app/templates/client/appointments.html:634
+#: app/templates/provider/appointments.html:636
 msgid "Thank you for your feedback!"
 msgstr "Dzięki za opinię!"
 
-#: app/templates/client/appointments.html:532
-#: app/templates/client/appointments.html:605
-#: app/templates/client/appointments.html:629
-#: app/templates/client/appointments.html:712
-#: app/templates/client/dashboard.html:1176
-#: app/templates/client/provider_public_profile.html:379
-#: app/templates/provider/appointments.html:506
+#: app/templates/client/appointments.html:637
+#: app/templates/client/appointments.html:723
+#: app/templates/client/appointments.html:747
+#: app/templates/client/appointments.html:776
+#: app/templates/client/appointments.html:805
+#: app/templates/client/appointments.html:978
+#: app/templates/client/dashboard.html:1369
+#: app/templates/client/provider_public_profile.html:410
+#: app/templates/provider/appointments.html:552
+#: app/templates/provider/appointments.html:639
 #: app/templates/shared/_documents_grid.html:80
 msgid "Error:"
 msgstr "Błąd:"
 
-#: app/templates/client/appointments.html:537
+#: app/templates/client/appointments.html:642
 msgid "An error occurred"
 msgstr "Coś poszło nie tak"
 
-#: app/templates/client/appointments.html:553
-#: app/templates/provider/appointments.html:478
+#: app/templates/client/appointments.html:658
+#: app/templates/provider/appointments.html:611
 msgid "Please explain the reason for your rating (required)"
 msgstr "Wyjaśnij powód oceny (wymagane)"
 
-#: app/templates/client/appointments.html:565
+#: app/templates/client/appointments.html:670
 msgid "Scheduled"
 msgstr "Zaplanowane"
 
-#: app/templates/client/appointments.html:566
+#: app/templates/client/appointments.html:672
+#: app/templates/provider/appointments.html:562
+#, fuzzy
+msgid "Has Offers"
+msgstr "Oferty"
+
+#: app/templates/client/appointments.html:674
+#: app/templates/provider/appointments.html:564
+#, fuzzy
+msgid "Payment Authorized"
+msgstr "Metoda płatności"
+
+#: app/templates/client/appointments.html:675
 msgid "Approved (Awaiting Payment)"
 msgstr "Zatwierdzone (czeka na płatność)"
 
-#: app/templates/client/appointments.html:567
+#: app/templates/client/appointments.html:676
 msgid "Paid & Confirmed"
 msgstr "Opłacone i potwierdzone"
 
-#: app/templates/client/appointments.html:567
+#: app/templates/client/appointments.html:676
 msgid "Confirmed"
 msgstr "Potwierdzone"
 
-#: app/templates/client/appointments.html:568
+#: app/templates/client/appointments.html:678
 msgid "Work Submitted (Action Required)"
 msgstr "Praca zgłoszona (wymagana akcja)"
 
-#: app/templates/client/appointments.html:569
-#: app/templates/client/dashboard.html:1360
-#: app/templates/client/history.html:24 app/templates/client/history.html:65
+#: app/templates/client/appointments.html:679
+#: app/templates/client/dashboard.html:1614
+#: app/templates/client/history.html:24 app/templates/client/history.html:74
 #: app/templates/client/receipt.html:219
-#: app/templates/provider/appointments.html:439
-#: app/templates/provider/dashboard.html:710
+#: app/templates/provider/appointments.html:570
+#: app/templates/provider/dashboard.html:451
+#: app/templates/provider/dashboard.html:798
 msgid "Completed"
 msgstr "Zakończone"
 
-#: app/templates/client/appointments.html:570
-#: app/templates/client/dashboard.html:1357
-#: app/templates/client/history.html:27 app/templates/client/history.html:67
+#: app/templates/client/appointments.html:680
+#: app/templates/client/dashboard.html:1605
+#: app/templates/client/history.html:27 app/templates/client/history.html:76
 #: app/templates/client/receipt.html:221
-#: app/templates/provider/appointments.html:440
-#: app/templates/provider/dashboard.html:714
+#: app/templates/provider/appointments.html:571
+#: app/templates/provider/dashboard.html:457
+#: app/templates/provider/dashboard.html:804
 msgid "Cancelled"
 msgstr "Anulowane"
 
-#: app/templates/client/appointments.html:579
+#: app/templates/client/appointments.html:681
+#: app/templates/client/dashboard.html:1608
+#: app/templates/provider/appointments.html:572
+#: app/templates/provider/dashboard.html:455
+#: app/templates/provider/dashboard.html:802
+#, fuzzy
+msgid "No Show"
+msgstr "Nie teraz"
+
+#: app/templates/client/appointments.html:682
+#: app/templates/client/dashboard.html:1611
+#: app/templates/provider/appointments.html:573
+#: app/templates/provider/dashboard.html:456
+#: app/templates/provider/dashboard.html:803
+#, fuzzy
+msgid "Disputed"
+msgstr "Odległość"
+
+#: app/templates/client/appointments.html:691
 msgid "Payment error:"
 msgstr "Błąd płatności:"
 
-#: app/templates/client/appointments.html:583
+#: app/templates/client/appointments.html:695
 msgid "Are you sure you want to cancel this appointment?"
 msgstr "Na pewno chcesz anulować tę wizytę?"
 
-#: app/templates/client/appointments.html:584
-#: app/templates/provider/appointments.html:400
+#: app/templates/client/appointments.html:696
+#: app/templates/provider/appointments.html:494
 msgid "Cancel Appointment"
 msgstr "Anuluj wizytę"
 
-#: app/templates/client/appointments.html:585
-#: app/templates/client/dashboard.html:1011
-#: app/templates/provider/appointments.html:400
-#: app/templates/provider/dashboard.html:1043
+#: app/templates/client/appointments.html:697
+#: app/templates/client/dashboard.html:1158
+#: app/templates/provider/appointments.html:494
+#: app/templates/provider/dashboard.html:1211
 msgid "Yes, Cancel"
 msgstr "Tak, anuluj"
 
-#: app/templates/client/appointments.html:611
+#: app/templates/client/appointments.html:729
 msgid "Restore this appointment? It will return to scheduled status."
 msgstr "Przywrócić wizytę? Wróci do statusu \"zaplanowane\"."
 
-#: app/templates/client/appointments.html:613
-#: app/templates/client/dashboard.html:1051
+#: app/templates/client/appointments.html:731
+#: app/templates/client/dashboard.html:1198
 msgid "Yes, Restore"
 msgstr "Tak, przywróć"
 
-#: app/templates/client/appointments.html:653
+#: app/templates/client/appointments.html:753
+#: app/templates/client/dashboard.html:1241
+msgid ""
+"Report that the provider did not show up? This will be recorded and "
+"reviewed."
+msgstr ""
+
+#: app/templates/client/appointments.html:755
+#: app/templates/client/dashboard.html:1243
+msgid "Yes, Report No-Show"
+msgstr ""
+
+#: app/templates/client/appointments.html:782
+#: app/templates/client/dashboard.html:1264
+msgid ""
+"Report an issue with this appointment? This will open a dispute for "
+"review."
+msgstr ""
+
+#: app/templates/client/appointments.html:784
+#: app/templates/client/dashboard.html:1266
+#, fuzzy
+msgid "Yes, Report Issue"
+msgstr "Tak, przywróć"
+
+#: app/templates/client/appointments.html:829
 msgid "Review available after completion."
 msgstr "Opinia dostępna po zakończeniu."
 
-#: app/templates/client/appointments.html:665
+#: app/templates/client/appointments.html:841
 msgid "Without comment"
 msgstr "Bez komentarza"
 
-#: app/templates/client/appointments.html:689
-#: app/templates/client/dashboard.html:1071
+#: app/templates/client/appointments.html:868
+#, fuzzy
+msgid "Loading QR..."
+msgstr "Ładowanie..."
+
+#: app/templates/client/appointments.html:897
+#: app/templates/client/dashboard.html:917
+#, fuzzy
+msgid "Recipient"
+msgstr "Rachunek"
+
+#: app/templates/client/appointments.html:899
+#: app/templates/client/dashboard.html:919
+#: app/templates/provider/finances.html:147
+#: app/templates/provider/finances.html:189
+msgid "Amount"
+msgstr "Kwota"
+
+#: app/templates/client/appointments.html:900
+#: app/templates/client/dashboard.html:920
+#, fuzzy
+msgid "Reference"
+msgstr "Doświadczenie"
+
+#: app/templates/client/appointments.html:901
+#: app/templates/client/dashboard.html:921
+msgid "Copy the details and paste them in your banking app"
+msgstr ""
+
+#: app/templates/client/appointments.html:908
+#: app/templates/client/dashboard.html:928
+#, fuzzy
+msgid "Recipient:"
+msgstr "Rachunek"
+
+#: app/templates/client/appointments.html:911
+#: app/templates/client/dashboard.html:931
+#, fuzzy
+msgid "Reference:"
+msgstr "Doświadczenie"
+
+#: app/templates/client/appointments.html:913
+#: app/templates/client/dashboard.html:933
+msgid "Scan QR with your banking app to transfer"
+msgstr ""
+
+#: app/templates/client/appointments.html:918
+#: app/templates/client/dashboard.html:938
+#, fuzzy
+msgid "QR Transfer Payment"
+msgstr "Płatność gotówką"
+
+#: app/templates/client/appointments.html:919
+#: app/templates/client/dashboard.html:939
+#, fuzzy
+msgid "I have paid"
+msgstr "Zapisz PDF"
+
+#: app/templates/client/appointments.html:939
+#: app/templates/client/dashboard.html:958
+#, fuzzy
+msgid "Error loading QR code"
+msgstr "Błąd ładowania strony"
+
+#: app/templates/client/appointments.html:950
+#: app/templates/client/dashboard.html:1218
 msgid "Confirm that the work has been completed?"
 msgstr "Potwierdzić że praca została wykonana?"
 
-#: app/templates/client/appointments.html:689
+#: app/templates/client/appointments.html:950
 msgid "Are you sure? This will release the funds to the provider."
 msgstr "Na pewno? Środki zostaną przekazane wykonawcy."
 
-#: app/templates/client/appointments.html:690
-#: app/templates/client/dashboard.html:1072
+#: app/templates/client/appointments.html:951
+#: app/templates/client/dashboard.html:1219
 msgid "Release Payment"
 msgstr "Zwolnij płatność"
 
-#: app/templates/client/appointments.html:691
-#: app/templates/client/dashboard.html:1073
+#: app/templates/client/appointments.html:952
+#: app/templates/client/dashboard.html:1220
 msgid "Yes, Confirm"
 msgstr "Tak, potwierdzam"
 
-#: app/templates/client/appointments.html:691
-#: app/templates/client/dashboard.html:1073
+#: app/templates/client/appointments.html:952
+#: app/templates/client/dashboard.html:1220
 msgid "Yes, Release Funds"
 msgstr "Tak, przekaż środki"
 
-#: app/templates/client/appointments.html:709
+#: app/templates/client/appointments.html:975
 msgid "Completed! Thank you."
 msgstr "Gotowe! Dzięki."
 
-#: app/templates/client/appointments.html:709
+#: app/templates/client/appointments.html:975
 msgid "Payment Released! Thank you."
 msgstr "Płatność przekazana! Dzięki."
 
@@ -1029,7 +1419,7 @@ msgid "Max Level!"
 msgstr "Maks. poziom!"
 
 #: app/templates/client/dashboard.html:32
-#: app/templates/client/dashboard.html:1330
+#: app/templates/client/dashboard.html:1572
 #: app/templates/provider/dashboard.html:33
 msgid "Profile"
 msgstr "Profil"
@@ -1039,6 +1429,7 @@ msgid "Calendar"
 msgstr "Kalendarz"
 
 #: app/templates/client/dashboard.html:42 app/templates/client/history.html:8
+#: app/templates/provider/dashboard.html:88
 msgid "History"
 msgstr "Historia"
 
@@ -1048,247 +1439,296 @@ msgid "Update Location"
 msgstr "Zaktualizuj lokalizację"
 
 #: app/templates/client/dashboard.html:48
-#: app/templates/client/dashboard.html:229
-#: app/templates/client/dashboard.html:1565
+#: app/templates/client/dashboard.html:269
+#: app/templates/client/dashboard.html:1864
 msgid "Post a Request"
 msgstr "Dodaj zapytanie"
 
-#: app/templates/client/dashboard.html:52
-#: app/templates/provider/dashboard.html:45
+#: app/templates/client/dashboard.html:53
+#: app/templates/client/dashboard.html:54
+#, fuzzy
+msgid "Switch to Provider"
+msgstr "Znajdź wykonawcę"
+
+#: app/templates/client/dashboard.html:54
+#, fuzzy
+msgid "Also become a Provider"
+msgstr "Zostań wykonawcą"
+
+#: app/templates/client/dashboard.html:59
+#: app/templates/provider/dashboard.html:52
 msgid "Exit"
 msgstr "Wyloguj"
 
-#: app/templates/client/dashboard.html:66
-#: app/templates/provider/dashboard.html:58
+#: app/templates/client/dashboard.html:73
+#: app/templates/provider/dashboard.html:65
 msgid "Map View"
 msgstr "Mapa"
 
-#: app/templates/client/dashboard.html:69
-#: app/templates/provider/dashboard.html:61
+#: app/templates/client/dashboard.html:76
+#: app/templates/provider/dashboard.html:68
 msgid "Real-time"
 msgstr "Na żywo"
 
-#: app/templates/client/dashboard.html:83
-#: app/templates/client/dashboard.html:460
+#: app/templates/client/dashboard.html:90
+#: app/templates/client/dashboard.html:521
 msgid "Provider is on the way!"
 msgstr "Wykonawca jest w drodze!"
 
-#: app/templates/client/dashboard.html:90
+#: app/templates/client/dashboard.html:97
 msgid "Find a Provider"
 msgstr "Znajdź wykonawcę"
 
-#: app/templates/client/dashboard.html:96
+#: app/templates/client/dashboard.html:103
 msgid "Active"
 msgstr "Aktywne"
 
-#: app/templates/client/dashboard.html:102
+#: app/templates/client/dashboard.html:109
 msgid "Past"
 msgstr "Przeszłe"
 
-#: app/templates/client/dashboard.html:132
-#: app/templates/provider/dashboard.html:109
+#: app/templates/client/dashboard.html:112 app/templates/client/history.html:30
+msgid "Favorites"
+msgstr ""
+
+#: app/templates/client/dashboard.html:142
+#: app/templates/provider/dashboard.html:119
 msgid "Nearest first"
 msgstr "Najbliżsi"
 
-#: app/templates/client/dashboard.html:133
+#: app/templates/client/dashboard.html:143
 msgid "Highest rated"
 msgstr "Najlepiej oceniani"
 
-#: app/templates/client/dashboard.html:134
+#: app/templates/client/dashboard.html:144
 msgid "Name A-Z"
 msgstr "Nazwa A-Z"
 
-#: app/templates/client/dashboard.html:135
+#: app/templates/client/dashboard.html:145
 msgid "Most reviewed"
 msgstr "Najwięcej opinii"
 
-#: app/templates/client/dashboard.html:139
+#: app/templates/client/dashboard.html:149
 msgid "Search by name or service..."
 msgstr "Szukaj po nazwie lub usłudze..."
 
-#: app/templates/client/dashboard.html:151
-#: app/templates/client/dashboard.html:161
-#: app/templates/client/dashboard.html:171
+#: app/templates/client/dashboard.html:155
+#, fuzzy
+msgid "Tags"
+msgstr "TAGI"
+
+#: app/templates/client/dashboard.html:175
+#: app/templates/client/dashboard.html:185
+#: app/templates/client/dashboard.html:195
+#: app/templates/client/dashboard.html:221
+#: app/templates/client/dashboard.html:2020
 msgid "Loading..."
 msgstr "Ładowanie..."
 
-#: app/templates/client/dashboard.html:181
+#: app/templates/client/dashboard.html:205
 msgid "Loading providers..."
 msgstr "Szukamy wykonawców..."
 
-#: app/templates/client/dashboard.html:196
-#: app/templates/client/provider_public_profile.html:182
+#: app/templates/client/dashboard.html:213
+#: app/templates/client/dashboard.html:2107
+#, fuzzy
+msgid "My Favorites"
+msgstr "Moje wizyty"
+
+#: app/templates/client/dashboard.html:215
+#: app/templates/client/provider_public_profile.html:52
+msgid "Share"
+msgstr "Udostępnij"
+
+#: app/templates/client/dashboard.html:236
+#: app/templates/client/provider_public_profile.html:213
 msgid "Book Service"
 msgstr "Zarezerwuj usługę"
 
-#: app/templates/client/dashboard.html:200
-#: app/templates/client/provider_public_profile.html:186
+#: app/templates/client/dashboard.html:240
+#: app/templates/client/provider_public_profile.html:217
 msgid "Provider:"
 msgstr "Wykonawca:"
 
-#: app/templates/client/dashboard.html:204
+#: app/templates/client/dashboard.html:244
 msgid "SELECT SERVICE"
 msgstr "WYBIERZ USŁUGĘ"
 
-#: app/templates/client/dashboard.html:212
-#: app/templates/client/provider_public_profile.html:200
+#: app/templates/client/dashboard.html:252
+#: app/templates/client/provider_public_profile.html:231
 msgid "REQUIREMENTS"
 msgstr "WYMAGANIA"
 
-#: app/templates/client/dashboard.html:213
-#: app/templates/client/provider_public_profile.html:201
+#: app/templates/client/dashboard.html:253
+#: app/templates/client/provider_public_profile.html:232
 msgid "Describe what you need..."
 msgstr "Opisz czego potrzebujesz..."
 
-#: app/templates/client/dashboard.html:219
-#: app/templates/client/provider_public_profile.html:207
-#: app/templates/client/provider_public_profile.html:379
+#: app/templates/client/dashboard.html:259
+#: app/templates/client/provider_public_profile.html:238
+#: app/templates/client/provider_public_profile.html:410
 msgid "Confirm Booking"
 msgstr "Potwierdź rezerwację"
 
-#: app/templates/client/dashboard.html:233
+#: app/templates/client/dashboard.html:273
 msgid "Let providers know what you need and they will contact you."
 msgstr "Powiedz wykonawcom czego potrzebujesz — odezwą się do ciebie."
 
-#: app/templates/client/dashboard.html:236
+#: app/templates/client/dashboard.html:276
 msgid "SERVICE NEEDED"
 msgstr "POTRZEBNA USŁUGA"
 
-#: app/templates/client/dashboard.html:237
+#: app/templates/client/dashboard.html:277
 msgid "e.g. Home Injection"
 msgstr "np. Zastrzyk w domu"
 
-#: app/templates/client/dashboard.html:241
+#: app/templates/client/dashboard.html:283
+msgid "Date is flexible — I'll arrange the schedule with the provider"
+msgstr ""
+
+#: app/templates/client/dashboard.html:289
 msgid "BUDGET (EUR)"
 msgstr "BUDŻET (EUR)"
 
-#: app/templates/client/dashboard.html:245
+#: app/templates/client/dashboard.html:293
 msgid "WHEN?"
 msgstr "KIEDY?"
 
-#: app/templates/client/dashboard.html:250
+#: app/templates/client/dashboard.html:298
 msgid "YOUR ADDRESS"
 msgstr "TWÓJ ADRES"
 
-#: app/templates/client/dashboard.html:253
+#: app/templates/client/dashboard.html:301
 msgid "Street, building, city"
 msgstr "Ulica, numer, miasto"
 
-#: app/templates/client/dashboard.html:255
+#: app/templates/client/dashboard.html:303 app/templates/client/profile.html:54
+#: app/templates/provider/profile.html:54
 msgid "Detect my location"
 msgstr "Wykryj moją lokalizację"
 
-#: app/templates/client/dashboard.html:261
+#: app/templates/client/dashboard.html:309
 msgid "Only visible to the provider after they accept your request."
 msgstr "Widoczne dla wykonawcy dopiero po akceptacji."
 
-#: app/templates/client/dashboard.html:265
+#: app/templates/client/dashboard.html:313
 msgid "DISTRICT / NEIGHBORHOOD"
 msgstr "DZIELNICA / OKOLICA"
 
-#: app/templates/client/dashboard.html:267
+#: app/templates/client/dashboard.html:315
 msgid "e.g. Schwabing, Sendling, Mitte..."
 msgstr "np. Schwabing, Sendling, Mitte..."
 
-#: app/templates/client/dashboard.html:269
+#: app/templates/client/dashboard.html:317
 msgid "Providers will only see this area name, not your exact address."
 msgstr "Wykonawcy zobaczą tylko tę okolicę, nie twój dokładny adres."
 
-#: app/templates/client/dashboard.html:273
-#: app/templates/provider/services.html:152
+#: app/templates/client/dashboard.html:321
+#: app/templates/provider/dashboard.html:196
+#: app/templates/provider/services.html:185
+msgid "TAGS"
+msgstr "TAGI"
+
+#: app/templates/client/dashboard.html:337
+#: app/templates/provider/services.html:168
 msgid "DESCRIPTION"
 msgstr "OPIS"
 
-#: app/templates/client/dashboard.html:279
+#: app/templates/client/dashboard.html:343
 msgid "Publish Request"
 msgstr "Opublikuj zapytanie"
 
-#: app/templates/client/dashboard.html:461
+#: app/templates/client/dashboard.html:522
 msgid "Waiting for location..."
 msgstr "Ustalanie lokalizacji..."
 
-#: app/templates/client/dashboard.html:526
+#: app/templates/client/dashboard.html:587
 msgid "Provider has arrived!"
 msgstr "Wykonawca jest na miejscu!"
 
-#: app/templates/client/dashboard.html:684
+#: app/templates/client/dashboard.html:750
 msgid "You are here"
 msgstr "Jesteś tutaj"
 
-#: app/templates/client/dashboard.html:715
+#: app/templates/client/dashboard.html:781
 msgid "Calculating route to"
 msgstr "Obliczanie trasy do"
 
-#: app/templates/client/dashboard.html:745
+#: app/templates/client/dashboard.html:811
 msgid "Could not calculate route."
 msgstr "Nie udało się obliczyć trasy."
 
-#: app/templates/client/dashboard.html:770
+#: app/templates/client/dashboard.html:836
 msgid "Show Route"
 msgstr "Pokaż trasę"
 
-#: app/templates/client/dashboard.html:835
+#: app/templates/client/dashboard.html:973
 msgid "Accept this provider?"
 msgstr "Zaakceptować tego wykonawcę?"
 
-#: app/templates/client/dashboard.html:836
+#: app/templates/client/dashboard.html:974
 msgid "Accept Provider"
 msgstr "Akceptuj wykonawcę"
 
-#: app/templates/client/dashboard.html:849
+#: app/templates/client/dashboard.html:987
 msgid "Provider accepted! Your appointment is scheduled."
 msgstr "Wykonawca zaakceptowany! Wizyta zaplanowana."
 
-#: app/templates/client/dashboard.html:858
+#: app/templates/client/dashboard.html:996
 msgid "Confirm provider and proceed to payment?"
 msgstr "Potwierdzić wykonawcę i przejść do płatności?"
 
-#: app/templates/client/dashboard.html:859
-#: app/templates/client/dashboard.html:1525
+#: app/templates/client/dashboard.html:997
+#: app/templates/client/dashboard.html:1824
 msgid "Confirm & Pay"
 msgstr "Potwierdź i zapłać"
 
-#: app/templates/client/dashboard.html:860
+#: app/templates/client/dashboard.html:998
 msgid "Yes, Proceed to Payment"
 msgstr "Tak, przejdź do płatności"
 
-#: app/templates/client/dashboard.html:890
-#: app/templates/provider/dashboard.html:939
+#: app/templates/client/dashboard.html:1028
+#: app/templates/provider/dashboard.html:1034
 msgid "Your price (EUR)"
 msgstr "Twoja cena (EUR)"
 
-#: app/templates/client/dashboard.html:895
+#: app/templates/client/dashboard.html:1033
 msgid "Your price"
 msgstr "Twoja cena"
 
-#: app/templates/client/dashboard.html:903
-#: app/templates/provider/dashboard.html:1125
-#: app/templates/provider/dashboard.html:1148
+#: app/templates/client/dashboard.html:1041
+#: app/templates/provider/dashboard.html:1293
+#: app/templates/provider/dashboard.html:1316
 msgid "Please enter a valid price"
 msgstr "Wpisz poprawną cenę"
 
-#: app/templates/client/dashboard.html:933
+#: app/templates/client/dashboard.html:1071
 msgid "Detecting location..."
 msgstr "Ustalanie lokalizacji..."
 
-#: app/templates/client/dashboard.html:945
-#: app/templates/client/dashboard.html:950
+#: app/templates/client/dashboard.html:1083
+#: app/templates/client/dashboard.html:1088
 msgid "Location detected"
 msgstr "Lokalizacja znaleziona"
 
-#: app/templates/client/dashboard.html:970
+#: app/templates/client/dashboard.html:1108
 msgid "Please enter your address."
 msgstr "Wpisz swój adres."
 
-#: app/templates/client/dashboard.html:972
+#: app/templates/client/dashboard.html:1110
 msgid "Please enter your district or neighborhood."
 msgstr "Wpisz swoją dzielnicę lub okolicę."
 
-#: app/templates/client/dashboard.html:1003
+#: app/templates/client/dashboard.html:1125
+#, fuzzy
+msgid "Please select a date or mark as flexible."
+msgstr "Wybierz ocenę"
+
+#: app/templates/client/dashboard.html:1150
 msgid "Request published successfully!"
 msgstr "Zapytanie opublikowane!"
 
-#: app/templates/client/dashboard.html:1009
+#: app/templates/client/dashboard.html:1156
 msgid ""
 "Are you sure you want to cancel this request? If payment was authorized, "
 "it will be refunded."
@@ -1296,35 +1736,35 @@ msgstr ""
 "Czy na pewno chcesz anulować to zlecenie? Jeśli płatność została "
 "autoryzowana, zostanie zwrócona."
 
-#: app/templates/client/dashboard.html:1010
-#: app/templates/provider/dashboard.html:791
-#: app/templates/provider/dashboard.html:1042
+#: app/templates/client/dashboard.html:1157
+#: app/templates/provider/dashboard.html:881
+#: app/templates/provider/dashboard.html:1210
 msgid "Cancel Request"
 msgstr "Anuluj zapytanie"
 
-#: app/templates/client/dashboard.html:1021
-#: app/templates/provider/dashboard.html:1056
+#: app/templates/client/dashboard.html:1168
+#: app/templates/provider/dashboard.html:1224
 msgid "Request cancelled"
 msgstr "Zapytanie anulowane"
 
-#: app/templates/client/dashboard.html:1029
+#: app/templates/client/dashboard.html:1176
 msgid "Go back to the previous step?"
 msgstr "Wrócić do poprzedniego kroku?"
 
-#: app/templates/client/dashboard.html:1030
-#: app/templates/client/dashboard.html:1447
+#: app/templates/client/dashboard.html:1177
+#: app/templates/client/dashboard.html:1746
 msgid "Go Back"
 msgstr "Wróć"
 
-#: app/templates/client/dashboard.html:1031
+#: app/templates/client/dashboard.html:1178
 msgid "Yes, Go Back"
 msgstr "Tak, wróć"
 
-#: app/templates/client/dashboard.html:1041
+#: app/templates/client/dashboard.html:1188
 msgid "Returned to previous step"
 msgstr "Powrót do poprzedniego kroku"
 
-#: app/templates/client/dashboard.html:1049
+#: app/templates/client/dashboard.html:1196
 msgid ""
 "Restore this request? It will be returned to pending status and providers"
 " can send new offers."
@@ -1332,154 +1772,192 @@ msgstr ""
 "Przywrócić to zlecenie? Zostanie ono zwrócone do statusu oczekiwania, a "
 "usługodawcy będą mogli wysyłać nowe oferty."
 
-#: app/templates/client/dashboard.html:1050
+#: app/templates/client/dashboard.html:1197
 msgid "Restore Request"
 msgstr "Przywróć zapytanie"
 
-#: app/templates/client/dashboard.html:1061
+#: app/templates/client/dashboard.html:1208
 msgid "Request restored"
 msgstr "Zapytanie przywrócone"
 
-#: app/templates/client/dashboard.html:1071
+#: app/templates/client/dashboard.html:1218
 msgid "Are you sure? This will release the held funds to the provider."
 msgstr "Na pewno? Środki zostaną przekazane wykonawcy."
 
-#: app/templates/client/dashboard.html:1086
+#: app/templates/client/dashboard.html:1233
 msgid "Service completed!"
 msgstr "Usługa wykonana!"
 
-#: app/templates/client/dashboard.html:1086
+#: app/templates/client/dashboard.html:1233
 msgid "Payment released! Service completed."
 msgstr "Płatność przekazana! Usługa zakończona."
 
-#: app/templates/client/dashboard.html:1095
-#: app/templates/provider/dashboard.html:1179
+#: app/templates/client/dashboard.html:1256
+#, fuzzy
+msgid "No-show reported."
+msgstr "Pokaż trasę"
+
+#: app/templates/client/dashboard.html:1279
+msgid "Issue reported. Our team will review it."
+msgstr ""
+
+#: app/templates/client/dashboard.html:1288
+#: app/templates/provider/dashboard.html:1347
 msgid "Locating..."
 msgstr "Szukanie..."
 
-#: app/templates/client/dashboard.html:1108
+#: app/templates/client/dashboard.html:1301
 msgid "Location updated"
 msgstr "Lokalizacja zaktualizowana"
 
-#: app/templates/client/dashboard.html:1110
+#: app/templates/client/dashboard.html:1303
 msgid "Error getting location"
 msgstr "Nie udało się pobrać lokalizacji"
 
-#: app/templates/client/dashboard.html:1118
-#: app/templates/client/provider_public_profile.html:307
+#: app/templates/client/dashboard.html:1311
+#: app/templates/client/provider_public_profile.html:338
 msgid "Loading services..."
 msgstr "Ładowanie usług..."
 
-#: app/templates/client/dashboard.html:1125
-#: app/templates/client/provider_public_profile.html:317
+#: app/templates/client/dashboard.html:1318
+#: app/templates/client/provider_public_profile.html:348
 msgid "No services available"
 msgstr "Brak dostępnych usług"
 
-#: app/templates/client/dashboard.html:1174
-#: app/templates/client/provider_public_profile.html:375
+#: app/templates/client/dashboard.html:1367
+#: app/templates/client/provider_public_profile.html:406
 msgid "Appointment confirmed!"
 msgstr "Wizyta potwierdzona!"
 
-#: app/templates/client/dashboard.html:1204
+#: app/templates/client/dashboard.html:1397
 msgid "New offers on your request!"
 msgstr "Nowe oferty na twoje zapytanie!"
 
-#: app/templates/client/dashboard.html:1292
+#: app/templates/client/dashboard.html:1534
 msgid "No providers found"
 msgstr "Nie znaleziono wykonawców"
 
-#: app/templates/client/dashboard.html:1306
+#: app/templates/client/dashboard.html:1548
 msgid "No reviews"
 msgstr "Brak opinii"
 
-#: app/templates/client/dashboard.html:1310
-#: app/templates/client/dashboard.html:1512
-#: app/templates/client/provider_public_profile.html:50
+#: app/templates/client/dashboard.html:1552
+#: app/templates/client/dashboard.html:1811
+#: app/templates/client/profile.html:104 app/templates/client/profile.html:138
+#: app/templates/client/profile.html:145 app/templates/client/profile.html:160
+#: app/templates/client/profile.html:167
+#: app/templates/client/provider_public_profile.html:36
+#: app/templates/client/provider_public_profile.html:37
+#: app/templates/client/provider_public_profile.html:72
+#: app/templates/provider/profile.html:122
+#: app/templates/provider/profile.html:156
+#: app/templates/provider/profile.html:163
+#: app/templates/provider/profile.html:178
+#: app/templates/provider/profile.html:185
 msgid "Verified"
 msgstr "Zweryfikowany"
 
-#: app/templates/client/dashboard.html:1319
+#: app/templates/client/dashboard.html:1561
 msgid "No address"
 msgstr "Brak adresu"
 
-#: app/templates/client/dashboard.html:1326
+#: app/templates/client/dashboard.html:1568
 msgid "services"
 msgstr "usług"
 
-#: app/templates/client/dashboard.html:1365
+#: app/templates/client/dashboard.html:1577
+#: app/templates/client/provider_public_profile.html:185
+msgid "Favorite"
+msgstr ""
+
+#: app/templates/client/dashboard.html:1622
 msgid "Approve & Pay"
 msgstr "Potwierdź i zapłać"
 
-#: app/templates/client/dashboard.html:1369
+#: app/templates/client/dashboard.html:1626
 msgid "Payment held"
 msgstr "Płatność zamrożona"
 
-#: app/templates/client/dashboard.html:1372
+#: app/templates/client/dashboard.html:1629
 msgid "Pay to confirm"
 msgstr "Zapłać żeby potwierdzić"
 
-#: app/templates/client/dashboard.html:1375
+#: app/templates/client/dashboard.html:1632
 msgid "Booked"
 msgstr "Zarezerwowane"
 
-#: app/templates/client/dashboard.html:1378
+#: app/templates/client/dashboard.html:1635
 msgid "Offers"
 msgstr "Oferty"
 
-#: app/templates/client/dashboard.html:1399
-#: app/templates/client/history.html:108
+#: app/templates/client/dashboard.html:1648
+#: app/templates/client/history.html:100
+#: app/templates/provider/dashboard.html:734
+#: app/templates/provider/dashboard.html:923
+#, fuzzy
+msgid "Flexible date"
+msgstr "Data ważności"
+
+#: app/templates/client/dashboard.html:1659
+msgid "Reuse"
+msgstr "Użyj ponownie"
+
+#: app/templates/client/dashboard.html:1666
+#: app/templates/client/history.html:117
 msgid "Restore"
 msgstr "Przywróć"
 
-#: app/templates/client/dashboard.html:1405
-#: app/templates/client/history.html:101
-#: app/templates/provider/dashboard.html:712
+#: app/templates/client/dashboard.html:1686
+#: app/templates/client/history.html:110
+#: app/templates/provider/dashboard.html:800
 msgid "Receipt"
 msgstr "Rachunek"
 
-#: app/templates/client/dashboard.html:1413
+#: app/templates/client/dashboard.html:1693
+#, fuzzy
+msgid "The provider has arrived and work is in progress."
+msgstr "Wykonawca oznaczył pracę jako zakończoną."
+
+#: app/templates/client/dashboard.html:1709
 msgid "The provider has completed the service."
 msgstr "Wykonawca zakończył usługę."
 
-#: app/templates/client/dashboard.html:1414
+#: app/templates/client/dashboard.html:1710
 msgid "Please approve to release the payment."
 msgstr "Potwierdź żeby przekazać płatność."
 
-#: app/templates/client/dashboard.html:1414
+#: app/templates/client/dashboard.html:1710
 msgid "Please confirm the completion."
 msgstr "Potwierdź zakończenie."
 
-#: app/templates/client/dashboard.html:1422
+#: app/templates/client/dashboard.html:1721
 msgid "View Provider"
 msgstr "Zobacz wykonawcę"
 
-#: app/templates/client/dashboard.html:1429
-msgid "Hold payment"
-msgstr "Zamroź płatność"
+#: app/templates/client/dashboard.html:1728
+#, fuzzy
+msgid "QR Transfer"
+msgstr "Przelew"
 
-#: app/templates/client/dashboard.html:1432
+#: app/templates/client/dashboard.html:1731
 msgid "Cash"
 msgstr "Gotówka"
 
-#: app/templates/client/dashboard.html:1438
-#: app/templates/client/dashboard.html:1531
+#: app/templates/client/dashboard.html:1737
+#: app/templates/client/dashboard.html:1830
 #: app/templates/provider/client_profile.html:55
 msgid "Chat"
 msgstr "Czat"
 
-#: app/templates/client/dashboard.html:1443
-msgid "View Offers"
-msgstr "Zobacz oferty"
-
-#: app/templates/client/dashboard.html:1462
+#: app/templates/client/dashboard.html:1761
 msgid "Payment is available 7 days before the appointment."
 msgstr "Płatność dostępna 7 dni przed wizytą."
 
-#: app/templates/client/dashboard.html:1463
+#: app/templates/client/dashboard.html:1762
 msgid "From"
 msgstr "Od"
 
-#: app/templates/client/dashboard.html:1463
+#: app/templates/client/dashboard.html:1762
 msgid ""
 "you will receive an email to authorize the payment. Funds are held "
 "securely and released only after the service."
@@ -1487,79 +1965,111 @@ msgstr ""
 "otrzymasz e-mail z autoryzacją płatności. Środki są bezpiecznie "
 "przechowywane i uwalniane dopiero po wykonaniu usługi."
 
-#: app/templates/client/dashboard.html:1483
+#: app/templates/client/dashboard.html:1782
 msgid "agreed price"
 msgstr "uzgodniona cena"
 
-#: app/templates/client/dashboard.html:1489
+#: app/templates/client/dashboard.html:1788
 msgid "Full Profile"
 msgstr "Pełny profil"
 
-#: app/templates/client/dashboard.html:1492
+#: app/templates/client/dashboard.html:1791
 msgid "Show on map"
 msgstr "Na mapie"
 
-#: app/templates/client/dashboard.html:1506
+#: app/templates/client/dashboard.html:1805
 msgid "Price not set"
 msgstr "Cena nie ustalona"
 
-#: app/templates/client/dashboard.html:1514
+#: app/templates/client/dashboard.html:1813
 msgid "Your counter"
 msgstr "Twoja kontrpropozycja"
 
-#: app/templates/client/dashboard.html:1514
+#: app/templates/client/dashboard.html:1813
 msgid "waiting"
 msgstr "czeka"
 
-#: app/templates/client/dashboard.html:1517
+#: app/templates/client/dashboard.html:1816
 msgid "Budget"
 msgstr "Budżet"
 
-#: app/templates/client/dashboard.html:1528
+#: app/templates/client/dashboard.html:1827
 msgid "Counter"
 msgstr "Kontrpropozycja"
 
-#: app/templates/client/dashboard.html:1563
+#: app/templates/client/dashboard.html:1862
 msgid "No active requests"
 msgstr "Brak aktywnych zapytań"
 
-#: app/templates/client/dashboard.html:1578
+#: app/templates/client/dashboard.html:1877
 msgid "No accepted requests yet"
 msgstr "Nie ma jeszcze zaakceptowanych zapytań"
 
-#: app/templates/client/dashboard.html:1590
+#: app/templates/client/dashboard.html:1889
 msgid "No past requests"
 msgstr "Brak przeszłych zapytań"
 
-#: app/templates/client/dashboard.html:1726
+#: app/templates/client/dashboard.html:2032
+msgid "No favorites yet. Add providers or services you like!"
+msgstr ""
+
+#: app/templates/client/dashboard.html:2040
+#, fuzzy
+msgid "PROVIDERS"
+msgstr "Wykonawca"
+
+#: app/templates/client/dashboard.html:2054
+#: app/templates/client/dashboard.html:2070
+#: app/templates/client/profile.html:407
+#: app/templates/provider/services.html:107
+msgid "Remove"
+msgstr "Usuń"
+
+#: app/templates/client/dashboard.html:2062
+#, fuzzy
+msgid "SERVICES"
+msgstr "usług"
+
+#: app/templates/client/dashboard.html:2096
+#, fuzzy
+msgid "No favorites yet."
+msgstr "Jeszcze nie ma opinii."
+
+#: app/templates/client/dashboard.html:2109
+#: app/templates/client/provider_public_profile.html:497
+#, fuzzy
+msgid "Link copied!"
+msgstr "Link wygasł"
+
+#: app/templates/client/dashboard.html:2205
 msgid "Easter eggs found!"
 msgstr "Pisanki znalezione!"
 
-#: app/templates/client/dashboard.html:1738
+#: app/templates/client/dashboard.html:2217
 msgid "Happy Easter!"
 msgstr "Wesołych Świąt!"
 
-#: app/templates/client/dashboard.html:1739
+#: app/templates/client/dashboard.html:2218
 msgid "You found me!"
 msgstr "Znalazłeś mnie!"
 
-#: app/templates/client/dashboard.html:1740
+#: app/templates/client/dashboard.html:2219
 msgid "Spring vibes!"
 msgstr "Wiosenny vibe!"
 
-#: app/templates/client/dashboard.html:1741
+#: app/templates/client/dashboard.html:2220
 msgid "Lucky egg!"
 msgstr "Szczęśliwe jajko!"
 
-#: app/templates/client/dashboard.html:1742
+#: app/templates/client/dashboard.html:2221
 msgid "Sweet!"
 msgstr "Super!"
 
-#: app/templates/client/dashboard.html:1743
+#: app/templates/client/dashboard.html:2222
 msgid "Wonderful!"
 msgstr "Cudownie!"
 
-#: app/templates/client/dashboard.html:1753
+#: app/templates/client/dashboard.html:2232
 msgid "eggs found"
 msgstr "jajek znalezionych"
 
@@ -1567,31 +2077,47 @@ msgstr "jajek znalezionych"
 msgid "Your completed and past services"
 msgstr "Twoje zakończone i przeszłe usługi"
 
-#: app/templates/client/history.html:66
+#: app/templates/client/history.html:75
+#: app/templates/provider/dashboard.html:452
 msgid "Paid"
 msgstr "Opłacone"
 
-#: app/templates/client/history.html:68
+#: app/templates/client/history.html:77
 msgid "Work submitted"
 msgstr "Praca zgłoszona"
 
-#: app/templates/client/history.html:84
+#: app/templates/client/history.html:93
 msgid "Nothing here yet"
 msgstr "Tu jeszcze nic nie ma"
 
-#: app/templates/client/history.html:96
+#: app/templates/client/history.html:105
 msgid "Booking"
 msgstr "Rezerwacja"
 
-#: app/templates/client/history.html:97
+#: app/templates/client/history.html:106
 msgid "Request"
 msgstr "Zapytanie"
 
-#: app/templates/client/history.html:128 app/templates/client/receipt.html:216
+#: app/templates/client/history.html:137 app/templates/client/receipt.html:216
 msgid "Free"
 msgstr "Za darmo"
 
-#: app/templates/client/history.html:158
+#: app/templates/client/history.html:154
+#, fuzzy
+msgid "No favorites yet"
+msgstr "Portfolio jeszcze puste"
+
+#: app/templates/client/history.html:176 app/templates/client/history.html:196
+#, fuzzy
+msgid "View"
+msgstr "opinii"
+
+#: app/templates/client/history.html:190 app/templates/client/receipt.html:229
+#: app/templates/provider/dashboard.html:464
+msgid "Service"
+msgstr "Usługa"
+
+#: app/templates/client/history.html:231
 msgid "Restore this item? It will return to pending status."
 msgstr "Przywrócić? Wróci do statusu oczekiwania."
 
@@ -1603,104 +2129,212 @@ msgstr "Ustawienia profilu"
 msgid "Update your personal information"
 msgstr "Zaktualizuj swoje dane"
 
-#: app/templates/client/profile.html:26 app/templates/provider/profile.html:26
+#: app/templates/client/profile.html:21 app/templates/provider/profile.html:21
+#, fuzzy
+msgid "Personal Information"
+msgstr "Zaktualizuj swoje dane"
+
+#: app/templates/client/profile.html:31 app/templates/provider/profile.html:31
 msgid "FULL NAME"
 msgstr "IMIĘ I NAZWISKO"
 
-#: app/templates/client/profile.html:31 app/templates/provider/profile.html:31
+#: app/templates/client/profile.html:36 app/templates/provider/profile.html:36
 msgid "EMAIL"
 msgstr "EMAIL"
 
-#: app/templates/client/profile.html:36 app/templates/provider/profile.html:36
+#: app/templates/client/profile.html:41 app/templates/provider/profile.html:41
 msgid "PHONE NUMBER"
 msgstr "NUMER TELEFONU"
 
-#: app/templates/client/profile.html:41 app/templates/provider/profile.html:41
+#: app/templates/client/profile.html:46 app/templates/provider/profile.html:46
 msgid "BIRTH DATE"
 msgstr "DATA URODZENIA"
 
-#: app/templates/client/profile.html:46
-#: app/templates/provider/dashboard.html:180
-#: app/templates/provider/profile.html:46
+#: app/templates/client/profile.html:51
+#: app/templates/provider/dashboard.html:192
+#: app/templates/provider/profile.html:51
 msgid "ADDRESS"
 msgstr "ADRES"
 
-#: app/templates/client/profile.html:51
-#: app/templates/client/provider_public_profile.html:57
-#: app/templates/provider/profile.html:51
+#: app/templates/client/profile.html:61
+#: app/templates/client/provider_public_profile.html:79
+#: app/templates/provider/profile.html:79
 msgid "ABOUT ME"
 msgstr "O MNIE"
 
-#: app/templates/client/profile.html:62
-msgid "Enter new password to change"
-msgstr "Wpisz nowe hasło"
-
-#: app/templates/client/profile.html:71
-msgid "UPLOAD NEW DOCUMENTS"
-msgstr "WGRAJ DOKUMENTY"
-
-#: app/templates/client/profile.html:76 app/templates/provider/profile.html:61
-msgid "You can select multiple files (PDF, JPG, PNG)"
-msgstr "Możesz wybrać kilka plików (PDF, JPG, PNG)"
-
-#: app/templates/client/profile.html:81 app/templates/provider/profile.html:66
+#: app/templates/client/profile.html:67 app/templates/provider/profile.html:85
 msgid "Update Profile"
 msgstr "Zaktualizuj profil"
 
-#: app/templates/client/profile.html:94
+#: app/templates/client/profile.html:78 app/templates/provider/profile.html:96
+#, fuzzy
+msgid "Documents & Verification"
+msgstr "Aktualna lokalizacja"
+
+#: app/templates/client/profile.html:79
+msgid "Verify your identity to unlock all features"
+msgstr ""
+
+#: app/templates/client/profile.html:89 app/templates/provider/profile.html:107
+#, fuzzy
+msgid "ID Document"
+msgstr "Dokumenty"
+
+#: app/templates/client/profile.html:92 app/templates/provider/profile.html:110
+#, fuzzy
+msgid "Your identity has been verified"
+msgstr "Twoje zlecenie zostało zatwierdzone"
+
+#: app/templates/client/profile.html:94 app/templates/provider/profile.html:112
+#, fuzzy
+msgid "Document uploaded — under review"
+msgstr "Brak dokumentów."
+
+#: app/templates/client/profile.html:96 app/templates/client/profile.html:108
+#: app/templates/provider/dashboard.html:729
+#: app/templates/provider/profile.html:114
+#: app/templates/provider/profile.html:126
+msgid "Rejected"
+msgstr "Odrzucone"
+
+#: app/templates/client/profile.html:98 app/templates/provider/profile.html:116
+msgid "Upload your passport or ID card"
+msgstr ""
+
+#: app/templates/client/profile.html:117
+#: app/templates/provider/profile.html:135
+#, fuzzy
+msgid "View uploaded document"
+msgstr "WGRAJ DOKUMENTY"
+
+#: app/templates/client/profile.html:123
+#: app/templates/provider/profile.html:141
+msgid "Upload"
+msgstr "Prześlij"
+
+#: app/templates/client/profile.html:126
+#: app/templates/provider/profile.html:144
+#, fuzzy
+msgid "JPG, PNG or PDF. Max 5MB."
+msgstr "Dozwolone: JPG, PNG, GIF (maks. 5MB)"
+
+#: app/templates/client/profile.html:139
+#: app/templates/provider/profile.html:157
+msgid "Verified via Google"
+msgstr ""
+
+#: app/templates/client/profile.html:140
+#: app/templates/provider/profile.html:158
+#, fuzzy
+msgid "Not verified"
+msgstr "Niezweryfikowany"
+
+#: app/templates/client/profile.html:148 app/templates/client/profile.html:355
+#: app/templates/provider/profile.html:166
+#: app/templates/provider/profile.html:565
+#, fuzzy
+msgid "Send Verification"
+msgstr "Nieprawidłowy kod weryfikacyjny"
+
+#: app/templates/client/profile.html:158 app/templates/client/profile.html:243
+#: app/templates/provider/profile.html:176
+#: app/templates/provider/profile.html:406
+msgid "Phone Number"
+msgstr "Numer telefonu"
+
+#: app/templates/client/profile.html:161
+#: app/templates/provider/profile.html:179
+msgid "Verified via Telegram"
+msgstr ""
+
+#: app/templates/client/profile.html:162
+#: app/templates/provider/profile.html:180
+msgid "Link Telegram to verify phone"
+msgstr ""
+
+#: app/templates/client/profile.html:171
+#: app/templates/provider/profile.html:189
+msgid "Link Telegram"
+msgstr ""
+
+#: app/templates/client/profile.html:184 app/templates/client/profile.html:190
+#: app/templates/provider/profile.html:202
+#: app/templates/provider/profile.html:207
+#, fuzzy
+msgid "Linked"
+msgstr "Odrzucone"
+
+#: app/templates/client/profile.html:184
+#, fuzzy
+msgid "auto-verifies phone"
+msgstr "Zweryfikuj telefon"
+
+#: app/templates/client/profile.html:185
+#: app/templates/provider/profile.html:202
+#, fuzzy
+msgid "Not linked"
+msgstr "Niezsynchronizowany"
+
+#: app/templates/client/profile.html:193
+#: app/templates/provider/profile.html:210
+#, fuzzy
+msgid "Link"
+msgstr "Logowanie"
+
+#: app/templates/client/profile.html:206
 msgid "Payment Methods"
 msgstr "Metody płatności"
 
-#: app/templates/client/profile.html:96
+#: app/templates/client/profile.html:208
 msgid "Add Card"
 msgstr "Dodaj kartę"
 
-#: app/templates/client/profile.html:111
+#: app/templates/client/profile.html:221
 msgid "NEW CARD"
 msgstr "NOWA KARTA"
 
-#: app/templates/client/profile.html:118 app/templates/client/profile.html:304
+#: app/templates/client/profile.html:228 app/templates/client/profile.html:462
 msgid "Save Card"
 msgstr "Zapisz kartę"
 
-#: app/templates/client/profile.html:129
-#: app/templates/provider/profile.html:149
+#: app/templates/client/profile.html:241
+#: app/templates/provider/profile.html:404
 #: app/templates/shared/_profile_photo.html:10
 msgid "Profile Photo"
 msgstr "Zdjęcie profilowe"
 
-#: app/templates/client/profile.html:131
-#: app/templates/provider/profile.html:151
-msgid "Phone Number"
-msgstr "Numer telefonu"
-
-#: app/templates/client/profile.html:132
-#: app/templates/provider/profile.html:152
+#: app/templates/client/profile.html:244
+#: app/templates/provider/profile.html:407
 msgid "About Me"
 msgstr "O mnie"
 
-#: app/templates/client/profile.html:133
-#: app/templates/provider/profile.html:153
+#: app/templates/client/profile.html:245
+#: app/templates/provider/profile.html:408
 msgid "Birth Date"
 msgstr "Data urodzenia"
 
-#: app/templates/client/profile.html:143
+#: app/templates/client/profile.html:255
+#: app/templates/provider/profile.html:421
 msgid "Danger Zone"
 msgstr "Strefa zagrożenia"
 
-#: app/templates/client/profile.html:148
+#: app/templates/client/profile.html:260
+#: app/templates/provider/profile.html:426
 msgid "Once you delete your account, there is no going back. Please be certain."
 msgstr "Po usunięciu konta nie ma odwrotu. Dobrze to przemyśl."
 
-#: app/templates/client/profile.html:151
+#: app/templates/client/profile.html:263
+#: app/templates/provider/profile.html:430
 msgid "Delete Account"
 msgstr "Usuń konto"
 
-#: app/templates/client/profile.html:166
+#: app/templates/client/profile.html:278
+#: app/templates/provider/profile.html:445
 msgid "Delete Account?"
 msgstr "Usunąć konto?"
 
-#: app/templates/client/profile.html:170
+#: app/templates/client/profile.html:282
+#: app/templates/provider/profile.html:449
 msgid ""
 "Are you absolutely sure? This action cannot be undone. All your data, "
 "photos, and history will be permanently erased."
@@ -1708,46 +2342,48 @@ msgstr ""
 "Czy jesteś absolutnie pewien? Tej czynności nie można cofnąć. Wszystkie "
 "Twoje dane, zdjęcia i historia zostaną trwale usunięte."
 
-#: app/templates/client/profile.html:176
+#: app/templates/client/profile.html:288
+#: app/templates/provider/profile.html:455
 msgid "Yes, Delete Everything"
 msgstr "Tak, usuń wszystko"
 
-#: app/templates/client/profile.html:222
+#: app/templates/client/profile.html:349
+#: app/templates/provider/profile.html:559
+#, fuzzy
+msgid "Sent!"
+msgstr "Wysłano"
+
+#: app/templates/client/profile.html:382
 msgid "No saved cards yet"
 msgstr "Brak zapisanych kart"
 
-#: app/templates/client/profile.html:240
+#: app/templates/client/profile.html:400
 msgid "Default"
 msgstr "Domyślna"
 
-#: app/templates/client/profile.html:242
+#: app/templates/client/profile.html:402
 msgid "Expires"
 msgstr "Ważna do"
 
-#: app/templates/client/profile.html:246
+#: app/templates/client/profile.html:406
 msgid "Set as default"
 msgstr "Ustaw jako domyślną"
 
-#: app/templates/client/profile.html:247
-#: app/templates/provider/services.html:92
-msgid "Remove"
-msgstr "Usuń"
-
-#: app/templates/client/profile.html:295
+#: app/templates/client/profile.html:453
 msgid "Saving..."
 msgstr "Zapisywanie..."
 
-#: app/templates/client/profile.html:323
+#: app/templates/client/profile.html:481
 msgid "Remove this card?"
 msgstr "Usunąć kartę?"
 
-#: app/templates/client/profile.html:324
+#: app/templates/client/profile.html:482
 msgid "Remove Card"
 msgstr "Usuń kartę"
 
-#: app/templates/client/profile.html:325
-#: app/templates/provider/profile.html:284
-#: app/templates/provider/profile.html:361
+#: app/templates/client/profile.html:483
+#: app/templates/provider/profile.html:534
+#: app/templates/provider/profile.html:628
 msgid "Yes, Remove"
 msgstr "Tak, usuń"
 
@@ -1755,60 +2391,70 @@ msgstr "Tak, usuń"
 msgid "Back to Search"
 msgstr "Wróć do wyszukiwania"
 
-#: app/templates/client/provider_public_profile.html:35
+#: app/templates/client/provider_public_profile.html:48
+#, fuzzy
+msgid "Remove from favorites"
+msgstr "Usuń element"
+
+#: app/templates/client/provider_public_profile.html:48
+#, fuzzy
+msgid "Add to favorites"
+msgstr "Dodaj tytuł"
+
+#: app/templates/client/provider_public_profile.html:57
 msgid "No address provided"
 msgstr "Adres nie podany"
 
-#: app/templates/client/provider_public_profile.html:42
+#: app/templates/client/provider_public_profile.html:64
 msgid "Rating"
 msgstr "Ocena"
 
-#: app/templates/client/provider_public_profile.html:46
-#: app/templates/client/provider_public_profile.html:97
+#: app/templates/client/provider_public_profile.html:68
+#: app/templates/client/provider_public_profile.html:119
 #: app/templates/provider/client_profile.html:89
 #: app/templates/provider/dashboard.html:37
 msgid "Reviews"
 msgstr "Opinie"
 
-#: app/templates/client/provider_public_profile.html:51
+#: app/templates/client/provider_public_profile.html:73
 msgid "Identity"
 msgstr "Tożsamość potwierdzona"
 
-#: app/templates/client/provider_public_profile.html:59
+#: app/templates/client/provider_public_profile.html:81
 msgid "This provider has not added a description yet."
 msgstr "Ten wykonawca nie dodał jeszcze opisu."
 
-#: app/templates/client/provider_public_profile.html:68
-#: app/templates/provider/profile.html:79
+#: app/templates/client/provider_public_profile.html:90
+#: app/templates/provider/profile.html:264
 msgid "Portfolio"
 msgstr "Portfolio"
 
-#: app/templates/client/provider_public_profile.html:123
+#: app/templates/client/provider_public_profile.html:145
 msgid "Provider's response"
 msgstr "Odpowiedź wykonawcy"
 
-#: app/templates/client/provider_public_profile.html:135
-#: app/templates/provider/dashboard.html:1253
+#: app/templates/client/provider_public_profile.html:157
+#: app/templates/provider/dashboard.html:1421
 msgid "No reviews yet."
 msgstr "Jeszcze nie ma opinii."
 
-#: app/templates/client/provider_public_profile.html:144
+#: app/templates/client/provider_public_profile.html:166
 msgid "Available Services"
 msgstr "Dostępne usługi"
 
-#: app/templates/client/provider_public_profile.html:155
+#: app/templates/client/provider_public_profile.html:177
 msgid "Standard service procedure"
 msgstr "Standardowa procedura"
 
-#: app/templates/client/provider_public_profile.html:160
+#: app/templates/client/provider_public_profile.html:190
 msgid "Book Now"
 msgstr "Zarezerwuj"
 
-#: app/templates/client/provider_public_profile.html:168
+#: app/templates/client/provider_public_profile.html:199
 msgid "This provider has no active services at the moment."
 msgstr "Ten wykonawca nie ma teraz aktywnych usług."
 
-#: app/templates/client/provider_public_profile.html:359
+#: app/templates/client/provider_public_profile.html:390
 msgid "Please fill in date and service"
 msgstr "Uzupełnij datę i usługę"
 
@@ -1823,10 +2469,6 @@ msgstr "Rachunek za usługę"
 #: app/templates/client/receipt.html:210
 msgid "Total"
 msgstr "Razem"
-
-#: app/templates/client/receipt.html:229
-msgid "Service"
-msgstr "Usługa"
 
 #: app/templates/client/receipt.html:241
 #: app/templates/provider/finances.html:187
@@ -1849,8 +2491,764 @@ msgstr "twoje miejsce żeby odetchnąć"
 msgid "Generated on"
 msgstr "Wygenerowano"
 
+#: app/templates/legal/impressum.html:5 app/templates/legal/privacy.html:5
+#: app/templates/legal/terms.html:5
+#, fuzzy
+msgid "Back to Home"
+msgstr "Wróć do wyszukiwania"
+
+#: app/templates/legal/impressum.html:13
+msgid "Information according to DDG Section 5"
+msgstr ""
+
+#: app/templates/legal/impressum.html:16
+msgid ""
+"This page is currently being prepared. The following information will be "
+"provided here:"
+msgstr ""
+
+#: app/templates/legal/impressum.html:20
+msgid "Company name and legal form"
+msgstr ""
+
+#: app/templates/legal/impressum.html:21
+#, fuzzy
+msgid "Registered address"
+msgstr "Wpisz adres"
+
+#: app/templates/legal/impressum.html:22
+msgid "Contact information (email, phone)"
+msgstr ""
+
+#: app/templates/legal/impressum.html:23
+msgid "Managing director / responsible person"
+msgstr ""
+
+#: app/templates/legal/impressum.html:24
+msgid "Commercial register entry (if applicable)"
+msgstr ""
+
+#: app/templates/legal/impressum.html:25
+msgid "VAT identification number (if applicable)"
+msgstr ""
+
+#: app/templates/legal/impressum.html:30
+msgid "Dispute Resolution"
+msgstr ""
+
+#: app/templates/legal/impressum.html:32
+msgid ""
+"The European Commission provides a platform for online dispute resolution"
+" (ODR):"
+msgstr ""
+
+#: app/templates/legal/impressum.html:38
+msgid ""
+"We are not willing or obliged to participate in dispute resolution "
+"proceedings before a consumer arbitration board."
+msgstr ""
+
+#: app/templates/legal/impressum.html:43
+msgid "Liability for Content"
+msgstr ""
+
+#: app/templates/legal/impressum.html:45
+msgid ""
+"As a service provider, we are responsible for our own content on these "
+"pages in accordance with general laws pursuant to DDG Section 7(1). "
+"However, according to DDG Sections 8 to 10, we are not obligated to "
+"monitor transmitted or stored third-party information or to investigate "
+"circumstances that indicate illegal activity."
+msgstr ""
+
+#: app/templates/legal/impressum.html:50
+msgid "Liability for Links"
+msgstr ""
+
+#: app/templates/legal/impressum.html:52
+msgid ""
+"Our website contains links to external third-party websites over whose "
+"content we have no influence. Therefore, we cannot assume any liability "
+"for this external content. The respective provider or operator of the "
+"pages is always responsible for the content of the linked pages."
+msgstr ""
+
+#: app/templates/legal/impressum.html:59 app/templates/legal/privacy.html:108
+#: app/templates/legal/terms.html:165
+#, fuzzy
+msgid "Last updated:"
+msgstr "Lokalizacja zaktualizowana"
+
+#: app/templates/legal/privacy.html:14
+#, fuzzy
+msgid "Data Controller"
+msgstr "Przyjmij kontrpropozycję"
+
+#: app/templates/legal/privacy.html:16
+msgid "The data controller responsible for data processing on this website is:"
+msgstr ""
+
+#: app/templates/legal/privacy.html:20
+msgid "(Address will be added here)"
+msgstr ""
+
+#: app/templates/legal/privacy.html:21
+#, fuzzy
+msgid "Email:"
+msgstr "EMAIL"
+
+#: app/templates/legal/privacy.html:21
+#, fuzzy
+msgid "(Will be added)"
+msgstr "Element dodany"
+
+#: app/templates/legal/privacy.html:26
+#, fuzzy
+msgid "Data We Collect"
+msgstr "Ochrona danych"
+
+#: app/templates/legal/privacy.html:27
+msgid "We collect and process the following personal data:"
+msgstr ""
+
+#: app/templates/legal/privacy.html:29
+#, fuzzy
+msgid "Account data:"
+msgstr "Konto zablokowane"
+
+#: app/templates/legal/privacy.html:29
+msgid "Name, email address, phone number, date of birth, profile photo"
+msgstr ""
+
+#: app/templates/legal/privacy.html:30
+#, fuzzy
+msgid "Location data:"
+msgstr "Lokalizacja zaktualizowana"
+
+#: app/templates/legal/privacy.html:30
+msgid ""
+"Approximate location (with your consent) to connect you with nearby "
+"service providers"
+msgstr ""
+
+#: app/templates/legal/privacy.html:31
+#, fuzzy
+msgid "Service data:"
+msgstr "Obszar usług"
+
+#: app/templates/legal/privacy.html:31
+msgid "Appointment details, service descriptions, reviews, messages between users"
+msgstr ""
+
+#: app/templates/legal/privacy.html:32
+#, fuzzy
+msgid "Payment data:"
+msgstr "Płatność zamrożona"
+
+#: app/templates/legal/privacy.html:32
+msgid ""
+"Payment transactions are processed by Stripe, Inc. We store only "
+"transaction references, not card numbers"
+msgstr ""
+
+#: app/templates/legal/privacy.html:33
+#, fuzzy
+msgid "Usage data:"
+msgstr "Termin"
+
+#: app/templates/legal/privacy.html:33
+msgid "IP address, browser type, access times (server logs)"
+msgstr ""
+
+#: app/templates/legal/privacy.html:34
+#, fuzzy
+msgid "Documents:"
+msgstr "Dokumenty"
+
+#: app/templates/legal/privacy.html:34
+msgid ""
+"Uploaded documents such as certificates or insurance documents (providers"
+" only)"
+msgstr ""
+
+#: app/templates/legal/privacy.html:39
+msgid "Legal Basis (GDPR Art. 6)"
+msgstr ""
+
+#: app/templates/legal/privacy.html:41
+msgid "Contract performance (Art. 6(1)(b)):"
+msgstr ""
+
+#: app/templates/legal/privacy.html:41
+msgid "Processing your bookings, payments, and service delivery"
+msgstr ""
+
+#: app/templates/legal/privacy.html:42
+msgid "Consent (Art. 6(1)(a)):"
+msgstr ""
+
+#: app/templates/legal/privacy.html:42
+msgid "Location sharing, optional notifications, cookies"
+msgstr ""
+
+#: app/templates/legal/privacy.html:43
+msgid "Legitimate interest (Art. 6(1)(f)):"
+msgstr ""
+
+#: app/templates/legal/privacy.html:43
+msgid "Platform security, fraud prevention, analytics"
+msgstr ""
+
+#: app/templates/legal/privacy.html:44
+msgid "Legal obligation (Art. 6(1)(c)):"
+msgstr ""
+
+#: app/templates/legal/privacy.html:44
+msgid "Tax records, regulatory compliance"
+msgstr ""
+
+#: app/templates/legal/privacy.html:49
+#, fuzzy
+msgid "Third-Party Services"
+msgstr "Moje usługi"
+
+#: app/templates/legal/privacy.html:51
+msgid ""
+"Payment processing. Stripe processes payments under their own privacy "
+"policy:"
+msgstr ""
+
+#: app/templates/legal/privacy.html:53
+msgid "Optional login via Google account"
+msgstr ""
+
+#: app/templates/legal/privacy.html:54
+msgid "Optional notifications and account linking"
+msgstr ""
+
+#: app/templates/legal/privacy.html:55
+msgid "File storage for profile photos and documents"
+msgstr ""
+
+#: app/templates/legal/privacy.html:56
+msgid "Email delivery for confirmations and reminders"
+msgstr ""
+
+#: app/templates/legal/privacy.html:61
+#, fuzzy
+msgid "Data Retention"
+msgstr "Ochrona danych"
+
+#: app/templates/legal/privacy.html:63
+msgid ""
+"We retain your personal data for as long as your account is active. When "
+"you delete your account, all personal data is permanently removed from "
+"our systems. Financial transaction records are retained for the legally "
+"required period (10 years under German tax law, AO Section 147)."
+msgstr ""
+
+#: app/templates/legal/privacy.html:68
+msgid "Your Rights (GDPR Art. 15-22)"
+msgstr ""
+
+#: app/templates/legal/privacy.html:69
+msgid "You have the right to:"
+msgstr ""
+
+#: app/templates/legal/privacy.html:71
+msgid "Access your personal data (Art. 15)"
+msgstr ""
+
+#: app/templates/legal/privacy.html:72
+msgid "Rectify inaccurate data (Art. 16)"
+msgstr ""
+
+#: app/templates/legal/privacy.html:73
+msgid "Delete your data / right to be forgotten (Art. 17)"
+msgstr ""
+
+#: app/templates/legal/privacy.html:74
+msgid "Restrict processing (Art. 18)"
+msgstr ""
+
+#: app/templates/legal/privacy.html:75
+msgid "Data portability (Art. 20)"
+msgstr ""
+
+#: app/templates/legal/privacy.html:76
+msgid "Object to processing (Art. 21)"
+msgstr ""
+
+#: app/templates/legal/privacy.html:77
+msgid "Withdraw consent at any time (Art. 7(3))"
+msgstr ""
+
+#: app/templates/legal/privacy.html:80
+msgid ""
+"To exercise these rights, contact us at the email address listed above or"
+" use the account deletion feature in your profile settings."
+msgstr ""
+
+#: app/templates/legal/privacy.html:85
+msgid "Right to Lodge a Complaint"
+msgstr ""
+
+#: app/templates/legal/privacy.html:87
+msgid ""
+"You have the right to lodge a complaint with a data protection "
+"supervisory authority. The competent authority for complaints is the data"
+" protection authority of the German federal state where our company is "
+"registered."
+msgstr ""
+
+#: app/templates/legal/privacy.html:92
+#, fuzzy
+msgid "Data Security"
+msgstr "Kod bezpieczeństwa"
+
+#: app/templates/legal/privacy.html:94
+msgid ""
+"We use industry-standard security measures including HTTPS encryption, "
+"secure password hashing (bcrypt), and Stripe's PCI DSS certified payment "
+"infrastructure to protect your data."
+msgstr ""
+
+#: app/templates/legal/privacy.html:99
+#, fuzzy
+msgid "Cookies"
+msgstr "Zarezerwowane"
+
+#: app/templates/legal/privacy.html:101
+msgid ""
+"We use only essential cookies required for the operation of the platform "
+"(session management, language preference). We do not use tracking or "
+"advertising cookies."
+msgstr ""
+
+#: app/templates/legal/terms.html:14
+#, fuzzy
+msgid "Scope and Provider"
+msgstr "Zostań wykonawcą"
+
+#: app/templates/legal/terms.html:16
+msgid ""
+"These Terms of Service govern the use of the Human-me platform, a "
+"marketplace that connects clients seeking personal services with "
+"independent service providers. By registering an account, you agree to "
+"these terms."
+msgstr ""
+
+#: app/templates/legal/terms.html:21
+msgid "Platform Role and Disclaimer"
+msgstr ""
+
+#: app/templates/legal/terms.html:23
+msgid ""
+"Human-me acts solely as an intermediary platform. We facilitate the "
+"connection between clients and providers but are not a party to the "
+"service contracts between them."
+msgstr ""
+
+#: app/templates/legal/terms.html:26
+msgid ""
+"The service provider is independently and solely responsible for the "
+"quality, safety, legality, and execution of their services."
+msgstr ""
+
+#: app/templates/legal/terms.html:27
+msgid ""
+"Human-me does not employ, supervise, or control service providers. All "
+"providers are independent individuals acting on their own behalf."
+msgstr ""
+
+#: app/templates/legal/terms.html:28
+msgid ""
+"Human-me does not guarantee the accuracy of any provider's "
+"qualifications, reviews, or self-reported information."
+msgstr ""
+
+#: app/templates/legal/terms.html:29
+msgid ""
+"Any disputes regarding service quality, damages, injuries, or "
+"dissatisfaction must be resolved directly between the client and the "
+"provider. Human-me bears no liability for any harm, loss, or damage "
+"resulting from services arranged through the platform."
+msgstr ""
+
+#: app/templates/legal/terms.html:30
+msgid ""
+"Human-me does not collect, store, or process client payment card numbers "
+"or bank account details. All payments are handled directly between the "
+"parties (via QR bank transfer or cash) or through third-party payment "
+"processors (Stripe). The platform has no access to your financial account"
+" data."
+msgstr ""
+
+#: app/templates/legal/terms.html:35
+#, fuzzy
+msgid "Registration and Account"
+msgstr "Utwórz konto"
+
+#: app/templates/legal/terms.html:37
+msgid ""
+"You must be at least 13 years old to register. Users aged 13-17 may "
+"register as Young Helpers with parental/guardian consent (see Section 4)."
+msgstr ""
+
+#: app/templates/legal/terms.html:38
+msgid ""
+"You must provide accurate and complete information, including your date "
+"of birth"
+msgstr ""
+
+#: app/templates/legal/terms.html:39
+msgid ""
+"You are responsible for maintaining the security of your account "
+"credentials"
+msgstr ""
+
+#: app/templates/legal/terms.html:40
+msgid ""
+"Each person may maintain one account, which can include both client and "
+"provider roles"
+msgstr ""
+
+#: app/templates/legal/terms.html:41
+msgid ""
+"We reserve the right to suspend or delete accounts that violate these "
+"terms"
+msgstr ""
+
+#: app/templates/legal/terms.html:46
+msgid "Young Helpers (Minors aged 13-17)"
+msgstr ""
+
+#: app/templates/legal/terms.html:48
+msgid ""
+"In compliance with the German Youth Labour Protection Act "
+"(Jugendarbeitsschutzgesetz — JArbSchG), minors aged 13-17 may register as"
+" service providers ('Young Helpers') under the following conditions:"
+msgstr ""
+
+#: app/templates/legal/terms.html:51
+msgid "Parental consent:"
+msgstr ""
+
+#: app/templates/legal/terms.html:51
+msgid ""
+"A parent or legal guardian must confirm consent via email verification "
+"before the Young Helper account is activated."
+msgstr ""
+
+#: app/templates/legal/terms.html:52
+msgid "Age 13-14:"
+msgstr ""
+
+#: app/templates/legal/terms.html:52
+msgid ""
+"Maximum 2 hours per day, light work only (e.g., dog walking, babysitting,"
+" errands, tutoring). Work is not permitted during school hours."
+msgstr ""
+
+#: app/templates/legal/terms.html:53
+msgid "Age 15-17:"
+msgstr ""
+
+#: app/templates/legal/terms.html:53
+msgid ""
+"Maximum 8 hours per day, not during school hours. Wider range of "
+"permitted categories, but medical, heavy physical, and night work remain "
+"prohibited."
+msgstr ""
+
+#: app/templates/legal/terms.html:54
+msgid "Restricted categories:"
+msgstr ""
+
+#: app/templates/legal/terms.html:54
+msgid ""
+"Young Helpers may only offer services in: Pet Care, Errands, light "
+"Household help, Childcare (babysitting, homework help), and Lessons & "
+"Skills. Health, Night Watch, heavy physical work, and other restricted "
+"categories are not available."
+msgstr ""
+
+#: app/templates/legal/terms.html:55
+#, fuzzy
+msgid "Payment:"
+msgstr "Płatność"
+
+#: app/templates/legal/terms.html:55
+msgid ""
+"All earnings are paid to the parent/guardian's IBAN account. Young "
+"Helpers cannot use Stripe Express or receive payments directly until they"
+" turn 18."
+msgstr ""
+
+#: app/templates/legal/terms.html:56
+#, fuzzy
+msgid "Privacy:"
+msgstr "Polityka prywatności"
+
+#: app/templates/legal/terms.html:56
+msgid ""
+"The exact age of Young Helpers is not displayed publicly. A 'Young "
+"Helper' badge is shown instead."
+msgstr ""
+
+#: app/templates/legal/terms.html:61
+msgid "Services and Booking"
+msgstr ""
+
+#: app/templates/legal/terms.html:63
+msgid ""
+"Clients can book services directly from a provider's profile or post a "
+"request that providers can respond to with offers. A booking becomes "
+"binding when:"
+msgstr ""
+
+#: app/templates/legal/terms.html:66
+msgid "Both parties agree on the service, time, and price"
+msgstr ""
+
+#: app/templates/legal/terms.html:67
+msgid "Payment is authorized (for paid services)"
+msgstr ""
+
+#: app/templates/legal/terms.html:72
+#, fuzzy
+msgid "Payments and Fees"
+msgstr "Płatności oczekujące"
+
+#: app/templates/legal/terms.html:74
+msgid ""
+"Human-me offers several payment methods. The platform does not collect or"
+" store client card numbers or bank account details."
+msgstr ""
+
+#: app/templates/legal/terms.html:77
+#, fuzzy
+msgid "QR Bank Transfer (SEPA):"
+msgstr "Przelew bankowy"
+
+#: app/templates/legal/terms.html:77
+msgid ""
+"The platform generates a QR code containing the provider's IBAN and "
+"payment amount. The client scans the QR code with their banking app and "
+"transfers the funds directly to the provider's bank account. Human-me "
+"does not process, hold, or have access to these funds at any point."
+msgstr ""
+
+#: app/templates/legal/terms.html:78
+#, fuzzy
+msgid "Cash:"
+msgstr "Gotówka"
+
+#: app/templates/legal/terms.html:78
+msgid ""
+"Cash payments are arranged directly between the client and provider. "
+"Human-me is not involved in cash transactions."
+msgstr ""
+
+#: app/templates/legal/terms.html:79
+msgid "Card payments (Stripe):"
+msgstr ""
+
+#: app/templates/legal/terms.html:79
+msgid ""
+"When available, card payments are processed by Stripe, a certified PCI-"
+"compliant third-party payment processor. Human-me never sees or stores "
+"your card number. Stripe handles all financial data independently."
+msgstr ""
+
+#: app/templates/legal/terms.html:80
+msgid ""
+"All payment disputes are between the client, the provider, and (if "
+"applicable) the payment processor. Human-me is not responsible for "
+"failed, delayed, or disputed payments."
+msgstr ""
+
+#: app/templates/legal/terms.html:85
+msgid "Cancellation and Refunds"
+msgstr ""
+
+#: app/templates/legal/terms.html:87
+msgid "Cancellation policies may vary by provider. In general:"
+msgstr ""
+
+#: app/templates/legal/terms.html:90
+msgid ""
+"Cancellations made more than 24 hours before the appointment are free of "
+"charge"
+msgstr ""
+
+#: app/templates/legal/terms.html:91
+msgid ""
+"Late cancellations or no-shows may result in charges according to the "
+"provider's cancellation policy"
+msgstr ""
+
+#: app/templates/legal/terms.html:92
+msgid ""
+"If a provider cancels, any held payment will be released back to the "
+"client"
+msgstr ""
+
+#: app/templates/legal/terms.html:97
+msgid "Reviews and Ratings"
+msgstr ""
+
+#: app/templates/legal/terms.html:99
+msgid ""
+"After a completed service, both parties may leave a review. Reviews must "
+"be honest, factual, and respectful. We reserve the right to remove "
+"reviews that contain hate speech, personal attacks, or false information."
+msgstr ""
+
+#: app/templates/legal/terms.html:104
+msgid "Right of Withdrawal (Widerrufsrecht)"
+msgstr ""
+
+#: app/templates/legal/terms.html:106
+msgid ""
+"As a consumer within the EU, you have the right to withdraw from a "
+"distance contract within 14 days without giving a reason. However, "
+"pursuant to BGB Section 356(4) No. 2, the right of withdrawal expires for"
+" service contracts if the service has been fully performed and the "
+"consumer has given prior express consent that the entrepreneur may begin "
+"performance before the withdrawal period has expired."
+msgstr ""
+
+#: app/templates/legal/terms.html:109
+msgid ""
+"By booking and authorizing payment for a service, you expressly consent "
+"that the service may begin before the withdrawal period has expired. You "
+"acknowledge that you lose your right of withdrawal once the service has "
+"been fully performed."
+msgstr ""
+
+#: app/templates/legal/terms.html:114
+msgid "Limitation of Liability"
+msgstr ""
+
+#: app/templates/legal/terms.html:116
+msgid ""
+"Human-me is not liable for the quality, safety, or legality of services "
+"provided by independent service providers."
+msgstr ""
+
+#: app/templates/legal/terms.html:117
+#, fuzzy
+msgid ""
+"Human-me is not liable for any damages, injuries, losses, or harm caused "
+"by a provider to a client or vice versa. All interactions and services "
+"are at the users' own risk."
+msgstr ""
+"Rozumiem, że platforma nie ponosi odpowiedzialności za szkody wyrządzone "
+"przez wykonawcę klientowi lub odwrotnie. Wszystkie interakcje odbywają "
+"się na moje własne ryzyko."
+
+#: app/templates/legal/terms.html:118
+msgid ""
+"Human-me is not liable for any financial losses arising from payments "
+"made between users, including QR bank transfers, cash, or card payments."
+msgstr ""
+
+#: app/templates/legal/terms.html:119
+msgid ""
+"Our liability as a platform operator is limited to intent and gross "
+"negligence in the operation of the platform itself. This limitation does "
+"not apply to damages arising from injury to life, body, or health caused "
+"by Human-me's own negligence."
+msgstr ""
+
+#: app/templates/legal/terms.html:120
+msgid ""
+"By using this platform, you acknowledge that Human-me is a technology "
+"intermediary only and accept full responsibility for your interactions "
+"with other users."
+msgstr ""
+
+#: app/templates/legal/terms.html:125
+#, fuzzy
+msgid "Provider Obligations"
+msgstr "Odpowiedź wykonawcy"
+
+#: app/templates/legal/terms.html:127
+msgid ""
+"Providers must have the necessary qualifications and licenses for the "
+"services they offer"
+msgstr ""
+
+#: app/templates/legal/terms.html:128
+msgid ""
+"Providers are responsible for their own tax obligations and social "
+"insurance"
+msgstr ""
+
+#: app/templates/legal/terms.html:129
+msgid ""
+"Providers must maintain appropriate liability insurance where required by"
+" law"
+msgstr ""
+
+#: app/templates/legal/terms.html:130
+msgid "Providers must accurately describe their services and pricing"
+msgstr ""
+
+#: app/templates/legal/terms.html:135
+msgid "Prohibited Conduct"
+msgstr ""
+
+#: app/templates/legal/terms.html:137
+#, fuzzy
+msgid "Providing false or misleading information"
+msgstr "Czekamy na potwierdzenie klienta."
+
+#: app/templates/legal/terms.html:138
+msgid "Harassing, threatening, or discriminating against other users"
+msgstr ""
+
+#: app/templates/legal/terms.html:139
+msgid "Circumventing the platform's payment system to avoid fees"
+msgstr ""
+
+#: app/templates/legal/terms.html:140
+#, fuzzy
+msgid "Creating multiple accounts"
+msgstr "Utwórz konto"
+
+#: app/templates/legal/terms.html:141
+msgid "Scraping or automated data collection"
+msgstr ""
+
+#: app/templates/legal/terms.html:146
+msgid "Governing Law and Jurisdiction"
+msgstr ""
+
+#: app/templates/legal/terms.html:148
+msgid ""
+"These terms are governed by the laws of the Federal Republic of Germany. "
+"For consumers, mandatory consumer protection laws of their country of "
+"residence remain applicable. The European Online Dispute Resolution "
+"platform is available at:"
+msgstr ""
+
+#: app/templates/legal/terms.html:156
+#, fuzzy
+msgid "Changes to These Terms"
+msgstr "Zaakceptuj warunki"
+
+#: app/templates/legal/terms.html:158
+msgid ""
+"We may update these terms from time to time. Registered users will be "
+"notified of material changes via email or platform notification. "
+"Continued use of the platform after changes take effect constitutes "
+"acceptance of the updated terms."
+msgstr ""
+
 #: app/templates/provider/appointments.html:11
-#: app/templates/provider/dashboard.html:78
+#: app/templates/provider/dashboard.html:85
 msgid "My Schedule"
 msgstr "Mój grafik"
 
@@ -1859,7 +3257,7 @@ msgid "Manage your upcoming appointments"
 msgstr "Zarządzaj swoimi wizytami"
 
 #: app/templates/provider/appointments.html:37
-#: app/templates/provider/dashboard.html:156
+#: app/templates/provider/dashboard.html:168
 msgid "CLIENT"
 msgstr "KLIENT"
 
@@ -1868,7 +3266,7 @@ msgid "Review Client"
 msgstr "Oceń klienta"
 
 #: app/templates/provider/appointments.html:81
-#: app/templates/provider/appointments.html:481
+#: app/templates/provider/appointments.html:614
 msgid "Share your experience with this client..."
 msgstr "Podziel się wrażeniami z pracy z tym klientem..."
 
@@ -1876,106 +3274,201 @@ msgstr "Podziel się wrażeniami z pracy z tym klientem..."
 msgid "You haven't reviewed this client yet."
 msgstr "Nie oceniłeś jeszcze tego klienta."
 
-#: app/templates/provider/appointments.html:207
-#: app/templates/provider/appointments.html:398
-#: app/templates/provider/dashboard.html:393
+#: app/templates/provider/appointments.html:214
+#: app/templates/provider/appointments.html:492
+#: app/templates/provider/dashboard.html:402
 msgid "Accept Request"
 msgstr "Przyjmij zapytanie"
 
-#: app/templates/provider/appointments.html:210
+#: app/templates/provider/appointments.html:217
 msgid "No comments"
 msgstr "Brak komentarzy"
 
-#: app/templates/provider/appointments.html:293
+#: app/templates/provider/appointments.html:306
+msgid "Client request is pending. No offers yet."
+msgstr ""
+
+#: app/templates/provider/appointments.html:312
+#, fuzzy
+msgid "Offers have been submitted. Waiting for client to choose."
+msgstr "Praca zgłoszona! Czekamy na zatwierdzenie klienta."
+
+#: app/templates/provider/appointments.html:318
+#, fuzzy
+msgid "Client accepted your offer. Waiting for payment."
+msgstr "Zaakceptowane (czeka na płatność)"
+
+#: app/templates/provider/appointments.html:324
+#, fuzzy
+msgid "Payment authorized. Ready to start work."
+msgstr "Płatność zabezpieczona. Można działać."
+
+#: app/templates/provider/appointments.html:342
 msgid "Waiting for client payment."
 msgstr "Czekamy na płatność od klienta."
 
-#: app/templates/provider/appointments.html:294
+#: app/templates/provider/appointments.html:343
 msgid "You can submit work only after payment."
 msgstr "Pracę można zgłosić dopiero po płatności."
 
-#: app/templates/provider/appointments.html:303
+#: app/templates/provider/appointments.html:352
 msgid "Payment Secured. Safe to work."
 msgstr "Płatność zabezpieczona. Można działać."
 
-#: app/templates/provider/appointments.html:306
+#: app/templates/provider/appointments.html:355
+#: app/templates/provider/appointments.html:487
+#: app/templates/provider/dashboard.html:769
+#: app/templates/provider/dashboard.html:1088
+#, fuzzy
+msgid "Confirm Arrival"
+msgstr "Potwierdź e-mail"
+
+#: app/templates/provider/appointments.html:358
+#: app/templates/provider/appointments.html:375
 msgid "I have finished the work"
 msgstr "Skończyłem pracę"
 
-#: app/templates/provider/appointments.html:315
+#: app/templates/provider/appointments.html:361
+#: app/templates/provider/appointments.html:528
+#: app/templates/provider/dashboard.html:775
+#: app/templates/provider/dashboard.html:1112
+msgid "Running Late"
+msgstr ""
+
+#: app/templates/provider/appointments.html:364
+#: app/templates/provider/appointments.html:490
+#: app/templates/provider/dashboard.html:778
+#: app/templates/provider/dashboard.html:1137
+#, fuzzy
+msgid "Client No-Show"
+msgstr "KLIENT"
+
+#: app/templates/provider/appointments.html:372
+#, fuzzy
+msgid "Work is in progress..."
+msgstr "W toku"
+
+#: app/templates/provider/appointments.html:384
 msgid "Work Submitted."
 msgstr "Praca zgłoszona."
 
-#: app/templates/provider/appointments.html:316
+#: app/templates/provider/appointments.html:385
 msgid "Funds will be released when client approves."
 msgstr "Środki zostaną przekazane po potwierdzeniu klienta."
 
-#: app/templates/provider/appointments.html:316
+#: app/templates/provider/appointments.html:385
 msgid "Waiting for client confirmation."
 msgstr "Czekamy na potwierdzenie klienta."
 
-#: app/templates/provider/appointments.html:319
+#: app/templates/provider/appointments.html:388
 msgid "Retract (Go Back)"
 msgstr "Cofnij (wróć)"
 
-#: app/templates/provider/appointments.html:364
-#: app/templates/provider/dashboard.html:992
+#: app/templates/provider/appointments.html:404
+msgid "Client did not show up for this appointment."
+msgstr ""
+
+#: app/templates/provider/appointments.html:452
+#: app/templates/provider/dashboard.html:1160
 msgid "Retract your work submission? This will go back to the previous step."
 msgstr "Cofnąć zgłoszenie pracy? Wrócimy do poprzedniego kroku."
 
-#: app/templates/provider/appointments.html:365
-#: app/templates/provider/dashboard.html:993
+#: app/templates/provider/appointments.html:453
+#: app/templates/provider/dashboard.html:1161
 msgid "Retract Work"
 msgstr "Cofnij pracę"
 
-#: app/templates/provider/appointments.html:366
-#: app/templates/provider/dashboard.html:994
+#: app/templates/provider/appointments.html:454
+#: app/templates/provider/dashboard.html:1162
 msgid "Yes, Retract"
 msgstr "Tak, cofnij"
 
-#: app/templates/provider/appointments.html:392
+#: app/templates/provider/appointments.html:480
 msgid "Yes"
 msgstr "Tak"
 
-#: app/templates/provider/appointments.html:395
+#: app/templates/provider/appointments.html:483
 msgid ""
 "Are you sure you have finished the work? The client will be notified to "
 "approve."
 msgstr "Na pewno skończyłeś? Klient dostanie powiadomienie do potwierdzenia."
 
-#: app/templates/provider/appointments.html:396
+#: app/templates/provider/appointments.html:484
 msgid "Submit Work"
 msgstr "Zgłoś pracę"
 
-#: app/templates/provider/appointments.html:396
+#: app/templates/provider/appointments.html:484
 msgid "Yes, Submit"
 msgstr "Tak, zgłoś"
 
-#: app/templates/provider/appointments.html:435
+#: app/templates/provider/appointments.html:486
+#: app/templates/provider/dashboard.html:1087
+msgid "Confirm that you have arrived and are starting the work?"
+msgstr ""
+
+#: app/templates/provider/appointments.html:487
+#: app/templates/provider/dashboard.html:1089
+msgid "Yes, I\\'ve Arrived"
+msgstr ""
+
+#: app/templates/provider/appointments.html:489
+#: app/templates/provider/dashboard.html:1136
+msgid "Report that the client did not show up? This will be recorded."
+msgstr ""
+
+#: app/templates/provider/appointments.html:490
+#: app/templates/provider/dashboard.html:1138
+msgid "Yes, No-Show"
+msgstr ""
+
+#: app/templates/provider/appointments.html:527
+#: app/templates/provider/dashboard.html:1111
+msgid "Notify the client that you are running late?"
+msgstr ""
+
+#: app/templates/provider/appointments.html:529
+#: app/templates/provider/dashboard.html:1113
+#, fuzzy
+msgid "Yes, Notify"
+msgstr "Tak, potwierdzam"
+
+#: app/templates/provider/appointments.html:536
+#: app/templates/provider/dashboard.html:1119
+msgid "How many minutes will you be late?"
+msgstr ""
+
+#: app/templates/provider/appointments.html:550
+#: app/templates/provider/dashboard.html:1127
+msgid "Client has been notified."
+msgstr ""
+
+#: app/templates/provider/appointments.html:561
+#: app/templates/provider/appointments.html:565
 msgid "Pending Request"
 msgstr "Zapytanie oczekuje"
 
-#: app/templates/provider/appointments.html:436
+#: app/templates/provider/appointments.html:563
+#: app/templates/provider/appointments.html:566
 msgid "Accepted (Awaiting Payment)"
 msgstr "Zaakceptowane (czeka na płatność)"
 
-#: app/templates/provider/appointments.html:437
+#: app/templates/provider/appointments.html:567
 msgid "Paid - Ready to Start"
 msgstr "Opłacone — można zaczynać"
 
-#: app/templates/provider/appointments.html:437
+#: app/templates/provider/appointments.html:567
 msgid "Confirmed - Ready to Start"
 msgstr "Potwierdzone — można zaczynać"
 
-#: app/templates/provider/appointments.html:438
+#: app/templates/provider/appointments.html:569
 msgid "Work Submitted (Pending Approval)"
 msgstr "Praca zgłoszona (czeka na zatwierdzenie)"
 
-#: app/templates/provider/appointments.html:439
+#: app/templates/provider/appointments.html:570
 msgid "Completed & Paid"
 msgstr "Zakończone i opłacone"
 
-#: app/templates/provider/appointments.html:491
+#: app/templates/provider/appointments.html:624
 msgid "Please provide a reason for your low rating"
 msgstr "Wyjaśnij dlaczego niska ocena"
 
@@ -1988,7 +3481,7 @@ msgid "Phone"
 msgstr "Telefon"
 
 #: app/templates/provider/client_profile.html:47
-#: app/templates/provider/profile.html:154
+#: app/templates/provider/profile.html:409
 msgid "Address"
 msgstr "Adres"
 
@@ -2013,269 +3506,312 @@ msgid "Appointments"
 msgstr "Wizyty"
 
 #: app/templates/provider/dashboard.html:35
-#: app/templates/provider/services.html:24
+#: app/templates/provider/services.html:36
 msgid "My Services"
 msgstr "Moje usługi"
 
 #: app/templates/provider/dashboard.html:41
-#: app/templates/provider/dashboard.html:1213
+#: app/templates/provider/dashboard.html:1381
 msgid "You are Online"
 msgstr "Jesteś online"
 
 #: app/templates/provider/dashboard.html:41
-#: app/templates/provider/dashboard.html:1216
+#: app/templates/provider/dashboard.html:1384
 msgid "You are Offline"
 msgstr "Jesteś offline"
 
-#: app/templates/provider/dashboard.html:72
+#: app/templates/provider/dashboard.html:46
+#: app/templates/provider/dashboard.html:47
+#, fuzzy
+msgid "Switch to Client"
+msgstr "Bez komentarza"
+
+#: app/templates/provider/dashboard.html:47
+msgid "Also become a Client"
+msgstr ""
+
+#: app/templates/provider/dashboard.html:79
 msgid "New Requests"
 msgstr "Nowe zapytania"
 
-#: app/templates/provider/dashboard.html:75
+#: app/templates/provider/dashboard.html:82
 msgid "My Offers"
 msgstr "Moje oferty"
 
-#: app/templates/provider/dashboard.html:102
+#: app/templates/provider/dashboard.html:112
 msgid "Today"
 msgstr "Dzisiaj"
 
-#: app/templates/provider/dashboard.html:103
+#: app/templates/provider/dashboard.html:113
 msgid "Tomorrow"
 msgstr "Jutro"
 
-#: app/templates/provider/dashboard.html:104
+#: app/templates/provider/dashboard.html:114
 msgid "This Week"
 msgstr "Ten tydzień"
 
-#: app/templates/provider/dashboard.html:110
+#: app/templates/provider/dashboard.html:120
 msgid "Highest price"
 msgstr "Najdroższe"
 
-#: app/templates/provider/dashboard.html:111
+#: app/templates/provider/dashboard.html:121
 msgid "Lowest price"
 msgstr "Najtańsze"
 
-#: app/templates/provider/dashboard.html:112
+#: app/templates/provider/dashboard.html:122
 msgid "Newest first"
 msgstr "Najnowsze"
 
-#: app/templates/provider/dashboard.html:113
+#: app/templates/provider/dashboard.html:123
 msgid "Soonest first"
 msgstr "Najbliższe czasowo"
 
-#: app/templates/provider/dashboard.html:117
+#: app/templates/provider/dashboard.html:127
 msgid "Search by service..."
 msgstr "Szukaj po usłudze..."
 
-#: app/templates/provider/dashboard.html:150
+#: app/templates/provider/dashboard.html:162
 msgid "Details"
 msgstr "Szczegóły"
 
-#: app/templates/provider/dashboard.html:164
+#: app/templates/provider/dashboard.html:176
 msgid "TIME"
 msgstr "CZAS"
 
-#: app/templates/provider/dashboard.html:168
+#: app/templates/provider/dashboard.html:180
 msgid "PAYMENT"
 msgstr "PŁATNOŚĆ"
 
-#: app/templates/provider/dashboard.html:172
+#: app/templates/provider/dashboard.html:184
 msgid "DISTANCE"
 msgstr "ODLEGŁOŚĆ"
 
-#: app/templates/provider/dashboard.html:173
-#: app/templates/provider/dashboard.html:388
+#: app/templates/provider/dashboard.html:185
+#: app/templates/provider/dashboard.html:397
 msgid "Calculating..."
 msgstr "Obliczanie..."
 
-#: app/templates/provider/dashboard.html:176
+#: app/templates/provider/dashboard.html:188
 msgid "AREA"
 msgstr "REJON"
 
-#: app/templates/provider/dashboard.html:184
-#: app/templates/provider/services.html:157
-msgid "TAGS"
-msgstr "TAGI"
-
-#: app/templates/provider/dashboard.html:205
+#: app/templates/provider/dashboard.html:217
 msgid "My Reviews"
 msgstr "Moje opinie"
 
-#: app/templates/provider/dashboard.html:387
+#: app/templates/provider/dashboard.html:396
 msgid "Address not provided"
 msgstr "Adres nie podany"
 
-#: app/templates/provider/dashboard.html:390
+#: app/templates/provider/dashboard.html:399
 msgid "Request accepted!"
 msgstr "Zapytanie przyjęte!"
 
-#: app/templates/provider/dashboard.html:391
+#: app/templates/provider/dashboard.html:400
 msgid "I'm on my way"
 msgstr "Jestem w drodze"
 
-#: app/templates/provider/dashboard.html:392
+#: app/templates/provider/dashboard.html:401
 msgid "Stop Sharing"
 msgstr "Zatrzymaj śledzenie"
 
-#: app/templates/provider/dashboard.html:650
+#: app/templates/provider/dashboard.html:445
+#, fuzzy
+msgid "No service history yet"
+msgstr "Brak wspólnej historii."
+
+#: app/templates/provider/dashboard.html:453
+#, fuzzy
+msgid "Work Submitted"
+msgstr "Praca zgłoszona"
+
+#: app/templates/provider/dashboard.html:475
+#, fuzzy
+msgid "Add to My Services"
+msgstr "Moje usługi"
+
+#: app/templates/provider/dashboard.html:492
+msgid "Service added successfully"
+msgstr "Usługa została dodana"
+
+#: app/templates/provider/dashboard.html:495
+#, fuzzy
+msgid "Error"
+msgstr "Błąd:"
+
+#: app/templates/provider/dashboard.html:723
 msgid "No offers sent yet"
 msgstr "Nie wysłano jeszcze ofert"
 
-#: app/templates/provider/dashboard.html:654
+#: app/templates/provider/dashboard.html:727
 msgid "Waiting"
 msgstr "Czeka"
 
-#: app/templates/provider/dashboard.html:656
-msgid "Rejected"
-msgstr "Odrzucone"
-
-#: app/templates/provider/dashboard.html:674
-#: app/templates/provider/dashboard.html:800
+#: app/templates/provider/dashboard.html:749
+#: app/templates/provider/dashboard.html:890
 msgid "Your price:"
 msgstr "Twoja cena:"
 
-#: app/templates/provider/dashboard.html:675
+#: app/templates/provider/dashboard.html:750
 msgid "Budget:"
 msgstr "Budżet:"
 
-#: app/templates/provider/dashboard.html:681
+#: app/templates/provider/dashboard.html:756
 msgid "Client counter:"
 msgstr "Kontrpropozycja klienta:"
 
-#: app/templates/provider/dashboard.html:687
+#: app/templates/provider/dashboard.html:762
 msgid "Revise"
 msgstr "Zmień"
 
-#: app/templates/provider/dashboard.html:694
+#: app/templates/provider/dashboard.html:772
+#: app/templates/provider/dashboard.html:796
 msgid "Mark Done"
 msgstr "Oznacz jako gotowe"
 
-#: app/templates/provider/dashboard.html:697
+#: app/templates/provider/dashboard.html:781
 msgid "Waiting for client payment"
 msgstr "Czekamy na płatność klienta"
 
-#: app/templates/provider/dashboard.html:706
+#: app/templates/provider/dashboard.html:790
 msgid "Waiting for client approval"
 msgstr "Czekamy na zatwierdzenie klienta"
 
-#: app/templates/provider/dashboard.html:708
+#: app/templates/provider/dashboard.html:792
 msgid "Retract"
 msgstr "Cofnij"
 
-#: app/templates/provider/dashboard.html:716
+#: app/templates/provider/dashboard.html:806
 msgid "Awaiting client"
 msgstr "Czekamy na klienta"
 
-#: app/templates/provider/dashboard.html:719
+#: app/templates/provider/dashboard.html:809
 msgid "Withdraw"
 msgstr "Wycofaj"
 
-#: app/templates/provider/dashboard.html:799
+#: app/templates/provider/dashboard.html:889
 msgid "Client proposed a counter-offer:"
 msgstr "Klient zaproponował kontrpropozycję:"
 
-#: app/templates/provider/dashboard.html:804
+#: app/templates/provider/dashboard.html:894
 msgid "Accept Counter"
 msgstr "Przyjmij kontrpropozycję"
 
-#: app/templates/provider/dashboard.html:807
+#: app/templates/provider/dashboard.html:897
 msgid "Revise Price"
 msgstr "Zmień cenę"
 
-#: app/templates/provider/dashboard.html:811
+#: app/templates/provider/dashboard.html:901
 msgid "Waiting for the client to accept your offer..."
 msgstr "Czekamy aż klient przyjmie twoją ofertę..."
 
-#: app/templates/provider/dashboard.html:815
-#: app/templates/provider/dashboard.html:1016
+#: app/templates/provider/dashboard.html:905
+#: app/templates/provider/dashboard.html:1184
 msgid "Withdraw Offer"
 msgstr "Wycofaj ofertę"
 
-#: app/templates/provider/dashboard.html:818
+#: app/templates/provider/dashboard.html:908
 msgid "The client selected another provider."
 msgstr "Klient wybrał innego wykonawcę."
 
-#: app/templates/provider/dashboard.html:828
+#: app/templates/provider/dashboard.html:918
 msgid "No requests available"
 msgstr "Brak dostępnych zapytań"
 
-#: app/templates/provider/dashboard.html:940
+#: app/templates/provider/dashboard.html:936
+msgid "Flexible"
+msgstr ""
+
+#: app/templates/provider/dashboard.html:985
+msgid "Flexible date — arrange with client"
+msgstr ""
+
+#: app/templates/provider/dashboard.html:1035
 msgid "Enter your price"
 msgstr "Wpisz swoją cenę"
 
-#: app/templates/provider/dashboard.html:969
+#: app/templates/provider/dashboard.html:1064
 msgid "Confirm that the service has been completed?"
 msgstr "Potwierdzić że usługa została wykonana?"
 
-#: app/templates/provider/dashboard.html:971
+#: app/templates/provider/dashboard.html:1066
 msgid "Yes, Complete"
 msgstr "Tak, wykonane"
 
-#: app/templates/provider/dashboard.html:982
+#: app/templates/provider/dashboard.html:1077
 msgid "Work submitted! Waiting for client approval."
 msgstr "Praca zgłoszona! Czekamy na zatwierdzenie klienta."
 
-#: app/templates/provider/dashboard.html:1005
+#: app/templates/provider/dashboard.html:1101
+msgid "Arrival confirmed! Work is now in progress."
+msgstr ""
+
+#: app/templates/provider/dashboard.html:1150
+#, fuzzy
+msgid "No-show recorded."
+msgstr "Pokaż więcej"
+
+#: app/templates/provider/dashboard.html:1173
 msgid "Work submission retracted."
 msgstr "Zgłoszenie cofnięte."
 
-#: app/templates/provider/dashboard.html:1015
+#: app/templates/provider/dashboard.html:1183
 msgid "Are you sure you want to withdraw this offer?"
 msgstr "Na pewno wycofać ofertę?"
 
-#: app/templates/provider/dashboard.html:1017
+#: app/templates/provider/dashboard.html:1185
 msgid "Yes, Withdraw"
 msgstr "Tak, wycofaj"
 
-#: app/templates/provider/dashboard.html:1030
+#: app/templates/provider/dashboard.html:1198
 msgid "Offer withdrawn successfully"
 msgstr "Oferta wycofana"
 
-#: app/templates/provider/dashboard.html:1041
+#: app/templates/provider/dashboard.html:1209
 msgid "Are you sure you want to cancel this accepted request?"
 msgstr "Na pewno anulować przyjęte zapytanie?"
 
-#: app/templates/provider/dashboard.html:1066
+#: app/templates/provider/dashboard.html:1234
 msgid "Accept the client counter-offer price?"
 msgstr "Przyjąć kontrpropozycję klienta?"
 
-#: app/templates/provider/dashboard.html:1067
+#: app/templates/provider/dashboard.html:1235
 msgid "Accept Counter-Offer"
 msgstr "Przyjmij kontrpropozycję"
 
-#: app/templates/provider/dashboard.html:1082
+#: app/templates/provider/dashboard.html:1250
 msgid "Counter-offer accepted! Price updated."
 msgstr "Kontrpropozycja przyjęta! Cena zaktualizowana."
 
-#: app/templates/provider/dashboard.html:1095
+#: app/templates/provider/dashboard.html:1263
 msgid "New price"
 msgstr "Nowa cena"
 
-#: app/templates/provider/dashboard.html:1111
+#: app/templates/provider/dashboard.html:1279
 msgid "Enter new price"
 msgstr "Wpisz nową cenę"
 
-#: app/templates/provider/dashboard.html:1136
+#: app/templates/provider/dashboard.html:1304
 msgid "Price revised and sent to client."
 msgstr "Cena zmieniona i wysłana do klienta."
 
-#: app/templates/provider/dashboard.html:1190
+#: app/templates/provider/dashboard.html:1358
 msgid "Location updated!"
 msgstr "Lokalizacja zaktualizowana!"
 
-#: app/templates/provider/dashboard.html:1265
+#: app/templates/provider/dashboard.html:1433
 msgid "Your response"
 msgstr "Twoja odpowiedź"
 
-#: app/templates/provider/dashboard.html:1273
+#: app/templates/provider/dashboard.html:1441
 msgid "Respond"
 msgstr "Odpowiedz"
 
-#: app/templates/provider/dashboard.html:1276
+#: app/templates/provider/dashboard.html:1444
 msgid "Write your public response..."
 msgstr "Napisz swoją publiczną odpowiedź..."
 
-#: app/templates/provider/dashboard.html:1305
+#: app/templates/provider/dashboard.html:1473
 msgid "Please write a response"
 msgstr "Napisz odpowiedź"
 
@@ -2292,7 +3828,7 @@ msgid "Track your earnings, payouts, and transactions"
 msgstr "Śledź zarobki, wypłaty i transakcje"
 
 #: app/templates/provider/finances.html:100
-#: app/templates/provider/profile.html:200
+#: app/templates/provider/profile.html:356
 msgid "Open Stripe Dashboard"
 msgstr "Otwórz Stripe"
 
@@ -2324,13 +3860,8 @@ msgstr "Ostatnie wypłaty"
 msgid "Transfers to your bank account"
 msgstr "Przelewy na twoje konto"
 
-#: app/templates/provider/finances.html:147
-#: app/templates/provider/finances.html:189
-msgid "Amount"
-msgstr "Kwota"
-
 #: app/templates/provider/finances.html:148
-#: app/templates/provider/services.html:41
+#: app/templates/provider/services.html:54
 msgid "Status"
 msgstr "Status"
 
@@ -2355,7 +3886,7 @@ msgid "Recent activity on your account"
 msgstr "Ostatnia aktywność"
 
 #: app/templates/provider/finances.html:188
-#: app/templates/provider/services.html:38
+#: app/templates/provider/services.html:50
 msgid "Description"
 msgstr "Opis"
 
@@ -2383,133 +3914,169 @@ msgstr "Profil wykonawcy"
 msgid "Manage your personal information and documents"
 msgstr "Zarządzaj danymi i dokumentami"
 
-#: app/templates/provider/profile.html:56
-msgid "UPLOAD DOCUMENTS"
-msgstr "WGRAJ DOKUMENTY"
+#: app/templates/provider/profile.html:62
+msgid "Parent/Guardian IBAN"
+msgstr ""
 
-#: app/templates/provider/profile.html:81
-msgid "Add Photo/Video"
-msgstr "Dodaj zdjęcie/wideo"
+#: app/templates/provider/profile.html:66
+msgid "Payments go to your parent/guardian's account (required for minors)"
+msgstr ""
 
-#: app/templates/provider/profile.html:85
-msgid "Showcase your work — photos and videos visible to clients"
-msgstr "Pokaż swoją pracę — zdjęcia i wideo widoczne dla klientów"
+#: app/templates/provider/profile.html:74
+msgid "Required for receiving QR transfer payments"
+msgstr ""
 
-#: app/templates/provider/profile.html:109
-msgid "No portfolio items yet"
-msgstr "Portfolio jeszcze puste"
+#: app/templates/provider/profile.html:97
+msgid "Upload documents and verify your identity to build trust with clients"
+msgstr ""
 
-#: app/templates/provider/profile.html:115
+#: app/templates/provider/profile.html:221
 msgid "Insurance"
 msgstr "Ubezpieczenie"
 
-#: app/templates/provider/profile.html:121
+#: app/templates/provider/profile.html:222
+#, fuzzy
+msgid "Professional liability insurance"
+msgstr "Mam ubezpieczenie OC zawodowe"
+
+#: app/templates/provider/profile.html:226
+#, fuzzy
+msgid "Uploaded"
+msgstr "Prześlij"
+
+#: app/templates/provider/profile.html:235
 msgid "I have professional liability insurance"
 msgstr "Mam ubezpieczenie OC zawodowe"
 
-#: app/templates/provider/profile.html:126
-msgid "UPLOAD INSURANCE DOCUMENT"
-msgstr "WGRAJ DOKUMENT UBEZPIECZENIA"
-
-#: app/templates/provider/profile.html:129
+#: app/templates/provider/profile.html:243
 msgid "PDF, JPG or PNG accepted"
 msgstr "PDF, JPG lub PNG"
 
-#: app/templates/provider/profile.html:136
+#: app/templates/provider/profile.html:248
 msgid "View insurance document"
 msgstr "Zobacz dokument ubezpieczenia"
 
-#: app/templates/provider/profile.html:155
-msgid "Documents"
-msgstr "Dokumenty"
+#: app/templates/provider/profile.html:266
+msgid "Add Photo/Video"
+msgstr "Dodaj zdjęcie/wideo"
 
-#: app/templates/provider/profile.html:156
-msgid "Insurance Status"
-msgstr "Status ubezpieczenia"
+#: app/templates/provider/profile.html:270
+msgid "Showcase your work — photos and videos visible to clients"
+msgstr "Pokaż swoją pracę — zdjęcia i wideo widoczne dla klientów"
 
-#: app/templates/provider/profile.html:163
+#: app/templates/provider/profile.html:294
+msgid "No portfolio items yet"
+msgstr "Portfolio jeszcze puste"
+
+#: app/templates/provider/profile.html:302
 msgid "Payout Settings"
 msgstr "Ustawienia wypłat"
 
-#: app/templates/provider/profile.html:169
+#: app/templates/provider/profile.html:307
+msgid ""
+"As a minor, payments are sent to your parent/guardian's IBAN. Stripe "
+"onboarding is not available until you turn 18."
+msgstr ""
+
+#: app/templates/provider/profile.html:310
+msgid "PARENT/GUARDIAN IBAN"
+msgstr ""
+
+#: app/templates/provider/profile.html:318
+msgid "Not set yet — please add it in the profile form above."
+msgstr ""
+
+#: app/templates/provider/profile.html:325
 msgid "Payments"
 msgstr "Płatności"
 
-#: app/templates/provider/profile.html:171
+#: app/templates/provider/profile.html:327
 msgid "Payments pending"
 msgstr "Płatności oczekujące"
 
-#: app/templates/provider/profile.html:174
+#: app/templates/provider/profile.html:330
 msgid "Payouts"
 msgstr "Wypłaty"
 
-#: app/templates/provider/profile.html:176
+#: app/templates/provider/profile.html:332
 msgid "Payouts pending"
 msgstr "Wypłaty oczekujące"
 
-#: app/templates/provider/profile.html:182
+#: app/templates/provider/profile.html:338
 msgid "CONNECTED BANK ACCOUNT"
 msgstr "POŁĄCZONE KONTO"
 
-#: app/templates/provider/profile.html:185
+#: app/templates/provider/profile.html:341
 msgid "Bank"
 msgstr "Bank"
 
-#: app/templates/provider/profile.html:194
+#: app/templates/provider/profile.html:350
 msgid "AVAILABLE BALANCE"
 msgstr "DOSTĘPNE ŚRODKI"
 
-#: app/templates/provider/profile.html:203
-#: app/templates/provider/profile.html:214
+#: app/templates/provider/profile.html:359
+#: app/templates/provider/profile.html:369
 msgid "Transactions"
 msgstr "Transakcje"
 
-#: app/templates/provider/profile.html:210
+#: app/templates/provider/profile.html:365
 msgid "Could not load Stripe account info."
 msgstr "Nie udało się załadować info Stripe."
 
-#: app/templates/provider/profile.html:211
+#: app/templates/provider/profile.html:366
 msgid "Retry"
 msgstr "Spróbuj ponownie"
 
-#: app/templates/provider/profile.html:221
+#: app/templates/provider/profile.html:375
 msgid "Connect your bank account to receive payments."
 msgstr "Połącz konto bankowe żeby otrzymywać wypłaty."
 
-#: app/templates/provider/profile.html:226
+#: app/templates/provider/profile.html:380
 msgid "Select your country:"
 msgstr "Wybierz kraj:"
 
-#: app/templates/provider/profile.html:239
+#: app/templates/provider/profile.html:393
 msgid "Connect with Stripe"
 msgstr "Połącz ze Stripe"
 
-#: app/templates/provider/profile.html:282
+#: app/templates/provider/profile.html:410
+msgid "Documents"
+msgstr "Dokumenty"
+
+#: app/templates/provider/profile.html:411
+msgid "Insurance Status"
+msgstr "Status ubezpieczenia"
+
+#: app/templates/provider/profile.html:427
+msgid "You cannot delete your account while you have active appointments."
+msgstr ""
+
+#: app/templates/provider/profile.html:532
 msgid "Remove the insurance document?"
 msgstr "Usunąć dokument ubezpieczenia?"
 
-#: app/templates/provider/profile.html:283
+#: app/templates/provider/profile.html:533
 #: app/templates/shared/_documents_grid.html:52
 msgid "Delete Document"
 msgstr "Usuń dokument"
 
-#: app/templates/provider/profile.html:313
+#: app/templates/provider/profile.html:581
 msgid "unsupported format"
 msgstr "format nie obsługiwany"
 
-#: app/templates/provider/profile.html:314
+#: app/templates/provider/profile.html:582
 msgid "max 5MB for photos"
 msgstr "maks. 5MB dla zdjęć"
 
-#: app/templates/provider/profile.html:315
+#: app/templates/provider/profile.html:583
 msgid "max 20MB for videos"
 msgstr "maks. 20MB dla wideo"
 
-#: app/templates/provider/profile.html:359
+#: app/templates/provider/profile.html:626
 msgid "Remove this item?"
 msgstr "Usunąć to?"
 
-#: app/templates/provider/profile.html:360
+#: app/templates/provider/profile.html:627
 msgid "Delete Item"
 msgstr "Usuń"
 
@@ -2521,123 +4088,165 @@ msgstr "Zarządzanie usługami"
 msgid "Configure the services you offer to clients"
 msgstr "Skonfiguruj usługi dla klientów"
 
-#: app/templates/provider/services.html:27
-#: app/templates/provider/services.html:120
-#: app/templates/provider/services.html:339
+#: app/templates/provider/services.html:20
+#, fuzzy
+msgid "Parental consent pending"
+msgstr "Płatności oczekujące"
+
+#: app/templates/provider/services.html:20
+msgid ""
+"Your parent/guardian must confirm consent before you can add or edit "
+"services. Check their email for the confirmation link."
+msgstr ""
+
+#: app/templates/provider/services.html:25
+msgid ""
+"Some service categories are restricted. Tags not available to you are "
+"greyed out."
+msgstr ""
+
+#: app/templates/provider/services.html:39
+#: app/templates/provider/services.html:135
+#: app/templates/provider/services.html:379
 msgid "Add Service"
 msgstr "Dodaj usługę"
 
-#: app/templates/provider/services.html:37
+#: app/templates/provider/services.html:49
 msgid "Name"
 msgstr "Nazwa"
 
-#: app/templates/provider/services.html:40
+#: app/templates/provider/services.html:52
 msgid "Duration"
 msgstr "Czas trwania"
 
-#: app/templates/provider/services.html:42
+#: app/templates/provider/services.html:53
+#, fuzzy
+msgid "Deposit"
+msgstr "Zgłoś"
+
+#: app/templates/provider/services.html:55
 msgid "Actions"
 msgstr "Akcje"
 
-#: app/templates/provider/services.html:65
+#: app/templates/provider/services.html:79
 msgid "Available"
 msgstr "Dostępna"
 
-#: app/templates/provider/services.html:67
+#: app/templates/provider/services.html:81
 msgid "Hidden"
 msgstr "Ukryta"
 
-#: app/templates/provider/services.html:83
+#: app/templates/provider/services.html:98
 msgid "Edit"
 msgstr "Edytuj"
 
-#: app/templates/provider/services.html:106
+#: app/templates/provider/services.html:121
 msgid "You haven't added any services yet."
 msgstr "Nie dodałeś jeszcze żadnych usług."
 
-#: app/templates/provider/services.html:107
+#: app/templates/provider/services.html:122
 msgid ""
 "Click 'Add Service' to get started — choose from suggestions or create "
 "your own."
 msgstr "Kliknij «Dodaj usługę» — wybierz z podpowiedzi lub stwórz własną."
 
-#: app/templates/provider/services.html:132
+#: app/templates/provider/services.html:147
 msgid "SERVICE NAME"
 msgstr "NAZWA USŁUGI"
 
-#: app/templates/provider/services.html:135
+#: app/templates/provider/services.html:150
 msgid "Type or pick from suggestions..."
 msgstr "Wpisz lub wybierz z podpowiedzi..."
 
-#: app/templates/provider/services.html:142
+#: app/templates/provider/services.html:157
 msgid "PRICE (EUR)"
 msgstr "CENA (EUR)"
 
-#: app/templates/provider/services.html:146
+#: app/templates/provider/services.html:161
 msgid "DURATION (MIN)"
 msgstr "CZAS TRWANIA (MIN)"
 
-#: app/templates/provider/services.html:153
+#: app/templates/provider/services.html:169
 msgid "Optional details..."
 msgstr "Szczegóły (opcjonalnie)..."
 
-#: app/templates/provider/services.html:168
+#: app/templates/provider/services.html:172
+#, fuzzy
+msgid "DEPOSIT"
+msgstr "Zgłoś"
+
+#: app/templates/provider/services.html:174
+#, fuzzy
+msgid "No deposit"
+msgstr "Brak adresu"
+
+#: app/templates/provider/services.html:180
+msgid "Client pays this percentage upfront"
+msgstr ""
+
+#: app/templates/provider/services.html:194
+#, fuzzy
+msgid "Not available for Young Helpers"
+msgstr "Dostępni pomocnicy"
+
+#: app/templates/provider/services.html:207
 msgid "Available for booking immediately"
 msgstr "Dostępna do rezerwacji od razu"
 
-#: app/templates/provider/services.html:173
+#: app/templates/provider/services.html:212
 msgid "Save"
 msgstr "Zapisz"
 
-#: app/templates/provider/services.html:185
+#: app/templates/provider/services.html:224
 msgid "Confirm Deletion"
 msgstr "Potwierdź usunięcie"
 
-#: app/templates/provider/services.html:189
+#: app/templates/provider/services.html:228
 msgid "Are you sure you want to remove this service from your list?"
 msgstr "Na pewno usunąć tę usługę z listy?"
 
-#: app/templates/provider/services.html:190
+#: app/templates/provider/services.html:229
 msgid "This action cannot be undone instantly."
 msgstr "Tego nie da się cofnąć od razu."
 
-#: app/templates/provider/services.html:194
+#: app/templates/provider/services.html:233
 msgid "Delete Service"
 msgstr "Usuń usługę"
 
-#: app/templates/provider/services.html:360
+#: app/templates/provider/services.html:401
 msgid "Edit Service"
 msgstr "Edytuj usługę"
 
-#: app/templates/shared/_change_password_accordion.html:11
+#: app/templates/shared/_change_password_accordion.html:13
 msgid "Change Password"
 msgstr "Zmień hasło"
 
-#: app/templates/shared/_change_password_accordion.html:19
-msgid "You signed in with Google. Password change is not available."
-msgstr "Zalogowałeś się przez Google. Zmiana hasła jest niedostępna."
-
-#: app/templates/shared/_change_password_accordion.html:26
-msgid "CURRENT PASSWORD"
-msgstr "AKTUALNE HASŁO"
-
-#: app/templates/shared/_change_password_accordion.html:30
-msgid "NEW PASSWORD"
-msgstr "NOWE HASŁO"
-
-#: app/templates/shared/_change_password_accordion.html:34
-msgid "CONFIRM NEW PASSWORD"
-msgstr "POTWIERDŹ NOWE HASŁO"
-
-#: app/templates/shared/_change_password_accordion.html:39
-msgid "Update Password"
-msgstr "Zaktualizuj hasło"
-
+#: app/templates/shared/_change_password_accordion.html:13
+#: app/templates/shared/_change_password_accordion.html:37
 msgid "Set Password"
 msgstr "Ustaw hasło"
 
+#: app/templates/shared/_change_password_accordion.html:21
 msgid "Set a password to log in with your username and password."
 msgstr "Ustaw hasło, aby logować się za pomocą nazwy użytkownika i hasła."
+
+#: app/templates/shared/_change_password_accordion.html:28
+#: app/templates/shared/_change_password_accordion.html:49
+msgid "NEW PASSWORD"
+msgstr "NOWE HASŁO"
+
+#: app/templates/shared/_change_password_accordion.html:32
+#: app/templates/shared/_change_password_accordion.html:53
+msgid "CONFIRM NEW PASSWORD"
+msgstr "POTWIERDŹ NOWE HASŁO"
+
+#: app/templates/shared/_change_password_accordion.html:45
+msgid "CURRENT PASSWORD"
+msgstr "AKTUALNE HASŁO"
+
+#: app/templates/shared/_change_password_accordion.html:58
+msgid "Update Password"
+msgstr "Zaktualizuj hasło"
 
 #: app/templates/shared/_documents_grid.html:8
 msgid "Your Documents"
@@ -2689,1155 +4298,1035 @@ msgid ""
 "by default."
 msgstr "Wybierz co inni widzą w twoim profilu. Domyślnie wszystko jest widoczne."
 
-msgid "Reuse"
-msgstr "Użyj ponownie"
+#~ msgid "No one available right now"
+#~ msgstr "Nikt teraz nie jest dostępny"
 
-msgid "Sign in with Google"
-msgstr "Zaloguj się przez Google"
+#~ msgid "Post a request — helpers will come to you!"
+#~ msgstr "Dodaj zapytanie — pomocnicy się znajdą!"
 
-msgid "Menu"
-msgstr "Menu"
+#~ msgid "or sign up to browse later"
+#~ msgstr "lub zarejestruj się żeby przeglądać później"
 
-msgid "Settings"
-msgstr "Ustawienia"
+#~ msgid "Hold payment"
+#~ msgstr "Zamroź płatność"
 
-msgid "Notifications"
-msgstr "Powiadomienia"
+#~ msgid "Enter new password to change"
+#~ msgstr "Wpisz nowe hasło"
 
-msgid "Help"
-msgstr "Pomoc"
+#~ msgid "UPLOAD NEW DOCUMENTS"
+#~ msgstr "WGRAJ DOKUMENTY"
 
-msgid "About"
-msgstr "O nas"
+#~ msgid "You can select multiple files (PDF, JPG, PNG)"
+#~ msgstr "Możesz wybrać kilka plików (PDF, JPG, PNG)"
 
-msgid "Contact"
-msgstr "Kontakt"
+#~ msgid "UPLOAD INSURANCE DOCUMENT"
+#~ msgstr "WGRAJ DOKUMENT UBEZPIECZENIA"
 
-msgid "Support"
-msgstr "Wsparcie"
+#~ msgid "You signed in with Google. Password change is not available."
+#~ msgstr "Zalogowałeś się przez Google. Zmiana hasła jest niedostępna."
 
-msgid "Please wait..."
-msgstr "Proszę czekać..."
+#~ msgid "Menu"
+#~ msgstr "Menu"
 
-msgid "Refreshing..."
-msgstr "Odświeżanie..."
+#~ msgid "Settings"
+#~ msgstr "Ustawienia"
 
-msgid "Show more"
-msgstr "Pokaż więcej"
+#~ msgid "Notifications"
+#~ msgstr "Powiadomienia"
 
-msgid "Show less"
-msgstr "Pokaż mniej"
+#~ msgid "Help"
+#~ msgstr "Pomoc"
 
-msgid "View all"
-msgstr "Zobacz wszystko"
+#~ msgid "About"
+#~ msgstr "O nas"
 
-msgid "See details"
-msgstr "Zobacz szczegóły"
+#~ msgid "Contact"
+#~ msgstr "Kontakt"
 
-msgid "Open"
-msgstr "Otwórz"
+#~ msgid "Support"
+#~ msgstr "Wsparcie"
 
-msgid "Expand"
-msgstr "Rozwiń"
+#~ msgid "Please wait..."
+#~ msgstr "Proszę czekać..."
 
-msgid "Collapse"
-msgstr "Zwiń"
+#~ msgid "Refreshing..."
+#~ msgstr "Odświeżanie..."
 
-msgid "Sort by"
-msgstr "Sortuj według"
+#~ msgid "Show less"
+#~ msgstr "Pokaż mniej"
 
-msgid "Filter"
-msgstr "Filtr"
+#~ msgid "View all"
+#~ msgstr "Zobacz wszystko"
 
-msgid "Search results"
-msgstr "Wyniki wyszukiwania"
+#~ msgid "See details"
+#~ msgstr "Zobacz szczegóły"
 
-msgid "No results found"
-msgstr "Nie znaleziono wyników"
+#~ msgid "Open"
+#~ msgstr "Otwórz"
 
-msgid "Try again"
-msgstr "Spróbuj ponownie"
+#~ msgid "Expand"
+#~ msgstr "Rozwiń"
 
-msgid "Previous page"
-msgstr "Poprzednia strona"
+#~ msgid "Collapse"
+#~ msgstr "Zwiń"
 
-msgid "Next page"
-msgstr "Następna strona"
+#~ msgid "Sort by"
+#~ msgstr "Sortuj według"
 
-msgid "Go to page"
-msgstr "Przejdź do strony"
+#~ msgid "Filter"
+#~ msgstr "Filtr"
 
-msgid "Scroll to top"
-msgstr "Przewiń do góry"
+#~ msgid "Search results"
+#~ msgstr "Wyniki wyszukiwania"
 
-msgid "Refresh"
-msgstr "Odśwież"
+#~ msgid "No results found"
+#~ msgstr "Nie znaleziono wyników"
 
-msgid "Reset"
-msgstr "Resetuj"
+#~ msgid "Try again"
+#~ msgstr "Spróbuj ponownie"
 
-msgid "Clear"
-msgstr "Wyczyść"
+#~ msgid "Previous page"
+#~ msgstr "Poprzednia strona"
 
-msgid "Done"
-msgstr "Gotowe"
+#~ msgid "Next page"
+#~ msgstr "Następna strona"
 
-msgid "Got it"
-msgstr "Rozumiem"
+#~ msgid "Go to page"
+#~ msgstr "Przejdź do strony"
 
-msgid "Learn more"
-msgstr "Dowiedz się więcej"
+#~ msgid "Scroll to top"
+#~ msgstr "Przewiń do góry"
 
-msgid "Read more"
-msgstr "Czytaj więcej"
+#~ msgid "Refresh"
+#~ msgstr "Odśwież"
 
-msgid "Dismiss"
-msgstr "Odrzuć"
+#~ msgid "Reset"
+#~ msgstr "Resetuj"
 
-msgid "Not now"
-msgstr "Nie teraz"
+#~ msgid "Clear"
+#~ msgstr "Wyczyść"
 
-msgid "Later"
-msgstr "Później"
+#~ msgid "Done"
+#~ msgstr "Gotowe"
 
-msgid "Remind me"
-msgstr "Przypomnij mi"
+#~ msgid "Got it"
+#~ msgstr "Rozumiem"
 
-msgid "Submit"
-msgstr "Wyślij"
+#~ msgid "Read more"
+#~ msgstr "Czytaj więcej"
 
-msgid "Apply"
-msgstr "Zastosuj"
+#~ msgid "Dismiss"
+#~ msgstr "Odrzuć"
 
-msgid "Continue"
-msgstr "Kontynuuj"
+#~ msgid "Later"
+#~ msgstr "Później"
 
-msgid "Proceed"
-msgstr "Dalej"
+#~ msgid "Remind me"
+#~ msgstr "Przypomnij mi"
 
-msgid "Skip"
-msgstr "Pomiń"
+#~ msgid "Submit"
+#~ msgstr "Wyślij"
 
-msgid "Undo"
-msgstr "Cofnij"
+#~ msgid "Apply"
+#~ msgstr "Zastosuj"
 
-msgid "Redo"
-msgstr "Powtórz"
+#~ msgid "Continue"
+#~ msgstr "Kontynuuj"
 
-msgid "Copy"
-msgstr "Kopiuj"
+#~ msgid "Proceed"
+#~ msgstr "Dalej"
 
-msgid "Share"
-msgstr "Udostępnij"
+#~ msgid "Skip"
+#~ msgstr "Pomiń"
 
-msgid "Download"
-msgstr "Pobierz"
+#~ msgid "Undo"
+#~ msgstr "Cofnij"
 
-msgid "Upload"
-msgstr "Prześlij"
+#~ msgid "Redo"
+#~ msgstr "Powtórz"
 
-msgid "Print"
-msgstr "Drukuj"
+#~ msgid "Copy"
+#~ msgstr "Kopiuj"
 
-msgid "Export"
-msgstr "Eksport"
+#~ msgid "Download"
+#~ msgstr "Pobierz"
 
-msgid "Import"
-msgstr "Import"
+#~ msgid "Print"
+#~ msgstr "Drukuj"
 
-msgid "Add new"
-msgstr "Dodaj nowe"
+#~ msgid "Export"
+#~ msgstr "Eksport"
 
-msgid "Remove item"
-msgstr "Usuń element"
+#~ msgid "Import"
+#~ msgstr "Import"
 
-msgid "Create new"
-msgstr "Utwórz nowe"
+#~ msgid "Add new"
+#~ msgstr "Dodaj nowe"
 
-msgid "Update"
-msgstr "Aktualizuj"
+#~ msgid "Create new"
+#~ msgstr "Utwórz nowe"
 
-msgid "Enable"
-msgstr "Włącz"
+#~ msgid "Update"
+#~ msgstr "Aktualizuj"
 
-msgid "Disable"
-msgstr "Wyłącz"
+#~ msgid "Enable"
+#~ msgstr "Włącz"
 
-msgid "Activate"
-msgstr "Aktywuj"
+#~ msgid "Disable"
+#~ msgstr "Wyłącz"
 
-msgid "Deactivate"
-msgstr "Dezaktywuj"
+#~ msgid "Deactivate"
+#~ msgstr "Dezaktywuj"
 
-msgid "Select"
-msgstr "Wybierz"
+#~ msgid "Select"
+#~ msgstr "Wybierz"
 
-msgid "Deselect"
-msgstr "Odznacz"
+#~ msgid "Deselect"
+#~ msgstr "Odznacz"
 
-msgid "Select all"
-msgstr "Zaznacz wszystko"
+#~ msgid "Select all"
+#~ msgstr "Zaznacz wszystko"
 
-msgid "Clear selection"
-msgstr "Wyczyść zaznaczenie"
+#~ msgid "Clear selection"
+#~ msgstr "Wyczyść zaznaczenie"
 
-msgid "Mark as read"
-msgstr "Oznacz jako przeczytane"
+#~ msgid "Mark as read"
+#~ msgstr "Oznacz jako przeczytane"
 
-msgid "Mark as unread"
-msgstr "Oznacz jako nieprzeczytane"
+#~ msgid "Mark as unread"
+#~ msgstr "Oznacz jako nieprzeczytane"
 
-msgid "Approve"
-msgstr "Zatwierdź"
+#~ msgid "Approve"
+#~ msgstr "Zatwierdź"
 
-msgid "Reject"
-msgstr "Odrzuć"
+#~ msgid "Reject"
+#~ msgstr "Odrzuć"
 
-msgid "Block user"
-msgstr "Zablokuj użytkownika"
+#~ msgid "Block user"
+#~ msgstr "Zablokuj użytkownika"
 
-msgid "Unblock user"
-msgstr "Odblokuj użytkownika"
+#~ msgid "Unblock user"
+#~ msgstr "Odblokuj użytkownika"
 
-msgid "Report"
-msgstr "Zgłoś"
+#~ msgid "Flag"
+#~ msgstr "Oznacz"
 
-msgid "Flag"
-msgstr "Oznacz"
+#~ msgid "Pin"
+#~ msgstr "Przypnij"
 
-msgid "Pin"
-msgstr "Przypnij"
+#~ msgid "Unpin"
+#~ msgstr "Odepnij"
 
-msgid "Unpin"
-msgstr "Odepnij"
+#~ msgid "Bookmark"
+#~ msgstr "Dodaj do zakładek"
 
-msgid "Bookmark"
-msgstr "Dodaj do zakładek"
+#~ msgid "Unbookmark"
+#~ msgstr "Usuń z zakładek"
 
-msgid "Unbookmark"
-msgstr "Usuń z zakładek"
+#~ msgid "Archive"
+#~ msgstr "Archiwizuj"
 
-msgid "Archive"
-msgstr "Archiwizuj"
+#~ msgid "Inactive"
+#~ msgstr "Nieaktywny"
 
-msgid "Inactive"
-msgstr "Nieaktywny"
+#~ msgid "Busy"
+#~ msgstr "Zajęty"
 
-msgid "Busy"
-msgstr "Zajęty"
+#~ msgid "Away"
+#~ msgstr "Nieobecny"
 
-msgid "Away"
-msgstr "Nieobecny"
+#~ msgid "New"
+#~ msgstr "Nowy"
 
-msgid "New"
-msgstr "Nowy"
+#~ msgid "Updated"
+#~ msgstr "Zaktualizowano"
 
-msgid "Updated"
-msgstr "Zaktualizowano"
+#~ msgid "Draft"
+#~ msgstr "Szkic"
 
-msgid "Draft"
-msgstr "Szkic"
+#~ msgid "Published"
+#~ msgstr "Opublikowano"
 
-msgid "Published"
-msgstr "Opublikowano"
+#~ msgid "Archived"
+#~ msgstr "Zarchiwizowano"
 
-msgid "Archived"
-msgstr "Zarchiwizowano"
+#~ msgid "Expired"
+#~ msgstr "Wygasło"
 
-msgid "Expired"
-msgstr "Wygasło"
+#~ msgid "Closed"
+#~ msgstr "Zamknięte"
 
-msgid "Closed"
-msgstr "Zamknięte"
+#~ msgid "Resolved"
+#~ msgstr "Rozwiązane"
 
-msgid "Resolved"
-msgstr "Rozwiązane"
+#~ msgid "On hold"
+#~ msgstr "Wstrzymane"
 
-msgid "In progress"
-msgstr "W toku"
+#~ msgid "Approved"
+#~ msgstr "Zatwierdzony"
 
-msgid "On hold"
-msgstr "Wstrzymane"
+#~ msgid "Suspended"
+#~ msgstr "Zawieszony"
 
-msgid "Unverified"
-msgstr "Niezweryfikowany"
+#~ msgid "Banned"
+#~ msgstr "Zablokowany"
 
-msgid "Approved"
-msgstr "Zatwierdzony"
+#~ msgid "Connected"
+#~ msgstr "Połączony"
 
-msgid "Suspended"
-msgstr "Zawieszony"
+#~ msgid "Disconnected"
+#~ msgstr "Rozłączony"
 
-msgid "Banned"
-msgstr "Zablokowany"
+#~ msgid "Synced"
+#~ msgstr "Zsynchronizowany"
 
-msgid "Connected"
-msgstr "Połączony"
+#~ msgid "Enabled"
+#~ msgstr "Włączony"
 
-msgid "Disconnected"
-msgstr "Rozłączony"
+#~ msgid "Disabled"
+#~ msgstr "Wyłączony"
 
-msgid "Synced"
-msgstr "Zsynchronizowany"
+#~ msgid "Something went wrong"
+#~ msgstr "Coś poszło nie tak"
 
-msgid "Not synced"
-msgstr "Niezsynchronizowany"
+#~ msgid "An unexpected error occurred"
+#~ msgstr "Wystąpił nieoczekiwany błąd"
 
-msgid "Enabled"
-msgstr "Włączony"
+#~ msgid "Network error. Please check your connection"
+#~ msgstr "Błąd sieci. Sprawdź połączenie"
 
-msgid "Disabled"
-msgstr "Wyłączony"
+#~ msgid "Server error. Please try again later"
+#~ msgstr "Błąd serwera. Spróbuj ponownie później"
 
-msgid "Something went wrong"
-msgstr "Coś poszło nie tak"
+#~ msgid "Session expired. Please log in again"
+#~ msgstr "Sesja wygasła. Zaloguj się ponownie"
 
-msgid "An unexpected error occurred"
-msgstr "Wystąpił nieoczekiwany błąd"
+#~ msgid "Permission denied"
+#~ msgstr "Brak uprawnień"
 
-msgid "Network error. Please check your connection"
-msgstr "Błąd sieci. Sprawdź połączenie"
+#~ msgid "Access restricted"
+#~ msgstr "Dostęp ograniczony"
 
-msgid "Server error. Please try again later"
-msgstr "Błąd serwera. Spróbuj ponownie później"
+#~ msgid "File too large"
+#~ msgstr "Plik zbyt duży"
 
-msgid "Session expired. Please log in again"
-msgstr "Sesja wygasła. Zaloguj się ponownie"
+#~ msgid "Invalid file format"
+#~ msgstr "Nieprawidłowy format pliku"
 
-msgid "Permission denied"
-msgstr "Brak uprawnień"
+#~ msgid "Upload failed"
+#~ msgstr "Przesyłanie nie powiodło się"
 
-msgid "Access restricted"
-msgstr "Dostęp ograniczony"
+#~ msgid "Invalid email address"
+#~ msgstr "Nieprawidłowy adres e-mail"
 
-msgid "File too large"
-msgstr "Plik zbyt duży"
+#~ msgid "Invalid phone number"
+#~ msgstr "Nieprawidłowy numer telefonu"
 
-msgid "Invalid file format"
-msgstr "Nieprawidłowy format pliku"
+#~ msgid "Invalid password"
+#~ msgstr "Nieprawidłowe hasło"
 
-msgid "Upload failed"
-msgstr "Przesyłanie nie powiodło się"
+#~ msgid "This field is required"
+#~ msgstr "To pole jest wymagane"
 
-msgid "Invalid email address"
-msgstr "Nieprawidłowy adres e-mail"
+#~ msgid "Please fill in all required fields"
+#~ msgstr "Proszę wypełnić wszystkie wymagane pola"
 
-msgid "Invalid phone number"
-msgstr "Nieprawidłowy numer telefonu"
+#~ msgid "Username already taken"
+#~ msgstr "Nazwa użytkownika jest już zajęta"
 
-msgid "Invalid password"
-msgstr "Nieprawidłowe hasło"
+#~ msgid "Email already registered"
+#~ msgstr "E-mail jest już zarejestrowany"
 
-msgid "This field is required"
-msgstr "To pole jest wymagane"
+#~ msgid "Password too short"
+#~ msgstr "Hasło za krótkie"
 
-msgid "Please fill in all required fields"
-msgstr "Proszę wypełnić wszystkie wymagane pola"
+#~ msgid "Passwords do not match"
+#~ msgstr "Hasła nie są zgodne"
 
-msgid "Username already taken"
-msgstr "Nazwa użytkownika jest już zajęta"
+#~ msgid "Too many requests. Please wait"
+#~ msgstr "Zbyt wiele żądań. Proszę czekać"
 
-msgid "Email already registered"
-msgstr "E-mail jest już zarejestrowany"
+#~ msgid "Rate limit exceeded"
+#~ msgstr "Przekroczono limit żądań"
 
-msgid "Password too short"
-msgstr "Hasło za krótkie"
+#~ msgid "Page not found"
+#~ msgstr "Strona nie znaleziona"
 
-msgid "Passwords do not match"
-msgstr "Hasła nie są zgodne"
+#~ msgid "Service unavailable"
+#~ msgstr "Usługa niedostępna"
 
-msgid "Too many requests. Please wait"
-msgstr "Zbyt wiele żądań. Proszę czekać"
+#~ msgid "Connection timeout"
+#~ msgstr "Przekroczono czas połączenia"
 
-msgid "Rate limit exceeded"
-msgstr "Przekroczono limit żądań"
+#~ msgid "Could not load data"
+#~ msgstr "Nie udało się załadować danych"
 
-msgid "Page not found"
-msgstr "Strona nie znaleziona"
+#~ msgid "Failed to save changes"
+#~ msgstr "Nie udało się zapisać zmian"
 
-msgid "Service unavailable"
-msgstr "Usługa niedostępna"
+#~ msgid "Invalid input"
+#~ msgstr "Nieprawidłowe dane"
 
-msgid "Connection timeout"
-msgstr "Przekroczono czas połączenia"
+#~ msgid "Operation failed"
+#~ msgstr "Operacja nie powiodła się"
 
-msgid "Could not load data"
-msgstr "Nie udało się załadować danych"
+#~ msgid "Please try again"
+#~ msgstr "Proszę spróbować ponownie"
 
-msgid "Failed to save changes"
-msgstr "Nie udało się zapisać zmian"
+#~ msgid "Cannot connect to server"
+#~ msgstr "Nie można połączyć z serwerem"
 
-msgid "Invalid input"
-msgstr "Nieprawidłowe dane"
+#~ msgid "Authentication failed"
+#~ msgstr "Uwierzytelnianie nie powiodło się"
 
-msgid "Operation failed"
-msgstr "Operacja nie powiodła się"
+#~ msgid "Account not found"
+#~ msgstr "Konto nie znalezione"
 
-msgid "Please try again"
-msgstr "Proszę spróbować ponownie"
+#~ msgid "Token expired"
+#~ msgstr "Token wygasł"
 
-msgid "Error loading page"
-msgstr "Błąd ładowania strony"
+#~ msgid "Insufficient permissions"
+#~ msgstr "Niewystarczające uprawnienia"
 
-msgid "Cannot connect to server"
-msgstr "Nie można połączyć z serwerem"
+#~ msgid "Action not allowed"
+#~ msgstr "Niedozwolona czynność"
 
-msgid "Authentication failed"
-msgstr "Uwierzytelnianie nie powiodło się"
+#~ msgid "Quota exceeded"
+#~ msgstr "Przekroczono limit"
 
-msgid "Account not found"
-msgstr "Konto nie znalezione"
+#~ msgid "Feature not available"
+#~ msgstr "Funkcja niedostępna"
 
-msgid "Invalid verification code"
-msgstr "Nieprawidłowy kod weryfikacyjny"
+#~ msgid "Changes saved successfully"
+#~ msgstr "Zmiany zostały zapisane"
 
-msgid "Link expired"
-msgstr "Link wygasł"
+#~ msgid "Profile updated successfully"
+#~ msgstr "Profil został zaktualizowany"
 
-msgid "Token expired"
-msgstr "Token wygasł"
+#~ msgid "Service removed successfully"
+#~ msgstr "Usługa została usunięta"
 
-msgid "Insufficient permissions"
-msgstr "Niewystarczające uprawnienia"
+#~ msgid "Message sent successfully"
+#~ msgstr "Wiadomość została wysłana"
 
-msgid "Action not allowed"
-msgstr "Niedozwolona czynność"
+#~ msgid "Feedback submitted"
+#~ msgstr "Opinia została wysłana"
 
-msgid "Quota exceeded"
-msgstr "Przekroczono limit"
+#~ msgid "Account created successfully"
+#~ msgstr "Konto zostało utworzone"
 
-msgid "Feature not available"
-msgstr "Funkcja niedostępna"
+#~ msgid "Password changed successfully"
+#~ msgstr "Hasło zostało zmienione"
 
-msgid "Changes saved successfully"
-msgstr "Zmiany zostały zapisane"
+#~ msgid "Photo uploaded successfully"
+#~ msgstr "Zdjęcie zostało przesłane"
 
-msgid "Profile updated successfully"
-msgstr "Profil został zaktualizowany"
+#~ msgid "Document uploaded successfully"
+#~ msgstr "Dokument został przesłany"
 
-msgid "Service added successfully"
-msgstr "Usługa została dodana"
+#~ msgid "Location updated successfully"
+#~ msgstr "Lokalizacja została zaktualizowana"
 
-msgid "Service removed successfully"
-msgstr "Usługa została usunięta"
+#~ msgid "Settings saved"
+#~ msgstr "Ustawienia zapisane"
 
-msgid "Message sent successfully"
-msgstr "Wiadomość została wysłana"
+#~ msgid "Invitation sent"
+#~ msgstr "Zaproszenie wysłane"
 
-msgid "Feedback submitted"
-msgstr "Opinia została wysłana"
+#~ msgid "Notification sent"
+#~ msgstr "Powiadomienie wysłane"
 
-msgid "Account created successfully"
-msgstr "Konto zostało utworzone"
+#~ msgid "Payment successful"
+#~ msgstr "Płatność zakończona sukcesem"
 
-msgid "Password changed successfully"
-msgstr "Hasło zostało zmienione"
+#~ msgid "Refund processed"
+#~ msgstr "Zwrot został przetworzony"
 
-msgid "Photo uploaded successfully"
-msgstr "Zdjęcie zostało przesłane"
+#~ msgid "Email sent"
+#~ msgstr "E-mail wysłany"
 
-msgid "Document uploaded successfully"
-msgstr "Dokument został przesłany"
+#~ msgid "Copied to clipboard"
+#~ msgstr "Skopiowano do schowka"
 
-msgid "Location updated successfully"
-msgstr "Lokalizacja została zaktualizowana"
+#~ msgid "Item removed"
+#~ msgstr "Element usunięty"
 
-msgid "Settings saved"
-msgstr "Ustawienia zapisane"
+#~ msgid "Review submitted"
+#~ msgstr "Recenzja została wysłana"
 
-msgid "Invitation sent"
-msgstr "Zaproszenie wysłane"
+#~ msgid "File downloaded"
+#~ msgstr "Plik pobrany"
 
-msgid "Notification sent"
-msgstr "Powiadomienie wysłane"
+#~ msgid "Export complete"
+#~ msgstr "Eksport zakończony"
 
-msgid "Payment successful"
-msgstr "Płatność zakończona sukcesem"
+#~ msgid "Import complete"
+#~ msgstr "Import zakończony"
 
-msgid "Refund processed"
-msgstr "Zwrot został przetworzony"
+#~ msgid "Yesterday"
+#~ msgstr "Wczoraj"
 
-msgid "Email sent"
-msgstr "E-mail wysłany"
+#~ msgid "This week"
+#~ msgstr "Ten tydzień"
 
-msgid "Copied to clipboard"
-msgstr "Skopiowano do schowka"
+#~ msgid "Last week"
+#~ msgstr "Poprzedni tydzień"
 
-msgid "Item added"
-msgstr "Element dodany"
+#~ msgid "Next week"
+#~ msgstr "Następny tydzień"
 
-msgid "Item removed"
-msgstr "Element usunięty"
+#~ msgid "This month"
+#~ msgstr "Ten miesiąc"
 
-msgid "Booking confirmed"
-msgstr "Rezerwacja potwierdzona"
+#~ msgid "Last month"
+#~ msgstr "Poprzedni miesiąc"
 
-msgid "Review submitted"
-msgstr "Recenzja została wysłana"
+#~ msgid "Next month"
+#~ msgstr "Następny miesiąc"
 
-msgid "File downloaded"
-msgstr "Plik pobrany"
+#~ msgid "This year"
+#~ msgstr "Ten rok"
 
-msgid "Export complete"
-msgstr "Eksport zakończony"
+#~ msgid "Last year"
+#~ msgstr "Poprzedni rok"
 
-msgid "Import complete"
-msgstr "Import zakończony"
+#~ msgid "Monday"
+#~ msgstr "Poniedziałek"
 
-msgid "Yesterday"
-msgstr "Wczoraj"
+#~ msgid "Tuesday"
+#~ msgstr "Wtorek"
 
-msgid "This week"
-msgstr "Ten tydzień"
+#~ msgid "Wednesday"
+#~ msgstr "Środa"
 
-msgid "Last week"
-msgstr "Poprzedni tydzień"
+#~ msgid "Thursday"
+#~ msgstr "Czwartek"
 
-msgid "Next week"
-msgstr "Następny tydzień"
+#~ msgid "Friday"
+#~ msgstr "Piątek"
 
-msgid "This month"
-msgstr "Ten miesiąc"
+#~ msgid "Saturday"
+#~ msgstr "Sobota"
 
-msgid "Last month"
-msgstr "Poprzedni miesiąc"
+#~ msgid "Sunday"
+#~ msgstr "Niedziela"
 
-msgid "Next month"
-msgstr "Następny miesiąc"
+#~ msgid "Morning"
+#~ msgstr "Rano"
 
-msgid "This year"
-msgstr "Ten rok"
+#~ msgid "Afternoon"
+#~ msgstr "Popołudnie"
 
-msgid "Last year"
-msgstr "Poprzedni rok"
+#~ msgid "Evening"
+#~ msgstr "Wieczór"
 
-msgid "Monday"
-msgstr "Poniedziałek"
+#~ msgid "Night"
+#~ msgstr "Noc"
 
-msgid "Tuesday"
-msgstr "Wtorek"
+#~ msgid "hours ago"
+#~ msgstr "godzin temu"
 
-msgid "Wednesday"
-msgstr "Środa"
+#~ msgid "minutes ago"
+#~ msgstr "minut temu"
 
-msgid "Thursday"
-msgstr "Czwartek"
+#~ msgid "seconds ago"
+#~ msgstr "sekund temu"
 
-msgid "Friday"
-msgstr "Piątek"
+#~ msgid "days ago"
+#~ msgstr "dni temu"
 
-msgid "Saturday"
-msgstr "Sobota"
+#~ msgid "just now"
+#~ msgstr "właśnie teraz"
 
-msgid "Sunday"
-msgstr "Niedziela"
+#~ msgid "Start date"
+#~ msgstr "Data rozpoczęcia"
 
-msgid "Morning"
-msgstr "Rano"
+#~ msgid "End date"
+#~ msgstr "Data zakończenia"
 
-msgid "Afternoon"
-msgstr "Popołudnie"
+#~ msgid "Enter your name"
+#~ msgstr "Wpisz swoje imię"
 
-msgid "Evening"
-msgstr "Wieczór"
+#~ msgid "Enter your email"
+#~ msgstr "Wpisz swój e-mail"
 
-msgid "Night"
-msgstr "Noc"
+#~ msgid "Enter your phone number"
+#~ msgstr "Wpisz numer telefonu"
 
-msgid "hours ago"
-msgstr "godzin temu"
+#~ msgid "Choose a date"
+#~ msgstr "Wybierz datę"
 
-msgid "minutes ago"
-msgstr "minut temu"
+#~ msgid "Choose a time"
+#~ msgstr "Wybierz godzinę"
 
-msgid "seconds ago"
-msgstr "sekund temu"
+#~ msgid "Choose a location"
+#~ msgstr "Wybierz lokalizację"
 
-msgid "days ago"
-msgstr "dni temu"
+#~ msgid "Write a message"
+#~ msgstr "Napisz wiadomość"
 
-msgid "just now"
-msgstr "właśnie teraz"
+#~ msgid "Add a comment"
+#~ msgstr "Dodaj komentarz"
 
-msgid "Start date"
-msgstr "Data rozpoczęcia"
+#~ msgid "Leave a note"
+#~ msgstr "Zostaw notatkę"
 
-msgid "End date"
-msgstr "Data zakończenia"
+#~ msgid "Minimum"
+#~ msgstr "Minimum"
 
-msgid "Due date"
-msgstr "Termin"
+#~ msgid "Maximum"
+#~ msgstr "Maksimum"
 
-msgid "Enter your name"
-msgstr "Wpisz swoje imię"
+#~ msgid "Required"
+#~ msgstr "Wymagane"
 
-msgid "Enter your email"
-msgstr "Wpisz swój e-mail"
+#~ msgid "Optional"
+#~ msgstr "Opcjonalne"
 
-msgid "Enter your phone number"
-msgstr "Wpisz numer telefonu"
+#~ msgid "Recommended"
+#~ msgstr "Zalecane"
 
-msgid "Choose a date"
-msgstr "Wybierz datę"
+#~ msgid "Characters remaining"
+#~ msgstr "Pozostało znaków"
 
-msgid "Choose a time"
-msgstr "Wybierz godzinę"
+#~ msgid "File size"
+#~ msgstr "Rozmiar pliku"
 
-msgid "Choose a location"
-msgstr "Wybierz lokalizację"
+#~ msgid "Drag and drop files here"
+#~ msgstr "Przeciągnij i upuść pliki tutaj"
 
-msgid "Write a message"
-msgstr "Napisz wiadomość"
+#~ msgid "Browse files"
+#~ msgstr "Przeglądaj pliki"
 
-msgid "Add a comment"
-msgstr "Dodaj komentarz"
+#~ msgid "Choose file"
+#~ msgstr "Wybierz plik"
 
-msgid "Leave a note"
-msgstr "Zostaw notatkę"
+#~ msgid "No file chosen"
+#~ msgstr "Nie wybrano pliku"
 
-msgid "Minimum"
-msgstr "Minimum"
+#~ msgid "Type here..."
+#~ msgstr "Wpisz tutaj..."
 
-msgid "Maximum"
-msgstr "Maksimum"
+#~ msgid "Search..."
+#~ msgstr "Szukaj..."
 
-msgid "Required"
-msgstr "Wymagane"
+#~ msgid "Enter amount"
+#~ msgstr "Wpisz kwotę"
 
-msgid "Optional"
-msgstr "Opcjonalne"
+#~ msgid "Add description"
+#~ msgstr "Dodaj opis"
 
-msgid "Recommended"
-msgstr "Zalecane"
+#~ msgid "I accept"
+#~ msgstr "Akceptuję"
 
-msgid "Characters remaining"
-msgstr "Pozostało znaków"
+#~ msgid "My profile"
+#~ msgstr "Mój profil"
 
-msgid "File size"
-msgstr "Rozmiar pliku"
+#~ msgid "View profile"
+#~ msgstr "Zobacz profil"
 
-msgid "Drag and drop files here"
-msgstr "Przeciągnij i upuść pliki tutaj"
+#~ msgid "Public profile"
+#~ msgstr "Profil publiczny"
 
-msgid "Browse files"
-msgstr "Przeglądaj pliki"
+#~ msgid "Account settings"
+#~ msgstr "Ustawienia konta"
 
-msgid "Choose file"
-msgstr "Wybierz plik"
+#~ msgid "Privacy settings"
+#~ msgstr "Ustawienia prywatności"
 
-msgid "No file chosen"
-msgstr "Nie wybrano pliku"
+#~ msgid "Notification settings"
+#~ msgstr "Ustawienia powiadomień"
 
-msgid "Type here..."
-msgstr "Wpisz tutaj..."
+#~ msgid "Change email"
+#~ msgstr "Zmień e-mail"
 
-msgid "Search..."
-msgstr "Szukaj..."
+#~ msgid "Change phone"
+#~ msgstr "Zmień telefon"
 
-msgid "Enter amount"
-msgstr "Wpisz kwotę"
+#~ msgid "Change language"
+#~ msgstr "Zmień język"
 
-msgid "Enter address"
-msgstr "Wpisz adres"
+#~ msgid "Log out from all devices"
+#~ msgstr "Wyloguj się ze wszystkich urządzeń"
 
-msgid "Add description"
-msgstr "Dodaj opis"
+#~ msgid "Deactivate account"
+#~ msgstr "Dezaktywuj konto"
 
-msgid "Add title"
-msgstr "Dodaj tytuł"
+#~ msgid "Last seen"
+#~ msgstr "Ostatnio widziany"
 
-msgid "Confirm email"
-msgstr "Potwierdź e-mail"
+#~ msgid "Joined"
+#~ msgstr "Dołączył"
 
-msgid "Confirm password"
-msgstr "Potwierdź hasło"
+#~ msgid "Last active"
+#~ msgstr "Ostatnio aktywny"
 
-msgid "Agree to terms"
-msgstr "Zaakceptuj warunki"
+#~ msgid "Bio"
+#~ msgstr "Biografia"
 
-msgid "I accept"
-msgstr "Akceptuję"
+#~ msgid "About me"
+#~ msgstr "O mnie"
 
-msgid "My profile"
-msgstr "Mój profil"
+#~ msgid "Skills"
+#~ msgstr "Umiejętności"
 
-msgid "Edit profile"
-msgstr "Edytuj profil"
+#~ msgid "Qualifications"
+#~ msgstr "Kwalifikacje"
 
-msgid "View profile"
-msgstr "Zobacz profil"
+#~ msgid "Languages spoken"
+#~ msgstr "Języki"
 
-msgid "Public profile"
-msgstr "Profil publiczny"
+#~ msgid "Availability"
+#~ msgstr "Dostępność"
 
-msgid "Account settings"
-msgstr "Ustawienia konta"
+#~ msgid "Working hours"
+#~ msgstr "Godziny pracy"
 
-msgid "Privacy settings"
-msgstr "Ustawienia prywatności"
+#~ msgid "Rate this service"
+#~ msgstr "Oceń tę usługę"
 
-msgid "Notification settings"
-msgstr "Ustawienia powiadomień"
+#~ msgid "Leave a review"
+#~ msgstr "Zostaw opinię"
 
-msgid "Change email"
-msgstr "Zmień e-mail"
+#~ msgid "Write a review"
+#~ msgstr "Napisz opinię"
 
-msgid "Change phone"
-msgstr "Zmień telefon"
+#~ msgid "out of 5"
+#~ msgstr "z 5"
 
-msgid "Change language"
-msgstr "Zmień język"
+#~ msgid "rating"
+#~ msgstr "ocena"
 
-msgid "Log out from all devices"
-msgstr "Wyloguj się ze wszystkich urządzeń"
+#~ msgid "ratings"
+#~ msgstr "ocen"
 
-msgid "Deactivate account"
-msgstr "Dezaktywuj konto"
+#~ msgid "Excellent"
+#~ msgstr "Doskonale"
 
-msgid "Last seen"
-msgstr "Ostatnio widziany"
+#~ msgid "Very good"
+#~ msgstr "Bardzo dobrze"
 
-msgid "Joined"
-msgstr "Dołączył"
+#~ msgid "Good"
+#~ msgstr "Dobrze"
 
-msgid "Last active"
-msgstr "Ostatnio aktywny"
+#~ msgid "Average"
+#~ msgstr "Przeciętnie"
 
-msgid "Bio"
-msgstr "Biografia"
+#~ msgid "Poor"
+#~ msgstr "Słabo"
 
-msgid "About me"
-msgstr "O mnie"
+#~ msgid "Helpful"
+#~ msgstr "Pomocne"
 
-msgid "Skills"
-msgstr "Umiejętności"
+#~ msgid "Not helpful"
+#~ msgstr "Niepomocne"
 
-msgid "Experience"
-msgstr "Doświadczenie"
+#~ msgid "Report review"
+#~ msgstr "Zgłoś opinię"
 
-msgid "Qualifications"
-msgstr "Kwalifikacje"
+#~ msgid "Most recent"
+#~ msgstr "Najnowsze"
 
-msgid "Languages spoken"
-msgstr "Języki"
+#~ msgid "Lowest rated"
+#~ msgstr "Najniżej oceniane"
 
-msgid "Availability"
-msgstr "Dostępność"
+#~ msgid "No reviews yet"
+#~ msgstr "Brak opinii"
 
-msgid "Working hours"
-msgstr "Godziny pracy"
+#~ msgid "Add payment method"
+#~ msgstr "Dodaj metodę płatności"
 
-msgid "Service area"
-msgstr "Obszar usług"
+#~ msgid "Remove payment method"
+#~ msgstr "Usuń metodę płatności"
 
-msgid "Rate this service"
-msgstr "Oceń tę usługę"
+#~ msgid "Credit card"
+#~ msgstr "Karta kredytowa"
 
-msgid "Leave a review"
-msgstr "Zostaw opinię"
+#~ msgid "Invoice"
+#~ msgstr "Faktura"
 
-msgid "Write a review"
-msgstr "Napisz opinię"
+#~ msgid "Transaction"
+#~ msgstr "Transakcja"
 
-msgid "out of 5"
-msgstr "z 5"
+#~ msgid "Transaction history"
+#~ msgstr "Historia transakcji"
 
-msgid "rating"
-msgstr "ocena"
+#~ msgid "Subtotal"
+#~ msgstr "Suma częściowa"
 
-msgid "ratings"
-msgstr "ocen"
+#~ msgid "Tax"
+#~ msgstr "Podatek"
 
-msgid "reviews"
-msgstr "opinii"
+#~ msgid "Discount"
+#~ msgstr "Zniżka"
 
-msgid "Excellent"
-msgstr "Doskonale"
+#~ msgid "Tip"
+#~ msgstr "Napiwek"
 
-msgid "Very good"
-msgstr "Bardzo dobrze"
+#~ msgid "Refund"
+#~ msgstr "Zwrot"
 
-msgid "Good"
-msgstr "Dobrze"
+#~ msgid "Partial refund"
+#~ msgstr "Częściowy zwrot"
 
-msgid "Average"
-msgstr "Przeciętnie"
+#~ msgid "Full refund"
+#~ msgstr "Pełny zwrot"
 
-msgid "Poor"
-msgstr "Słabo"
+#~ msgid "Payout"
+#~ msgstr "Wypłata"
 
-msgid "Helpful"
-msgstr "Pomocne"
+#~ msgid "Balance"
+#~ msgstr "Saldo"
 
-msgid "Not helpful"
-msgstr "Niepomocne"
+#~ msgid "Card number"
+#~ msgstr "Numer karty"
 
-msgid "Report review"
-msgstr "Zgłoś opinię"
+#~ msgid "Cardholder name"
+#~ msgstr "Imię posiadacza karty"
 
-msgid "Most recent"
-msgstr "Najnowsze"
+#~ msgid "Payment pending"
+#~ msgstr "Płatność oczekuje"
 
-msgid "Lowest rated"
-msgstr "Najniżej oceniane"
+#~ msgid "Payment failed"
+#~ msgstr "Płatność nie powiodła się"
 
-msgid "No reviews yet"
-msgstr "Brak opinii"
+#~ msgid "Billing address"
+#~ msgstr "Adres rozliczeniowy"
 
-msgid "Payment method"
-msgstr "Metoda płatności"
+#~ msgid "New message"
+#~ msgstr "Nowa wiadomość"
 
-msgid "Add payment method"
-msgstr "Dodaj metodę płatności"
+#~ msgid "New request"
+#~ msgstr "Nowe zlecenie"
 
-msgid "Remove payment method"
-msgstr "Usuń metodę płatności"
+#~ msgid "New offer"
+#~ msgstr "Nowa oferta"
 
-msgid "Credit card"
-msgstr "Karta kredytowa"
+#~ msgid "New review"
+#~ msgstr "Nowa opinia"
 
-msgid "Bank transfer"
-msgstr "Przelew bankowy"
+#~ msgid "Request accepted"
+#~ msgstr "Zlecenie przyjęte"
 
-msgid "Invoice"
-msgstr "Faktura"
+#~ msgid "Request declined"
+#~ msgstr "Zlecenie odrzucone"
 
-msgid "Transaction"
-msgstr "Transakcja"
+#~ msgid "Appointment reminder"
+#~ msgstr "Przypomnienie o wizycie"
 
-msgid "Transaction history"
-msgstr "Historia transakcji"
+#~ msgid "Payment reminder"
+#~ msgstr "Przypomnienie o płatności"
 
-msgid "Subtotal"
-msgstr "Suma częściowa"
+#~ msgid "Your offer was accepted"
+#~ msgstr "Twoja oferta została przyjęta"
 
-msgid "Total"
-msgstr "Razem"
+#~ msgid "Someone viewed your profile"
+#~ msgstr "Ktoś przeglądał Twój profil"
 
-msgid "Tax"
-msgstr "Podatek"
+#~ msgid "New provider nearby"
+#~ msgstr "Nowy usługodawca w pobliżu"
 
-msgid "Discount"
-msgstr "Zniżka"
+#~ msgid "Weekly summary"
+#~ msgstr "Podsumowanie tygodniowe"
 
-msgid "Tip"
-msgstr "Napiwek"
+#~ msgid "Monthly report"
+#~ msgstr "Raport miesięczny"
 
-msgid "Refund"
-msgstr "Zwrot"
+#~ msgid "Unread notifications"
+#~ msgstr "Nieprzeczytane powiadomienia"
 
-msgid "Partial refund"
-msgstr "Częściowy zwrot"
+#~ msgid "Mark all as read"
+#~ msgstr "Oznacz wszystko jako przeczytane"
 
-msgid "Full refund"
-msgstr "Pełny zwrot"
+#~ msgid "No notifications"
+#~ msgstr "Brak powiadomień"
 
-msgid "Payout"
-msgstr "Wypłata"
+#~ msgid "Notification preferences"
+#~ msgstr "Preferencje powiadomień"
 
-msgid "Transfer"
-msgstr "Przelew"
+#~ msgid "Push notifications"
+#~ msgstr "Powiadomienia push"
 
-msgid "Balance"
-msgstr "Saldo"
+#~ msgid "Set location"
+#~ msgstr "Ustaw lokalizację"
 
-msgid "Card number"
-msgstr "Numer karty"
+#~ msgid "Change location"
+#~ msgstr "Zmień lokalizację"
 
-msgid "Expiry date"
-msgstr "Data ważności"
+#~ msgid "City"
+#~ msgstr "Miasto"
 
-msgid "Cardholder name"
-msgstr "Imię posiadacza karty"
+#~ msgid "District"
+#~ msgstr "Dzielnica"
 
-msgid "Payment pending"
-msgstr "Płatność oczekuje"
+#~ msgid "Country"
+#~ msgstr "Kraj"
 
-msgid "Payment failed"
-msgstr "Płatność nie powiodła się"
+#~ msgid "Postal code"
+#~ msgstr "Kod pocztowy"
 
-msgid "Payment received"
-msgstr "Płatność otrzymana"
+#~ msgid "Nearby"
+#~ msgstr "W pobliżu"
 
-msgid "Billing address"
-msgstr "Adres rozliczeniowy"
+#~ msgid "Directions"
+#~ msgstr "Wskazówki dojazdu"
 
-msgid "New message"
-msgstr "Nowa wiadomość"
+#~ msgid "Use GPS"
+#~ msgstr "Użyj GPS"
 
-msgid "New request"
-msgstr "Nowe zlecenie"
+#~ msgid "Enter address manually"
+#~ msgstr "Wpisz adres ręcznie"
 
-msgid "New offer"
-msgstr "Nowa oferta"
+#~ msgid "Search address"
+#~ msgstr "Szukaj adresu"
 
-msgid "New review"
-msgstr "Nowa opinia"
+#~ msgid "Map view"
+#~ msgstr "Widok mapy"
 
-msgid "Request accepted"
-msgstr "Zlecenie przyjęte"
+#~ msgid "Street view"
+#~ msgstr "Widok ulicy"
 
-msgid "Request declined"
-msgstr "Zlecenie odrzucone"
+#~ msgid "Zoom in"
+#~ msgstr "Przybliż"
 
-msgid "Request cancelled"
-msgstr "Zlecenie anulowane"
+#~ msgid "Zoom out"
+#~ msgstr "Oddal"
 
-msgid "Appointment reminder"
-msgstr "Przypomnienie o wizycie"
+#~ msgid "Your area"
+#~ msgstr "Twój obszar"
 
-msgid "Payment reminder"
-msgstr "Przypomnienie o płatności"
+#~ msgid "Location not available"
+#~ msgstr "Lokalizacja niedostępna"
 
-msgid "Your request has been approved"
-msgstr "Twoje zlecenie zostało zatwierdzone"
+#~ msgid "Type a message"
+#~ msgstr "Wpisz wiadomość"
 
-msgid "Your offer was accepted"
-msgstr "Twoja oferta została przyjęta"
+#~ msgid "Send message"
+#~ msgstr "Wyślij wiadomość"
 
-msgid "Someone viewed your profile"
-msgstr "Ktoś przeglądał Twój profil"
+#~ msgid "Reply"
+#~ msgstr "Odpowiedz"
 
-msgid "New provider nearby"
-msgstr "Nowy usługodawca w pobliżu"
+#~ msgid "Forward"
+#~ msgstr "Przekaż dalej"
 
-msgid "Weekly summary"
-msgstr "Podsumowanie tygodniowe"
+#~ msgid "Typing..."
+#~ msgstr "Pisze..."
 
-msgid "Monthly report"
-msgstr "Raport miesięczny"
+#~ msgid "Read"
+#~ msgstr "Przeczytano"
 
-msgid "Unread notifications"
-msgstr "Nieprzeczytane powiadomienia"
+#~ msgid "Delivered"
+#~ msgstr "Dostarczono"
 
-msgid "Mark all as read"
-msgstr "Oznacz wszystko jako przeczytane"
+#~ msgid "Failed to send"
+#~ msgstr "Nie udało się wysłać"
 
-msgid "No notifications"
-msgstr "Brak powiadomień"
+#~ msgid "Delete message"
+#~ msgstr "Usuń wiadomość"
 
-msgid "Notification preferences"
-msgstr "Preferencje powiadomień"
+#~ msgid "Edit message"
+#~ msgstr "Edytuj wiadomość"
 
-msgid "Push notifications"
-msgstr "Powiadomienia push"
+#~ msgid "Copy message"
+#~ msgstr "Kopiuj wiadomość"
 
-msgid "Current location"
-msgstr "Aktualna lokalizacja"
+#~ msgid "Photo"
+#~ msgstr "Zdjęcie"
 
-msgid "Set location"
-msgstr "Ustaw lokalizację"
+#~ msgid "Video"
+#~ msgstr "Wideo"
 
-msgid "Change location"
-msgstr "Zmień lokalizację"
+#~ msgid "Voice message"
+#~ msgstr "Wiadomość głosowa"
 
-msgid "City"
-msgstr "Miasto"
+#~ msgid "Start conversation"
+#~ msgstr "Rozpocznij rozmowę"
 
-msgid "District"
-msgstr "Dzielnica"
+#~ msgid "Mute conversation"
+#~ msgstr "Wycisz rozmowę"
 
-msgid "Country"
-msgstr "Kraj"
+#~ msgid "Two-factor authentication"
+#~ msgstr "Uwierzytelnianie dwuskładnikowe"
 
-msgid "Postal code"
-msgstr "Kod pocztowy"
+#~ msgid "Verify email"
+#~ msgstr "Zweryfikuj e-mail"
 
-msgid "Nearby"
-msgstr "W pobliżu"
+#~ msgid "Verification code"
+#~ msgstr "Kod weryfikacyjny"
 
-msgid "Distance"
-msgstr "Odległość"
+#~ msgid "Enter code"
+#~ msgstr "Wprowadź kod"
 
-msgid "Directions"
-msgstr "Wskazówki dojazdu"
+#~ msgid "Suspicious activity"
+#~ msgstr "Podejrzana aktywność"
 
-msgid "Use GPS"
-msgstr "Użyj GPS"
+#~ msgid "Cookie policy"
+#~ msgstr "Polityka cookies"
 
-msgid "Enter address manually"
-msgstr "Wpisz adres ręcznie"
+#~ msgid "I agree"
+#~ msgstr "Zgadzam się"
 
-msgid "Search address"
-msgstr "Szukaj adresu"
+#~ msgid "Accept terms"
+#~ msgstr "Zaakceptuj warunki"
 
-msgid "Map view"
-msgstr "Widok mapy"
+#~ msgid "Welcome"
+#~ msgstr "Witaj"
 
-msgid "Street view"
-msgstr "Widok ulicy"
+#~ msgid "Thank you"
+#~ msgstr "Dziękujemy"
 
-msgid "Zoom in"
-msgstr "Przybliż"
+#~ msgid "Congratulations"
+#~ msgstr "Gratulacje"
 
-msgid "Zoom out"
-msgstr "Oddal"
+#~ msgid "No"
+#~ msgstr "Nie"
 
-msgid "Your area"
-msgstr "Twój obszar"
+#~ msgid "OK"
+#~ msgstr "OK"
 
-msgid "Location not available"
-msgstr "Lokalizacja niedostępna"
+#~ msgid "Maybe"
+#~ msgstr "Może"
 
-msgid "Type a message"
-msgstr "Wpisz wiadomość"
+#~ msgid "Not sure"
+#~ msgstr "Nie jestem pewien"
 
-msgid "Send message"
-msgstr "Wyślij wiadomość"
+#~ msgid "New feature"
+#~ msgstr "Nowa funkcja"
 
-msgid "Reply"
-msgstr "Odpowiedz"
+#~ msgid "Coming soon"
+#~ msgstr "Wkrótce"
 
-msgid "Forward"
-msgstr "Przekaż dalej"
+#~ msgid "Under maintenance"
+#~ msgstr "W trakcie konserwacji"
 
-msgid "Typing..."
-msgstr "Pisze..."
+#~ msgid "Beta"
+#~ msgstr "Beta"
 
-msgid "Read"
-msgstr "Przeczytano"
+#~ msgid "Share your experience"
+#~ msgstr "Podziel się doświadczeniem"
 
-msgid "Delivered"
-msgstr "Dostarczono"
+#~ msgid "Tell us more"
+#~ msgstr "Powiedz nam więcej"
 
-msgid "Sent"
-msgstr "Wysłano"
+#~ msgid "How was it?"
+#~ msgstr "Jak było?"
 
-msgid "Failed to send"
-msgstr "Nie udało się wysłać"
+#~ msgid "FAQ"
+#~ msgstr "FAQ"
 
-msgid "Delete message"
-msgstr "Usuń wiadomość"
+#~ msgid "About us"
+#~ msgstr "O nas"
 
-msgid "Edit message"
-msgstr "Edytuj wiadomość"
+#~ msgid "Contact us"
+#~ msgstr "Skontaktuj się z nami"
 
-msgid "Copy message"
-msgstr "Kopiuj wiadomość"
+#~ msgid "Version"
+#~ msgstr "Wersja"
 
-msgid "Photo"
-msgstr "Zdjęcie"
+#~ msgid "Copyright"
+#~ msgstr "Prawa autorskie"
 
-msgid "Video"
-msgstr "Wideo"
-
-msgid "Voice message"
-msgstr "Wiadomość głosowa"
-
-msgid "Start conversation"
-msgstr "Rozpocznij rozmowę"
-
-msgid "Mute conversation"
-msgstr "Wycisz rozmowę"
-
-msgid "Two-factor authentication"
-msgstr "Uwierzytelnianie dwuskładnikowe"
-
-msgid "Verify email"
-msgstr "Zweryfikuj e-mail"
-
-msgid "Verify phone"
-msgstr "Zweryfikuj telefon"
-
-msgid "Security code"
-msgstr "Kod bezpieczeństwa"
-
-msgid "Verification code"
-msgstr "Kod weryfikacyjny"
-
-msgid "Enter code"
-msgstr "Wprowadź kod"
-
-msgid "Suspicious activity"
-msgstr "Podejrzana aktywność"
-
-msgid "Account locked"
-msgstr "Konto zablokowane"
-
-msgid "Reset password"
-msgstr "Zresetuj hasło"
-
-msgid "Terms of service"
-msgstr "Regulamin"
-
-msgid "Privacy policy"
-msgstr "Polityka prywatności"
-
-msgid "Cookie policy"
-msgstr "Polityka cookies"
-
-msgid "I agree"
-msgstr "Zgadzam się"
-
-msgid "Accept terms"
-msgstr "Zaakceptuj warunki"
-
-msgid "Data protection"
-msgstr "Ochrona danych"
-
-msgid "Welcome"
-msgstr "Witaj"
-
-msgid "Thank you"
-msgstr "Dziękujemy"
-
-msgid "Congratulations"
-msgstr "Gratulacje"
-
-msgid "No"
-msgstr "Nie"
-
-msgid "OK"
-msgstr "OK"
-
-msgid "Maybe"
-msgstr "Może"
-
-msgid "Not sure"
-msgstr "Nie jestem pewien"
-
-msgid "Premium"
-msgstr "Premium"
-
-msgid "New feature"
-msgstr "Nowa funkcja"
-
-msgid "Coming soon"
-msgstr "Wkrótce"
-
-msgid "Under maintenance"
-msgstr "W trakcie konserwacji"
-
-msgid "Beta"
-msgstr "Beta"
-
-msgid "Share your experience"
-msgstr "Podziel się doświadczeniem"
-
-msgid "Tell us more"
-msgstr "Powiedz nam więcej"
-
-msgid "How was it?"
-msgstr "Jak było?"
-
-msgid "FAQ"
-msgstr "FAQ"
-
-msgid "About us"
-msgstr "O nas"
-
-msgid "Contact us"
-msgstr "Skontaktuj się z nami"
-
-msgid "Version"
-msgstr "Wersja"
-
-msgid "Copyright"
-msgstr "Prawa autorskie"
-
-msgid "All rights reserved"
-msgstr "Wszelkie prawa zastrzeżone"
-
-msgid "Powered by"
-msgstr "Obsługiwane przez"
+#~ msgid "Powered by"
+#~ msgstr "Obsługiwane przez"
 
