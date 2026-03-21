@@ -184,11 +184,17 @@
           <div class="mb-3">
             <label class="form-label fw-bold small text-muted">{{ _("TAGS") }}</label>
             <input type="hidden" name="tags" id="tagsInput" />
-            <div id="tagsPicker" style="max-height:200px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:8px;padding:10px;">
+            <div id="tagsPicker" style="max-height:250px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:8px;padding:8px;">
               {% for cat, tags in service_tag_categories.items() %}
-              <div class="mb-2">
-                <div class="fw-bold small text-muted mb-1">{{ cat }}</div>
-                <div class="d-flex flex-wrap gap-1">
+              <div class="tag-group mb-1">
+                <div class="tag-group-header" onclick="toggleTagGroup(this)" style="cursor:pointer;padding:6px 10px;background:#f8f9fa;border:1px solid #e5e7eb;border-radius:8px;display:flex;align-items:center;justify-content:space-between;">
+                  <span class="fw-bold small" style="color:#374151;">{{ _(cat) }}</span>
+                  <span style="display:flex;align-items:center;gap:6px;">
+                    <span class="tag-group-count badge bg-success-subtle text-success" style="font-size:10px;display:none;">0</span>
+                    <i class="fas fa-chevron-right tag-group-arrow" style="font-size:10px;color:#9ca3af;transition:transform 0.2s;"></i>
+                  </span>
+                </div>
+                <div class="tag-group-tags d-flex flex-wrap gap-1 mt-1" style="display:none;padding-left:4px;">
                   {% for tag in tags %}
                   {% if is_young_helper and young_allowed_tags and tag not in young_allowed_tags %}
                   <span class="badge tag-pill tag-disabled" data-tag="{{ tag }}" style="cursor:not-allowed;font-size:11px;padding:5px 10px;border-radius:20px;border:1px solid #e5e7eb;background:#f3f4f6;color:#c0c0c0;opacity:0.5;" title="{{ _('Not available for Young Helpers') }}">{{ tag }}</span>
@@ -335,6 +341,25 @@ document.addEventListener("DOMContentLoaded", function () {
   let selectedTags = new Set();
   const tagsInput = document.getElementById('tagsInput');
 
+  function toggleTagGroup(headerEl) {
+      const group = headerEl.closest('.tag-group');
+      const tagsDiv = group.querySelector('.tag-group-tags');
+      const arrow = headerEl.querySelector('.tag-group-arrow');
+      const isOpen = tagsDiv.style.display !== 'none';
+      tagsDiv.style.display = isOpen ? 'none' : 'flex';
+      arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
+  }
+
+  function updateProviderTagGroupCounts() {
+      document.querySelectorAll('#tagsPicker .tag-group').forEach(group => {
+          const count = group.querySelectorAll('.tag-pill').length > 0 ?
+              Array.from(group.querySelectorAll('.tag-pill')).filter(p => selectedTags.has(p.dataset.tag)).length : 0;
+          const badge = group.querySelector('.tag-group-count');
+          if (count > 0) { badge.textContent = count; badge.style.display = 'inline'; }
+          else { badge.style.display = 'none'; }
+      });
+  }
+
   document.querySelectorAll('.tag-pill').forEach(pill => {
     pill.addEventListener('click', function() {
       if (this.classList.contains('tag-disabled')) return;
@@ -351,6 +376,7 @@ document.addEventListener("DOMContentLoaded", function () {
         this.style.borderColor = '#3b82f6';
       }
       tagsInput.value = Array.from(selectedTags).join(',');
+      updateProviderTagGroupCounts();
     });
   });
 
@@ -359,15 +385,27 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll('.tag-pill').forEach(p => {
       p.style.background = '#f9fafb'; p.style.color = '#4b5563'; p.style.borderColor = '#d1d5db';
     });
-    if (!tagsStr) { tagsInput.value = ''; return; }
+    // Collapse all groups
+    document.querySelectorAll('#tagsPicker .tag-group-tags').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('#tagsPicker .tag-group-arrow').forEach(a => a.style.transform = 'rotate(0deg)');
+    if (!tagsStr) { tagsInput.value = ''; updateProviderTagGroupCounts(); return; }
     tagsStr.split(',').forEach(t => {
       t = t.trim();
       if (!t) return;
       selectedTags.add(t);
       const pill = document.querySelector(`.tag-pill[data-tag="${t}"]`);
-      if (pill) { pill.style.background = '#3b82f6'; pill.style.color = '#fff'; pill.style.borderColor = '#3b82f6'; }
+      if (pill) {
+        pill.style.background = '#3b82f6'; pill.style.color = '#fff'; pill.style.borderColor = '#3b82f6';
+        // Auto-expand the group containing this tag
+        const group = pill.closest('.tag-group');
+        if (group) {
+          group.querySelector('.tag-group-tags').style.display = 'flex';
+          group.querySelector('.tag-group-arrow').style.transform = 'rotate(90deg)';
+        }
+      }
     });
     tagsInput.value = Array.from(selectedTags).join(',');
+    updateProviderTagGroupCounts();
   }
 
   // Add Service button

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Human-me 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-14 19:46+0100\n"
+"POT-Creation-Date: 2026-03-21 22:43+0100\n"
 "PO-Revision-Date: 2026-03-07 18:00+0100\n"
 "Last-Translator: Human-me Team\n"
 "Language: de\n"
@@ -21,110 +21,110 @@ msgstr ""
 msgid "My Cool App"
 msgstr "Human"
 
-#: app/templates/base.html:121
+#: app/templates/base.html:153
 msgid "Add your name and verify your email to unlock all features."
 msgstr ""
 
-#: app/templates/base.html:123
+#: app/templates/base.html:155
 msgid "Add your full name to complete your profile."
 msgstr ""
 
-#: app/templates/base.html:125
+#: app/templates/base.html:157
 msgid "Verify your email or link Telegram to get a verified badge."
 msgstr ""
 
-#: app/templates/base.html:128
+#: app/templates/base.html:160
 #, fuzzy
 msgid "Go to Profile"
 msgstr "Profil bearbeiten"
 
-#: app/templates/auth/activate_role.html:33 app/templates/base.html:163
+#: app/templates/auth/activate_role.html:33 app/templates/base.html:194
 #: app/templates/client/appointments.html:130
 #: app/templates/client/dashboard.html:258
-#: app/templates/client/dashboard.html:1749
+#: app/templates/client/dashboard.html:1822
 #: app/templates/client/profile.html:230 app/templates/client/profile.html:285
 #: app/templates/client/provider_public_profile.html:237
 #: app/templates/provider/appointments.html:88
-#: app/templates/provider/dashboard.html:784
-#: app/templates/provider/dashboard.html:788
-#: app/templates/provider/dashboard.html:1447
+#: app/templates/provider/dashboard.html:798
+#: app/templates/provider/dashboard.html:802
+#: app/templates/provider/dashboard.html:1484
 #: app/templates/provider/profile.html:452
-#: app/templates/provider/services.html:211
-#: app/templates/provider/services.html:232
+#: app/templates/provider/services.html:217
+#: app/templates/provider/services.html:238
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: app/templates/auth/register.html:292 app/templates/base.html:166
-#: app/templates/base.html:183 app/templates/client/dashboard.html:1623
-#: app/templates/client/dashboard.html:1821
+#: app/templates/auth/register.html:292 app/templates/base.html:197
+#: app/templates/base.html:214 app/templates/client/dashboard.html:1696
+#: app/templates/client/dashboard.html:1894
 #: app/templates/provider/appointments.html:480
 msgid "Confirm"
 msgstr "Bestätigen"
 
-#: app/templates/base.html:182
+#: app/templates/base.html:213
 msgid "Are you sure?"
 msgstr "Bist du sicher?"
 
-#: app/templates/base.html:231
+#: app/templates/base.html:262
 msgid "Feedback"
 msgstr "Feedback"
 
-#: app/templates/base.html:236
+#: app/templates/base.html:267
 msgid "Bug"
 msgstr "Bug"
 
-#: app/templates/base.html:239
+#: app/templates/base.html:270
 msgid "Suggestion"
 msgstr "Idee"
 
-#: app/templates/base.html:242
+#: app/templates/base.html:273
 msgid "Describe the issue or your idea..."
 msgstr "Beschreib das Problem oder deine Idee..."
 
-#: app/templates/base.html:246 app/templates/base.html:324
+#: app/templates/base.html:277 app/templates/base.html:355
 msgid "Send feedback"
 msgstr "Abschicken"
 
-#: app/templates/base.html:251
+#: app/templates/base.html:282
 msgid "Thank you!"
 msgstr "Danke!"
 
-#: app/templates/base.html:252
+#: app/templates/base.html:283
 msgid "Your feedback has been sent."
 msgstr "Dein Feedback wurde gesendet."
 
-#: app/templates/base.html:337 app/templates/legal/impressum.html:8
+#: app/templates/base.html:368 app/templates/legal/impressum.html:8
 #, fuzzy
 msgid "Impressum"
 msgstr "Premium"
 
-#: app/templates/base.html:339 app/templates/legal/privacy.html:8
+#: app/templates/base.html:370 app/templates/legal/privacy.html:8
 #, fuzzy
 msgid "Privacy Policy"
 msgstr "Datenschutzerklärung"
 
-#: app/templates/base.html:341 app/templates/legal/terms.html:8
+#: app/templates/base.html:372 app/templates/legal/terms.html:8
 #, fuzzy
 msgid "Terms of Service"
 msgstr "Nutzungsbedingungen"
 
-#: app/templates/base.html:344
+#: app/templates/base.html:375
 #, fuzzy
 msgid "2026 Human-me. All rights reserved."
 msgstr "Alle Rechte vorbehalten"
 
-#: app/templates/base.html:353
+#: app/templates/base.html:384
 msgid ""
 "We use essential cookies to operate this platform. No tracking or "
 "advertising cookies are used."
 msgstr ""
 
-#: app/templates/base.html:354
+#: app/templates/base.html:385
 msgid "Learn more"
 msgstr "Mehr erfahren"
 
-#: app/templates/base.html:358 app/templates/chat/conversation.html:180
-#: app/templates/provider/dashboard.html:759
+#: app/templates/base.html:389 app/templates/chat/conversation.html:180
+#: app/templates/provider/dashboard.html:773
 msgid "Accept"
 msgstr "Annehmen"
 
@@ -278,7 +278,7 @@ msgstr "Zerschlag das Osterei"
 msgid "Hit the egg to crack it open and reveal your fortune!"
 msgstr "Schlag auf das Ei um es zu knacken und dein Glück zu entdecken!"
 
-#: app/templates/home.html:675 app/templates/home.html:1338
+#: app/templates/home.html:675 app/templates/home.html:1351
 msgid "Tap to smash!"
 msgstr "Tippen zum Zerschlagen!"
 
@@ -302,7 +302,7 @@ msgstr "Aufgabe posten, Helfer wählen, erledigt. Kein Stress, keine Verträge."
 msgid "Get Help Now"
 msgstr "Jetzt Hilfe holen"
 
-#: app/templates/home.html:695 app/templates/home.html:1399
+#: app/templates/home.html:695 app/templates/home.html:1412
 msgid "Meet your neighbors"
 msgstr "Lerne deine Nachbarn kennen"
 
@@ -315,7 +315,7 @@ msgid "Help neighbors on your own schedule. Get paid the same day."
 msgstr "Hilf Nachbarn nach deinem Zeitplan. Geld am selben Tag."
 
 #: app/templates/auth/activate_role.html:12 app/templates/home.html:705
-#: app/templates/home.html:802
+#: app/templates/home.html:815
 msgid "Become a Provider"
 msgstr "Anbieter werden"
 
@@ -331,37 +331,186 @@ msgstr "Stripe-Auszahlungen"
 msgid "Work near home"
 msgstr "Arbeite in der Nähe"
 
-#: app/templates/client/dashboard.html:1066
-#: app/templates/client/dashboard.html:1287 app/templates/home.html:731
+#: app/templates/client/dashboard.html:1089
+#: app/templates/client/dashboard.html:1310
+#: app/templates/client/dashboard.html:1358 app/templates/home.html:731
 msgid "Geolocation not supported"
 msgstr "Geolokation nicht unterstützt"
 
-#: app/templates/home.html:746
+#: app/templates/home.html:750
 msgid "Location access denied"
 msgstr "Standortzugriff verweigert"
 
-#: app/templates/home.html:800
+#: app/templates/client/dashboard.html:1347
+#: app/templates/client/dashboard.html:1375 app/templates/home.html:751
+#: app/templates/provider/dashboard.html:1396
+msgid ""
+"Location access denied. Please allow location access in your browser "
+"settings and try again."
+msgstr ""
+
+#: app/templates/home.html:753
+#, fuzzy
+msgid "Location unavailable"
+msgstr "Standort aktualisiert"
+
+#: app/templates/client/dashboard.html:1349 app/templates/home.html:754
+#: app/templates/provider/dashboard.html:1398
+msgid ""
+"Location unavailable. Please check that location services are enabled on "
+"your device."
+msgstr ""
+
+#: app/templates/home.html:756
+#, fuzzy
+msgid "Location timed out"
+msgstr "Standort aktualisiert"
+
+#: app/templates/home.html:813
 msgid "This service doesn't exist yet"
 msgstr ""
 
-#: app/templates/home.html:801
+#: app/templates/home.html:814
 msgid "Be the first to offer it! Or post a request and helpers will find you."
 msgstr ""
 
-#: app/templates/home.html:803
+#: app/templates/home.html:816
 msgid "Create Request"
 msgstr "Anfrage erstellen"
 
-#: app/templates/client/dashboard.html:841
-#: app/templates/client/dashboard.html:1575 app/templates/home.html:830
+#: app/templates/client/dashboard.html:864
+#: app/templates/client/dashboard.html:1648 app/templates/home.html:843
 msgid "Book"
 msgstr "Buchen"
 
-#: app/templates/home.html:836
+#: app/templates/home.html:849
 msgid "helpers available"
 msgstr "Helfer verfügbar"
 
-#: app/templates/home.html:1306
+#: app/templates/home.html:907
+msgid "All we have to decide is what to do with the time that is given us."
+msgstr ""
+
+#: app/templates/home.html:908
+msgid "Not all those who wander are lost."
+msgstr ""
+
+#: app/templates/home.html:909
+msgid "When you want something, all the universe conspires in helping you."
+msgstr ""
+
+#: app/templates/home.html:910
+msgid "Be yourself; everyone else is already taken."
+msgstr ""
+
+#: app/templates/home.html:911
+msgid "The journey of a thousand miles begins with one step."
+msgstr ""
+
+#: app/templates/home.html:912
+msgid "It always seems impossible until it is done."
+msgstr ""
+
+#: app/templates/home.html:913
+msgid ""
+"The best time to plant a tree was 20 years ago. The second best time is "
+"now."
+msgstr ""
+
+#: app/templates/home.html:913
+#, fuzzy
+msgid "Chinese Proverb"
+msgstr "Aktive Anbieter"
+
+#: app/templates/home.html:914
+msgid "Stars cannot shine without darkness."
+msgstr ""
+
+#: app/templates/home.html:915
+msgid "Imagination is more important than knowledge."
+msgstr ""
+
+#: app/templates/home.html:916
+msgid "Stay hungry, stay foolish."
+msgstr ""
+
+#: app/templates/home.html:917
+msgid "Be the change you wish to see in the world."
+msgstr ""
+
+#: app/templates/home.html:918
+msgid "We rise by lifting others."
+msgstr ""
+
+#: app/templates/home.html:919
+msgid "Where there is harmony, there is water."
+msgstr ""
+
+#: app/templates/home.html:919 app/templates/home.html:920
+#: app/templates/home.html:921 app/templates/home.html:931
+#, fuzzy
+msgid "Ukrainian Proverb"
+msgstr "Anbieter finden"
+
+#: app/templates/home.html:920
+msgid "Eyes are afraid, but hands are doing."
+msgstr ""
+
+#: app/templates/home.html:921
+msgid "Where there is a will, there is a way."
+msgstr ""
+
+#: app/templates/home.html:922
+msgid ""
+"Happiness can be found even in the darkest of times, if one only "
+"remembers to turn on the light."
+msgstr ""
+
+#: app/templates/home.html:923
+msgid "In the middle of difficulty lies opportunity."
+msgstr ""
+
+#: app/templates/home.html:924
+msgid "The secret of getting ahead is getting started."
+msgstr ""
+
+#: app/templates/home.html:925
+msgid "If you want to go far, go together."
+msgstr ""
+
+#: app/templates/home.html:925
+#, fuzzy
+msgid "African Proverb"
+msgstr "Anbieter finden"
+
+#: app/templates/home.html:926
+#, fuzzy, no-python-format, python-format
+msgid "You miss every shot you do not take."
+msgstr "Du verpasst 100% der Schüsse, die du nicht machst."
+
+#: app/templates/home.html:927
+msgid ""
+"Every child is an artist. The problem is how to remain one once we grow "
+"up."
+msgstr ""
+
+#: app/templates/home.html:928
+msgid "Where there is love there is life."
+msgstr ""
+
+#: app/templates/home.html:929
+msgid "To live is the rarest thing in the world. Most people just exist."
+msgstr ""
+
+#: app/templates/home.html:930
+msgid "Life is short. Smile while you still have teeth."
+msgstr ""
+
+#: app/templates/home.html:931
+msgid "Better late than never."
+msgstr ""
+
+#: app/templates/home.html:1319
 msgid "Smashed!"
 msgstr "Zerschmettert!"
 
@@ -370,7 +519,7 @@ msgid "Payment for:"
 msgstr "Zahlung für:"
 
 #: app/templates/client/appointments.html:910
-#: app/templates/client/dashboard.html:930 app/templates/payment_form.html:3
+#: app/templates/client/dashboard.html:953 app/templates/payment_form.html:3
 msgid "Amount:"
 msgstr "Betrag:"
 
@@ -382,7 +531,7 @@ msgstr "Jetzt zahlen"
 #: app/templates/client/appointments.html:499
 #: app/templates/client/appointments.html:551
 #: app/templates/client/provider_public_profile.html:394
-#: app/templates/payment_form.html:18 app/templates/provider/dashboard.html:398
+#: app/templates/payment_form.html:18 app/templates/provider/dashboard.html:412
 msgid "Processing..."
 msgstr "Wird verarbeitet..."
 
@@ -591,13 +740,54 @@ msgid "Choose a strong password (at least 8 characters)."
 msgstr ""
 
 #: app/templates/auth/reset_password.html:48
+#: app/templates/auth/setup_account.html:59
 #, fuzzy
 msgid "New password"
 msgstr "NEUES PASSWORT"
 
 #: app/templates/auth/reset_password.html:53
+#: app/templates/auth/setup_account.html:65
 msgid "Confirm password"
 msgstr "Passwort bestätigen"
+
+#: app/templates/auth/setup_account.html:7
+#: app/templates/auth/setup_account.html:33
+#, fuzzy
+msgid "Set Up Your Account"
+msgstr "Wähl dein Land:"
+
+#: app/templates/auth/setup_account.html:34
+msgid "Set your password and optionally update your email."
+msgstr ""
+
+#: app/templates/auth/setup_account.html:45
+#, fuzzy
+msgid "Username:"
+msgstr "Benutzername"
+
+#: app/templates/auth/setup_account.html:46 app/templates/legal/privacy.html:21
+#, fuzzy
+msgid "Email:"
+msgstr "E-MAIL"
+
+#: app/templates/auth/setup_account.html:53
+#, fuzzy
+msgid "New email (optional)"
+msgstr "Notizen (optional)"
+
+#: app/templates/auth/setup_account.html:61
+msgid "At least 8 characters"
+msgstr ""
+
+#: app/templates/auth/setup_account.html:67
+#, fuzzy
+msgid "Repeat password"
+msgstr "Passwort zurücksetzen"
+
+#: app/templates/auth/setup_account.html:71
+#, fuzzy
+msgid "Save & Continue"
+msgstr "DATUM & UHRZEIT"
 
 #: app/templates/auth/telegram_complete.html:7
 #: app/templates/auth/telegram_complete.html:94
@@ -614,7 +804,7 @@ msgstr "Wähl deine Rolle und fertig."
 
 #: app/templates/auth/telegram_complete.html:115
 #: app/templates/client/receipt.html:237
-#: app/templates/provider/dashboard.html:465
+#: app/templates/provider/dashboard.html:479
 msgid "Client"
 msgstr "Kunde"
 
@@ -690,14 +880,14 @@ msgstr "Als wichtig markieren"
 
 #: app/templates/chat/conversation.html:16
 #: app/templates/client/dashboard.html:129
-#: app/templates/client/dashboard.html:1544
+#: app/templates/client/dashboard.html:1617
 #: app/templates/client/provider_public_profile.html:28
 msgid "Online"
 msgstr "Online"
 
 #: app/templates/chat/conversation.html:16
 #: app/templates/client/dashboard.html:130
-#: app/templates/client/dashboard.html:1545
+#: app/templates/client/dashboard.html:1618
 #: app/templates/client/provider_public_profile.html:28
 msgid "Offline"
 msgstr "Offline"
@@ -742,7 +932,7 @@ msgstr "Nachricht schreiben..."
 #: app/templates/chat/conversation.html:173
 #: app/templates/client/appointments.html:673
 #: app/templates/client/dashboard.html:106
-#: app/templates/provider/dashboard.html:728
+#: app/templates/provider/dashboard.html:742
 msgid "Accepted"
 msgstr "Angenommen"
 
@@ -757,7 +947,7 @@ msgstr "Ablehnen"
 
 #: app/templates/chat/conversation.html:187
 #: app/templates/client/appointments.html:671
-#: app/templates/client/dashboard.html:1638
+#: app/templates/client/dashboard.html:1711
 #: app/templates/client/profile.html:106
 #: app/templates/provider/profile.html:124
 msgid "Pending"
@@ -768,11 +958,11 @@ msgid "Proposal"
 msgstr "Angebot"
 
 #: app/templates/chat/conversation.html:202
-#: app/templates/client/dashboard.html:566
+#: app/templates/client/dashboard.html:589
 #: app/templates/client/history.html:193
 #: app/templates/client/provider_public_profile.html:180
 #: app/templates/provider/services.html:75
-#: app/templates/provider/services.html:298
+#: app/templates/provider/services.html:304
 msgid "min"
 msgstr "Min"
 
@@ -805,9 +995,9 @@ msgid "Accept Proposal"
 msgstr "Angebot annehmen"
 
 #: app/templates/chat/conversation.html:381
-#: app/templates/client/dashboard.html:975
+#: app/templates/client/dashboard.html:998
 #: app/templates/provider/appointments.html:492
-#: app/templates/provider/dashboard.html:1236
+#: app/templates/provider/dashboard.html:1250
 msgid "Yes, Accept"
 msgstr "Ja, annehmen"
 
@@ -946,8 +1136,8 @@ msgstr "Bei 3 Sternen oder weniger ist ein Grund nötig"
 #: app/templates/client/appointments.html:646
 #: app/templates/provider/appointments.html:87
 #: app/templates/provider/appointments.html:643
-#: app/templates/provider/dashboard.html:1282
-#: app/templates/provider/dashboard.html:1446
+#: app/templates/provider/dashboard.html:1296
+#: app/templates/provider/dashboard.html:1483
 msgid "Send"
 msgstr "Senden"
 
@@ -961,7 +1151,7 @@ msgid "Write a Review"
 msgstr "Bewertung schreiben"
 
 #: app/templates/client/appointments.html:296
-#: app/templates/provider/dashboard.html:395
+#: app/templates/provider/dashboard.html:409
 msgid "No notes provided"
 msgstr "Keine Notizen"
 
@@ -991,19 +1181,19 @@ msgstr "Bestätigt. Warten auf Fertigstellung."
 #: app/templates/client/appointments.html:352
 #: app/templates/client/appointments.html:367
 #: app/templates/client/appointments.html:754
-#: app/templates/client/dashboard.html:1242
-#: app/templates/client/dashboard.html:1696
-#: app/templates/client/dashboard.html:1701
+#: app/templates/client/dashboard.html:1265
+#: app/templates/client/dashboard.html:1769
+#: app/templates/client/dashboard.html:1774
 #, fuzzy
 msgid "Provider No-Show"
 msgstr "Anbieter"
 
 #: app/templates/client/appointments.html:363
 #: app/templates/client/appointments.html:677
-#: app/templates/client/dashboard.html:1617
+#: app/templates/client/dashboard.html:1690
 #: app/templates/provider/appointments.html:568
-#: app/templates/provider/dashboard.html:454
-#: app/templates/provider/dashboard.html:794
+#: app/templates/provider/dashboard.html:468
+#: app/templates/provider/dashboard.html:808
 #, fuzzy
 msgid "In Progress"
 msgstr "In Bearbeitung"
@@ -1021,22 +1211,22 @@ msgid "The provider has marked this job as finished."
 msgstr "Der Anbieter hat die Arbeit als fertig markiert."
 
 #: app/templates/client/appointments.html:380
-#: app/templates/client/dashboard.html:1713
+#: app/templates/client/dashboard.html:1786
 msgid "Approve & Release Payment"
 msgstr "Bestätigen & Zahlung freigeben"
 
 #: app/templates/client/appointments.html:380
 #: app/templates/client/appointments.html:951
-#: app/templates/client/dashboard.html:1219
-#: app/templates/client/dashboard.html:1713
-#: app/templates/provider/dashboard.html:1065
+#: app/templates/client/dashboard.html:1242
+#: app/templates/client/dashboard.html:1786
+#: app/templates/provider/dashboard.html:1079
 msgid "Confirm Completion"
 msgstr "Abschluss bestätigen"
 
 #: app/templates/client/appointments.html:383
 #: app/templates/client/appointments.html:783
-#: app/templates/client/dashboard.html:1265
-#: app/templates/client/dashboard.html:1716
+#: app/templates/client/dashboard.html:1288
+#: app/templates/client/dashboard.html:1789
 #, fuzzy
 msgid "Report Issue"
 msgstr "Melden"
@@ -1058,12 +1248,12 @@ msgid "Restore Appointment"
 msgstr "Termin wiederherstellen"
 
 #: app/templates/client/appointments.html:423
-#: app/templates/client/dashboard.html:1674
+#: app/templates/client/dashboard.html:1747
 msgid "No-show was recorded for this appointment."
 msgstr ""
 
 #: app/templates/client/appointments.html:431
-#: app/templates/client/dashboard.html:1681
+#: app/templates/client/dashboard.html:1754
 #: app/templates/provider/appointments.html:412
 msgid "This appointment is under dispute. Our support team will review it."
 msgstr ""
@@ -1078,7 +1268,7 @@ msgid "You have offers! Go to the dashboard to review them."
 msgstr ""
 
 #: app/templates/client/appointments.html:449
-#: app/templates/client/dashboard.html:1742
+#: app/templates/client/dashboard.html:1815
 msgid "View Offers"
 msgstr "Angebote ansehen"
 
@@ -1116,17 +1306,17 @@ msgid "Make a payment now"
 msgstr "Jetzt bezahlen"
 
 #: app/templates/client/appointments.html:540
-#: app/templates/client/dashboard.html:873
+#: app/templates/client/dashboard.html:896
 msgid "Pay by cash directly to the provider?"
 msgstr "Bar direkt an den Anbieter zahlen?"
 
 #: app/templates/client/appointments.html:541
-#: app/templates/client/dashboard.html:874
+#: app/templates/client/dashboard.html:897
 msgid "Cash Payment"
 msgstr "Barzahlung"
 
 #: app/templates/client/appointments.html:542
-#: app/templates/client/dashboard.html:875
+#: app/templates/client/dashboard.html:898
 msgid "Yes, pay by cash"
 msgstr "Ja, bar zahlen"
 
@@ -1150,7 +1340,7 @@ msgstr "Danke für dein Feedback!"
 #: app/templates/client/appointments.html:776
 #: app/templates/client/appointments.html:805
 #: app/templates/client/appointments.html:978
-#: app/templates/client/dashboard.html:1369
+#: app/templates/client/dashboard.html:1442
 #: app/templates/client/provider_public_profile.html:410
 #: app/templates/provider/appointments.html:552
 #: app/templates/provider/appointments.html:639
@@ -1200,39 +1390,39 @@ msgid "Work Submitted (Action Required)"
 msgstr "Arbeit eingereicht (Aktion nötig)"
 
 #: app/templates/client/appointments.html:679
-#: app/templates/client/dashboard.html:1614
+#: app/templates/client/dashboard.html:1687
 #: app/templates/client/history.html:24 app/templates/client/history.html:74
 #: app/templates/client/receipt.html:219
 #: app/templates/provider/appointments.html:570
-#: app/templates/provider/dashboard.html:451
-#: app/templates/provider/dashboard.html:798
+#: app/templates/provider/dashboard.html:465
+#: app/templates/provider/dashboard.html:812
 msgid "Completed"
 msgstr "Erledigt"
 
 #: app/templates/client/appointments.html:680
-#: app/templates/client/dashboard.html:1605
+#: app/templates/client/dashboard.html:1678
 #: app/templates/client/history.html:27 app/templates/client/history.html:76
 #: app/templates/client/receipt.html:221
 #: app/templates/provider/appointments.html:571
-#: app/templates/provider/dashboard.html:457
-#: app/templates/provider/dashboard.html:804
+#: app/templates/provider/dashboard.html:471
+#: app/templates/provider/dashboard.html:818
 msgid "Cancelled"
 msgstr "Abgesagt"
 
 #: app/templates/client/appointments.html:681
-#: app/templates/client/dashboard.html:1608
+#: app/templates/client/dashboard.html:1681
 #: app/templates/provider/appointments.html:572
-#: app/templates/provider/dashboard.html:455
-#: app/templates/provider/dashboard.html:802
+#: app/templates/provider/dashboard.html:469
+#: app/templates/provider/dashboard.html:816
 #, fuzzy
 msgid "No Show"
 msgstr "Nicht jetzt"
 
 #: app/templates/client/appointments.html:682
-#: app/templates/client/dashboard.html:1611
+#: app/templates/client/dashboard.html:1684
 #: app/templates/provider/appointments.html:573
-#: app/templates/provider/dashboard.html:456
-#: app/templates/provider/dashboard.html:803
+#: app/templates/provider/dashboard.html:470
+#: app/templates/provider/dashboard.html:817
 #, fuzzy
 msgid "Disputed"
 msgstr "Entfernung"
@@ -1251,9 +1441,9 @@ msgid "Cancel Appointment"
 msgstr "Termin absagen"
 
 #: app/templates/client/appointments.html:697
-#: app/templates/client/dashboard.html:1158
+#: app/templates/client/dashboard.html:1181
 #: app/templates/provider/appointments.html:494
-#: app/templates/provider/dashboard.html:1211
+#: app/templates/provider/dashboard.html:1225
 msgid "Yes, Cancel"
 msgstr "Ja, absagen"
 
@@ -1262,31 +1452,31 @@ msgid "Restore this appointment? It will return to scheduled status."
 msgstr "Termin wiederherstellen? Status wird auf \"Geplant\" zurückgesetzt."
 
 #: app/templates/client/appointments.html:731
-#: app/templates/client/dashboard.html:1198
+#: app/templates/client/dashboard.html:1221
 msgid "Yes, Restore"
 msgstr "Ja, wiederherstellen"
 
 #: app/templates/client/appointments.html:753
-#: app/templates/client/dashboard.html:1241
+#: app/templates/client/dashboard.html:1264
 msgid ""
 "Report that the provider did not show up? This will be recorded and "
 "reviewed."
 msgstr ""
 
 #: app/templates/client/appointments.html:755
-#: app/templates/client/dashboard.html:1243
+#: app/templates/client/dashboard.html:1266
 msgid "Yes, Report No-Show"
 msgstr ""
 
 #: app/templates/client/appointments.html:782
-#: app/templates/client/dashboard.html:1264
+#: app/templates/client/dashboard.html:1287
 msgid ""
 "Report an issue with this appointment? This will open a dispute for "
 "review."
 msgstr ""
 
 #: app/templates/client/appointments.html:784
-#: app/templates/client/dashboard.html:1266
+#: app/templates/client/dashboard.html:1289
 #, fuzzy
 msgid "Yes, Report Issue"
 msgstr "Ja, wiederherstellen"
@@ -1305,66 +1495,66 @@ msgid "Loading QR..."
 msgstr "Laden..."
 
 #: app/templates/client/appointments.html:897
-#: app/templates/client/dashboard.html:917
+#: app/templates/client/dashboard.html:940
 #, fuzzy
 msgid "Recipient"
 msgstr "Quittung"
 
 #: app/templates/client/appointments.html:899
-#: app/templates/client/dashboard.html:919
+#: app/templates/client/dashboard.html:942
 #: app/templates/provider/finances.html:147
 #: app/templates/provider/finances.html:189
 msgid "Amount"
 msgstr "Betrag"
 
 #: app/templates/client/appointments.html:900
-#: app/templates/client/dashboard.html:920
+#: app/templates/client/dashboard.html:943
 #, fuzzy
 msgid "Reference"
 msgstr "Erfahrung"
 
 #: app/templates/client/appointments.html:901
-#: app/templates/client/dashboard.html:921
+#: app/templates/client/dashboard.html:944
 msgid "Copy the details and paste them in your banking app"
 msgstr ""
 
 #: app/templates/client/appointments.html:908
-#: app/templates/client/dashboard.html:928
+#: app/templates/client/dashboard.html:951
 #, fuzzy
 msgid "Recipient:"
 msgstr "Quittung"
 
 #: app/templates/client/appointments.html:911
-#: app/templates/client/dashboard.html:931
+#: app/templates/client/dashboard.html:954
 #, fuzzy
 msgid "Reference:"
 msgstr "Erfahrung"
 
 #: app/templates/client/appointments.html:913
-#: app/templates/client/dashboard.html:933
+#: app/templates/client/dashboard.html:956
 msgid "Scan QR with your banking app to transfer"
 msgstr ""
 
 #: app/templates/client/appointments.html:918
-#: app/templates/client/dashboard.html:938
+#: app/templates/client/dashboard.html:961
 #, fuzzy
 msgid "QR Transfer Payment"
 msgstr "Barzahlung"
 
 #: app/templates/client/appointments.html:919
-#: app/templates/client/dashboard.html:939
+#: app/templates/client/dashboard.html:962
 #, fuzzy
 msgid "I have paid"
 msgstr "PDF speichern"
 
 #: app/templates/client/appointments.html:939
-#: app/templates/client/dashboard.html:958
+#: app/templates/client/dashboard.html:981
 #, fuzzy
 msgid "Error loading QR code"
 msgstr "Fehler beim Laden der Seite"
 
 #: app/templates/client/appointments.html:950
-#: app/templates/client/dashboard.html:1218
+#: app/templates/client/dashboard.html:1241
 msgid "Confirm that the work has been completed?"
 msgstr "Bestätigen dass die Arbeit erledigt ist?"
 
@@ -1373,17 +1563,17 @@ msgid "Are you sure? This will release the funds to the provider."
 msgstr "Sicher? Das Geld wird an den Anbieter freigegeben."
 
 #: app/templates/client/appointments.html:951
-#: app/templates/client/dashboard.html:1219
+#: app/templates/client/dashboard.html:1242
 msgid "Release Payment"
 msgstr "Zahlung freigeben"
 
 #: app/templates/client/appointments.html:952
-#: app/templates/client/dashboard.html:1220
+#: app/templates/client/dashboard.html:1243
 msgid "Yes, Confirm"
 msgstr "Ja, bestätigen"
 
 #: app/templates/client/appointments.html:952
-#: app/templates/client/dashboard.html:1220
+#: app/templates/client/dashboard.html:1243
 msgid "Yes, Release Funds"
 msgstr "Ja, Geld freigeben"
 
@@ -1419,7 +1609,7 @@ msgid "Max Level!"
 msgstr "Max. Level!"
 
 #: app/templates/client/dashboard.html:32
-#: app/templates/client/dashboard.html:1572
+#: app/templates/client/dashboard.html:1645
 #: app/templates/provider/dashboard.html:33
 msgid "Profile"
 msgstr "Profil"
@@ -1440,7 +1630,7 @@ msgstr "Standort aktualisieren"
 
 #: app/templates/client/dashboard.html:48
 #: app/templates/client/dashboard.html:269
-#: app/templates/client/dashboard.html:1864
+#: app/templates/client/dashboard.html:1937
 msgid "Post a Request"
 msgstr "Anfrage erstellen"
 
@@ -1471,7 +1661,7 @@ msgid "Real-time"
 msgstr "Echtzeit"
 
 #: app/templates/client/dashboard.html:90
-#: app/templates/client/dashboard.html:521
+#: app/templates/client/dashboard.html:544
 msgid "Provider is on the way!"
 msgstr "Der Anbieter ist unterwegs!"
 
@@ -1521,7 +1711,7 @@ msgstr "TAGS"
 #: app/templates/client/dashboard.html:185
 #: app/templates/client/dashboard.html:195
 #: app/templates/client/dashboard.html:221
-#: app/templates/client/dashboard.html:2020
+#: app/templates/client/dashboard.html:2112
 msgid "Loading..."
 msgstr "Laden..."
 
@@ -1530,7 +1720,7 @@ msgid "Loading providers..."
 msgstr "Anbieter werden geladen..."
 
 #: app/templates/client/dashboard.html:213
-#: app/templates/client/dashboard.html:2107
+#: app/templates/client/dashboard.html:2199
 #, fuzzy
 msgid "My Favorites"
 msgstr "Meine Termine"
@@ -1602,7 +1792,8 @@ msgstr "DEINE ADRESSE"
 msgid "Street, building, city"
 msgstr "Straße, Hausnr., Stadt"
 
-#: app/templates/client/dashboard.html:303 app/templates/client/profile.html:54
+#: app/templates/client/dashboard.html:303
+#: app/templates/client/dashboard.html:317 app/templates/client/profile.html:54
 #: app/templates/provider/profile.html:54
 msgid "Detect my location"
 msgstr "Standort erkennen"
@@ -1615,120 +1806,120 @@ msgstr "Nur für den Anbieter sichtbar nachdem er annimmt."
 msgid "DISTRICT / NEIGHBORHOOD"
 msgstr "STADTTEIL / VIERTEL"
 
-#: app/templates/client/dashboard.html:315
+#: app/templates/client/dashboard.html:316
 msgid "e.g. Schwabing, Sendling, Mitte..."
 msgstr "z.B. Schwabing, Sendling, Mitte..."
 
-#: app/templates/client/dashboard.html:317
+#: app/templates/client/dashboard.html:322
 msgid "Providers will only see this area name, not your exact address."
 msgstr "Anbieter sehen nur diesen Bezirk, nicht deine genaue Adresse."
 
-#: app/templates/client/dashboard.html:321
+#: app/templates/client/dashboard.html:326
 #: app/templates/provider/dashboard.html:196
 #: app/templates/provider/services.html:185
 msgid "TAGS"
 msgstr "TAGS"
 
-#: app/templates/client/dashboard.html:337
+#: app/templates/client/dashboard.html:348
 #: app/templates/provider/services.html:168
 msgid "DESCRIPTION"
 msgstr "BESCHREIBUNG"
 
-#: app/templates/client/dashboard.html:343
+#: app/templates/client/dashboard.html:354
 msgid "Publish Request"
 msgstr "Anfrage veröffentlichen"
 
-#: app/templates/client/dashboard.html:522
+#: app/templates/client/dashboard.html:545
 msgid "Waiting for location..."
 msgstr "Standort wird ermittelt..."
 
-#: app/templates/client/dashboard.html:587
+#: app/templates/client/dashboard.html:610
 msgid "Provider has arrived!"
 msgstr "Anbieter ist da!"
 
-#: app/templates/client/dashboard.html:750
+#: app/templates/client/dashboard.html:773
 msgid "You are here"
 msgstr "Du bist hier"
 
-#: app/templates/client/dashboard.html:781
+#: app/templates/client/dashboard.html:804
 msgid "Calculating route to"
 msgstr "Route wird berechnet nach"
 
-#: app/templates/client/dashboard.html:811
+#: app/templates/client/dashboard.html:834
 msgid "Could not calculate route."
 msgstr "Route konnte nicht berechnet werden."
 
-#: app/templates/client/dashboard.html:836
+#: app/templates/client/dashboard.html:859
 msgid "Show Route"
 msgstr "Route anzeigen"
 
-#: app/templates/client/dashboard.html:973
+#: app/templates/client/dashboard.html:996
 msgid "Accept this provider?"
 msgstr "Diesen Anbieter annehmen?"
 
-#: app/templates/client/dashboard.html:974
+#: app/templates/client/dashboard.html:997
 msgid "Accept Provider"
 msgstr "Anbieter annehmen"
 
-#: app/templates/client/dashboard.html:987
+#: app/templates/client/dashboard.html:1010
 msgid "Provider accepted! Your appointment is scheduled."
 msgstr "Anbieter angenommen! Termin ist geplant."
 
-#: app/templates/client/dashboard.html:996
+#: app/templates/client/dashboard.html:1019
 msgid "Confirm provider and proceed to payment?"
 msgstr "Anbieter bestätigen und zur Zahlung?"
 
-#: app/templates/client/dashboard.html:997
-#: app/templates/client/dashboard.html:1824
+#: app/templates/client/dashboard.html:1020
+#: app/templates/client/dashboard.html:1897
 msgid "Confirm & Pay"
 msgstr "Bestätigen & Zahlen"
 
-#: app/templates/client/dashboard.html:998
+#: app/templates/client/dashboard.html:1021
 msgid "Yes, Proceed to Payment"
 msgstr "Ja, zur Zahlung"
 
-#: app/templates/client/dashboard.html:1028
-#: app/templates/provider/dashboard.html:1034
+#: app/templates/client/dashboard.html:1051
+#: app/templates/provider/dashboard.html:1048
 msgid "Your price (EUR)"
 msgstr "Dein Preis (EUR)"
 
-#: app/templates/client/dashboard.html:1033
+#: app/templates/client/dashboard.html:1056
 msgid "Your price"
 msgstr "Dein Preis"
 
-#: app/templates/client/dashboard.html:1041
-#: app/templates/provider/dashboard.html:1293
-#: app/templates/provider/dashboard.html:1316
+#: app/templates/client/dashboard.html:1064
+#: app/templates/provider/dashboard.html:1307
+#: app/templates/provider/dashboard.html:1330
 msgid "Please enter a valid price"
 msgstr "Bitte gültigen Preis eingeben"
 
-#: app/templates/client/dashboard.html:1071
+#: app/templates/client/dashboard.html:1094
 msgid "Detecting location..."
 msgstr "Standort wird ermittelt..."
 
-#: app/templates/client/dashboard.html:1083
-#: app/templates/client/dashboard.html:1088
+#: app/templates/client/dashboard.html:1106
+#: app/templates/client/dashboard.html:1111
 msgid "Location detected"
 msgstr "Standort gefunden"
 
-#: app/templates/client/dashboard.html:1108
+#: app/templates/client/dashboard.html:1131
 msgid "Please enter your address."
 msgstr "Bitte Adresse eingeben."
 
-#: app/templates/client/dashboard.html:1110
+#: app/templates/client/dashboard.html:1133
 msgid "Please enter your district or neighborhood."
 msgstr "Bitte Stadtteil oder Viertel eingeben."
 
-#: app/templates/client/dashboard.html:1125
+#: app/templates/client/dashboard.html:1148
 #, fuzzy
 msgid "Please select a date or mark as flexible."
 msgstr "Bitte Bewertung wählen"
 
-#: app/templates/client/dashboard.html:1150
+#: app/templates/client/dashboard.html:1173
 msgid "Request published successfully!"
 msgstr "Anfrage veröffentlicht!"
 
-#: app/templates/client/dashboard.html:1156
+#: app/templates/client/dashboard.html:1179
 msgid ""
 "Are you sure you want to cancel this request? If payment was authorized, "
 "it will be refunded."
@@ -1736,35 +1927,35 @@ msgstr ""
 "Bist du sicher, dass du diese Anfrage stornieren möchtest? Falls eine "
 "Zahlung autorisiert wurde, wird sie erstattet."
 
-#: app/templates/client/dashboard.html:1157
-#: app/templates/provider/dashboard.html:881
-#: app/templates/provider/dashboard.html:1210
+#: app/templates/client/dashboard.html:1180
+#: app/templates/provider/dashboard.html:895
+#: app/templates/provider/dashboard.html:1224
 msgid "Cancel Request"
 msgstr "Anfrage stornieren"
 
-#: app/templates/client/dashboard.html:1168
-#: app/templates/provider/dashboard.html:1224
+#: app/templates/client/dashboard.html:1191
+#: app/templates/provider/dashboard.html:1238
 msgid "Request cancelled"
 msgstr "Anfrage storniert"
 
-#: app/templates/client/dashboard.html:1176
+#: app/templates/client/dashboard.html:1199
 msgid "Go back to the previous step?"
 msgstr "Zurück zum vorherigen Schritt?"
 
-#: app/templates/client/dashboard.html:1177
-#: app/templates/client/dashboard.html:1746
+#: app/templates/client/dashboard.html:1200
+#: app/templates/client/dashboard.html:1819
 msgid "Go Back"
 msgstr "Zurück"
 
-#: app/templates/client/dashboard.html:1178
+#: app/templates/client/dashboard.html:1201
 msgid "Yes, Go Back"
 msgstr "Ja, zurück"
 
-#: app/templates/client/dashboard.html:1188
+#: app/templates/client/dashboard.html:1211
 msgid "Returned to previous step"
 msgstr "Zurück zum vorherigen Schritt"
 
-#: app/templates/client/dashboard.html:1196
+#: app/templates/client/dashboard.html:1219
 msgid ""
 "Restore this request? It will be returned to pending status and providers"
 " can send new offers."
@@ -1772,77 +1963,103 @@ msgstr ""
 "Diese Anfrage wiederherstellen? Sie wird in den Status ‚Ausstehend' "
 "zurückversetzt und Anbieter können neue Angebote senden."
 
-#: app/templates/client/dashboard.html:1197
+#: app/templates/client/dashboard.html:1220
 msgid "Restore Request"
 msgstr "Anfrage wiederherstellen"
 
-#: app/templates/client/dashboard.html:1208
+#: app/templates/client/dashboard.html:1231
 msgid "Request restored"
 msgstr "Anfrage wiederhergestellt"
 
-#: app/templates/client/dashboard.html:1218
+#: app/templates/client/dashboard.html:1241
 msgid "Are you sure? This will release the held funds to the provider."
 msgstr "Sicher? Das Geld wird an den Anbieter freigegeben."
 
-#: app/templates/client/dashboard.html:1233
+#: app/templates/client/dashboard.html:1256
 msgid "Service completed!"
 msgstr "Service erledigt!"
 
-#: app/templates/client/dashboard.html:1233
+#: app/templates/client/dashboard.html:1256
 msgid "Payment released! Service completed."
 msgstr "Zahlung freigegeben! Service erledigt."
 
-#: app/templates/client/dashboard.html:1256
+#: app/templates/client/dashboard.html:1279
 #, fuzzy
 msgid "No-show reported."
 msgstr "Route anzeigen"
 
-#: app/templates/client/dashboard.html:1279
+#: app/templates/client/dashboard.html:1302
 msgid "Issue reported. Our team will review it."
 msgstr ""
 
-#: app/templates/client/dashboard.html:1288
-#: app/templates/provider/dashboard.html:1347
+#: app/templates/client/dashboard.html:1313
+#: app/templates/client/dashboard.html:1315
+#: app/templates/provider/dashboard.html:1363
+#: app/templates/provider/dashboard.html:1365
 msgid "Locating..."
 msgstr "Wird gesucht..."
 
-#: app/templates/client/dashboard.html:1301
+#: app/templates/client/dashboard.html:1332
 msgid "Location updated"
 msgstr "Standort aktualisiert"
 
-#: app/templates/client/dashboard.html:1303
-msgid "Error getting location"
+#: app/templates/client/dashboard.html:1334
+#, fuzzy
+msgid "Error updating location"
 msgstr "Standort konnte nicht ermittelt werden"
 
-#: app/templates/client/dashboard.html:1311
+#: app/templates/client/dashboard.html:1337
+#: app/templates/provider/dashboard.html:1388
+msgid "Network error. Please try again."
+msgstr ""
+
+#: app/templates/client/dashboard.html:1346
+#: app/templates/provider/dashboard.html:1395
+msgid "Location access denied. Please allow location in browser settings."
+msgstr ""
+
+#: app/templates/client/dashboard.html:1350
+#: app/templates/client/dashboard.html:1376
+#: app/templates/provider/dashboard.html:1399
+msgid ""
+"Location unavailable. Please check that location services are enabled on "
+"your device and try again."
+msgstr ""
+
+#: app/templates/client/dashboard.html:1352
+#: app/templates/provider/dashboard.html:1401
+msgid "Location request timed out. Please try again."
+msgstr ""
+
+#: app/templates/client/dashboard.html:1384
 #: app/templates/client/provider_public_profile.html:338
 msgid "Loading services..."
 msgstr "Services werden geladen..."
 
-#: app/templates/client/dashboard.html:1318
+#: app/templates/client/dashboard.html:1391
 #: app/templates/client/provider_public_profile.html:348
 msgid "No services available"
 msgstr "Keine Services verfügbar"
 
-#: app/templates/client/dashboard.html:1367
+#: app/templates/client/dashboard.html:1440
 #: app/templates/client/provider_public_profile.html:406
 msgid "Appointment confirmed!"
 msgstr "Termin bestätigt!"
 
-#: app/templates/client/dashboard.html:1397
+#: app/templates/client/dashboard.html:1470
 msgid "New offers on your request!"
 msgstr "Neue Angebote auf deine Anfrage!"
 
-#: app/templates/client/dashboard.html:1534
+#: app/templates/client/dashboard.html:1607
 msgid "No providers found"
 msgstr "Keine Anbieter gefunden"
 
-#: app/templates/client/dashboard.html:1548
+#: app/templates/client/dashboard.html:1621
 msgid "No reviews"
 msgstr "Keine Bewertungen"
 
-#: app/templates/client/dashboard.html:1552
-#: app/templates/client/dashboard.html:1811
+#: app/templates/client/dashboard.html:1625
+#: app/templates/client/dashboard.html:1884
 #: app/templates/client/profile.html:104 app/templates/client/profile.html:138
 #: app/templates/client/profile.html:145 app/templates/client/profile.html:160
 #: app/templates/client/profile.html:167
@@ -1857,107 +2074,107 @@ msgstr "Keine Bewertungen"
 msgid "Verified"
 msgstr "Verifiziert"
 
-#: app/templates/client/dashboard.html:1561
+#: app/templates/client/dashboard.html:1634
 msgid "No address"
 msgstr "Keine Adresse"
 
-#: app/templates/client/dashboard.html:1568
+#: app/templates/client/dashboard.html:1641
 msgid "services"
 msgstr "Services"
 
-#: app/templates/client/dashboard.html:1577
+#: app/templates/client/dashboard.html:1650
 #: app/templates/client/provider_public_profile.html:185
 msgid "Favorite"
 msgstr ""
 
-#: app/templates/client/dashboard.html:1622
+#: app/templates/client/dashboard.html:1695
 msgid "Approve & Pay"
 msgstr "Bestätigen & Zahlen"
 
-#: app/templates/client/dashboard.html:1626
+#: app/templates/client/dashboard.html:1699
 msgid "Payment held"
 msgstr "Zahlung gehalten"
 
-#: app/templates/client/dashboard.html:1629
+#: app/templates/client/dashboard.html:1702
 msgid "Pay to confirm"
 msgstr "Zahlen zum Bestätigen"
 
-#: app/templates/client/dashboard.html:1632
+#: app/templates/client/dashboard.html:1705
 msgid "Booked"
 msgstr "Gebucht"
 
-#: app/templates/client/dashboard.html:1635
+#: app/templates/client/dashboard.html:1708
 msgid "Offers"
 msgstr "Angebote"
 
-#: app/templates/client/dashboard.html:1648
+#: app/templates/client/dashboard.html:1721
 #: app/templates/client/history.html:100
-#: app/templates/provider/dashboard.html:734
-#: app/templates/provider/dashboard.html:923
+#: app/templates/provider/dashboard.html:748
+#: app/templates/provider/dashboard.html:937
 #, fuzzy
 msgid "Flexible date"
 msgstr "Ablaufdatum"
 
-#: app/templates/client/dashboard.html:1659
+#: app/templates/client/dashboard.html:1732
 msgid "Reuse"
 msgstr "Wiederverwenden"
 
-#: app/templates/client/dashboard.html:1666
+#: app/templates/client/dashboard.html:1739
 #: app/templates/client/history.html:117
 msgid "Restore"
 msgstr "Wiederherstellen"
 
-#: app/templates/client/dashboard.html:1686
+#: app/templates/client/dashboard.html:1759
 #: app/templates/client/history.html:110
-#: app/templates/provider/dashboard.html:800
+#: app/templates/provider/dashboard.html:814
 msgid "Receipt"
 msgstr "Quittung"
 
-#: app/templates/client/dashboard.html:1693
+#: app/templates/client/dashboard.html:1766
 #, fuzzy
 msgid "The provider has arrived and work is in progress."
 msgstr "Der Anbieter hat die Arbeit als fertig markiert."
 
-#: app/templates/client/dashboard.html:1709
+#: app/templates/client/dashboard.html:1782
 msgid "The provider has completed the service."
 msgstr "Der Anbieter hat den Service abgeschlossen."
 
-#: app/templates/client/dashboard.html:1710
+#: app/templates/client/dashboard.html:1783
 msgid "Please approve to release the payment."
 msgstr "Bitte bestätige um die Zahlung freizugeben."
 
-#: app/templates/client/dashboard.html:1710
+#: app/templates/client/dashboard.html:1783
 msgid "Please confirm the completion."
 msgstr "Bitte bestätige den Abschluss."
 
-#: app/templates/client/dashboard.html:1721
+#: app/templates/client/dashboard.html:1794
 msgid "View Provider"
 msgstr "Anbieter ansehen"
 
-#: app/templates/client/dashboard.html:1728
+#: app/templates/client/dashboard.html:1801
 #, fuzzy
 msgid "QR Transfer"
 msgstr "Überweisung"
 
-#: app/templates/client/dashboard.html:1731
+#: app/templates/client/dashboard.html:1804
 msgid "Cash"
 msgstr "Bar"
 
-#: app/templates/client/dashboard.html:1737
-#: app/templates/client/dashboard.html:1830
+#: app/templates/client/dashboard.html:1810
+#: app/templates/client/dashboard.html:1903
 #: app/templates/provider/client_profile.html:55
 msgid "Chat"
 msgstr "Chat"
 
-#: app/templates/client/dashboard.html:1761
+#: app/templates/client/dashboard.html:1834
 msgid "Payment is available 7 days before the appointment."
 msgstr "Zahlung ist 7 Tage vor dem Termin möglich."
 
-#: app/templates/client/dashboard.html:1762
+#: app/templates/client/dashboard.html:1835
 msgid "From"
 msgstr "Ab"
 
-#: app/templates/client/dashboard.html:1762
+#: app/templates/client/dashboard.html:1835
 msgid ""
 "you will receive an email to authorize the payment. Funds are held "
 "securely and released only after the service."
@@ -1965,111 +2182,111 @@ msgstr ""
 "du erhältst eine E-Mail zur Autorisierung der Zahlung. Die Mittel werden "
 "sicher verwahrt und erst nach der Dienstleistung freigegeben."
 
-#: app/templates/client/dashboard.html:1782
+#: app/templates/client/dashboard.html:1855
 msgid "agreed price"
 msgstr "vereinbarter Preis"
 
-#: app/templates/client/dashboard.html:1788
+#: app/templates/client/dashboard.html:1861
 msgid "Full Profile"
 msgstr "Volles Profil"
 
-#: app/templates/client/dashboard.html:1791
+#: app/templates/client/dashboard.html:1864
 msgid "Show on map"
 msgstr "Auf Karte zeigen"
 
-#: app/templates/client/dashboard.html:1805
+#: app/templates/client/dashboard.html:1878
 msgid "Price not set"
 msgstr "Kein Preis"
 
-#: app/templates/client/dashboard.html:1813
+#: app/templates/client/dashboard.html:1886
 msgid "Your counter"
 msgstr "Dein Gegenangebot"
 
-#: app/templates/client/dashboard.html:1813
+#: app/templates/client/dashboard.html:1886
 msgid "waiting"
 msgstr "wartet"
 
-#: app/templates/client/dashboard.html:1816
+#: app/templates/client/dashboard.html:1889
 msgid "Budget"
 msgstr "Budget"
 
-#: app/templates/client/dashboard.html:1827
+#: app/templates/client/dashboard.html:1900
 msgid "Counter"
 msgstr "Gegenangebot"
 
-#: app/templates/client/dashboard.html:1862
+#: app/templates/client/dashboard.html:1935
 msgid "No active requests"
 msgstr "Keine aktiven Anfragen"
 
-#: app/templates/client/dashboard.html:1877
+#: app/templates/client/dashboard.html:1950
 msgid "No accepted requests yet"
 msgstr "Noch keine angenommenen Anfragen"
 
-#: app/templates/client/dashboard.html:1889
+#: app/templates/client/dashboard.html:1962
 msgid "No past requests"
 msgstr "Keine vergangenen Anfragen"
 
-#: app/templates/client/dashboard.html:2032
+#: app/templates/client/dashboard.html:2124
 msgid "No favorites yet. Add providers or services you like!"
 msgstr ""
 
-#: app/templates/client/dashboard.html:2040
+#: app/templates/client/dashboard.html:2132
 #, fuzzy
 msgid "PROVIDERS"
 msgstr "Anbieter"
 
-#: app/templates/client/dashboard.html:2054
-#: app/templates/client/dashboard.html:2070
+#: app/templates/client/dashboard.html:2146
+#: app/templates/client/dashboard.html:2162
 #: app/templates/client/profile.html:407
 #: app/templates/provider/services.html:107
 msgid "Remove"
 msgstr "Entfernen"
 
-#: app/templates/client/dashboard.html:2062
+#: app/templates/client/dashboard.html:2154
 #, fuzzy
 msgid "SERVICES"
 msgstr "Services"
 
-#: app/templates/client/dashboard.html:2096
+#: app/templates/client/dashboard.html:2188
 #, fuzzy
 msgid "No favorites yet."
 msgstr "Noch keine Bewertungen."
 
-#: app/templates/client/dashboard.html:2109
+#: app/templates/client/dashboard.html:2201
 #: app/templates/client/provider_public_profile.html:497
 #, fuzzy
 msgid "Link copied!"
 msgstr "Link abgelaufen"
 
-#: app/templates/client/dashboard.html:2205
+#: app/templates/client/dashboard.html:2297
 msgid "Easter eggs found!"
 msgstr "Ostereier gefunden!"
 
-#: app/templates/client/dashboard.html:2217
+#: app/templates/client/dashboard.html:2309
 msgid "Happy Easter!"
 msgstr "Frohe Ostern!"
 
-#: app/templates/client/dashboard.html:2218
+#: app/templates/client/dashboard.html:2310
 msgid "You found me!"
 msgstr "Du hast mich gefunden!"
 
-#: app/templates/client/dashboard.html:2219
+#: app/templates/client/dashboard.html:2311
 msgid "Spring vibes!"
 msgstr "Frühlings-Vibes!"
 
-#: app/templates/client/dashboard.html:2220
+#: app/templates/client/dashboard.html:2312
 msgid "Lucky egg!"
 msgstr "Glücksei!"
 
-#: app/templates/client/dashboard.html:2221
+#: app/templates/client/dashboard.html:2313
 msgid "Sweet!"
 msgstr "Nice!"
 
-#: app/templates/client/dashboard.html:2222
+#: app/templates/client/dashboard.html:2314
 msgid "Wonderful!"
 msgstr "Wunderbar!"
 
-#: app/templates/client/dashboard.html:2232
+#: app/templates/client/dashboard.html:2324
 msgid "eggs found"
 msgstr "Eier gefunden"
 
@@ -2078,7 +2295,7 @@ msgid "Your completed and past services"
 msgstr "Deine erledigten und vergangenen Services"
 
 #: app/templates/client/history.html:75
-#: app/templates/provider/dashboard.html:452
+#: app/templates/provider/dashboard.html:466
 msgid "Paid"
 msgstr "Bezahlt"
 
@@ -2113,7 +2330,7 @@ msgid "View"
 msgstr "Rezensionen"
 
 #: app/templates/client/history.html:190 app/templates/client/receipt.html:229
-#: app/templates/provider/dashboard.html:464
+#: app/templates/provider/dashboard.html:478
 msgid "Service"
 msgstr "Service"
 
@@ -2191,7 +2408,7 @@ msgid "Document uploaded — under review"
 msgstr "Noch keine Dokumente hochgeladen."
 
 #: app/templates/client/profile.html:96 app/templates/client/profile.html:108
-#: app/templates/provider/dashboard.html:729
+#: app/templates/provider/dashboard.html:743
 #: app/templates/provider/profile.html:114
 #: app/templates/provider/profile.html:126
 msgid "Rejected"
@@ -2435,7 +2652,7 @@ msgid "Provider's response"
 msgstr "Antwort des Anbieters"
 
 #: app/templates/client/provider_public_profile.html:157
-#: app/templates/provider/dashboard.html:1421
+#: app/templates/provider/dashboard.html:1458
 msgid "No reviews yet."
 msgstr "Noch keine Bewertungen."
 
@@ -2592,11 +2809,6 @@ msgstr ""
 #: app/templates/legal/privacy.html:20
 msgid "(Address will be added here)"
 msgstr ""
-
-#: app/templates/legal/privacy.html:21
-#, fuzzy
-msgid "Email:"
-msgstr "E-MAIL"
 
 #: app/templates/legal/privacy.html:21
 #, fuzzy
@@ -3277,7 +3489,7 @@ msgstr "Du hast diesen Kunden noch nicht bewertet."
 
 #: app/templates/provider/appointments.html:214
 #: app/templates/provider/appointments.html:492
-#: app/templates/provider/dashboard.html:402
+#: app/templates/provider/dashboard.html:416
 msgid "Accept Request"
 msgstr "Anfrage annehmen"
 
@@ -3318,8 +3530,8 @@ msgstr "Zahlung gesichert. Kannst loslegen."
 
 #: app/templates/provider/appointments.html:355
 #: app/templates/provider/appointments.html:487
-#: app/templates/provider/dashboard.html:769
-#: app/templates/provider/dashboard.html:1088
+#: app/templates/provider/dashboard.html:783
+#: app/templates/provider/dashboard.html:1102
 #, fuzzy
 msgid "Confirm Arrival"
 msgstr "E-Mail bestätigen"
@@ -3331,15 +3543,15 @@ msgstr "Ich bin fertig"
 
 #: app/templates/provider/appointments.html:361
 #: app/templates/provider/appointments.html:528
-#: app/templates/provider/dashboard.html:775
-#: app/templates/provider/dashboard.html:1112
+#: app/templates/provider/dashboard.html:789
+#: app/templates/provider/dashboard.html:1126
 msgid "Running Late"
 msgstr ""
 
 #: app/templates/provider/appointments.html:364
 #: app/templates/provider/appointments.html:490
-#: app/templates/provider/dashboard.html:778
-#: app/templates/provider/dashboard.html:1137
+#: app/templates/provider/dashboard.html:792
+#: app/templates/provider/dashboard.html:1151
 #, fuzzy
 msgid "Client No-Show"
 msgstr "KUNDE"
@@ -3370,17 +3582,17 @@ msgid "Client did not show up for this appointment."
 msgstr ""
 
 #: app/templates/provider/appointments.html:452
-#: app/templates/provider/dashboard.html:1160
+#: app/templates/provider/dashboard.html:1174
 msgid "Retract your work submission? This will go back to the previous step."
 msgstr "Einreichung zurückziehen? Geht zurück zum vorherigen Schritt."
 
 #: app/templates/provider/appointments.html:453
-#: app/templates/provider/dashboard.html:1161
+#: app/templates/provider/dashboard.html:1175
 msgid "Retract Work"
 msgstr "Arbeit zurückziehen"
 
 #: app/templates/provider/appointments.html:454
-#: app/templates/provider/dashboard.html:1162
+#: app/templates/provider/dashboard.html:1176
 msgid "Yes, Retract"
 msgstr "Ja, zurückziehen"
 
@@ -3403,43 +3615,43 @@ msgid "Yes, Submit"
 msgstr "Ja, einreichen"
 
 #: app/templates/provider/appointments.html:486
-#: app/templates/provider/dashboard.html:1087
+#: app/templates/provider/dashboard.html:1101
 msgid "Confirm that you have arrived and are starting the work?"
 msgstr ""
 
 #: app/templates/provider/appointments.html:487
-#: app/templates/provider/dashboard.html:1089
+#: app/templates/provider/dashboard.html:1103
 msgid "Yes, I\\'ve Arrived"
 msgstr ""
 
 #: app/templates/provider/appointments.html:489
-#: app/templates/provider/dashboard.html:1136
+#: app/templates/provider/dashboard.html:1150
 msgid "Report that the client did not show up? This will be recorded."
 msgstr ""
 
 #: app/templates/provider/appointments.html:490
-#: app/templates/provider/dashboard.html:1138
+#: app/templates/provider/dashboard.html:1152
 msgid "Yes, No-Show"
 msgstr ""
 
 #: app/templates/provider/appointments.html:527
-#: app/templates/provider/dashboard.html:1111
+#: app/templates/provider/dashboard.html:1125
 msgid "Notify the client that you are running late?"
 msgstr ""
 
 #: app/templates/provider/appointments.html:529
-#: app/templates/provider/dashboard.html:1113
+#: app/templates/provider/dashboard.html:1127
 #, fuzzy
 msgid "Yes, Notify"
 msgstr "Ja, bestätigen"
 
 #: app/templates/provider/appointments.html:536
-#: app/templates/provider/dashboard.html:1119
+#: app/templates/provider/dashboard.html:1133
 msgid "How many minutes will you be late?"
 msgstr ""
 
 #: app/templates/provider/appointments.html:550
-#: app/templates/provider/dashboard.html:1127
+#: app/templates/provider/dashboard.html:1141
 msgid "Client has been notified."
 msgstr ""
 
@@ -3512,12 +3724,12 @@ msgid "My Services"
 msgstr "Meine Services"
 
 #: app/templates/provider/dashboard.html:41
-#: app/templates/provider/dashboard.html:1381
+#: app/templates/provider/dashboard.html:1418
 msgid "You are Online"
 msgstr "Du bist Online"
 
 #: app/templates/provider/dashboard.html:41
-#: app/templates/provider/dashboard.html:1384
+#: app/templates/provider/dashboard.html:1421
 msgid "You are Offline"
 msgstr "Du bist Offline"
 
@@ -3588,7 +3800,7 @@ msgid "DISTANCE"
 msgstr "ENTFERNUNG"
 
 #: app/templates/provider/dashboard.html:185
-#: app/templates/provider/dashboard.html:397
+#: app/templates/provider/dashboard.html:411
 msgid "Calculating..."
 msgstr "Wird berechnet..."
 
@@ -3600,219 +3812,219 @@ msgstr "BEZIRK"
 msgid "My Reviews"
 msgstr "Meine Bewertungen"
 
-#: app/templates/provider/dashboard.html:396
+#: app/templates/provider/dashboard.html:410
 msgid "Address not provided"
 msgstr "Keine Adresse angegeben"
 
-#: app/templates/provider/dashboard.html:399
+#: app/templates/provider/dashboard.html:413
 msgid "Request accepted!"
 msgstr "Anfrage angenommen!"
 
-#: app/templates/provider/dashboard.html:400
+#: app/templates/provider/dashboard.html:414
 msgid "I'm on my way"
 msgstr "Ich bin unterwegs"
 
-#: app/templates/provider/dashboard.html:401
+#: app/templates/provider/dashboard.html:415
 msgid "Stop Sharing"
 msgstr "Tracking stoppen"
 
-#: app/templates/provider/dashboard.html:445
+#: app/templates/provider/dashboard.html:459
 #, fuzzy
 msgid "No service history yet"
 msgstr "Noch kein gemeinsamer Verlauf."
 
-#: app/templates/provider/dashboard.html:453
+#: app/templates/provider/dashboard.html:467
 #, fuzzy
 msgid "Work Submitted"
 msgstr "Arbeit eingereicht"
 
-#: app/templates/provider/dashboard.html:475
+#: app/templates/provider/dashboard.html:489
 #, fuzzy
 msgid "Add to My Services"
 msgstr "Meine Services"
 
-#: app/templates/provider/dashboard.html:492
+#: app/templates/provider/dashboard.html:506
 msgid "Service added successfully"
 msgstr "Dienst erfolgreich hinzugefügt"
 
-#: app/templates/provider/dashboard.html:495
+#: app/templates/provider/dashboard.html:509
 #, fuzzy
 msgid "Error"
 msgstr "Fehler:"
 
-#: app/templates/provider/dashboard.html:723
+#: app/templates/provider/dashboard.html:737
 msgid "No offers sent yet"
 msgstr "Noch keine Angebote gesendet"
 
-#: app/templates/provider/dashboard.html:727
+#: app/templates/provider/dashboard.html:741
 msgid "Waiting"
 msgstr "Wartet"
 
-#: app/templates/provider/dashboard.html:749
-#: app/templates/provider/dashboard.html:890
+#: app/templates/provider/dashboard.html:763
+#: app/templates/provider/dashboard.html:904
 msgid "Your price:"
 msgstr "Dein Preis:"
 
-#: app/templates/provider/dashboard.html:750
+#: app/templates/provider/dashboard.html:764
 msgid "Budget:"
 msgstr "Budget:"
 
-#: app/templates/provider/dashboard.html:756
+#: app/templates/provider/dashboard.html:770
 msgid "Client counter:"
 msgstr "Gegenangebot vom Kunden:"
 
-#: app/templates/provider/dashboard.html:762
+#: app/templates/provider/dashboard.html:776
 msgid "Revise"
 msgstr "Ändern"
 
-#: app/templates/provider/dashboard.html:772
-#: app/templates/provider/dashboard.html:796
+#: app/templates/provider/dashboard.html:786
+#: app/templates/provider/dashboard.html:810
 msgid "Mark Done"
 msgstr "Als erledigt markieren"
 
-#: app/templates/provider/dashboard.html:781
+#: app/templates/provider/dashboard.html:795
 msgid "Waiting for client payment"
 msgstr "Warten auf Kundenzahlung"
 
-#: app/templates/provider/dashboard.html:790
+#: app/templates/provider/dashboard.html:804
 msgid "Waiting for client approval"
 msgstr "Warten auf Kundenbestätigung"
 
-#: app/templates/provider/dashboard.html:792
+#: app/templates/provider/dashboard.html:806
 msgid "Retract"
 msgstr "Zurückziehen"
 
-#: app/templates/provider/dashboard.html:806
+#: app/templates/provider/dashboard.html:820
 msgid "Awaiting client"
 msgstr "Warten auf Kunden"
 
-#: app/templates/provider/dashboard.html:809
+#: app/templates/provider/dashboard.html:823
 msgid "Withdraw"
 msgstr "Zurückziehen"
 
-#: app/templates/provider/dashboard.html:889
+#: app/templates/provider/dashboard.html:903
 msgid "Client proposed a counter-offer:"
 msgstr "Kunde hat ein Gegenangebot gemacht:"
 
-#: app/templates/provider/dashboard.html:894
+#: app/templates/provider/dashboard.html:908
 msgid "Accept Counter"
 msgstr "Gegenangebot annehmen"
 
-#: app/templates/provider/dashboard.html:897
+#: app/templates/provider/dashboard.html:911
 msgid "Revise Price"
 msgstr "Preis ändern"
 
-#: app/templates/provider/dashboard.html:901
+#: app/templates/provider/dashboard.html:915
 msgid "Waiting for the client to accept your offer..."
 msgstr "Warten bis der Kunde dein Angebot annimmt..."
 
-#: app/templates/provider/dashboard.html:905
-#: app/templates/provider/dashboard.html:1184
+#: app/templates/provider/dashboard.html:919
+#: app/templates/provider/dashboard.html:1198
 msgid "Withdraw Offer"
 msgstr "Angebot zurückziehen"
 
-#: app/templates/provider/dashboard.html:908
+#: app/templates/provider/dashboard.html:922
 msgid "The client selected another provider."
 msgstr "Der Kunde hat einen anderen Anbieter gewählt."
 
-#: app/templates/provider/dashboard.html:918
+#: app/templates/provider/dashboard.html:932
 msgid "No requests available"
 msgstr "Keine Anfragen verfügbar"
 
-#: app/templates/provider/dashboard.html:936
+#: app/templates/provider/dashboard.html:950
 msgid "Flexible"
 msgstr ""
 
-#: app/templates/provider/dashboard.html:985
+#: app/templates/provider/dashboard.html:999
 msgid "Flexible date — arrange with client"
 msgstr ""
 
-#: app/templates/provider/dashboard.html:1035
+#: app/templates/provider/dashboard.html:1049
 msgid "Enter your price"
 msgstr "Gib deinen Preis ein"
 
-#: app/templates/provider/dashboard.html:1064
+#: app/templates/provider/dashboard.html:1078
 msgid "Confirm that the service has been completed?"
 msgstr "Bestätigen dass der Service erledigt ist?"
 
-#: app/templates/provider/dashboard.html:1066
+#: app/templates/provider/dashboard.html:1080
 msgid "Yes, Complete"
 msgstr "Ja, erledigt"
 
-#: app/templates/provider/dashboard.html:1077
+#: app/templates/provider/dashboard.html:1091
 msgid "Work submitted! Waiting for client approval."
 msgstr "Arbeit eingereicht! Warten auf Kundenbestätigung."
 
-#: app/templates/provider/dashboard.html:1101
+#: app/templates/provider/dashboard.html:1115
 msgid "Arrival confirmed! Work is now in progress."
 msgstr ""
 
-#: app/templates/provider/dashboard.html:1150
+#: app/templates/provider/dashboard.html:1164
 #, fuzzy
 msgid "No-show recorded."
 msgstr "Mehr anzeigen"
 
-#: app/templates/provider/dashboard.html:1173
+#: app/templates/provider/dashboard.html:1187
 msgid "Work submission retracted."
 msgstr "Einreichung zurückgezogen."
 
-#: app/templates/provider/dashboard.html:1183
+#: app/templates/provider/dashboard.html:1197
 msgid "Are you sure you want to withdraw this offer?"
 msgstr "Angebot wirklich zurückziehen?"
 
-#: app/templates/provider/dashboard.html:1185
+#: app/templates/provider/dashboard.html:1199
 msgid "Yes, Withdraw"
 msgstr "Ja, zurückziehen"
 
-#: app/templates/provider/dashboard.html:1198
+#: app/templates/provider/dashboard.html:1212
 msgid "Offer withdrawn successfully"
 msgstr "Angebot zurückgezogen"
 
-#: app/templates/provider/dashboard.html:1209
+#: app/templates/provider/dashboard.html:1223
 msgid "Are you sure you want to cancel this accepted request?"
 msgstr "Angenommene Anfrage wirklich stornieren?"
 
-#: app/templates/provider/dashboard.html:1234
+#: app/templates/provider/dashboard.html:1248
 msgid "Accept the client counter-offer price?"
 msgstr "Gegenangebot vom Kunden annehmen?"
 
-#: app/templates/provider/dashboard.html:1235
+#: app/templates/provider/dashboard.html:1249
 msgid "Accept Counter-Offer"
 msgstr "Gegenangebot annehmen"
 
-#: app/templates/provider/dashboard.html:1250
+#: app/templates/provider/dashboard.html:1264
 msgid "Counter-offer accepted! Price updated."
 msgstr "Gegenangebot angenommen! Preis aktualisiert."
 
-#: app/templates/provider/dashboard.html:1263
+#: app/templates/provider/dashboard.html:1277
 msgid "New price"
 msgstr "Neuer Preis"
 
-#: app/templates/provider/dashboard.html:1279
+#: app/templates/provider/dashboard.html:1293
 msgid "Enter new price"
 msgstr "Neuen Preis eingeben"
 
-#: app/templates/provider/dashboard.html:1304
+#: app/templates/provider/dashboard.html:1318
 msgid "Price revised and sent to client."
 msgstr "Preis geändert und an Kunden gesendet."
 
-#: app/templates/provider/dashboard.html:1358
+#: app/templates/provider/dashboard.html:1378
 msgid "Location updated!"
 msgstr "Standort aktualisiert!"
 
-#: app/templates/provider/dashboard.html:1433
+#: app/templates/provider/dashboard.html:1470
 msgid "Your response"
 msgstr "Deine Antwort"
 
-#: app/templates/provider/dashboard.html:1441
+#: app/templates/provider/dashboard.html:1478
 msgid "Respond"
 msgstr "Antworten"
 
-#: app/templates/provider/dashboard.html:1444
+#: app/templates/provider/dashboard.html:1481
 msgid "Write your public response..."
 msgstr "Schreib deine öffentliche Antwort..."
 
-#: app/templates/provider/dashboard.html:1473
+#: app/templates/provider/dashboard.html:1510
 msgid "Please write a response"
 msgstr "Bitte eine Antwort schreiben"
 
@@ -4108,7 +4320,7 @@ msgstr ""
 
 #: app/templates/provider/services.html:39
 #: app/templates/provider/services.html:135
-#: app/templates/provider/services.html:379
+#: app/templates/provider/services.html:417
 msgid "Add Service"
 msgstr "Service hinzufügen"
 
@@ -4187,36 +4399,36 @@ msgstr "Keine Adresse"
 msgid "Client pays this percentage upfront"
 msgstr ""
 
-#: app/templates/provider/services.html:194
+#: app/templates/provider/services.html:200
 #, fuzzy
 msgid "Not available for Young Helpers"
 msgstr "Verfügbare Helfer"
 
-#: app/templates/provider/services.html:207
+#: app/templates/provider/services.html:213
 msgid "Available for booking immediately"
 msgstr "Sofort buchbar"
 
-#: app/templates/provider/services.html:212
+#: app/templates/provider/services.html:218
 msgid "Save"
 msgstr "Speichern"
 
-#: app/templates/provider/services.html:224
+#: app/templates/provider/services.html:230
 msgid "Confirm Deletion"
 msgstr "Löschen bestätigen"
 
-#: app/templates/provider/services.html:228
+#: app/templates/provider/services.html:234
 msgid "Are you sure you want to remove this service from your list?"
 msgstr "Service wirklich aus deiner Liste entfernen?"
 
-#: app/templates/provider/services.html:229
+#: app/templates/provider/services.html:235
 msgid "This action cannot be undone instantly."
 msgstr "Das kann nicht sofort rückgängig gemacht werden."
 
-#: app/templates/provider/services.html:233
+#: app/templates/provider/services.html:239
 msgid "Delete Service"
 msgstr "Service löschen"
 
-#: app/templates/provider/services.html:401
+#: app/templates/provider/services.html:439
 msgid "Edit Service"
 msgstr "Service bearbeiten"
 

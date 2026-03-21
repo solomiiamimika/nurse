@@ -87,18 +87,49 @@
             z-index: 1050;
             min-width: 300px;
         }
-        
+
         .alert {
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             border: none;
             border-radius: 8px;
+        }
+
+        /* Profile banner - normal flow, not fixed */
+        .profile-banner {
+            position: relative;
+            z-index: 1060;
+        }
+
+        /* Mobile fixes for overlapping fixed elements */
+        @media (max-width: 768px) {
+            .beta-badge { display: none !important; }
+            .language-switcher {
+                position: fixed !important;
+                top: 4px;
+                right: 4px;
+                z-index: 2000;
+            }
+            .lang-pill {
+                padding: 3px 6px;
+                font-size: 10px;
+            }
+            .lang-link { font-size: 10px; padding: 0 2px; }
+            .lang-divider { margin: 0 2px; }
+            .lang-icon { margin-right: 3px; font-size: 11px; }
+            .flashes-container { top: 50px; right: 10px; left: 10px; min-width: auto; }
+            .profile-banner {
+                font-size: 11px !important;
+                padding: 6px 10px !important;
+                padding-right: 90px !important;
+                text-align: left !important;
+            }
         }
     </style>
   </head>
 
   <body>
     <div class="ambient-background"></div>
-    <div style="position:fixed;top:18px;left:20px;z-index:2000;">
+    <div class="beta-badge" style="position:fixed;top:18px;left:20px;z-index:2000;">
       <span style="background:#3f4a36;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:1px;">BETA</span>
     </div>
     <div class="language-switcher">
@@ -115,7 +146,8 @@
     </div>
 
     {% if profile_incomplete %}
-    <div id="profileBanner" style="position:fixed;top:0;left:0;right:0;z-index:1060;background:linear-gradient(90deg,#e8f4fd,#dbeafe);border-bottom:1px solid #93c5fd;padding:10px 20px;text-align:center;font-size:13px;color:#1e40af;">
+    <div id="profileBanner" class="profile-banner" style="background:linear-gradient(90deg,#e8f4fd,#dbeafe);border-bottom:1px solid #93c5fd;padding:8px 15px;text-align:center;font-size:12px;color:#1e40af;">
+      <span class="d-md-none me-1" style="background:#3f4a36;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;letter-spacing:1px;">BETA</span>
       <i class="fas fa-info-circle me-1"></i>
       {% if 'full_name' in profile_issues and 'contact_verification' in profile_issues %}
         {{ _("Add your name and verify your email to unlock all features.") }}
@@ -124,12 +156,11 @@
       {% elif 'contact_verification' in profile_issues %}
         {{ _("Verify your email or link Telegram to get a verified badge.") }}
       {% endif %}
-      <a href="{{ url_for(current_user.role + '.profile') }}" class="ms-2 fw-semibold" style="color:#1d4ed8;">
-        {{ _("Go to Profile") }} <i class="fas fa-arrow-right" style="font-size:11px;"></i>
+      <a href="{{ url_for(current_user.role + '.profile') }}" class="ms-1 fw-semibold" style="color:#1d4ed8;font-size:12px;">
+        {{ _("Go to Profile") }} &rarr;
       </a>
-      <button onclick="document.getElementById('profileBanner').style.display='none';document.getElementById('profileSpacer').style.display='none';" class="btn-close ms-3" style="font-size:8px;vertical-align:middle;filter:invert(50%);" aria-label="Close"></button>
+      <button onclick="document.getElementById('profileBanner').style.display='none';" class="btn-close ms-2" style="font-size:7px;vertical-align:middle;filter:invert(50%);" aria-label="Close"></button>
     </div>
-    <div id="profileSpacer" style="height:40px;"></div>
     {% endif %}
 
     {% with messages = get_flashed_messages(with_categories=true) %}

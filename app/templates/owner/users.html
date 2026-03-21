@@ -55,13 +55,18 @@
                     </td>
                     <td class="text-muted small">{{ u.email }}</td>
                     <td>
-                        <select class="form-select form-select-sm" style="width:110px;"
-                                onchange="changeRole({{ u.id }}, this.value)"
-                                {% if u.is_owner or u.id == current_user.id %}disabled{% endif %}>
-                            <option value="client" {% if u.role == 'client' %}selected{% endif %}>Client</option>
-                            <option value="provider" {% if u.role == 'provider' %}selected{% endif %}>Provider</option>
-                        </select>
-                        {% if u.is_owner %}<span class="role-badge-owner ms-1">Owner</span>{% endif %}
+                        <div class="d-flex align-items-center gap-1 flex-wrap">
+                            <select class="form-select form-select-sm" style="width:110px;"
+                                    onchange="changeRole({{ u.id }}, this.value)"
+                                    {% if u.is_owner or u.id == current_user.id %}disabled{% endif %}>
+                                <option value="client" {% if u.role == 'client' %}selected{% endif %}>Client</option>
+                                <option value="provider" {% if u.role == 'provider' %}selected{% endif %}>Provider</option>
+                            </select>
+                            {% if u.is_owner %}<span class="role-badge-owner">Owner</span>{% endif %}
+                            {% if u.roles_list|length > 1 %}
+                                <span class="badge bg-info-subtle text-info" style="font-size:.65rem;">+{{ u.roles_list|length - 1 }} role</span>
+                            {% endif %}
+                        </div>
                     </td>
                     <td class="text-muted small">{{ u.created_at.strftime('%d.%m.%Y') if u.created_at else '—' }}</td>
                     <td id="verified-{{ u.id }}">

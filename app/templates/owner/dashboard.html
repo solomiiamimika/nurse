@@ -100,12 +100,11 @@
                     </td>
                     <td class="text-muted">{{ u.email }}</td>
                     <td>
-                        {% if u.is_owner %}
-                            <span class="role-badge-owner">Owner</span>
-                        {% elif u.role == 'provider' %}
-                            <span class="role-badge-provider">Provider</span>
-                        {% else %}
-                            <span class="role-badge-client">Client</span>
+                        {% if u.is_owner %}<span class="role-badge-owner">Owner</span>{% endif %}
+                        {% if 'client' in u.roles_list %}<span class="role-badge-client">Client</span>{% endif %}
+                        {% if 'provider' in u.roles_list %}<span class="role-badge-provider">Provider</span>{% endif %}
+                        {% if not u.roles_list and not u.is_owner %}
+                            <span class="role-badge-{{ u.role or 'client' }}">{{ (u.role or 'client')|capitalize }}</span>
                         {% endif %}
                     </td>
                     <td class="text-muted small">{{ u.created_at.strftime('%d.%m.%Y') if u.created_at else '—' }}</td>

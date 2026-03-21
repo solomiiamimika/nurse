@@ -59,7 +59,7 @@
         <button type="submit" class="btn-icon text-danger" title="{{ _('Exit') }}"><i class="fas fa-sign-out-alt"></i></button>
       </form>
     </div>
-    <div id="status-message" class="text-center mt-2 small fw-bold"></div>
+    <div id="status-message" class="text-center mt-1 small fw-bold" style="white-space:normal;word-wrap:break-word;max-width:100%;"></div>
   </div>
 </div>
 
@@ -311,8 +311,13 @@
               </div>
               <div class="mb-3">
                   <label class="form-label fw-bold small text-muted">{{ _("DISTRICT / NEIGHBORHOOD") }} <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control" id="reqDistrict" required
-                         placeholder="{{ _('e.g. Schwabing, Sendling, Mitte...') }}">
+                  <div class="input-group">
+                      <input type="text" class="form-control" id="reqDistrict" required
+                             placeholder="{{ _('e.g. Schwabing, Sendling, Mitte...') }}">
+                      <button type="button" class="btn btn-outline-secondary" id="detectDistrictBtn" onclick="detectDistrict()" title="{{ _('Detect my location') }}">
+                          <i class="fas fa-location-crosshairs"></i>
+                      </button>
+                  </div>
                   <div class="form-text text-muted" style="font-size:11px;">
                       <i class="fas fa-eye me-1"></i>{{ _("Providers will only see this area name, not your exact address.") }}
                   </div>
@@ -320,11 +325,17 @@
               <div class="mb-3">
                   <label class="form-label fw-bold small text-muted">{{ _("TAGS") }}</label>
                   <input type="hidden" id="reqServiceTags" value="">
-                  <div id="tagCategoryPicker">
+                  <div id="tagCategoryPicker" style="max-height:250px;overflow-y:auto;">
                     {% for cat, tags in service_tag_categories.items() %}
-                    <div class="mb-2">
-                      <div class="fw-bold small text-muted mb-1">{{ cat }}</div>
-                      <div class="d-flex flex-wrap gap-1">
+                    <div class="tag-group mb-1">
+                      <div class="tag-group-header" onclick="toggleTagGroup(this)" style="cursor:pointer;padding:6px 10px;background:#f8f9fa;border:1px solid #e5e7eb;border-radius:8px;display:flex;align-items:center;justify-content:space-between;">
+                        <span class="fw-bold small" style="color:#374151;">{{ _(cat) }}</span>
+                        <span style="display:flex;align-items:center;gap:6px;">
+                          <span class="tag-group-count badge bg-success-subtle text-success" style="font-size:10px;display:none;">0</span>
+                          <i class="fas fa-chevron-right tag-group-arrow" style="font-size:10px;color:#9ca3af;transition:transform 0.2s;"></i>
+                        </span>
+                      </div>
+                      <div class="tag-group-tags d-flex flex-wrap gap-1 mt-1" style="display:none !important;padding-left:4px;">
                         {% for tag in tags %}
                         <span class="badge tag-pill" data-tag="{{ tag }}" onclick="toggleReqTag(this)" style="cursor:pointer;background:#f0f2ec;color:#374151;border:1px solid #d1d5db;font-weight:500;font-size:11px;padding:4px 10px;border-radius:20px;">{{ tag }}</span>
                         {% endfor %}
@@ -1343,6 +1354,29 @@
       }, {enableHighAccuracy: true, timeout: 15000, maximumAge: 300000});
   }
 
+  function detectDistrict() {
+      if (!navigator.geolocation) { alert("{{ _('Geolocation not supported') }}"); return; }
+      const btn = document.getElementById('detectDistrictBtn');
+      const input = document.getElementById('reqDistrict');
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      btn.disabled = true;
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+          try {
+              const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json&zoom=16&addressdetails=1&accept-language={{ session.get('lang','en') }}`);
+              const data = await resp.json();
+              const a = data.address || {};
+              input.value = a.suburb || a.city_district || a.neighbourhood || a.city || a.town || '';
+          } catch { input.value = ''; }
+          btn.innerHTML = '<i class="fas fa-location-crosshairs"></i>';
+          btn.disabled = false;
+      }, (err) => {
+          btn.innerHTML = '<i class="fas fa-location-crosshairs"></i>';
+          btn.disabled = false;
+          if (err.code === 1) alert("{{ _('Location access denied. Please allow location access in your browser settings and try again.') }}");
+          else if (err.code === 2) alert("{{ _('Location unavailable. Please check that location services are enabled on your device and try again.') }}");
+      }, {enableHighAccuracy: true, timeout: 15000, maximumAge: 300000});
+  }
+
   window.openBookingModal = function(providerId, providerName) {
       document.getElementById('bookingProviderName').textContent = providerName;
       document.getElementById('providerIdInput').value = providerId;
@@ -1992,6 +2026,24 @@
   }
 
   // ── Tag picker logic ────────────────────────────────────
+  function toggleTagGroup(headerEl) {
+      const group = headerEl.closest('.tag-group');
+      const tagsDiv = group.querySelector('.tag-group-tags');
+      const arrow = headerEl.querySelector('.tag-group-arrow');
+      const isOpen = tagsDiv.style.display !== 'none';
+      tagsDiv.style.display = isOpen ? 'none' : 'flex';
+      arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
+  }
+
+  function updateTagGroupCounts() {
+      document.querySelectorAll('#tagCategoryPicker .tag-group').forEach(group => {
+          const count = group.querySelectorAll('.tag-active').length;
+          const badge = group.querySelector('.tag-group-count');
+          if (count > 0) { badge.textContent = count; badge.style.display = 'inline'; }
+          else { badge.style.display = 'none'; }
+      });
+  }
+
   function toggleReqTag(el) {
       const tag = el.dataset.tag;
       const isActive = el.classList.contains('tag-active');
@@ -2009,6 +2061,7 @@
       const selected = document.querySelectorAll('#tagCategoryPicker .tag-active');
       const tags = Array.from(selected).map(s => s.dataset.tag);
       document.getElementById('reqServiceTags').value = tags.join(',');
+      updateTagGroupCounts();
   }
 
   // ── Reuse Request ─────────────────────────────────────
